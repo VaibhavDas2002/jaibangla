@@ -1,0 +1,15 @@
+<?php
+
+namespace App;
+
+use Illuminate\Database\Eloquent\Model;
+
+class WPBankUnique extends Model
+{
+     public $timestamps = false;
+     public $incrementing = false;
+     protected $connection = 'pgsql13';
+     protected $table = 'ben_bank_account_no_unique';
+     protected $primaryKey = ['bank_code', 'bank_ifsc'];
+     
+}

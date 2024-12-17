@@ -1,0 +1,466 @@
+@media only screen and (max-width: 1440px) {
+  /* .about_text{margin-top:5%;} */  /*comment 11.03.2019*/
+  .about_text{margin-top:1%;}
+  /*.theme-default .nivoSlider{height:90vh;}*/
+}
+
+@media only screen and (max-width: 1366px) {
+  body{
+  font-size:16px;
+  line-height:24px;
+}
+
+  .header-right-top-left li,.header-right-top-right a,.header-right-top-left li a{font-size:12px;}
+  
+  /*.header-right-top-right li.grievance a {
+    background: url(../images/top_grievance_icon.png) 70px center no-repeat;}*/
+  
+  .header-right-top{width:100%; float:right;}
+
+   .stellarnav li a{font-size:15px;}
+   /* .about_text{margin-top: 6%;} */ /*comment 11.03.2019*/
+   .about_text{margin-top: 0%;}
+   .about_text h2{font-size: 16px;}
+   .about_text h2 span{font-size:24px;}
+   
+   .quick_links h3{font-size:32px;}
+   .quick_links_con h4{font-size:20px;}
+   
+   .gallery_section h2{font-size:36px;}
+   
+   .report_right h2 {
+    color: #00a65a;
+    font-family: 'robotoblack';
+    font-size: 60px;
+}
+/*.theme-default .nivoSlider{height:55vh;}*/
+}
+
+
+@media only screen and (max-width: 1280px) {
+   .stellarnav li a{font-size:15px;}
+   .about_text{margin-top: 16px;}
+   .header-right-top {width: 100%;}
+   .stellarnav > ul > li > a {padding: 13px 12px;}
+   .header-right-top-right {
+    width: 25%;
+}
+.theme-default .nivoSlider{height:400px;}
+.stellarnav > ul > li > a {
+    padding: 13px 5px; /*manisha 8.1.2018*/
+}
+.stellarnav li a {
+    font-size: 14px;
+}  /*manisha 8.1.2018*/
+.logo a h1 {
+    font-size: 24px;
+    letter-spacing: 5px;
+}
+.logo a h1 span {
+    font-size: 15px;
+}
+} /*manisha 8.1.2018*/
+@media only screen and (max-width: 1199px) {
+.stellarnav > ul > li > a {
+    padding: 13px 4px;
+}
+.stellarnav li a {
+    font-size: 12px;
+}
+.footer_text {
+    margin: 35px 0 23px;
+}
+.about_cm_img {
+    margin-top: 00px;
+}
+} /*manisha 9.1.2018*/
+@media only screen and (max-width: 1199px) {
+    .logo a {
+      
+display: block;
+      
+padding-left: 16%;
+      
+text-transform: uppercase;
+      
+padding-bottom: 52px;
+      
+padding-top: 0px;
+      
+margin-left: 0px;
+      
+position: relative;
+      
+top: -30px;
+  }
+  .logo a h1 {
+      font-size: 22px;
+      letter-spacing: 3px;
+      line-height: 30px;
+  }
+  .about_text {
+      margin-top: 0px;
+  }
+}
+@media only screen and (max-width: 1080px) {
+  .logo a{padding-left: 16%;padding-bottom: 20px;padding-top: 42px;}
+  .logo a h1 {font-size: 22px;letter-spacing: 3px;margin-top: 10px;top: 0px;line-height: 26px;}
+   .logo a h1 span {font-size: 15px;letter-spacing: 3px;}
+   .header-right-top-left{ width:100%; text-align:right; margin-top:5px;}
+   .header-right-top-left li{ float:none; display:inline-block;}
+   .header-right-top-left li:last-child{margin-right:0;}
+   .header-right-top-left li:last-child:after{margin-left:0;}
+   .header-right-top-right{ width:100%; text-align:right;}
+   .stellarnav li a {
+    font-size: 12px;
+}
+.header-top-right{margin-bottom:6px;} 
+.stellarnav > ul > li > a {
+    padding: 3px 2px;
+}
+.stellarnav ul{ text-align:left;}
+.header-right-top{margin-bottom:0;}
+.header-right-top-right .navbar-nav > li > a{
+    padding-top: 13px;
+    padding-bottom: 13px;
+}
+.about_img img{position:absolute; bottom:0;/* max-width:40%;*/}
+.about_text{font-size:14px; line-height:20px; margin-bottom:20px;}
+
+.footer_text{border:0;}
+.file-upload-input {
+    width: 68% !important;
+  }
+  .file-upload-button { padding:9px 20px;}
+  
+  .notice_sec_content{padding:15px;}
+  .quick_links_con{min-height:195px;}
+  .theme-default .nivoSlider{height:320px;}
+} /*manisha 8.1.2018*/
+@media only screen and (max-width : 997px) {
+.stellarnav > ul > li > a {
+    padding: 3px 4px;
+}
+.stellarnav li a {
+    font-size: 11px;
+}
+} /*manisha 8.1.2018*/
+@media only screen and (max-width : 991px) {
+.logo a{
+background-size: 16%;
+padding-left: 18%;
+padding-bottom: 40px;
+padding-top: 40px;
+}
+.stellarnav > ul > li > a {
+    padding: 3px 8px;
+}
+.stellarnav li a {
+    font-size: 14px;
+}
+.theme-default .nivoSlider {height: 314px;}
+.nomination_essay h2 a {font-size: 15px;}
+.main_logo {width: 60%; float: none; text-align: center; margin: 15px auto;}  /*17.1.2019*/
+h3.popup_heading {font-size: 18px; padding: 0px;}
+h2.popup_heading {font-size: 38px;}
+} /*manisha 8.1.2018*/
+@media only screen and (max-width : 850px) {
+.stellarnav > ul > li > a {
+    padding: 3px 6px;
+}
+.stellarnav li a {
+    font-size: 13px;
+}
+
+} /*manisha 8.1.2018*/
+@media only screen and (max-width: 768px) {
+ .logo a{padding-left: 16%;padding-bottom: 40px;padding-top: 24px;}
+ .logo a h1 {font-size: 22px;letter-spacing: 3px;line-height: 30px;top: 18px;}
+   .logo a h1 span {font-size: 14px;letter-spacing: 3px;}
+ .header-right-top{display:none;}
+ .header-right-top-right{}
+ .mobile_login_section{display:block;padding:0 15px;width:100%;float:left;}
+ .mobile_login_section ul{margin-bottom:0;}
+ .header-right-top-right li{display:inline-block;}
+ .header-right-top-right li a.login, .header-right-top-right li a.contact{display:inline-block; padding:10px 0 10px 35px;}
+ .header-top-right{  margin-bottom:0;}
+ .stellarnav.dark .menu-toggle, .stellarnav.dark .call-btn-mobile, .stellarnav.dark .location-btn-mobile { color: rgba(99, 167, 67, 1); }
+ .nav-section{border-top:#63a743 1px solid;}
+ .stellarnav li a{color:#fff;}
+ .stellarnav.mobile.dark ul {
+    background: rgba(99, 167, 67, 1);
+}
+/*.nivo-caption{top:12%;}*/
+.about_text{width:95%; margin-bottom:25px;}
+.about_img{display:none;}
+.about_img_mobile{
+    display:block!important;
+    width: 40%;
+    margin: 0 auto;
+    margin-bottom: 10px;
+}
+.footer_text{display:block;}
+.theme-default .nivo-directionNav a{width:30px; height:30px; background-size:cover;}
+.theme-default a.nivo-nextNav {
+    background-position: -30px 0;
+}
+.theme-default a.nivo-prevNav {
+    right: 30px;
+}
+.file-upload-input {
+    width: 58% !important;
+}
+.theme-default .nivoSlider{height:240px;}
+
+.desktop_slider{display:none;}
+.responsive_slider{display:block;}
+.theme-default .nivoSlider{height:auto;}
+a.student_dashboard_logout{float:none; margin:0;}
+.about_text p {
+    font-size: 14px;
+    line-height: 23px;
+}
+
+}
+
+@media only screen and (max-width: 767px) {
+ .nivo-caption{/*top:20%;*/ padding:10px; width:50%;}
+ .nivo-caption h3{font-size:18px; margin-bottom:5px;}
+ .nivo-caption p{margin:0; padding:0;}
+ .footer_copy, .footer_nav, .designed_by{clear:both;}
+ 
+ .form-holder{margin-bottom:0;}
+.form-left{width:100% !important; margin-top:10px;}
+.form-right{width:100% !important; margin-top:10px;}
+.file-upload-input {
+    width: 100% !important;
+}
+.file-upload-button{width:100%;}
+.submit-btn button[type="submit"]{width:100%;}
+.tender_section{width:100%;}
+.tender_wrap_left{width:80%; font-size:14px;}
+.tender_wrap_right{width:20%;}
+
+.tender_award_wrap_left{width:78%; font-size:14px;}
+.tender_award_wrap_midd{width:11%; font-size:14px; padding-left:0; padding-right:0;}
+.tender_award_wrap_right{width:11%; font-size:14px; padding-left:0; padding-right:0;}
+
+.communications_wrap_left{width:20%; float:left; font-size:12px; padding:10px;}
+.communications_wrap_midd{width:70%; float:left; font-size:12px; padding:10px;}
+.communications_wrap_right{width:10%; float:right; text-align:center; padding:0px; padding-top:8px;}
+
+.submit_school_record_btn{width:100%;}
+
+.notice_sec_content{margin-bottom:15px;}
+
+.answer, .supporting_doc{margin-bottom:15px;}
+.notice_sec_content{padding-left:15px;}
+.nic_logo,.site_visitor{ width:100%; text-align:center; margin:5px 0;}
+.form_school_record_wrap{width:100%;}
+.submit-btn [type="submit"]{width:100%; padding:5px 0;}
+.theme-default .nivoSlider{height:400px;}
+.student_dashboard{width:100%;}
+.nomination_panel{margin-bottom:25px; border-right:0;}
+.nomination_panel:last-child{margin-bottom:0;}
+.nomination_essay h2 a {font-size: 20px;}
+
+h3.popup_heading {
+    font-size: 18px;
+    padding: 0px 35px;
+}  /*17.1.2019*/
+}
+
+@media only screen and (max-width: 640px) {
+   .logo a{background-size: 19%;padding-left: 18%;top: -18px;}
+   .logo a h1 {font-size: 18px;letter-spacing: 1px;line-height: 24px;top: 15px;}
+   .logo a h1 span{font-size: 12px;letter-spacing: 1.5px;}
+   .nomination_essay {
+    width: 100%;
+    float: left;
+    padding: 6px 0 10px;}
+   .nomination_essay h1 a {font-size: 24px;}
+   .nomination_essay h2 {margin: 10px 0;}
+   .nomination_panel{margin-bottom:10px;}
+   .nomination_essay h2 a {font-size: 16px;}
+   
+   h3.popup_heading {font-size: 15px;}  /*17.1.2019*/
+   h2.popup_heading {font-size: 32px;}  /*17.1.2019*/
+
+  .about_text h2 {
+      font-size: 18px;
+      line-height: 22px;
+  }
+  .about_text h2 span {
+      font-size: 22px;
+  }
+  .quick_links_con {
+      min-height: unset;
+      margin-bottom: 20px;
+  }
+  .quick_links_con img {
+      width: 35px;
+  }
+  .quick_links_con img:hover {
+      width: 40px;
+  }
+  .quick_links h3 {
+      font-size: 25px;
+      margin-bottom: 20px;
+      margin-top: 4px;
+  }
+  .left-logo{
+    left:0px;
+  }
+  .logo2{
+        margin-top: 15px;
+        position: relative;
+        left: 0px;
+    }
+}
+
+@media only screen and (max-width: 480px) {
+    .about_img_mobile{
+    display:block!important;
+    width: 60%;
+    margin: 0 auto;
+    margin-bottom: 10px;
+}
+   .about_text h2 span{display:block;}
+   .logo a{padding-left: 18%;}
+    .nivo-caption{/*top:10%;*/ padding:10px; width:55%;}
+  .nivo-caption p{font-size:12px; line-height:16px;}
+  .content-wrapper h2{font-size:24px;}
+  .content-wrapper h2 a.abt_download_btn{font-size:20px;}
+  .theme-default .nivoSlider{height:300px;}
+  .capcha_img{float:left; width:30%;}
+  .capcha_refresh{float:left; width:10%; text-align:center; padding-top:10px;}
+  .capcha_textBox{float:left; width:60%;}
+  .pageload-modal .modal_close_btn {top: -7px; right: -9px; width: 30px; height: 30px; line-height: 30px;}
+  .nomination_panel {margin-bottom: 0;}
+  
+  h3.popup_heading {font-size: 13px; padding: 0; line-height: 26px;}  /*17.1.2019*/
+  h2.popup_heading {font-size: 28px;}  /*17.1.2019*/
+  .popup_btn{font-size:14px;}  /*17.1.2019*/
+  .about_text {
+      width: 100%;
+      margin-bottom: 25px;
+      margin-top: 10px;
+  }
+  .about_text a.read {
+    font-size: 16px;
+  }
+  .logo a h1 span {
+    font-size: 11px;
+    letter-spacing: 1px;
+}
+
+  .logo a {
+    padding-top: 0;
+    top: 0px;
+}
+  .logo a h1 {
+    font-size: 14px;
+    letter-spacing: 1px;
+    line-height: 24px;
+    top: 24px;
+    margin-top: -5px;
+}
+  .about_text h2 {
+    font-size: 15px;
+    line-height: 20px;
+}
+  .e-smadhan{
+    display:inline-block!important;
+    margin-left:5px;
+    width:100px;
+}
+
+}
+@media only screen and (max-width: 400px){
+  .logo a h1 {
+        font-size: 14px;
+        letter-spacing: 1px;
+        line-height: 19px;
+        top: 30px;
+    }
+      .logo a h1 span {
+        font-size: 11px;
+        letter-spacing: 0px;
+    }
+}
+
+
+@media only screen and (max-width: 385px) {
+  .logo a{padding-left: 18%;padding-bottom: 20px;padding-top: 20px;top: 0px;}
+  .logo a h1 {font-size: 15px;letter-spacing: 0px;top: 10px;}
+   .logo a h1 span {font-size: 11px;letter-spacing: 2px;}
+   .nivo-caption{/*top:0%;*/ padding:10px; width:65%;}
+   .nivo-caption h3{font-size:16px;}
+  .nivo-caption p{font-size:12px; line-height:16px;}
+  .content-wrapper h2{font-size:20px;}
+  .content-wrapper h2 a.abt_download_btn{font-size:20px;}
+  .theme-default .nivoSlider{height:250px;}
+  .nomination_essay h1 a {font-size: 20px;}
+  .nomination_essay h1 {line-height: 22px;}
+  .modal{z-index: 99999999;}
+  .nomination_essay h2 a {font-size: 12px;}
+  
+  .main_logo {width: 75%;}  /*17.1.2019*/
+  h2.popup_heading {font-size: 22px;}  /*17.1.2019*/
+  h3.popup_heading {font-size: 12px;}  /*17.1.2019*/
+  .main_logo {width: 80%;}  /*17.1.2019*/
+  .logo a h1 span {
+        font-size: 11px;
+        letter-spacing: 0px;
+    }
+}
+@media only screen and (max-width: 354px){
+  .logo a h1 {
+      font-size: 14px;
+      letter-spacing: 0px;
+      top: 10px;
+  }
+  .header-right-top-left li {font-size:12px;}
+  .header-right-top-left li {
+      margin-right: 5px;
+  }
+}
+@media only screen and (max-width: 336px) {
+    .logo a h1 {
+        font-size: 14px;
+        letter-spacing: 0px;
+        top: 9px;
+        line-height: 16px;
+    }
+    .logo a h1 span {
+        font-size: 10px;
+        letter-spacing: 0px;
+    }
+}
+@media only screen and (max-width: 330px) {
+  .about_text h2 {
+      font-size: 14px;
+  }
+}
+@media only screen and (max-width: 320px) {
+   .logo a{padding-left: 17%;padding-bottom: 12px;padding-top: 0px;}
+  
+   .logo a h1 {
+    font-size: 13px;
+    letter-spacing: 0px;
+    top: 14px;
+    line-height: 18px;
+    margin-top: 8px;
+}
+   .logo a h1 span {
+    font-size: 10px;
+    letter-spacing: 0px;
+    position: relative;
+    top: 0;
+}
+   .nivo-caption{/*top:0%;*/ padding:5px; width:70%;}
+   .nivo-caption h3{font-size:14px;}
+  .nivo-caption p{font-size:12px; line-height:14px;}
+  .theme-default .nivoSlider{height:230px;}
+  .header-right-top-left li {font-size:11px; margin-right: 0px;}
+}

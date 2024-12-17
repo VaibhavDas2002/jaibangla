@@ -1,0 +1,44 @@
+<IfModule mod_rewrite.c>
+    <IfModule mod_negotiation.c>
+        Options -MultiViews
+    </IfModule>
+
+    RewriteEngine On
+    DirectoryIndex index.php # This line does the trick
+   
+
+    # Redirect Trailing Slashes If Not A Folder...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)/$ /$1 [L,R=301]
+
+    # Handle Front Controller...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.php [L]
+
+    # Handle Authorization Header
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    
+</IfModule>
+
+<IfModule mod_headers.c>
+	Header set X-XSS-Protection "1; mode=block"
+	Header set X-FRAME-OPTIONS "SAMEORIGIN"
+	Header set X-Content-Type-Options nosniff
+	Header set Strict-Transport-Security "max-age=10886400; includeSubDomains; preload"
+	#Header set Set-Cookie ^(.*)$ $1;Secure;HttpOnly
+	Header set Referrer-Policy "strict-origin-when-cross-origin"
+	Header always set Permissions-Policy "geolocation=(none); midi=(none);notifications=(none);push=(none);sync-xhr=(none);accelerometer=(none); gyroscope=(none); magnetometer=(none); payment=(none); camera=(none); microphone=(none);usb=(none); xr=(none);speaker=(self);vibrate=(none);fullscreen=(self);"
+	Header set Cache-Control "no-cache, no-store, must-revalidate, pre-check=0"
+	Header set Pragma "no-cache"
+	Header set Expires 0
+	Header set Expect-CT "max-age=3600, enforce"
+	Header set Cross-Origin-Embedder-Policy "same-origin"
+	Header set Cross-Origin-Opener-Policy "same-origin"
+	Header set Cross-Origin-Resource-Policy "same-origin"
+	Header set Server "Unknown Server"
+</IfModule>
+
+

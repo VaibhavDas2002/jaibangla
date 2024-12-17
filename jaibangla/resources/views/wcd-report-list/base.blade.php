@@ -1,0 +1,18 @@
+
+@extends('layouts.app-template-datatable')
+@section('content')
+  <div class="content-wrapper">
+    <section class="content-header">
+      <h1>
+      @if(isset($scheme_name))
+        Scheme Name: {{$scheme_name}} 
+      @endif  
+      </h1>
+      <ol class="breadcrumb">
+        <li><a href="#"><i class="fa fa-clock-o"></i><b> Date: </b></a></li>
+        <li class="active"><span id='ct' ></span></li>
+      </ol>
+    </section>
+    @yield('action-content')
+  </div>
+@endsection

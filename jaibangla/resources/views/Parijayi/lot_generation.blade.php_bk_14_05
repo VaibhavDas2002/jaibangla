@@ -1,0 +1,917 @@
+<style type="text/css">
+    .full-width{
+      width:100%!important;
+    }
+  .bg-blue{
+    background-image: linear-gradient(to right top, #0073b7, #0086c0, #0097c5, #00a8c6, #00b8c4)!important;
+  }
+  .bg-red{
+    /*background-image: linear-gradient(to right bottom, #dd4b39, #db4546, #d74052, #d13d5e, #c93d68)!important;*/
+  /* background-image: linear-gradient(to right bottom, #dd4b39, #e65347, #ef5b55, #f76463, #ff6d71)!important;*/
+  background-image: linear-gradient(to right bottom, #dd4b39, #ec6f65, #d21a13, #de0d0b, #f3060d)!important;
+  }
+  .bg-yellow{
+    background-image: linear-gradient(to right bottom, #dd4b39, #e65f31, #ed7328, #f1881e, #f39c12)!important;
+  }
+  .bg-green{
+  /*background-image: linear-gradient(to right bottom, #00837d, #008d7b, #009674, #009e69, #00a65a)!important;*/
+  background-image: linear-gradient(to right bottom, #04736d, #008f73, #00ab6a, #00c44f, #5ddc0c)!important;
+  }
+
+  .bg-verify{
+    background-image: linear-gradient(to right top, #f39c12, #f8b005, #fac400, #fad902, #f8ee15)!important;
+  }
+  .info-box {
+      display: block;
+      min-height: 90px;
+      background: #b6d0ca33!important;
+      width: 100%;
+      box-shadow: 0px 0px 15px 0px rgba(0, 0, 0, 0.30)!important;
+      border-radius: 2px;
+      margin-bottom: 15px;
+  }
+  .small-box .icon{
+    margin-top: 7%;
+  }
+  .small-box>.inner {
+      padding: 10px;
+      color: white;
+  }
+
+  .small-box p {
+      font-size: 18px!important;
+  }
+  .select2 .select2-container{
+    /*//width:100%!important;*/
+  } 
+
+  .link-button {
+    background: none;
+    border: none;
+    color: blue;
+    text-decoration: underline;
+    cursor: pointer;
+    font-size: 1em;
+    font-family: serif;
+  }
+  .link-button:focus {
+    outline: none;
+  }
+  .link-button:active {
+    color:red;
+  }
+  .small-box-footer-custom{
+    position: relative;
+      text-align: center;
+      padding: 3px 0;
+      color: #fff;
+      color: rgba(255,255,255,0.8);
+      display: block;
+      z-index: 10;
+      background: rgba(0,0,0,0.1);
+      text-decoration: none;
+      font-family: 'Source Sans Pro','Helvetica Neue',Helvetica,Arial,sans-serif;
+      font-weight: 400;
+      width:100%;
+  }
+  .small-box-footer-custom:hover {
+      color: #fff;
+      background: rgba(0,0,0,0.15);
+  }
+  th.sorting::after,
+  th.sorting_asc::after,
+  th.sorting_desc::after {
+    content:"" !important;
+  }
+  .errorField{
+      border-color: #990000;
+    }
+    .searchPosition{
+      margin:70px;
+    }
+    .submitPosition{
+      margin: 25px 0px 0px 0px;
+    }
+
+    
+    .typeahead { border: 2px solid #FFF;border-radius: 4px;padding: 8px 12px;max-width: 300px;min-width: 290px;background: rgba(66, 52, 52, 0.5);color: #FFF;}
+    .tt-menu { width:300px; }
+    ul.typeahead{margin:0px;padding:10px 0px;}
+    ul.typeahead.dropdown-menu li a {padding: 10px !important;  border-bottom:#CCC 1px solid;color:#FFF;}
+    ul.typeahead.dropdown-menu li:last-child a { border-bottom:0px !important; }
+    .bgcolor {max-width: 550px;min-width: 290px;max-height:340px;background:url("world-contries.jpg") no-repeat center center;padding: 100px 10px 130px;border-radius:4px;text-align:center;margin:10px;}
+    .demo-label {font-size:1.5em;color: #686868;font-weight: 500;color:#FFF;}
+    .dropdown-menu>.active>a, .dropdown-menu>.active>a:focus, .dropdown-menu>.active>a:hover {
+      text-decoration: none;
+      background-color: #1f3f41;
+      outline: 0;
+    }
+    table.dataTable thead{
+      padding-right: 20px;
+    }
+    table.dataTable thead > tr > th{
+      padding-right: 20px;
+    }
+    table.dataTable thead th{
+      padding: 10px 18px 10px 18px;
+      white-space: nowrap;
+      border-right: 1px solid #dddddd;
+    }
+    table.dataTable tfoot th{
+      padding: 10px 18px 10px 18px;
+      white-space: nowrap;
+      border-right: 1px solid #dddddd;
+    }
+    table.dataTable tbody td {
+      padding: 10px 18px 10px 18px;
+      border-right: 1px solid #dddddd;
+      white-space: nowrap;
+      -webkit-box-sizing: content-box;
+      -moz-box-sizing: content-box;
+      box-sizing: content-box;
+    }
+    .criteria1{
+      text-transform: uppercase;
+      font-weight: bold;
+    }
+    .item_header{
+			font-weight: bold;
+		}
+    #example_length{
+      margin-left: 40%;
+      margin-top: 2px;
+    }
+    @keyframes spinner {
+    to {transform: rotate(360deg);}
+  }
+  
+  .spinner:before {
+    content: '';
+    box-sizing: border-box;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin-top: -10px;
+    margin-left: -10px;
+    border-radius: 50%;
+    border: 2px solid #ccc;
+    border-top-color: #333;
+    animation: spinner .6s linear infinite;
+  }
+  @media print {
+    body * {
+        visibility: hidden;
+    }
+    #ben_view_modal #ben_view_modal * {
+        visibility: visible;
+    }
+		#ben_view_modal{
+			position:absolute;
+    		left:0;
+    		top:0;
+		}
+		[class*="col-md-"] {
+			float: none;
+			display:table-cell;
+		}
+
+		[class*="col-lg-"] {
+			float: none;
+			display:table-cell;
+		}
+		.pagebreak { page-break-before: always; } /* page-break-after works, as well */
+	}
+  </style>
+
+  @extends('Parijayi.base')
+  @section('action-content')
+
+	<!-- Main content -->
+	<section class="content">
+	<div class="box">
+        <div class="box-header" style="margin-left: 10px;">
+			<div class="row">                   
+				{{-- New Lot  --}}
+			@if($lot_details->lot_no == "")
+			  <div class=" col-md-3 panel panel-success">
+				{{-- <div class="col-md-12 text-center panel-heading"><h4 style="font-weight: bold">Current Lot</h4></div> --}}
+				<div  class="col-md-12 panel-body">
+				  <ul class="list-group list-group-flush lot_block">
+					  <li class="list-group-item label label-success"> 
+						<h4 style=" font-weight: bold" id="lot_header_new">New LOT</h4>
+					  </li>
+					  <li class="list-group-item">
+						  <h5 id="lot_body_new"><span style="color: darkorange; font-weight: bold">Click below button</span></h5>
+					  </li>	
+					  <form action="{{ url('parijayi_new_lot') }}" method="POST">
+						{{ csrf_field() }}
+						<input type="hidden" id="_token" value="{{ csrf_token() }}"/>
+					  <li class="list-group-item text-center">
+						<button type="submit" style="width: 100%;" class=" btn btn-primary" id="generate_lot"> Create New LOT</button>
+					  </li>
+					  </form>
+				  </ul>
+				</div>
+			  </div>
+			@else  
+			  {{-- Lot With Data --}}
+			  	<div class=" col-md-3 panel panel-success">
+					{{-- <div class="col-md-12 text-center panel-heading"><h4 style="font-weight: bold">Current Lot</h4></div>   --}}
+					<div  class="col-md-12 panel-body">
+						<ul class="list-group list-group-flush lot_block" id="gen_lot_ul">
+							<li class="list-group-item label label-success"> 
+								<h4 style=" font-weight: bold" id="lot_header">LOT # {{$lot_details->lot_no}}</h4> <!-- LOT #3546 -->
+							</li>
+							<li class="list-group-item">
+								<h5 id="lot_body"><span style="color: firebrick; font-weight: bold">Max Size: </span><span class=" badge " >20,000</span>
+								<h5 id="lot_body"><span style="color: firebrick; font-weight: bold">Current Size: </span><span class=" badge " id="lot_size_lebel">{{$lot_details->ben_count}}</span>
+							</li>
+							<form action="{{ url('parijayi_process_lot') }}" method="POST">
+								{{ csrf_field() }}
+								<input type="hidden" id="_token" value="{{ csrf_token() }}"/>
+								<input type="hidden" id="lot_no" name="lot_no" value="{{$lot_details->lot_no}}" />
+							<li class="list-group-item text-center">
+								<button type="submit" style="width: 100%;" class=" btn btn-warning" id="process_lot"> Process LOT</button>
+							</li>
+							</form>
+						</ul>
+						<div class="col-md-12 text-center" id="loaderdiv_gen" hidden>
+							<ul class="list-group list-group-flush lot_block">
+								<li class="list-group-item">
+									<img src="{{ asset('images/lot.gif') }}" width="150px" height="50px"/>
+									<img src="{{ asset('images/generate.gif') }}" width="200px" height="50px"/>
+									<img src="{{ asset('images/ZKZg.gif') }}" width="60px" height="60px"/>
+								</li>
+							</ul>
+						</div>
+					</div>
+				</div>
+			@endif
+			@if(count($old_lots) > 0)
+				<div class="col-md-7 col-md-offset-1" style="border: 1px;">	
+					<div class="row panel panel-success">
+						{{-- <div class="col-md-12 text-center panel-heading"><h4 style="font-weight: bold">Already generated Lot</h4></div> --}}
+						<div class="col-md-12 panel-body">
+							@foreach($old_lots as $old_lot)
+							<div class="col-md-4">
+								<ul class="list-group list-group-flush">
+									<li class="list-group-item">
+										<span class="item_header">Lot # </span> <span class="item_value">{{$old_lot->lot_no}}</span><br/>
+										<span class="item_header">Size </span> <span class="item_value">{{$old_lot->ben_count}}</span><br/>
+										{{-- <span class="item_header">Generated On: </span><span class="item_value">{{$old_lot->updated_at}}</span><br/> --}}
+										<a href="{{url('/').'/SP/'.$old_lot->file_name}}" target="_blank"><span class="item_header">Click to download</span></a> 
+									</li>
+								</ul>
+							</div>
+							@endforeach
+						</div>
+					</div>
+				</div>
+			@endif		
+			</div>
+		</div>
+        <div class="box-body" >
+			<!-- @if($total_ben > 0)
+			<div class="col-md-12" style="background-color:goldenrod">
+				<h4><b>Total Payment Mandate Generated as on {{date("d/m/Y")}} using this portal: Rs. {{$total_ben}},000</b></h4>
+			</div>
+			@endif -->
+			<div class="col-md-12" style="background-color: lightgray">
+				<div class="row">
+					<div class="col-md-12">
+						<h4><u>Filter Parameters: </u></h4>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-4">
+						<label class="input-group-addon">District: </label> 
+						<select id="district" class="form-control select2 full-width">
+							<option value="">All</option>
+							@foreach ($districts as $district)
+								<option value="{{$district->district_code}}">{{$district->district_name}}</option>
+							@endforeach
+						</select>
+					</div>
+					<div class="col-md-3">
+						<label class="input-group-addon">Rural/Urban: </label>  
+						<select id="urban_rural" class="form-control select2 full-width">
+							<option value="">All</option>
+							@foreach(Config::get('constants.rural_urban') as $key=>$val)
+							<option value="{{$key}}" @if( old('urban_rural') == $key)  selected  @endif >{{$val}}</option>
+							@endforeach     
+						</select>
+					</div>
+					<div class="col-md-5">
+						<label class="input-group-addon">Block/Municipality:  </label>
+						<select id="localbody" name="localbody" class="form-control select2 full-width">
+							<option value="">All</option>
+						</select>
+					</div>
+				</div>
+				<div class="row">
+					{{-- <div class="col-md-7">
+						Date Range -From Date:  
+						<input type="text" id="from_date"/>
+						Upto Date:   
+						<input type="text" id="upto_date">
+						
+					</div> --}}
+				</div>
+				<div class="row"><div class="col-md-12"><button class="btn btn-primary" id="filter">Filter Records</button></div></div>
+			</div>   
+					         
+			<div class="col-md-12">
+				<h2><span class="label label-info">Select beneficiary to add in lot</span></h2>
+			</div>  
+			<div class="col-md-offset-5 col-md-3">
+				@if($app_type == 'F')
+					<h4><span class="label label-primary">Fresh Applications</span></h4>
+				@elseif ($app_type == 'A' || $app_type == 'L')
+					<h4><span class="label label-success">Approved Applications</span></h4>
+				@elseif ($app_type == 'R')
+					<h4><span class="label label-danger">Rejected Applications</span></h4>
+				@endif
+
+			</div>
+			<div class="col-md-offset-1 col-md-3 btn-group" role="group" >
+				@if($lot_details->lot_no == "")
+					<h4><span class="label label-warning">Please Create a Lot before proceed</span></h4>
+				@else
+				<input type="hidden" id="lot_number" value="{{$lot_details->lot_no}}"/>
+				<button class="btn btn-success clsbulk" id="bulk_addtoLot" disabled>Add Beneficiaries to Lot</button>
+				{{-- <button class="btn btn-danger" id="bulk_reject" disabled>Reject Selected Beneficiaries</button> --}}
+				@endif
+			</div>
+			<div class="col-md-12 text-center" id="loaderdiv" hidden>
+				<img src="{{ asset('images/ZKZg.gif') }}" width="100px" height="100px"/>
+			</div>
+			<div class="col-md-12" id="reportbody" style="margin-top: 2%;">
+			<table id="example" class="display" cellspacing="0" width="100%">
+				<input type="hidden" name="_token" id="token" value="{{ csrf_token() }}">
+				<thead>
+					<tr role="row">
+					  <!-- <th width="26%" class="sorting_asc" tabindex="0" aria-controls="example2" rowspan="1" colspan="1" aria-label="Name: activate to sort column descending" aria-sort="ascending">Employee Code</th> -->
+					  <td width="3%" class="text-right">
+						<input type="checkbox" id="select_all" name="select_all" onchange="document.getElementById('bulk_addtoLot').disabled = !this.checked;">
+					  </td>
+	
+					  <th width="8%" class="text-left">Beneficiary ID</th>
+					  <th width="26%" class="text-left">Beneficiary Name</th>
+					  <th width="9%" class="text-left">DOB</th>     
+					  <th width="4%" class="text-left">Gender</th>
+					  <th width="10%" class="text-left">Mobile No</th>
+					  <th width="10%" class="text-left">Aadhar No</th>
+					  <th width="12%">Voter Id</th>
+					  <th width="4%" class="text-left">Status</th>     
+							  <th width="14%">Action</th>  
+							  <th>Fathers Name</th>
+					  <th>Family Mobile No</th>
+							  <th>District</th>
+							  <th>Block</th>
+							  <th>Municipality</th>
+							  <th>Address</th>
+							  <th>PinCode</th> 
+							  <th>Record Verified (Y/N)</th>
+				  </tr>
+			  </thead>
+			  <tfoot>
+				  <tr>
+					<th width="3%" class="text-left">
+					  <input type="checkbox" id="select_all" name="select_all disabled">
+					</th>
+					<th width="8%" class="text-left">Beneficiary ID</th>
+					<th width="26%" class="text-left">Beneficiary Name</th>
+					<th width="9%" class="text-left">DOB</th>     
+					<th width="4%" class="text-left">Gender</th>
+					<th width="16%" class="text-left">Mobile No</th>
+					<th width="16%" class="text-left">Aadhar No</th>
+					<th width="12%" class="text-left">Voter Id</th>
+					<th width="4%" class="text-left">Status</th>     
+					<th width="14%">Action</th>  
+					<th>Fathers Name</th>
+					<th>Family Mobile No</th>
+					<th>District</th>
+					<th>Block</th>
+					<th>Municipality</th>
+					<th>Address</th>
+					<th>PinCode</th> 
+					<th>Record Verified (Y/N)</th>
+				  </tr>
+			  </tfoot>  
+				
+			</table>  
+      		<div class="row">  
+              <div class="col-sm-7">
+                <div class="dataTables_paginate paging_simple_numbers" id="example2_paginate">
+                  
+                </div>
+              </div>
+        	</div>  
+        </div>
+	</div>
+    <!--   </div> -->
+	</section>
+      <!-- /.content -->
+    </div>
+	
+		<!-- View Modal -->
+		<div class="modal fade" id="ben_view_modal" tabindex="-1">
+			<div class="modal-dialog modal-lg" id="printArea">
+			  <div class="modal-content">
+				<div class="modal-header">
+				  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				  </button>
+				  <h4 class="modal-title">Beneficiay Detail View</h4>
+				</div>
+				<div class="modal-body">
+				  <div class="row">
+					<div class="col-md-3 text-center">
+					  <img src="{{ asset('upload/img_avatar.png') }}" id="profile_pic" alt="" width="150px" height="150px" />
+					  <br/><br/><span class="label label-success" style="font-size:13px;"><b>Beneficiary ID:</b></span><br/><br/> <span class=" badge item_value" id="view_ben_id"></span>
+					</div>
+					<div class="col-md-8 panel panel-info">
+						<div class="row panel-heading">
+						  <div class="col-md-12"><h4>Personal Details</h4></div>
+						</div>
+						<div class="row penel-body">
+						  <div class="col-md-12"><span class="item_header">Full Name: </span>
+						  <span class="item_value" id="ben_name"></span></div>
+						</div>
+						<div class="row">
+						  <div class="col-md-12"><span class="item_header">Fathers Name: </span>
+						  <span class="item_value" id="benf_name"></span></div>
+						</div>
+						<div class="row">
+						  <div class="col-md-5"><span class="item_header">Date of Birth: </span>
+							<span class="item_value" id="ben_dob"></span></div>
+						  <div class="col-md-7"><span class="item_header">Gender: </span>
+							<span class="item_value" id="ben_gender"></span></div>
+						</div>
+						<div class="row">
+						  <div class="col-md-5"><span class="item_header">Latitude: </span>
+							<span class="item_value" id="ben_lat"></span></div>
+						  <div class="col-md-7"><span class="item_header">Longitude: </span>
+							<span class="item_value" id="ben_long"></span></div>                    
+						</div>
+						<div class="row">
+						  <div class="col-md-12"><span class="item_header">State: </span>
+							<span class="item_value" id="ben_state"></span></div>
+						</div>
+						<div class="row"> 
+						  <div class="col-md-12"><span class="item_header">District: </span>
+							<span class="item_value" id="ben_dist"></span></div>                    
+						</div>
+						<div class="row">
+						  <div class="col-md-5"><span class="item_header">Rural/Urban: </span>
+							<span class="item_value" id="ben_type"></span></div>
+						  <div class="col-md-7"><span class="item_header">Block/Municipality: </span>
+							<span class="item_value" id="ben_block"></span></div>                   
+						</div>
+						<div class="row">
+						  <div class="col-md-5"><span class="item_header">Pincode: </span>
+						  <span class="item_value" id="ben_pin"></span></div>
+						  <div class="col-md-7"><span class="item_header">GP/Ward: </span>
+							<span class="item_value" id="ben_gp"></span></div>                
+						</div>
+						<div class="row">
+						  <div class="col-md-12"><span class="item_header">Address Line 1: </span>
+							<span class="item_value" id="ben_addr"></span></div>
+	  
+						</div>
+					</div>
+				  </div>
+				  <div class="row">
+					<hr/>
+				  </div>
+				  <div class="row">
+					<div class="col-md-3">
+					  <span class="item_header">Mobile No:</span> <span class="item_value" id="ben_mobile"></span>
+					</div>
+					<div class="col-md-3">
+					  <span class="item_header">Family Mobile No:</span> <span class="item_value" id="benf_mobile"></span>
+					</div>
+					<div class="col-md-3">
+					  <span class="item_header">Aadhar No:</span> <span class="item_value" id="ben_aadhar"></span>
+					</div>
+					<div class="col-md-3">
+					  <span class="item_header">Voter ID Number:</span> <span class="item_value" id="ben_voterid"></span>
+					</div>
+				  </div>  
+				  <div class="row">
+					<div class="col-md-3">
+					  <span class="item_header">Account No:</span> <span class="item_value" id="ben_account"></span>
+					</div>
+					<div class="col-md-3">
+					  <span class="item_header">Bank Name:</span> <span class="item_value" id="ben_bank"></span>
+					</div>
+					<div class="col-md-6">
+					  <span class="item_header">Bank Branch:</span> <span class="item_value" id="ben_branch"></span>
+					</div>              
+				  </div>
+	  
+				  <div class="row">  
+					<div class="col-md-3">
+					  <span class="item_header">IFSC:</span> <span class="item_value" id="ben_ifsc"></span>             
+					</div>
+					<div class="col-md-3">
+					   <span class="item_header">UPI:</span> <span class="item_value" id="ben_upi"></span>
+					</div>
+	  
+				  </div>
+				  <div class="row">
+					<div class="col-md-12">
+					  <span class="item_header">Application Date:</span><span class="item_value" id="ben_appdate"> </span>
+					</div>
+				  </div>
+				  <div class="row">
+					<div class="col-md-12"><hr/></div>
+				  </div>
+				  <div class="row pagebreak">
+					<div class="col-md-4 text-center" id="aadhar_img_div">
+					  <div class="row">
+						<div class="col-md-12 text-center">
+						  <img id="aadhar_img" src="" alt="" width="250px" height="150px" />
+						</div>
+						<div class="col-md-12 text-center">
+						  <span class="item_header">AADHAR CARD COPY</span>
+						</div>
+					  </div>
+					</div>
+					<div class="col-md-4 text-center" id="voter_f_img_div">
+					  <div class="row">
+						<div class="col-md-12 text-center">
+						  <img id="voter_f_img" src="" alt="" width="250px" height="150px" />
+						</div>
+						<div class="col-md-12 text-center">
+						  <span class="item_header">VOTER CARD COPY (FRONT)</span>
+						</div>
+					  </div>
+					</div>
+					<div class="col-md-4 text-center" id="voter_b_img_div">
+					  <div class="row">
+						<div class="col-md-12 text-center">
+						  <img id="voter_b_img" src="" alt=""  width="250px" height="150px"/>
+						</div>
+						<div class="col-md-12 text-center">
+						  <span class="item_header">VOTER CARD COPY (BACK)</span>
+						</div>
+					  </div>
+					</div>
+				  </div>    
+				</div>
+				<div class="modal-footer">
+				  <form method="POST" action="{{ route('printSingleBenf') }}" target="_blank">
+				  <input type="hidden" name="_token" value="{{ csrf_token() }}">
+				  <input type="hidden" id="ben_id" name="ben_id"/>
+				  <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+				  <button type="submit" class="btn btn-primary" id="print_Button">Print Document</button>
+				  </form> 
+				</div>
+			  </div>
+			</div>
+		  </div>
+		
+		  <!-- End View Modal -->	
+
+	
+		@endsection
+	
+
+
+
+	<script src='{{ asset ("/bower_components/AdminLTE/plugins/jQuery/jquery-2.2.3.min.js") }}'></script>
+
+  	<script >
+
+	
+	function controlCheckBox(){
+		var anyBoxesChecked = false;
+		$(' input[type="checkbox"]').each(function() {
+			if ($(this).is(":checked")) {
+				anyBoxesChecked = true;
+			}
+		});
+		if (anyBoxesChecked == true) {
+			document.getElementById('bulk_addtoLot').disabled = false;
+		} else{
+			document.getElementById('bulk_addtoLot').disabled = true;
+		}
+	}
+	function loadStatusData(){
+		$.ajax({
+			type: 'POST',
+			url: '{{ url('getStatusCode') }}',
+			data: {
+				_token: '{{ csrf_token() }}',
+			},
+			success: function (datas) {
+				if (!datas || datas.length === 0) {
+					return;
+				}
+				for (var  i = 0; i < datas.length; i++) {
+					$('#reject_reason').append($('<option>', {
+						value: datas[i].code,
+						text: datas[i].message,
+					}));
+				}
+			},
+			error: function (ex) {
+			}
+		});
+	}
+$(document).ready(function(){
+	$('#process_lot').click(function(){
+		$('#gen_lot_ul').hide();
+		$('#loaderdiv_gen').show();
+	}); 
+	$('#urban_rural').change(function() {
+			$('#localbody').empty().append('<option value="">--  All  --</option>'); 
+			var selectedVal = $('#urban_rural').val();
+			var districtVal = $('#district').val();
+			if (selectedVal == -1) {
+				return;
+			}
+			$.ajax({
+				type: 'POST',
+				url: '{{ url('loadLocalBody') }}',
+				data: {
+					_token: '{{ csrf_token() }}',
+					district_code: districtVal, 
+					urban_rural: selectedVal,
+				},
+				success: function (datas) {
+					if (!datas || datas.length === 0) {
+						return;
+					}
+					for (var  i = 0; i < datas.length; i++) {
+						$('#localbody').append($('<option>', {
+							value: datas[i].id,
+							text: datas[i].name,
+						}));
+					}
+				},
+				error: function (ex) {
+				}
+  		});
+	});
+	$('#bulk_addtoLot').click(function(e){
+		e.preventDefault();
+		$("#select_all").prop("checked",false);
+		var selected = new Array();
+		$("input[type=checkbox]").each(function() {
+			if($(this).is(":checked")){
+				selected.push($(this).val());
+			}
+		});
+		var lotsize = selected.length+parseInt($('#lot_size_lebel').text(),10);
+		//Check Lot Size Limit
+		if(lotsize > 20000){
+			alert("Could not add to Lot as size exceeds limit 20,000");
+		}else{
+		var selected_json = JSON.stringify(selected);	
+		$.ajax({
+			type: 'POST',
+			url: '{{ url('bulk_addtoLot') }}',
+			dataType: 'json',
+			data: {
+				lot_no: $('#lot_number').val(),
+				approvalcheck: selected_json,
+				_token: '{{ csrf_token() }}',
+			},
+			beforeSend: function(){
+				$('#loaderdiv').show();
+ 			},
+			success: function (datas) {
+				alert("Beneficiaries added to Lot# "+$('#lot_number').val()+" successfully");
+				$('#lot_size_lebel').html(datas);
+				$('#example').DataTable().ajax.reload();
+			},
+			complete: function(){
+				$('#loaderdiv').hide();
+			},
+			error: function (ex) {
+			}
+		});
+		}
+	});
+	
+		
+    $('#select_all').click(function(e){
+      var table= $(e.target).closest('table');
+      $('td input:checkbox',table).prop('checked',this.checked);
+    });
+
+	
+  
+  $(".dataTables_scrollHeadInner").css({"width":"100%"});
+
+  $(".table ").css({"width":"100%"});  
+
+  $('#level1').change(function () {
+
+    level1_val=$('option:selected', this).val();
+    $('#level1data').val(level1_val);
+
+  });
+  level1a_val="";
+
+  $('#filter').click(function(){
+		
+		//Urban/Rural
+    	level3_val=$('#level3').children('option:selected').val();
+    	$('#level3data').val(level3_val);
+
+		// LocalBody
+		level1a_val=$('#localbody').children('option:selected').val();
+		$('#level1adata').val(level1a_val);
+	    table.clear().draw();
+   		table.ajax.reload();
+  
+	});
+	
+
+  var table=$('#example').DataTable( {
+	dom: "Blfrtip",
+        "paging": true,
+        "pageLength":20,
+        "lengthMenu": [[20, 50, 80, 120, 150, 180, 500,1000,5000], [20, 50, 80, 120, 150, 180, 500,1000,5000]],
+		"serverSide": true,
+        "processing":true,
+        "bRetrieve": true,
+        "ordering":false,
+	"language": {
+ 		"processing": '<img src="{{ asset('images/ZKZg.gif') }}" width="150px" height="150px"/>'
+	},
+        "ajax": 
+        {
+			url: "{{ url('getPrijiyiData') }}",
+			type: "POST",
+          	data:function(d){
+				//district_code 
+				d.level1=   $('#district').val(),  
+				//urban_rural  
+				d.level3 = $('#urban_rural').val(),
+				//LocalBody
+              	d.level1a= level1a_val,
+				d._token= "{{csrf_token()}}",
+				d.application_type = "{{ $app_type }}"
+			}
+		} ,
+        "columns": [
+                  { "data": "check" },
+                  { "data": "ben_id","defaultContent":""},
+                  { "data": "ben_name","defaultContent":"" },
+                  { "data": "dob","defaultContent":"0" },
+                  { "data": "gender","defaultContent":"" },
+                  { "data": "mob_no","defaultContent":"0" },
+                  { "data": "aadhar","defaultContent":"0" },
+                  { "data": "voterid_no","defaultContent":"" },                   
+                  { "data": "status","defaultContent":"" },
+                  { "data": "action","defaultContent":"0" },       
+        				  { "data": "ben_father","defaultContent":"" },
+                  { "data": "family_mobile_no","defaultContent":"" },
+
+        				  { "data": "district_name","defaultContent":"" },
+        				  { "data": "block_name","defaultContent":"" },
+        				  { "data": "municipality_name","defaultContent":"" },
+        				  { "data": "address_line","defaultContent":"0" },
+        				  { "data": "pincode","defaultContent":"0" },
+        				  { "data": "","defaultContent":"" },
+              ], 
+          "columnDefs": [
+                  { targets: "_all","orderable": false, },
+                  { targets: 0, "className": "text-center", },
+				  { targets: 7, "className": "text-center", },
+				  { targets: [10,11,12,13,14,15,16,17], "visible":false}
+                ],           
+				"buttons": [
+        {
+		  extend: 'pdf',
+		  exportOptions: {
+                columns: [1,2,3,4,5,6,7,10,11]
+			},	
+          title: 'Sneher Paras Beneficiaries List',
+          messageTop: function () {
+                var message = "";
+                if($('#district').val() != ""){
+                  var message = message +"District: "+$('#district').val()+", ";
+                }  
+                if($('#level3data').val()!="")
+                  var message = message +"Block/Municipality/Corporation: "+$('#level1a').children('option:selected').text()+", ";
+                var message = message + "Date: <?php echo date('d/m/Y');  ?>";
+                      return message;
+          },
+          footer: true,
+          pageSize:'A4',
+          orientation: 'landscape',
+          pageMargins: [ 40, 60, 40, 60 ],
+        },
+        {
+		  extend: 'excel',
+		  exportOptions: {
+                columns: [1,2,3,4,5,6,7,10,11,12,13,14,15,16,17]
+			},
+          title: 'Sneher Paras Beneficiaries List',
+          messageTop: function () {
+            var message = "";
+            if($('#district').val() != ""){
+              var message = message +"District: "+$('#district').val()+", ";
+            }  
+            if($('#level3data').val()!="")
+              var message = message +"Block/Municipality/Corporation: "+$('#level1a').children('option:selected').text()+", ";
+            var message = message + "Date: <?php echo date('d/m/Y');  ?>";
+                  return message;
+          },
+          footer: true,
+          pageSize:'A4',
+          //orientation: 'landscape',
+          pageMargins: [ 40, 60, 40, 60 ],
+        },
+        {
+		  extend: 'print',
+		  exportOptions: {
+                columns: [1,2,3,4,5,6,7,10,11]
+			},
+          title: 'Sneher Paras Beneficiaries List',
+          messageTop: function () {
+            var message = "";
+            if($('#district').val() != ""){
+              var message = message +"District: "+ $('#district').val()+", ";
+            }  
+            if($('#level3data').val()!="")
+              var message = message +"Block/Municipality/Corporation: "+$('#level1a').children('option:selected').text()+", ";
+            var message = message + "Date: <?php echo date('d/m/Y');  ?>";
+                  return message;
+          },
+          footer: true,
+          pageSize:'A4',
+          //orientation: 'landscape',
+          pageMargins: [ 40, 60, 40, 60 ],
+        },
+        ],
+	} );
+	
+	if("{{$app_type}}" != 'F' && "{{$app_type}}" != 'L'){
+		
+		table.column(0).visible(false);
+		table.columns.adjust().draw( false );
+	}	
+	table.on('click','.ben_view_button',function(){
+          $tr = $(this).closest('tr');
+          if(($tr).hasClass('child')){
+            $tr = $tr.prev('parent');
+          }
+          var data = table.row($tr).data();
+          $('#view_ben_id').html(data['ben_id']);
+          $('#ben_id').val(data['ben_id']);
+          $('#ben_name').html(data['ben_name']);
+          $('#benf_name').html(data['ben_father']);
+          $('#ben_dob').html(data['dob']);
+          $('#ben_gender').html(data['gender']);
+          $('#ben_lat').html(data['present_lat']);
+          $('#ben_long').html(data['present_long']);
+          $('#ben_state').html('West Bengal');
+          $('#ben_dist').html(data['district_name']);
+          $('#ben_type').html(data['rural_urban']);
+          if(data['rural_urban']=='Rural')
+            $('#ben_block').html(data['block_name']);
+          else if(data['rural_urban']=='Urban') 
+            $('#ben_block').html(data['municipality_name']);
+          $('#ben_gp').html(data['gp_code']);
+          $('#ben_pin').html(data['pincode']);
+          $('#ben_addr').html(data['address_line']);
+          $('#ben_mobile').html(data['mobile_no']);
+          $('#benf_mobile').html(data['family_mobile_no']);
+          $('#ben_aadhar').html(data['aadhar_no']);
+          $('#ben_voterid').html(data['voterid_no']);
+            $('#ben_upi').html(data['upi_id']);
+            $('#ben_account').html(data['account_no']);
+          $('#ben_bank').html(data['bank_name']);
+          $('#ben_branch').html(data['bank_branch']);
+          $('#ben_ifsc').html(data['ifsc_code']);
+          $('#ben_appdate').html(data['created_at']);
+
+          if(data['profile_pic']!=null)
+            $('#profile_pic').attr("src","http://jaibanglamw.wb.gov.in/storage/workers_doc/"+data['profile_pic']);
+          if(data['aadhar_img']!=null)          
+            $('#aadhar_img').attr("src","http://jaibanglamw.wb.gov.in/storage/workers_doc/"+data['aadhar_img']);
+          else
+            $('#aadhar_img_div').hide();//Hide DIV
+          if(data['voterid_img_front']!=null)   
+            $('#voter_f_img').attr("src","http://jaibanglamw.wb.gov.in/storage/workers_doc/"+data['voterid_img_front']);
+          else
+            $('#voter_f_img_div').hide();//Hide Div
+          if(data['voterid_img_back']!=null)        
+            $('#voter_b_img').attr("src","http://jaibanglamw.wb.gov.in/storage/workers_doc/"+data['voterid_img_back']);
+          else
+            $('#voter_b_img_div').hide();//Hide Div 
+            
+          $('#ben_view_modal').modal('show');
+      });
+				
+  });
+
+  </script>

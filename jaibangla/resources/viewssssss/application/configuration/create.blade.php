@@ -1,0 +1,213 @@
+@extends('application.base')
+@section('action-content')
+<style>
+.select2-container {
+  width: 100%!important;
+   }
+</style>
+<section class="content">
+    <div class="box">
+      <div class="box-header">
+        <div class="row">
+          <div class="col-sm-12">
+            <h3 class="box-title"> Application Setting</h3>
+          </div>
+          <div>
+
+
+              <!--@if(session('message'))
+                  <h4 class="col-sm-6 col-sm-offset-3 alert alert-success" id="id">
+                      {{session('message')}}
+                  </h4>
+             @endif-->
+          </div>
+          
+        </div>
+      </div>
+
+       <div class="box-body">
+        <form action="{{url('/mapconfig')}}" method="post">
+           {{ csrf_field() }}
+          <div class="row">
+             <div class="form-group{{ $errors->has('scheme') ? ' has-error' : '' }} col-sm-12">
+              <label for="scheme" class="col-md-4 control-label">Scheme</label>
+              <select  id="scheme" class="form-control select2" name="schemelist[]" multiple="multiple"required>
+                <option value="">--Select Scheme--</option>
+                @foreach ($schemes as $scheme)
+                <option value="{{$scheme->id}}">{{$scheme->scheme_name}}</option>
+                @endforeach
+              </select>
+                @if ($errors->has('scheme'))
+                    <span class="help-block">
+                        <strong>{{ $errors->first('scheme') }}</strong>
+                    </span>
+                @endif
+            </div>
+            <div class="form-group{{ $errors->has('con_user') ? ' has-error' : '' }} col-sm-12">
+              <label for="con_user" class="col-md-4 control-label">Users</label>
+              <select name="con_user" id="con_user" class="form-control select2" required>
+                <option value="">--Select User--</option>
+                @foreach ($users as $user)
+                <option value="{{$user->id}}">{{$user->username}}</option>
+                @endforeach
+              </select>
+                @if ($errors->has('con_user'))
+                    <span class="help-block">
+                        <strong>{{ $errors->first('con_user') }}</strong>
+                    </span>
+                @endif
+            </div>
+
+            <div class="form-group{{ $errors->has('maping_level') ? ' has-error' : '' }} col-sm-12">
+              <label for="maping_level" class="col-md-4 control-label">Mapping Level</label>
+              
+              <select name="maping_level" id="maping_level" class="form-control select2 district_code" required>
+                <option value="">--Select  --</option>
+                <option value="State">State</option>
+                <option value="District">District</option>
+                <option value="Block">Block/MC</option>
+                <!--sayantika department creation-->
+                 <option value="Department">Department</option>
+                 
+              </select>
+                @if ($errors->has('maping_level'))
+                    <span class="help-block">
+                        <strong>{{ $errors->first('maping_level') }}</strong>
+                    </span>
+                @endif
+            </div>
+
+            <div id="department_div">
+              <div class="form-group{{ $errors->has('department') ? ' has-error' : '' }} col-sm-12">
+                <label for="department" class="col-md-4 control-label">Department</label>
+                
+                <select name="department" id="department" class="form-control select2 department col-md-12" >
+                  <option value="">--Select--</option>
+                   @foreach ($departments as $department)
+                  <option value="{{$department->id}}" > {{$department->name}}</option>
+                  @endforeach
+                </select>
+                  @if ($errors->has('department'))
+                      <span class="help-block">
+                          <strong>{{ $errors->first('department') }}</strong>
+                      </span>
+                  @endif
+              </div>
+             
+            </div>
+
+          <div id="location_info">
+              <div class="form-group{{ $errors->has('dist_code') ? ' has-error' : '' }} col-sm-12" id="divDistrict">
+                <label for="dist_code" class="col-md-4 control-label">District</label>
+                
+                <select name="dist_code" id="dist_code" class="form-control select2 district_code js-district" >
+                  <option value="">--Select  --</option>
+                   @foreach ($districts as $district)
+                  <option value="{{$district->district_code}}" > {{$district->district_name}}</option>
+                  @endforeach
+                </select>
+                  @if ($errors->has('dist_code'))
+                      <span class="help-block">
+                          <strong>{{ $errors->first('dist_code') }}</strong>
+                      </span>
+                  @endif
+              </div>
+
+              
+
+              <div class="form-group{{ $errors->has('urban_code') ? ' has-error' : '' }} col-sm-12" id="divUrbanCode">
+                <label for="urban_code" class="col-md-4 control-label">Rural/Urban</label>
+                
+                <select name="urban_code" id="urban_code" class="form-control select2 js-urban" >
+                  <option value="">--Select  --</option>
+                  <option value="1">Urban</option>
+                  <option value="2">Rural</option>
+                   
+                </select>
+                  @if ($errors->has('urban_code'))
+                      <span class="help-block">
+                          <strong>{{ $errors->first('urban_code') }}</strong>
+                      </span>
+                  @endif
+              </div>
+
+              <div class="form-group{{ $errors->has('body_code') ? ' has-error' : '' }} col-sm-12" id="divBodyCode">
+                <label for="body_code" class="col-md-4 control-label">Municipality/Taluka</label>
+                
+                <select name="body_code" id="body_code" class="form-control select2 js-localbody">
+                  <option value="">--Select District --</option>
+                  
+                   
+                </select>
+                  @if ($errors->has('body_code'))
+                      <span class="help-block">
+                          <strong>{{ $errors->first('body_code') }}</strong>
+                      </span>
+                  @endif
+              </div>
+          </div>
+
+          </div>
+
+          <div class="row">
+           <div class="form-group col-sm-4 col-sm-offset-5">
+              <button type="submit" name="submit" id="map" value="Map" class="btn btn-warning col-sm-5 col-sm-offset-2 col-xs-5 col-xs-offset-2 btn-margin " >Map</button>
+           </div>
+          </div>
+        </form>
+
+       
+      </div>
+
+      
+
+
+
+      
+      </div>
+  </div>
+</section>
+
+
+
+
+
+@endsection
+<script src="{{ asset ("/bower_components/AdminLTE/plugins/jQuery/jquery-2.2.3.min.js") }}"></script>
+<script src="{{ asset("js/select2.full.min.js") }}"></script>
+
+<!-- Bootstrap 3.3.2 JS -->
+<script src="{{ asset ("/bower_components/AdminLTE/bootstrap/js/bootstrap.min.js") }}" type="text/javascript"></script>
+<!-----site.js-------------------->
+<script src="{{ URL::asset('js/site.js') }}"></script>
+
+<!-------------------------------->
+
+<!-- AdminLTE App -->
+<script src="{{ asset ("/bower_components/AdminLTE/dist/js/app.min.js") }}" type="text/javascript"></script>
+<script>
+  $('.select2').select2();
+</script>
+<script>
+$(document).ready(function(){
+
+$("#location_info").show();
+$("#department_div").hide();
+$('#maping_level').change(function () {
+    if ($('option:selected', this).val() == 'Department') {
+       
+        $('#location_info').hide(); 
+        $("#department_div").show(); 
+       
+    }
+    else {
+       $('#location_info').show();
+       $("#department_div").hide();
+      // $("#uin_number").val("");
+      // $("#uin_number").text("");
+       
+    }
+});
+
+});
+</script>

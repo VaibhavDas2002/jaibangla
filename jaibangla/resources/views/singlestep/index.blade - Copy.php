@@ -1,0 +1,1234 @@
+  <style type="text/css">
+    .full-width{
+      width:100%!important;
+    }
+  .bg-blue{
+    background-image: linear-gradient(to right top, #0073b7, #0086c0, #0097c5, #00a8c6, #00b8c4)!important;
+  }
+  .bg-red{
+  background-image: linear-gradient(to right bottom, #dd4b39, #ec6f65, #d21a13, #de0d0b, #f3060d)!important;
+  }
+  .bg-yellow{
+    background-image: linear-gradient(to right bottom, #dd4b39, #e65f31, #ed7328, #f1881e, #f39c12)!important;
+  }
+  .bg-green{
+  background-image: linear-gradient(to right bottom, #04736d, #008f73, #00ab6a, #00c44f, #5ddc0c)!important;
+  }
+
+  .bg-verify{
+    background-image: linear-gradient(to right top, #f39c12, #f8b005, #fac400, #fad902, #f8ee15)!important;
+  }
+  .info-box {
+      display: block;
+      min-height: 90px;
+      background: #b6d0ca33!important;
+      width: 100%;
+      box-shadow: 0px 0px 15px 0px rgba(0, 0, 0, 0.30)!important;
+      border-radius: 2px;
+      margin-bottom: 15px;
+  }
+  .small-box .icon{
+    margin-top: 7%;
+  }
+  .small-box>.inner {
+      padding: 10px;
+      color: white;
+  }
+
+  .small-box p {
+      font-size: 18px!important;
+  }
+  .select2 .select2-container{
+  } 
+
+  .link-button {
+    background: none;
+    border: none;
+    color: blue;
+    text-decoration: underline;
+    cursor: pointer;
+    font-size: 1em;
+    font-family: serif;
+  }
+  .link-button:focus {
+    outline: none;
+  }
+  .link-button:active {
+    color:red;
+  }
+  .small-box-footer-custom{
+    position: relative;
+      text-align: center;
+      padding: 3px 0;
+      color: #fff;
+      color: rgba(255,255,255,0.8);
+      display: block;
+      z-index: 10;
+      background: rgba(0,0,0,0.1);
+      text-decoration: none;
+      font-family: 'Source Sans Pro','Helvetica Neue',Helvetica,Arial,sans-serif;
+      font-weight: 400;
+      width:100%;
+  }
+  .small-box-footer-custom:hover {
+      color: #fff;
+      background: rgba(0,0,0,0.15);
+  }
+  th.sorting::after,
+  th.sorting_asc::after,
+  th.sorting_desc::after {
+    content:"" !important;
+  }
+  .errorField{
+      border-color: #990000;
+    }
+    .searchPosition{
+      margin:70px;
+    }
+    .submitPosition{
+      margin: 25px 0px 0px 0px;
+    }
+
+    
+    .typeahead { border: 2px solid #FFF;border-radius: 4px;padding: 8px 12px;max-width: 300px;min-width: 290px;background: rgba(66, 52, 52, 0.5);color: #FFF;}
+    .tt-menu { width:300px; }
+    ul.typeahead{margin:0px;padding:10px 0px;}
+    ul.typeahead.dropdown-menu li a {padding: 10px !important;  border-bottom:#CCC 1px solid;color:#FFF;}
+    ul.typeahead.dropdown-menu li:last-child a { border-bottom:0px !important; }
+    .bgcolor {max-width: 550px;min-width: 290px;max-height:340px;background:url("world-contries.jpg") no-repeat center center;padding: 100px 10px 130px;border-radius:4px;text-align:center;margin:10px;}
+    .demo-label {font-size:1.5em;color: #686868;font-weight: 500;color:#FFF;}
+    .dropdown-menu>.active>a, .dropdown-menu>.active>a:focus, .dropdown-menu>.active>a:hover {
+      text-decoration: none;
+      background-color: #1f3f41;
+      outline: 0;
+    }
+    table.dataTable thead{
+      padding-right: 20px;
+    }
+    table.dataTable thead > tr > th{
+      padding-right: 20px;
+    }
+    table.dataTable thead th{
+      padding: 10px 18px 10px 18px;
+      white-space: nowrap;
+      border-right: 1px solid #dddddd;
+    }
+    table.dataTable tfoot th{
+      padding: 10px 18px 10px 18px;
+      white-space: nowrap;
+      border-right: 1px solid #dddddd;
+    }
+    table.dataTable tbody td {
+      padding: 10px 18px 10px 18px;
+      border-right: 1px solid #dddddd;
+      white-space: nowrap;
+      -webkit-box-sizing: content-box;
+      -moz-box-sizing: content-box;
+      box-sizing: content-box;
+    }
+    .criteria1{
+      text-transform: uppercase;
+      font-weight: bold;
+    }
+    .item_header{
+			font-weight: bold;
+		}
+    #example_length{
+      margin-left: 40%;
+      margin-top: 2px;
+    }
+    @keyframes spinner {
+    to {transform: rotate(360deg);}
+  }
+  
+  .spinner:before {
+    content: '';
+    box-sizing: border-box;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin-top: -10px;
+    margin-left: -10px;
+    border-radius: 50%;
+    border: 2px solid #ccc;
+    border-top-color: #333;
+    animation: spinner .6s linear infinite;
+  }
+  .required-field::after {
+    content: "*";
+    color: red;
+  }
+  @media print {
+    body * {
+        visibility: hidden;
+    }
+    #ben_view_modal #ben_view_modal * {
+        visibility: visible;
+    }
+		#ben_view_modal{
+			position:absolute;
+    		left:0;
+    		top:0;
+		}
+		[class*="col-md-"] {
+			float: none;
+			display:table-cell;
+		}
+
+		[class*="col-lg-"] {
+			float: none;
+			display:table-cell;
+		}
+		.pagebreak { page-break-before: always; } 
+	}
+  </style>
+
+  @extends('singlestep.base')
+  @section('action-content')
+
+      <!-- Main content -->
+      <section class="content">
+        <div class="box">
+        <div class="box-header">
+          <div class="row">
+              <div class="col-sm-8">
+	
+              </div>
+          </div>
+        </div>
+        <div class="box-body">
+					@if(count($errors) > 0)
+					<div class="alert alert-danger alert-block">
+						<ul>
+						@foreach($errors->all() as $error)
+						<li><strong> {{ $error }}</strong></li>
+						@endforeach
+						</ul>
+					</div>
+					@endif        
+					<div id="example2_wrapper" class="col-md-12 dataTables_wrapper form-inline dt-bootstrap js-report-form">
+						<div class="row" style="margin-bottom:1%">
+							<form method="POST" role="form" action="{{ route('employeereport.fetch') }}">
+								<input type="hidden" name="_token" id="token" value="{{ csrf_token() }}">
+								
+								<input type="hidden" name="_token" id="token1" value="{{ csrf_token() }}">
+								<input type="hidden" id="level1data" name="level1data">
+								<input type="hidden" id="level2data" name="level2data">
+								<input type="hidden" id="level3data" name="level3data">
+								<input type="hidden" id="level4data" name="level4data">
+								<input type="hidden" id="level1adata" name="level1adata">
+								<input type="hidden" id="level1bdata" name="level1bdata">
+								<input type="hidden" id="level1cdata" name="level1cdata">
+							</form>
+						</div>
+					</div>          
+				
+					<div class="col-md-offset-3 col-md-3">
+						
+					<h4><span class="label label-primary">Applications Pending for Verification</span></h4>
+			
+					</div>
+					<div class="col-md-offset-1 col-md-5 btn-group" role="group" >
+            <!-- CLOSED TEMPORARY -->
+						<button class="btn btn-success clsbulk_approve" id="bulk_approve" disabled>Verify Selected Beneficiaries</button>
+					</div>
+        <div class="col-md-12 text-center" id="loaderdiv" hidden>
+          <img src="{{ asset('images/ZKZg.gif') }}" width="100px" height="100px"/>
+        </div>  
+
+        <div class="col-md-12" id="reportbody" style="margin-top: 2%;">
+        <table id="example" class="display" cellspacing="0" width="100%">
+          <input type="hidden" name="_token" id="token" value="{{ csrf_token() }}">
+          <input type="hidden" name="district_code" id="district_code" value="{{ $district_code }}">
+          <thead>
+                <tr role="row">
+                  <td width="3%" class="text-right">
+                    <input type="checkbox" id="select_all" name="select_all" onchange="document.getElementById('bulk_approve').disabled = !this.checked;document.getElementById('bulk_blkchange').disabled = !this.checked;">
+                  </td>
+                  <th width="12%" class="text-left">Application ID</th>
+                  <th width="20%" class="text-left">Beneficiary Name</th>
+                  <th width="12%" class="text-left">Old Application Id</th>     
+                  <th width="10%" class="text-left">Bank IFSC</th>
+                  <th width="12%" class="text-left">Bank Account No</th>
+                  <th width="15%" class="text-left">Village/Town/City</th>
+				          <th width="16%">Action</th>  
+				          
+              </tr>
+          </thead>
+          <tfoot>
+              <tr>
+                <th width="3%" class="text-left">
+                  <input type="checkbox" id="select_all" name="select_all disabled">
+                </th>
+                <th width="12%" class="text-left">Application ID</th>
+                  <th width="20%" class="text-left">Beneficiary Name</th>
+                  <th width="12%" class="text-left">Old Application Id</th>     
+                  <th width="10%" class="text-left">Bank IFSC</th>
+                  <th width="12%" class="text-left">Bank Account No</th>
+                  <th width="15%" class="text-left">Village/Town/City</th>
+				          <th width="16%">Action</th> 
+              </tr>
+          </tfoot>   
+            
+      </table>  
+      <div class="row">
+              
+              <div class="col-sm-7">
+                <div class="dataTables_paginate paging_simple_numbers" id="example2_paginate">
+                  
+                </div>
+              </div>
+        </div>  
+
+        </div>
+
+      </div>
+    <!--   </div> -->
+      </section>
+      <!-- /.content -->
+    </div>
+
+    <!-- View Modal -->
+    <div class="modal fade" id="ben_view_modal" tabindex="-1">
+      <div class="modal-dialog modal-lg" id="printArea">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+            <h4 class="modal-title">Beneficiay Detail View</h4>
+          </div>
+          <div class="modal-body">
+           
+            <div class="row">
+              <div class="col-md-offset-2 col-md-8 panel panel-info">
+                  <div class="row panel-heading">
+                    <div class="col-md-12"><h4>Personal Details</h4></div>
+                  </div>
+                  <div class="row penel-body">
+                  <div class="col-md-12"><span class="item_header">Application ID: </span>
+                    <span class="item_value" id="view_ben_id"></span></div>
+                  <div class="col-md-12"><span class="item_header">OLD Application ID: </span></span>
+                    <span class="item_value label label-warning" style="font-size:13px;" id="view_ben_old_id"></span></div>
+                  <div class="col-md-12"><span class="item_header">Full Name: </span>
+                    <span class="item_value" id="ben_name"></span></div>
+                  </div>
+                  <div class="row">
+                    <div class="col-md-12"><span class="item_header">Fathers Name: </span>
+                    <span class="item_value" id="benf_name"></span></div>
+                  </div>
+                  <div class="row">
+                    <div class="col-md-5"><span class="item_header">Date of Birth: </span>
+                      <span class="item_value" id="ben_dob"></span></div>
+                    <div class="col-md-7"><span class="item_header">Gender: </span>
+                      <span class="item_value" id="ben_gender"></span></div>
+                  </div>
+                  <div class="row">
+                    <div class="col-md-12"><span class="item_header">Address Line 1: </span>
+                      <span class="item_value" id="ben_addr"></span></div>
+
+                  </div>
+              </div>
+            </div>
+            <div class="row">
+              <hr/>
+            </div>
+            <div class="row">
+              <div class="col-md-3">
+                <span class="item_header">Mobile No:</span> <span class="item_value" id="ben_mobile"></span>
+              </div>
+              
+              <div class="col-md-3">
+                <span class="item_header">Aadhar No:</span> <span class="item_value" id="ben_aadhar"></span>
+              </div>
+              <div class="col-md-3">
+                <span class="item_header">Voter ID :</span> <span class="item_value" id="ben_voterid"></span>
+              </div>
+            </div>  
+            <div class="row">
+              <div class="col-md-3">
+                <span class="item_header">Account No:</span> <span class="item_value" id="ben_account"></span>
+              </div>
+              <div class="col-md-3">
+                <span class="item_header">Bank Name:</span> <span class="item_value" id="ben_bank"></span>
+              </div>
+              <div class="col-md-6">
+                <span class="item_header">Bank Branch:</span> <span class="item_value" id="ben_branch"></span>
+              </div>              
+            </div>
+
+            <div class="row">  
+              <div class="col-md-3">
+                <span class="item_header">IFSC:</span> <span class="item_value" id="ben_ifsc"></span>             
+              </div>
+            
+            </div>
+            
+            <div class="row">
+              <div class="col-md-12"><hr/></div>
+            </div>
+               
+          </div>
+          <div class="modal-footer">
+            <form method="POST" action="{{ route('printSingleBenf') }}" target="_blank">
+            <input type="hidden" name="_token" value="{{ csrf_token() }}">
+            <input type="hidden" id="ben_id" name="ben_id"/>
+            <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+            <!-- <button type="submit" class="btn btn-primary" id="print_Button">Print Document</button> -->
+            </form> 
+          </div>
+        </div>
+      </div>
+    </div>
+  
+    <!-- End View Modal -->	
+
+		<!-- Start Reject Model -->
+
+    <!-- CLOSED TEMPORARY -->
+		<div class="modal fade" id="ben_reject_modal" tabindex="-1">
+			<div class="modal-dialog ">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+							<span aria-hidden="true">&times;</span>
+						</button>
+						<h4 class="modal-title">Reject Beneficiary Application</h4>
+					</div>
+					<div class="modal-body">
+						<h4>Are you sure you want to reject the application with the beneficiary details mentioned below?</h4><hr/>
+
+						<table style="width:100%">
+							<tr>
+								<td style="width:30%;"><span class="item_header">Beneficiary Id:</span></td>
+								<td><span class="item_value" id="reject_ben_id"></span></td>
+							</tr>
+							<tr>
+								<td><span class="item_header">Beneficiary Name:</span></td>
+								<td><span class="item_value" id="reject_ben_name"></span></td>
+							</tr>
+              <tr>
+								<td><span class="item_header">Father's Name:</span></td>
+								<td><span class="item_value" id="reject_ben_father_name"></span></td>
+							</tr>
+							<tr>
+								<td><span class="item_header">Bank IFSC:</span></td>
+								<td><span class="item_value" id="reject_ben_ifsc"></span></td>
+							</tr>
+							<tr>
+								<td><span class="item_header">Account Number:     </span></td>
+								<td><span class="item_value" id="reject_ben_accno"></span></td>
+							</tr>
+							<tr>
+								<td colspan="2"><hr/></td>
+							</tr>
+						</table>
+						<input type="hidden" id="reject_beneficiary_id"/>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+						<button type="button" class="btn btn-danger" id="reject_Button" data-dismiss="modal">Reject</button>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- End Reject Model -->
+
+    <!-- Start Edit Model-->
+
+
+    <div class="modal fade" id="ben_edit_modal" tabindex="-1">
+			<div class="modal-dialog ">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+							<span aria-hidden="true">&times;</span>
+						</button>
+						<h4 class="modal-title">Edit & Approve Beneficiary Application</h4>
+					</div>
+					<div class="modal-body">
+						<h4>Are you sure you want to edit and approve the application with the beneficiary details mentioned below?</h4><hr/>
+
+						<table style="width:100%">
+							<tr>
+								<td style="width:30%;"><span class="item_header">Beneficiary Id:</span></td>
+								<td><span class="item_value" id="edit_ben_id"></span></td>
+							</tr>
+							<tr>
+								<td><span class="item_header">Beneficiary Name:</span></td>
+								<td><span class="item_value" id="edit_ben_name"></span></td>
+							</tr>
+              <tr>
+								<td><span class="item_header">Father's Name:</span></td>
+								<td><span class="item_value" id="edit_ben_father_name"></span></td>
+							</tr>
+							<tr>
+								<td><span class="item_header">Bank IFSC:</span></td>
+								<td><span class="item_value" id="edit_ben_ifsc"></span></td>
+							</tr>
+							<tr>
+								<td><span class="item_header">Account Number:     </span></td>
+								<td><span class="item_value" id="edit_ben_accno"></span></td>
+							</tr>
+							<tr>
+								<td colspan="2"><hr/></td>
+							</tr>
+						</table>
+					</div>
+					<div class="modal-footer">
+          <form class="row" method="POST" action="{{ route('singlestep.application-edit-view') }}">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+						    <input type="hidden" id="edit_beneficiary_id" name="id"/>
+                <input type="hidden" name="scheme_id" value="{{$scheme}}">
+                <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-success btn-margin" >
+                  Edit & Approve
+                </button>
+            </form>
+						<!-- <button type="button" class="btn btn-danger" id="edit_Button" data-dismiss="modal">Edit & Approve</button> -->
+					</div>
+				</div>
+			</div>
+		</div>
+  <!--Edit-->
+
+  <!--Selective Edit-->
+  <div class="modal fade" id="ben_selective_edit_modal" tabindex="-1">
+      <div class="modal-dialog modal-lg" id="printArea">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+            <h3 class="modal-title">Beneficiay Edit Details</h3>
+          </div>
+          <div class="modal-body">
+            <div class="row">
+              {{ csrf_field() }}
+              <div class="col-md-offset-2 col-md-8 panel panel-info">
+                  <div class="row panel-heading">
+                    <div class="col-md-12"><h4>Personal Details</h4></div>
+                  </div>
+                  <div class="row penel-body">
+                  <div class="col-md-12"><span class="item_header">Application ID: </span>
+                    <span class="item_value" id="selective_edit_ben_id"></span></div>
+                  <div class="col-md-12"><span class="item_header">OLD Application ID: </span></span>
+                    <span class="item_value label label-warning" style="font-size:13px;" id="selective_edit_ben_old_id"></span></div>
+                  <div class="col-md-4">
+                  <span class="item_header required-field">First Name </span>
+                  </div>
+                  <div class="col-md-4">
+                  <span class="item_header">Middle Name </span>
+                  </div>
+                  <div class="col-md-4">
+                  <span class="item_header">Last Name </span>
+                  </div>
+                  
+                  <div class="col-md-4">
+                    <input type="text" name="selective_edit_ben_fname" id="selective_edit_ben_fname" class="item_value bg-blue">
+                    <span id="error_selective_edit_ben_fname" class="text-danger"></span>
+                  </div>
+                  <div class="col-md-4">  
+                    <input type="text" name="selective_edit_ben_mname" id="selective_edit_ben_mname" class="item_value bg-blue">
+                    <span id="error_selective_edit_ben_mname" class="text-danger"></span>                  
+                  </div>
+                  <div class="col-md-4">
+                    <input type="text" name="selective_edit_ben_lname" id="selective_edit_ben_lname" class="item_value bg-blue"></div>
+                    <span id="error_selective_edit_ben_lname" class="text-danger"></span>                  
+                  </div>
+		<!-- Fathers name -->	
+                  <div class="row">
+                    <div class="col-md-12"><span class="item_header">Fathers Name: </span>
+                  </div>
+		              <div class="col-md-4">
+                    <span class="item_header required-field">First Name </span>
+                    </div>
+                    <div class="col-md-4">
+                    <span class="item_header">Middle Name </span>
+                    </div>
+                    <div class="col-md-4">
+                    <span class="item_header">Last Name </span>
+                  </div>
+                  
+                  <div class="col-md-4">
+                    <input type="text" name="selective_edit_benf_fname" id="selective_edit_benf_fname" class="item_value bg-blue">
+                    <span id="error_selective_edit_benf_fname" class="text-danger"></span>
+                  </div>
+                  <div class="col-md-4">  
+                    <input type="text" name="selective_edit_benf_mname" id="selective_edit_benf_mname" class="item_value bg-blue">
+                    <span id="error_selective_edit_benf_mname" class="text-danger"></span>                  
+                  </div>
+                  <div class="col-md-4">
+                    <input type="text" name="selective_edit_benf_lname" id="selective_edit_benf_lname" class="item_value bg-blue"></div>
+                    <span id="error_selective_edit_benf_lname" class="text-danger"></span>                  
+                  </div>
+                  <div class="row">
+                    <div class="col-md-5"><span class="item_header">Date of Birth: </span>
+                      <span class="item_value" id="selective_edit_ben_dob"></span></div>
+                    <div class="col-md-7"><span class="item_header">Gender: </span>
+                      <span class="item_value" id="selective_edit_ben_gender"></span></div>
+                  </div>
+                  <div class="row">
+                    <div class="col-md-12"><span class="item_header">Address Line 1: </span>
+                    <input type="text" name="selective_edit_ben_addr" id="selective_edit_ben_addr" class="item_value bg-blue"></div>
+                    <span id="error_selective_edit_ben_addr" class="text-danger"></span>
+
+                  </div>
+              </div>
+              
+            </div>
+            <div class="row">
+              <hr/>
+            </div>
+            <div class="row">
+              <div class="col-md-3">
+                <span class="item_header">Mobile No:</span> <span class="item_value" id="selective_edit_ben_mobile"></span>
+              </div>
+              
+              <div class="col-md-3">
+                <span class="item_header">Aadhar No:</span> <span class="item_value" id="selective_edit_ben_aadhar"></span>
+              </div>
+              <div class="col-md-3">
+                <span class="item_header">Voter ID :</span> 
+                <span class="item_value" id="selective_edit_ben_voterid"></span>
+                <!-- <input type="text" name= -->
+              </div>
+            </div>  
+            <div class="row">
+            <div class="col-md-3">
+                <span class="item_header required-field">IFSC:</span><br/> <!--<span class="item_value" id="selective_edit_ben_ifsc"></span> -->
+                <input type="text" class="item_value bg-blue" id="selective_edit_ben_ifsc" name="selective_edit_ben_ifsc"/>
+                <span id="error_selective_edit_ben_ifsc" class="text-danger"></span>
+              </div>
+              <div class="col-md-3">
+                <span class="item_header">Bank Name:</span><br/> <!-- <span class="item_value" id="selective_edit_ben_bank"></span> -->
+                <input type="text" class="item_value bg-yellow" id="selective_edit_ben_bank" name="selective_edit_ben_bank" readonly/>
+              </div>
+              <div class="col-md-6">
+                <span class="item_header">Bank Branch:</span><br/> <!--<span class="item_value" id="selective_edit_ben_branch"></span>-->
+                <input type="text" class="item_value bg-yellow" id="selective_edit_ben_branch" name="selective_edit_ben_branch" readonly/>
+              </div>              
+            </div>
+
+            <div class="row">  
+              <div class="col-md-3">
+                <span class="item_header required-field">Account No:</span> <!--<span class="item_value" id="selective_edit_ben_account"></span> -->
+                <input type="tel" class="item_value bg-blue" id="selective_edit_ben_account" name="selective_edit_ben_account"/>
+                <span id="error_selective_edit_ben_account" class="text-danger"></span>
+              </div>
+            </div>
+            
+            <div class="row">
+              <div class="col-md-12"><hr/>
+              <h4><b><cite>Please review the changes before final submission. Once submitted, the application will be treated as approved and cannot be reverted back further.</cite></b></h4>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <!-- <form method="POST" action="{{ route('printSingleBenf') }}" target="_blank">
+            <input type="hidden" name="_token" value="{{ csrf_token() }}"> -->
+            <input type="hidden" id="selective_edit_id" name="selective_edit_id"/>
+            <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-success" id="edit_approve_button" data-dismiss="modal">Edit&Verify</button>
+            <!-- <button type="submit" class="btn btn-primary" id="print_Button">Print Document</button> -->
+            <!-- </form>  -->
+          </div>
+        </div>
+      </div>
+    </div>
+    <!--End Selective Edit-->
+	<!-- Change Location Mapping Start -->
+  <div class="modal fade" id="ben_change_loc_map_modal" tabindex="-1">
+			<div class="modal-dialog ">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+							<span aria-hidden="true">&times;</span>
+						</button>
+						<h4 class="modal-title">Change Applications Location Mapping</h4>
+					</div>
+					<div class="modal-body">
+						<h4><b>Please take utmost care while changing the location mapping of applications..</b></h4><hr/>
+              <table class="display">
+                <tr><td class="form-group">
+                <label class=" control-label">Location Type: </label>
+                <!--  <div class=""> -->
+                </td><td>
+                <select class="form-control"  name="location_type" id='location_type'>
+                    <option value="">--Select--</option>
+                    <option value="2">Rural</option>
+                    <option value="1">Urban</option>
+                </select>
+                <!--  </div> -->
+                </td>
+                <td>
+                <label class=" control-label">  Block/Municipality: </label>
+                <!--  <div class=""> -->
+                </td><td>
+                <select class="form-control full-width"  name="local_body" id='local_body'>
+                    <option value=""> -- Please Select --</option>
+                </select>
+                <!--  </div> -->
+                </td></tr>
+
+              </table>    
+          </div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+
+						<button type="button" class="btn btn-danger" id="updateLocation_Button" data-dismiss="modal">Update</button>
+					</div>
+				</div>
+			</div>
+		</div>
+    <!-- Change Location Mapping End -->
+		@endsection
+	
+
+
+
+	<script src='{{ asset ("/bower_components/AdminLTE/plugins/jQuery/jquery-2.2.3.min.js") }}'></script>
+  <script >
+
+    // CLOSED TEMPORARY 
+
+   function controlCheckBox(){
+    var anyBoxesChecked = false;
+    $(' input[type="checkbox"]').each(function() {
+      if ($(this).is(":checked")) {
+        anyBoxesChecked = true;
+      }
+    });
+    if (anyBoxesChecked == true) {
+      document.getElementById('bulk_approve').disabled = false;
+      document.getElementById('bulk_blkchange').disabled = false;
+    } else{
+      document.getElementById('bulk_approve').disabled = true;
+      document.getElementById('bulk_blkchange').disabled = true;
+    }
+  }
+  
+  function display_c(){
+    var refresh=1000; // Refresh rate in milli seconds
+    mytime=setTimeout('display_ct()',refresh)
+  }
+
+  function display_ct() {
+    var x = new Date()
+    document.getElementById('ct').innerHTML = x.toLocaleString();
+    display_c();
+  } 
+	
+  $(document).ready(function(){ 
+  display_ct();	
+
+  $('#edit_approve_button').click(function(){
+    $ben_fname = $.trim($('#selective_edit_ben_fname').val());
+    $ben_mname = $.trim($('#selective_edit_ben_mname').val());
+    $ben_lname = $.trim($('#selective_edit_ben_lname').val());
+
+    $benf_fname = $.trim($('#selective_edit_benf_fname').val());
+    $benf_mname = $.trim($('#selective_edit_benf_mname').val());
+    $benf_lname = $.trim($('#selective_edit_benf_lname').val());
+
+    $addr_lin1 = $.trim($('#selective_edit_ben_addr').val());
+    $ben_bank_ifsc = $.trim($('#selective_edit_ben_ifsc').val());
+    $ben_bank = $.trim($('#selective_edit_ben_bank').val());
+    $ben_bank_branch = $.trim($('#selective_edit_ben_branch').val());
+    $ben_bank_account = $.trim($('#selective_edit_ben_account').val());
+
+    //alert($ben_fname+' '+$ben_lname+' '+$ben_mname);
+    if($ben_fname=='' || $benf_fname=='' || $ben_bank_ifsc=='' || $ben_bank=='' || $ben_bank_branch=='' || $ben_bank_account ==''){
+      alert('Mandatory Field is empty');
+      return false;
+    }
+    else{
+      $.ajax({
+        type: 'POST',
+        url: '{{ url('singlestep/editBeneficiary') }}',
+        data: {
+          _token: '{{ csrf_token() }}',
+          scheme: "{{ $scheme }}",
+          id: $("#selective_edit_id").val(),
+          ben_fname: $ben_fname,
+          ben_mname: $ben_mname,
+          ben_lname: $ben_lname,
+          benf_fname: $benf_fname,
+          benf_mname: $benf_mname,
+          benf_lname: $benf_lname,
+          addr_lin1: $addr_lin1,
+          ben_bank_ifsc: $ben_bank_ifsc,
+          ben_bank: $ben_bank,
+          ben_bank_branch: $ben_bank_branch,
+          ben_bank_account: $ben_bank_account,
+        },
+        success: function (datas) {
+          $('#example').DataTable().ajax.reload();
+          alert('Beneficiary Detail Successfully Updated and Verified');
+        },
+        error: function (ex) {
+          alert('Error Occured while Updating');
+        }
+      });
+    }
+  });  
+
+  $('#selective_edit_ben_ifsc').blur(function(){
+    $ifsc_data = $.trim($('#selective_edit_ben_ifsc').val());
+    $ifscRGEX = /^[a-z]{4}0[a-z0-9]{6}$/i;
+    if($ifscRGEX.test($ifsc_data))
+    {
+      $('#selective_edit_ben_ifsc').removeClass('has-error');
+      $('#error_selective_edit_ben_ifsc').text('');
+
+      $.ajax({
+        type: 'POST',
+        url: '{{ url('legacy/getBankDetails') }}',
+        data: {
+          ifsc: $ifsc_data,
+          _token: '{{ csrf_token() }}',
+        },
+        success: function (data) {
+          if (!data || data.length === 0) {
+            $('#error_selective_edit_ben_ifsc').text('No data found with the IFSC');
+            $('#selective_edit_ben_bank').val("");
+            $('#selective_edit_ben_branch').val("");
+            $('#selective_edit_ben_ifsc').addClass('has-error');
+            return;
+          }
+          data = JSON.parse(data);
+         // console.log(data);
+          $('#selective_edit_ben_bank').val(data.bank);
+          $('#selective_edit_ben_branch').val(data.branch);
+        },
+        error: function (ex) {
+          $('#error_selective_edit_ben_ifsc').text('Data fetch error');
+          $('#selective_edit_ben_bank').val("");
+          $('#selective_edit_ben_branch').val("");
+          $('#selective_edit_ben_ifsc').addClass('has-error');
+        }
+      });
+
+    }else{
+      $('#error_selective_edit_ben_ifsc').text('IFSC format invalid please check the code');
+      $('#selective_edit_ben_bank').val("");
+      $('#selective_edit_ben_branch').val("");
+      $('#selective_edit_ben_ifsc').addClass('has-error');
+    }
+ });  
+	 
+  $(".dataTables_scrollHeadInner").css({"width":"100%"});
+
+  $(".table ").css({"width":"100%"});  
+
+  $('.urban').change(function() {
+      $('.localbody').empty().append('<option value="">--  All  --</option>'); 
+      var selectedVal = $('.urban').val();
+      if (selectedVal == -1) {
+        return;
+      }
+      $.ajax({
+        type: 'POST',
+        url: '{{ url('loadLocalBody') }}',
+        data: {
+          _token: '{{ csrf_token() }}',
+          district_code: '{{$district_code}}', 
+          urban_rural: selectedVal,
+        },
+        success: function (datas) {
+          if (!datas || datas.length === 0) {
+            return;
+          }
+          for (var  i = 0; i < datas.length; i++) {
+            $('.localbody').append($('<option>', {
+              value: datas[i].id,
+              text: datas[i].name,
+              id: datas[i].id
+            }));
+          }
+        },
+        error: function (ex) {
+        }
+      });
+  });
+
+  $('#bulk_blkchange').click(function(){
+    $("#location_type option:selected").prop("selected",false);
+    $('#local_body').empty();
+    $('#local_body').append('<option value="">--Please Select--</option>');
+    $("#select_all").prop("checked",false);
+    var selected = new Array();
+    $("input[type=checkbox]").each(function() {
+      if($(this).is(":checked"))
+      selected.push($(this).val());
+    });
+    var selected_json = JSON.stringify(selected);
+    $('#ben_change_loc_map_modal').modal('show');
+  });
+
+  $('#location_type').change(function(){
+    var location_type = $("#location_type").val();
+    var district_code = "{{$district_code}}";
+    $('#local_body').empty();
+    $('#local_body').append('<option value="">--Please Select--</option>');
+
+    if(location_type !=""){
+      $.ajax({
+        type: 'POST',
+        url: '{{ url('singleStepBenLocationDetails') }}',
+        dataType: 'json',
+        data: {
+          _token: '{{ csrf_token() }}',
+          urban_rural: location_type,
+          district_code: district_code,
+        },
+        beforeSend: function(){
+          $('#loaderdiv').show();
+        },
+        success: function (datas) {
+          $.each(datas, function (index, value) {
+              $('#local_body').append('<option value="' + value.id + '">' + value.name + '</option>');
+          });
+        },
+        complete: function(){
+          $('#loaderdiv').hide();
+        },
+        error: function (ex) {
+          $('#loaderdiv').hide();
+        }
+      });
+    }
+  });
+
+  $('#updateLocation_Button').click(function(){
+   
+    $("#select_all").prop("checked",false);
+    var selected = new Array();
+    $("input[type=checkbox]").each(function() {
+    if($(this).is(":checked"))
+    selected.push($(this).val());
+    });
+    var selected_json = JSON.stringify(selected);
+
+    var location_type = $("#location_type").val();
+    var location_code = $("#local_body").val();
+    var location_name = $("#local_body option:selected").text();
+
+    if(location_type!="" && location_code!=""){
+      $.ajax({
+        type: 'POST',
+        url: '{{ url('singleStepBulkLocationChange') }}',
+        dataType: 'json',
+        data: {
+          _token: '{{ csrf_token() }}',
+          scheme: "{{ $scheme }}",
+          location_type: location_type,
+          location_code: location_code,
+          location_name: location_name, 
+          selectedApplication: selected_json,
+        },
+        beforeSend: function(){
+          $('#loaderdiv').show();
+        },
+        complete: function(){
+          $('#example').DataTable().ajax.reload();
+          document.getElementById('bulk_approve').disabled = true;
+          document.getElementById('bulk_blkchange').disabled = true;
+          $('#loaderdiv').hide();
+          alert("Location change of beneficiaries successful.");
+
+        },
+        error: function (ex) {
+        }
+      });
+    }
+  });
+  //CLOSED TEMPORARY
+
+  $('#bulk_approve').click(function(){
+   
+    $("#select_all").prop("checked",false);
+    //benBulkApprove
+    var selected = new Array();
+    $("input[type=checkbox]").each(function() {
+      if($(this).is(":checked"))
+      selected.push($(this).val());
+    });
+    var selected_json = JSON.stringify(selected);
+    $.ajax({
+      type: 'POST',
+      url: '{{ url('singleStepBenBulkApprove') }}',
+      dataType: 'json',
+      data: {
+        _token: '{{ csrf_token() }}',
+        scheme: "{{ $scheme }}",
+        approvalcheck: selected_json,
+      },
+      beforeSend: function(){
+        $('#loaderdiv').show();
+      },
+      success: function (datas) {
+        $('#example').DataTable().ajax.reload();
+        alert("Bulk verification of selected beneficiaries successful.");
+         $('#loaderdiv').hide();
+         //document.getElementById('bulk_approve').disabled = true;
+      },
+      complete: function(){
+        document.getElementById('bulk_approve').disabled = true;
+        document.getElementById('bulk_blkchange').disabled = true;
+        $('#loaderdiv').hide();
+      },
+      error: function (ex) {
+      }
+    });
+  });
+
+  $('#select_all').click(function(e){
+      var table= $(e.target).closest('table');
+      $('td input:checkbox',table).prop('checked',this.checked);
+  });
+
+
+
+  $('#reject_Button').click(function(e){
+    e.preventDefault();
+
+    $.ajax({
+      type: 'POST',
+      url: '{{ url('singleStepBenReject') }}',
+      data: {
+        ben_id: $('#reject_beneficiary_id').val(),
+        scheme: "{{ $scheme }}",
+        _token: '{{ csrf_token() }}',
+      },
+      success: function (datas) {
+        alert('Beneficiary with id '+$('#reject_beneficiary_id').val()+' rejected');
+        $('#example').DataTable().ajax.reload();
+      },
+      error: function (ex) {
+      }
+    });
+
+  }) ; 
+ 
+	
+  $('#filter').click(function(){
+    
+    //Urban/Rural
+    level3_val=$('#level3').children('option:selected').val();
+    $('#level3data').val(level3_val);
+
+    // LocalBody
+    level1a_val=$('#level1a').children('option:selected').val();
+    $('#level1adata').val(level1a_val);
+    
+      table.clear().draw();
+      table.ajax.reload();
+  
+  });
+
+  var table=$('#example').DataTable( {
+        dom: "Blfrtip",
+        "paging": true,
+         "scrollX": true,
+        "pageLength":20,
+        "lengthMenu": [[20, 50, 80, 120, 150, 180, 500,1000, 2000], [20, 50, 80, 120, 150, 180, 500,1000, 2000]],
+		"serverSide": true,
+		"deferRender": true,
+        "processing":true,
+        "bRetrieve": true,
+        "ordering":false,
+        "language": {
+          "processing": '<img src="{{ asset('images/ZKZg.gif') }}" width="150px" height="150px"/>'
+        },
+        "ajax": 
+        {
+			url: "{{ url('getSingleStepVerifyData') }}",
+			type: "POST",
+          	data:function(d){
+              	d.level1= "{{ $district_code }}",
+				d.level2= "{{ $district_name}}",
+				d.level1a = $('#level1adata').val(),
+              	d.level3=   $('#level3data').val(),
+				d._token= "{{csrf_token()}}",
+				d.scheme = "{{ $scheme }}"
+			
+			}
+		} ,
+        "columns": [
+                  { "data": "check" },
+                  { "data": "application_id","defaultContent":""},
+                  { "data": "ben_name","defaultContent":"" },
+                  { "data": "old_beneficiary_id","defaultContent":"0" },
+                  { "data": "bank_ifsc","defaultContent":"" },
+                  { "data": "bank_code","defaultContent":"0" },
+                  { "data": "village_town_city","defaultContent":"0" },
+                  { "data": "action","defaultContent":"0" }      
+        				 
+              ], 
+          "columnDefs": [
+                  { targets: "_all","orderable": false, },
+                  { targets: 0, "className": "text-center", },
+				  { targets: 7, "className": "text-center", },
+                ],         
+      
+        "buttons": [
+        {
+		  extend: 'pdf',
+		  exportOptions: {
+                columns: [1,2,3,4,5,6]
+			},	
+          title: 'Beneficiaries List',
+          messageTop: function () {
+                var message = "";
+                if("{{ $district_name}}" != ""){
+                  var message = message +"District: {{ $district_name}}, ";
+                }  
+                if($('#level3data').val()!="")
+                  var message = message +"Block/Municipality/Corporation: "+$('#level1a').children('option:selected').text()+", ";
+                var message = message + "Date: <?php echo date('d/m/Y');  ?>";
+                      return message;
+          },
+          footer: true,
+          pageSize:'A4',
+          orientation: 'portrait',
+          pageMargins: [ 40, 60, 40, 60 ],
+        },
+        {
+		  extend: 'excel',
+		  exportOptions: {
+                columns: [1,2,3,4,5,6]
+			},
+          title: 'Beneficiaries List',
+          messageTop: function () {
+            var message = "";
+            if("{{ $district_name}}" != ""){
+              var message = message +"District: {{ $district_name}}, ";
+            }  
+            if($('#level3data').val()!="")
+              var message = message +"Block/Municipality/Corporation: "+$('#level1a').children('option:selected').text()+", ";
+            var message = message + "Date: <?php echo date('d/m/Y');  ?>";
+                  return message;
+          },
+          footer: true,
+          pageSize:'A4',
+          //orientation: 'landscape',
+          pageMargins: [ 40, 60, 40, 60 ],
+        },
+        {
+		  extend: 'print',
+		  exportOptions: {
+                columns: [1,2,3,4,5,6]
+			},
+          title: 'Beneficiaries List',
+          messageTop: function () {
+            var message = "";
+            if("{{ $district_name}}" != ""){
+              var message = message +"District: {{ $district_name}}, ";
+            }  
+            if($('#level3data').val()!="")
+              var message = message +"Block/Municipality/Corporation: "+$('#level1a').children('option:selected').text()+", ";
+            var message = message + "Date: <?php echo date('d/m/Y');  ?>";
+                  return message;
+          },
+          footer: true,
+          pageSize:'A4',
+          //orientation: 'landscape',
+          pageMargins: [ 40, 60, 40, 60 ],
+        },
+        ],
+			} );
+	   table.on('click','.ben_view_button',function(){
+          $tr = $(this).closest('tr');
+          if(($tr).hasClass('child')){
+            $tr = $tr.prev('parent');
+          }
+          var data = table.row($tr).data();
+          $('#view_ben_id').html(data['application_id']);
+          $('#view_ben_old_id').html(data['old_beneficiary_id']);
+          $('#ben_id').val(data['id']);
+          $('#ben_name').html(data['ben_name']);
+          $('#benf_name').html(data['benf_name']);
+          $('#ben_dob').html(data['dob']);
+          $('#ben_gender').html(data['gender']);
+          
+          
+          $('#ben_addr').html(data['village_town_city']);
+          $('#ben_mobile').html(data['mobile_no']);
+          $('#ben_aadhar').html(data['aadhar_no']);
+          $('#ben_voterid').html(data['epic_voter_id']);
+            $('#ben_account').html(data['bank_code']);
+          $('#ben_bank').html(data['bank_name']);
+          $('#ben_branch').html(data['branch_name']);
+          $('#ben_ifsc').html(data['bank_ifsc']);
+            
+          $('#ben_view_modal').modal('show');
+      });
+      table.on('click','.ben_selective_edit_approve_button',function(){
+          $tr = $(this).closest('tr');
+          if(($tr).hasClass('child')){
+            $tr = $tr.prev('parent');
+          }
+          var data = table.row($tr).data();
+          $('#selective_edit_id').val(data['ben_id']);
+          $('#selective_edit_ben_old_id').html(data['old_beneficiary_id']);
+          $('#selective_edit_ben_id').html(data['application_id']);
+          $('#selective_edit_ben_fname').val(data['ben_fname']);
+          $('#selective_edit_ben_mname').val(data['ben_mname']);
+          $('#selective_edit_ben_lname').val(data['ben_lname']);
+
+          $('#selective_edit_benf_fname').val(data['father_fname']);
+          $('#selective_edit_benf_mname').val(data['father_mname']);
+          $('#selective_edit_benf_lname').val(data['father_lname']);
+
+          $('#selective_edit_ben_dob').html(data['dob']);
+          $('#selective_edit_ben_gender').html(data['gender']);
+          
+          
+          $('#selective_edit_ben_addr').val(data['village_town_city']);
+          $('#selective_edit_ben_mobile').html(data['mobile_no']);
+          $('#selective_edit_ben_aadhar').html(data['aadhar_no']);
+          $('#selective_edit_ben_voterid').html(data['epic_voter_id']);
+            $('#selective_edit_ben_account').val(data['bank_code']);
+          $('#selective_edit_ben_bank').val(data['bank_name']);
+          $('#selective_edit_ben_branch').val(data['branch_name']);
+          $('#selective_edit_ben_ifsc').val(data['bank_ifsc']);
+            
+          $('#ben_selective_edit_modal').modal('show');
+      });
+      table.on('click','.ben_edit_approve_button',function(){
+        $tr = $(this).closest('tr');
+        if(($tr).hasClass('child')){
+          $tr = $tr.prev('parent');
+        }
+        var data = table.row($tr).data();
+        $('#edit_beneficiary_id').val(data['ben_id']);
+        $('#edit_ben_id').html(data['application_id']);
+        $('#edit_ben_name').html(data['ben_name']);
+        $('#edit_ben_father_name').html(data['benf_name']);
+        $('#edit_ben_ifsc').html(data['bank_ifsc']);
+        $('#edit_ben_accno').html(data['bank_code']);
+        $('#ben_edit_modal').modal('show');
+      });
+
+      table.on('click','.ben_reject_button',function(){
+        $tr = $(this).closest('tr');
+        if(($tr).hasClass('child')){
+          $tr = $tr.prev('parent');
+        }
+        var data = table.row($tr).data();
+        $('#reject_beneficiary_id').val(data['ben_id']);
+        $('#reject_ben_id').html(data['application_id']);
+        $('#reject_ben_name').html(data['ben_name']);
+        $('#reject_ben_father_name').html(data['benf_name']);
+        $('#reject_ben_ifsc').html(data['bank_ifsc']);
+        $('#reject_ben_accno').html(data['bank_code']);
+        $('#ben_reject_modal').modal('show');
+      });
+
+  });
+
+  </script>

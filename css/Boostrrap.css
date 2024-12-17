@@ -1,0 +1,411 @@
+﻿body { 
+  background: url(../images/testimonial-bg1.jpg) no-repeat center center fixed; 
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;
+  font-family: 'Open Sans', sans-serif;
+}
+
+.inner-container{
+    margin-top:50px;
+    width:100%;
+  background: url(../images/Login_Page1.png) no-repeat center center; 
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;
+}
+.biswo{
+    width: 113px;
+   
+    margin-left: 70px;
+    position: relative;
+    top: 10px;
+}
+.e-sahay{
+    width:156px;
+    
+    margin-top: 20px;
+}
+.first-heading{
+    color:#333;
+    text-transform:capitalize;
+    font-size: 16px;
+    font-weight: 400;
+}
+.second-heading{
+    color:#1d76d0;
+    font-size: 15px;
+    font-weight: 400;
+    margin-top: -4px;
+}
+.cm{
+   
+    width:100%;
+    position: relative;
+    top: -37px;
+    left: -50px;
+}
+.first-button{
+    border: solid 0.1em #e6e6e6;
+    border-radius: 5px;
+    padding: 5px;
+    background: #d7f2ff;
+    height: 42px;
+    width: 265px;
+    position: relative;
+    top: 116px;
+    cursor:pointer;
+}
+.first-button:hover{
+    box-shadow: 0 1px 6px 0 rgba(32, 33, 36, .28);
+}
+.first-button:hover .btn-text {
+    color: #08325d;
+}
+.btn-icon{
+    float:left;
+}
+.btn-text{
+    color: #10467c;
+    font-weight: bold;
+    line-height: 30px;
+    font-size: 16px;
+    margin-left: 10px;
+    text-decoration:none;
+
+}
+.btn-text:hover{
+    text-decoration:none;
+}
+.list-icon{
+    width:30px;
+}
+.list-text{
+    color: #033c6a;
+    font-size: 12px;
+    font-weight: bold;
+    position: relative;
+    top: 2px;
+}
+.list-row{
+    position:relative;
+    top: -30px;
+}
+.list-row div{
+    text-align:center;
+}
+.mobileh2, .mobileh4{
+    display:none;
+}
+.first-heading, .second-heading{
+    display:block;
+}
+.footer{
+    width:100%;
+    color: #FFFFFF;
+    font-size: 13px;
+    line-height: 17px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+@media screen and (max-width: 1200px) {
+    .biswo{
+        margin-left: 30px;
+    }
+    .first-heading{
+        font-size: 13px;
+    }
+    .second-heading{
+        font-size: 13px;
+    }
+    .first-button {
+        top: 86px;
+    }
+}
+
+@media screen and (max-width: 991px) {
+    .biswo{
+        margin-left: 30px;
+    }
+    .first-heading{
+        font-size: 13px;
+    }
+    .second-heading{
+        font-size: 13px;
+    }
+    .first-button {
+        top: 86px;
+    }
+    .cm {
+        width: 80%;
+        position: relative;
+        top: -27px;
+        left: 34px;
+        margin-top: 25px;
+    }
+    .first-button {
+        top: 66px;
+        margin-left: 223px;
+    }
+}
+
+
+@media screen and (max-width: 767px) {
+    .inner-container{
+          margin-top: 15px;
+          background: url(../images/Login_Page_Tab.png) no-repeat top center;
+          height: 380px;
+      }
+    .biswo{
+        margin-left: 10px;
+        width: 80px;
+        margin-top: 10px;
+    }
+    .e-sahay {
+        width: 100px;
+        margin-top: 27px;
+    }
+    .mobileh2{
+        font-size: 20px;
+        margin-top: 4px;
+        color:#000;
+    }
+    .mobileh4{
+        font-size: 13px;
+        margin-top: -7px;
+        color: #2873c5;
+    }
+    .first-heading{
+        font-size: 13px;
+    }
+    .second-heading{
+        font-size: 13px;
+    }
+    
+    
+    .cm {
+        width: 100%;
+        position: relative;
+        top: 22px;
+        left: 4px;
+        margin: 0 auto;
+        float: right;
+        margin-right: 13px;
+    }
+    .first-button {
+        top: 60px;
+        margin-left: 15px;
+        width: 194px;
+        height: 34px;
+    }
+    .list-row div {
+        text-align: left;
+    }
+    
+    .list-icon {
+        width: 25px;
+        margin-left: 15px;
+        margin-bottom: 7px;
+    }
+    .mobileh2, .mobileh4{
+        display:block;
+    }
+    .first-heading, .second-heading{
+        display:none;
+    }
+
+    .btn-icon {
+        float: left;
+        width: 20px;
+        margin-top: 2px;
+    }
+    .btn-text {
+        color: #10467c;
+        font-weight: bold;
+        line-height: 22px;
+        font-size: 12px;
+        margin-left: 5px;
+        text-decoration: none;
+    }
+    .list-row {
+        position: relative;
+        top: 30px;
+    }
+    body{
+      height: 800px;
+   }
+
+}
+@media screen and (max-width: 767px) and (min-width:635px) {
+    .list-row {
+        position: relative;
+        top: -75px;
+    }
+}
+@media screen and (max-width: 634px) and (min-width:468px) {
+    .list-row {
+        position: relative;
+        top: -39px;
+    }
+}
+@media screen and (max-width: 469px) and (min-width:430px) {
+    .list-row {
+        position: relative;
+        top: 0px;
+    }
+}
+@media screen and (max-width: 349px) {
+    .inner-container{
+          margin-top: 15px;
+          background: url(../images/Login_Page_Tab.png) no-repeat top center;
+          height: 355px;
+      }
+    .biswo{
+        margin-left: 4px;
+        width: 75px;
+        margin-top: 10px;
+    }
+    .e-sahay {
+        width: 87px;
+        margin-top: 27px;
+    }
+    .mobileh2{
+        font-size: 18px;
+        margin-top: 4px;
+    }
+    .mobileh4{
+        font-size: 12px;
+        margin-top: -7px;
+        color: #2873c5;
+    }
+    .first-heading{
+        font-size: 13px;
+    }
+    .second-heading{
+        font-size: 13px;
+    }
+    .first-button {
+        top: 86px;
+    }
+    .cm {
+        width: 80%;
+        position: relative;
+        top: -27px;
+        left: 34px;
+        margin-top: 25px;
+    }
+    .first-button {
+        top: 66px;
+        margin-left: 223px;
+    }
+    .cm {
+        width: 100%;
+        position: relative;
+        top: 22px;
+        left: 8px;
+        margin: 0 auto;
+        float: right;
+        margin-right: 13px;
+    }
+    .first-button {
+        top: 50px;
+        margin-left: 10px;
+        width: 178px;
+        height: 34px;
+    }
+    .list-row div {
+        text-align: left;
+    }
+    
+    .list-icon {
+        width: 25px;
+        margin-left: 10px;
+        margin-bottom: 7px;
+    }
+    .mobileh2, .mobileh4{
+        display:block;
+    }
+    .first-heading, .second-heading{
+        display:none;
+    }
+    .btn-text {
+        color: #10467c;
+        font-weight: bold;
+        line-height: 11px;
+        font-size: 11px;
+        margin-left: 5px;
+        text-decoration: none;
+    }
+    .btn-icon {
+        float: left;
+        width: 16px;
+        margin-top: 2px;
+    }
+    .footer{
+        width:100%;
+        color: #FFFFFF;
+        font-size: 12px;
+        line-height: 15px;
+    }
+
+}
+
+
+
+/*@media screen and (max-width: 600px) {
+ 
+  .inner-container{
+      margin-top: 15px;
+      background: url(../images/Login_Page_Mobile1.jpg) no-repeat top center;
+  }
+  .biswo{
+    width: 80px;
+    margin-left: 0px;
+    position: relative;
+    top: 10px;
+    }
+    .e-sahay{
+        width:100px;
+        margin-top: 0px;
+    }
+    .first-heading{
+        color:#000;
+        text-transform:capitalize;
+        font-size: 12px;
+        font-weight: bold;
+    }
+    .second-heading{
+        color:#1d76d0;
+        font-size: 12px;
+        font-weight: bold;
+    }
+    .cm{
+        width: 80%;
+        position: relative;
+        top: -57px;
+        left: -33px;
+        padding: 10px;
+        float: right;
+    }
+    .first-button{
+        top: 220px;
+        margin: 0 auto;
+    }
+    .list-row {
+        top: 0px;
+    }
+    .list-icon {
+        width: 30px;
+        margin-bottom: 10px;
+    }
+}*/
+
+
+
+
+
+
+

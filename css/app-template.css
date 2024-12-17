@@ -1,0 +1,71 @@
+.btn-margin {
+  margin: 2px 10px;
+  font-size: 2vw;
+  padding: 1px;
+  text-align: center;
+}
+.margin-top{
+  margin-top:4px;
+}
+.box{
+  width: 100% !important;
+}
+
+.applicant_Details{
+  padding: 3px 0px 3px !important;
+  font-size: 15px;
+}
+.dropdown-menu .dividerlist{
+  height: 1px ;
+  margin:0px 0px !important;
+  background-color: #eee;
+}
+.backgroundColorEven{
+   background: #f3f7e1;
+   border-bottom: 1px solid #c0c0c0;
+}
+.upload_digital_certificate{
+  padding-bottom: 10px;
+}
+.backgroundColor{
+  background: #d1e4ec;
+  border-bottom: 1px solid #c0c0c0;
+}
+.applicant_Details strong{
+  padding-left: 10px;
+}
+.imgPosition{
+  margin-top:20px!important;
+}
+.imageSize{
+
+  border:2px solid #dcdfdf;
+  border-radius: 5px;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+}
+.pdfContener{
+  height: 100px;
+  text-align: center;
+  border: 1px solid #333;
+  background: #dcdfdf;
+  margin:0px 55px;
+}
+.borderbottom{
+  border-bottom: 1px solid #ff0000;
+}
+/* Small devices (tablets, 768px and up) */
+  @media (min-width: 768px) {
+    .btn-margin {
+      font-size: 1vw;
+    }
+ }
+ /* Small devices (tablets, 768px and up) */
+  @media (min-width: 970px) {
+    .btn-margin {
+      margin: 5px 10px;
+      padding: 5px;
+      font-size: 14px;
+    }
+ }
+

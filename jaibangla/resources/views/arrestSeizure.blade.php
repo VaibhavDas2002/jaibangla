@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<!--
+This is a starter template page. Use this page to start your new project from
+scratch. This page gets rid of all links and provides the needed markup only.
+-->
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>EM | Empployee Management</title>
+  <!-- Tell the browser to be responsive to screen width -->
+  <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+  <!-- Bootstrap 3.3.6 -->
+  <link href="{{ asset("/bower_components/AdminLTE/bootstrap/css/bootstrap.min.css") }}" rel="stylesheet" type="text/css" />
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.5.0/css/font-awesome.min.css">
+  <!-- Ionicons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/ionicons/2.0.1/css/ionicons.min.css">
+  <!-- Theme style -->
+   <link href="{{ asset("/bower_components/AdminLTE/dist/css/AdminLTE.min.css")}}" rel="stylesheet" type="text/css" />
+  <!-- AdminLTE Skins. We have chosen the skin-blue for this starter
+        page. However, you can choose any other skin. Make sure you
+        apply the skin class to the body tag so the changes take effect.
+  -->
+   <link href="{{ asset("/bower_components/AdminLTE/dist/css/skins/skin-blue.min.css")}}" rel="stylesheet" type="text/css" />
+
+  <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+  <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+  <!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+  <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+  <![endif]-->
+</head>
+<!--
+BODY TAG OPTIONS:
+=================
+Apply one or more of the following classes to get the
+desired effect
+|---------------------------------------------------------|
+| SKINS         | skin-blue                               |
+|               | skin-black                              |
+|               | skin-purple                             |
+|               | skin-yellow                             |
+|               | skin-red                                |
+|               | skin-green                              |
+|---------------------------------------------------------|
+|LAYOUT OPTIONS | fixed                                   |
+|               | layout-boxed                            |
+|               | layout-top-nav                          |
+|               | sidebar-collapse                        |
+|               | sidebar-mini                            |
+|---------------------------------------------------------|
+-->
+<body class="hold-transition skin-blue sidebar-mini">
+<div class="wrapper">
+
+  <!-- Main Header -->
+  @include('layouts.header')
+  <!-- Sidebar -->
+  @include('layouts.sidebar')
+
+  <!-- Content Wrapper. Contains page content -->
+  <div class="content-wrapper" style="min-height: 956.3px;">
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+      <h1>
+        Seizure Details        
+      </h1>
+      <ol class="breadcrumb">
+        <li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li>
+        <li><a href="#">Forms</a></li>
+        <li class="active">Editors</li>
+      </ol>
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+      <div class="row">
+        <div class="col-md-12">
+        <form method="POST" action="{{url('saveArrestSizure')}}" >          
+          <input type="hidden" name="_token" value="{{ csrf_token() }}">
+
+              @if ($message = Session::get('success'))
+              <div class="alert alert-success alert-block">
+                <button type="button" class="close" data-dismiss="alert">×</button> 
+                      <strong>{{ $message }}</strong>
+              </div>
+              @endif
+         
+          
+       
+            </div><!-- ./box --> 
+
+            @if(!$arrestSeizureData->isEmpty())
+            @foreach($arrestSeizureData as $record)
+
+            <div class="box box-info">
+              <div class="box-header">
+                <h3 class="box-title">Seizure                
+                </h3>
+                <!-- tools box -->
+                <div class="pull-right box-tools">
+                  <button type="button" class="btn btn-default btn-sm" data-widget="collapse" data-toggle="tooltip" title="" data-original-title="Collapse">
+                    <i class="fa fa-minus"></i></button>
+                </div>
+                <!-- /. tools -->
+              </div>
+              <!-- /.box-header -->
+              <div class="box-body pad">
+                <div class="form-group">
+                    <label for="seizure_arms">Arms</label>
+                    <input class="form-control" id="seizure_arms" value="{{$record->seizure_arms}}" name="seizure_arms" placeholder="Arms" type="text">
+                </div> 
+                <div class="form-group">
+                    <label for="seizure_amunation">Ammunation</label>
+                    <input class="form-control" id="seizure_amunation" value="{{$record->seizure_amunation}}"  name="seizure_amunation" placeholder="Ammunation" type="text">
+                </div> 
+                <div class="form-group">
+                    <label for="seizure_bomb">Bomb</label>
+                    <input class="form-control" id="seizure_bomb" value="{{$record->seizure_bomb}}" name="seizure_bomb" placeholder="Bomb" type="text">
+                </div> 
+                <div class="form-group">
+                    <label for="seizure_bomb">Explosive(Kg)</label>
+                    <input class="form-control" id="seizure_explosive" value="{{$record->seizure_explosive}}" name="seizure_explosive" placeholder="Explosive" type="text">
+                </div>
+                
+                <div class="form-group">
+                    <label for="seizure_fire_cracker">Fire Crackers</label>
+                    <input class="form-control" id="seizure_fire_cracker" value="{{$record->seizure_fire_cracker}}" name="seizure_fire_cracker" placeholder="Fire Crackers" type="text">
+                </div> 
+                <div class="form-group">
+                    <label for="seizure_id_liquor">ID Liquor</label>
+                    <input class="form-control" id="seizure_id_liquor" value="{{$record->seizure_id_liquor}}" name="seizure_id_liquor" placeholder="ID Liquor" type="text">
+                </div>
+                <div class="form-group">
+                    <label for="seizure_board_money">Board Money</label>
+                    <input class="form-control" id="seizure_board_money" value="{{$record->seizure_board_money}}" name="seizure_board_money" placeholder="Board Money" type="text">
+                </div>
+                <div class="form-group">
+                    <label for="seizure_ficn">FICN</label>
+                    <input class="form-control" id="seizure_ficn" value="{{$record->seizure_ficn}}" name="seizure_ficn" placeholder="FICN" type="text">
+                </div>
+
+                <div class="form-group">
+                    <label for="ndps_ganza">Ganza</label>
+                    <input class="form-control" id="ndps_ganza" value="{{$record->ndps_ganza}}" name="ndps_ganza" placeholder="Ganza" type="text">
+                </div>
+                <div class="form-group">
+                    <label for="ndps_heroin">Heroin</label>
+                    <input class="form-control" id="ndps_heroin" value="{{$record->ndps_heroin}}" name="ndps_heroin" placeholder="Heroin" type="text">
+                </div>
+                <div class="form-group">
+                    <label for="ndps_mixture">Phensedyl/ Codeine Mixture(Ltr)</label>
+                    <input class="form-control" id="ndps_mixture" value="{{$record->ndps_mixture}}" name="ndps_mixture" placeholder="Phensedyl/ Codeine Mixture(Ltr)" type="text">
+                </div>
+                <div class="form-group">
+                    <label for="ndps_oheers">Others</label>
+                    <input class="form-control" id="ndps_oheers" value="{{$record->ndps_oheers}}" name="ndps_oheers"  placeholder="Others" type="text">
+                </div>  
+              </div>
+            </div> <!-- ./box -->
+
+           
+
+           @endforeach
+
+          @else
+
+          <div class="box box-info">
+              <div class="box-header">
+                <h3 class="box-title">Seizure                
+                </h3>
+                <!-- tools box -->
+                <div class="pull-right box-tools">
+                  <button type="button" class="btn btn-default btn-sm" data-widget="collapse" data-toggle="tooltip" title="" data-original-title="Collapse">
+                    <i class="fa fa-minus"></i></button>
+                </div>
+                <!-- /. tools -->
+              </div>
+              <!-- /.box-header -->
+              <div class="box-body pad">
+                <div class="form-group">
+                    <label for="seizure_arms">Arms</label>
+                    <input class="form-control" id="seizure_arms" value="" name="seizure_arms" placeholder="Arms" type="text">
+                </div> 
+                <div class="form-group">
+                    <label for="seizure_amunation">Ammunation</label>
+                    <input class="form-control" id="seizure_amunation" value=""  name="seizure_amunation" placeholder="Ammunation" type="text">
+                </div> 
+                <div class="form-group">
+                    <label for="seizure_bomb">Bomb</label>
+                    <input class="form-control" id="seizure_bomb" value="" name="seizure_bomb" placeholder="Bomb" type="text">
+                </div> 
+                <div class="form-group">
+                    <label for="seizure_bomb">Explosive(Kg)</label>
+                    <input class="form-control" id="seizure_explosive" name="seizure_explosive" placeholder="Explosive" type="text">
+                </div>
+                
+                <div class="form-group">
+                    <label for="seizure_fire_cracker">Fire Crackers</label>
+                    <input class="form-control" id="seizure_fire_cracker" value="" name="seizure_fire_cracker" placeholder="Fire Crackers" type="text">
+                </div> 
+                <div class="form-group">
+                    <label for="seizure_id_liquor">ID Liquor</label>
+                    <input class="form-control" id="seizure_id_liquor" value="" name="seizure_id_liquor" placeholder="ID Liquor" type="text">
+                </div>
+                <div class="form-group">
+                    <label for="seizure_board_money">Board Money</label>
+                    <input class="form-control" id="seizure_board_money" value="" name="seizure_board_money" placeholder="Board Money" type="text">
+                </div>
+                <div class="form-group">
+                    <label for="seizure_ficn">FICN</label>
+                    <input class="form-control" id="seizure_ficn" value="" placeholder="FICN" type="text">
+                </div>
+
+                <div class="form-group">
+                    <label for="ndps_ganza">Ganza</label>
+                    <input class="form-control" id="ndps_ganza" value="" name="ndps_ganza" placeholder="Ganza" type="text">
+                </div>
+                <div class="form-group">
+                    <label for="ndps_heroin">Heroin</label>
+                    <input class="form-control" id="ndps_heroin" value="" name="ndps_heroin" placeholder="Heroin" type="text">
+                </div>
+                <div class="form-group">
+                    <label for="ndps_mixture">Phensedyl/ Codeine Mixture(Ltr)</label>
+                    <input class="form-control" id="ndps_mixture" value="" name="ndps_mixture" placeholder="Phensedyl/ Codeine Mixture(Ltr)" type="text">
+                </div>
+                <div class="form-group">
+                    <label for="ndps_oheers">Others</label>
+                    <input class="form-control" id="ndps_oheers" value="" name="ndps_oheers"  placeholder="Others" type="text">
+                </div>  
+              </div>
+            </div> <!-- ./box -->
+           
+          @endif
+          <div class="box-footer">
+                <button type="submit" class="btn btn-default" name="saveDraft" value="arrestDraft">Save as Draft</button>
+                <button type="submit" class="btn btn-info pull-right" name="submitarrestData" value="submitReport">Submit Arrest Data</button>
+          </div>
+          </form>
+        </div>
+        <!-- /.col-->
+      </div>
+      <!-- ./row -->     
+    </section>
+    <!-- /.content -->
+  </div>
+  <!-- /.content-wrapper -->
+
+  <!-- Footer -->
+  @include('layouts.footer')
+  
+<!-- ./wrapper -->
+
+<!-- REQUIRED JS SCRIPTS -->
+
+ <!-- jQuery 2.1.3 -->
+<script src="{{ asset ("/bower_components/AdminLTE/plugins/jQuery/jquery-2.2.3.min.js") }}"></script>
+
+<!-- Bootstrap 3.3.2 JS -->
+<script src="{{ asset ("/bower_components/AdminLTE/bootstrap/js/bootstrap.min.js") }}" type="text/javascript"></script>
+
+<!-- AdminLTE App -->
+<script src="{{ asset ("/bower_components/AdminLTE/dist/js/app.min.js") }}" type="text/javascript"></script>
+
+<!-- Optionally, you can add Slimscroll and FastClick plugins.
+     Both of these plugins are recommended to enhance the
+     user experience. Slimscroll is required when using the
+     fixed layout. -->
+</body>
+</html>
