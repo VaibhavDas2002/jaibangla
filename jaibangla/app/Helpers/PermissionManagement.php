@@ -63,5 +63,16 @@ class PermissionManagement
         }
         return false;
     }
+    public static function DsEntryCheker($scheme_id)
+    {
+        $ds_entry = DB::table('m_scheme_gen_setting')
+        ->where('scheme_id', $scheme_id)
+        ->value('allow_ds_entry');
+
+        if ($ds_entry) {
+            return true;
+        }
+        return false;
+    }
 
 }

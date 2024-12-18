@@ -162,17 +162,28 @@
                                 </ul>
                             </div>
                         @endif
+                        <div class="row" style="position: relative;">
+                            <div class="col-md-12">
+                                <h3 style="text-align: center; color:Blue;">Beneficiary ID: {{$row->id}}</h3>
+                                <h4 style="text-align: center; color:green;">Scheme Name: {{$scheme_name}}</h4>
+                            </div>
+                            @if ($scheme_id == 17 || $scheme_id == 18)
+                                <div class="col-md-6">
+                                    <h3 style="text-align: center;">Phase:{{$row->app_phase}}</h3>
+                                </div>
+                            @endif
+                        </div>
 
-
-                        @include('JBProcessApplication.pension_view_details_common')
-
-
+                        @include('pension-details-view.personal_details')
+                        @include('pension-details-view.personal_identification')
+                        @include('pension-details-view.contact_details')
+                        @include('pension-details-view.bank_details')
+                        @include('pension-details-view.enclosure_list')
+                        @include('pension-details-view.additional_details')
+                        
 
                         @yield('form_section')
                         <!-- buttons -->
-
-                       
-
                     </div>
                 </div>
             </div>

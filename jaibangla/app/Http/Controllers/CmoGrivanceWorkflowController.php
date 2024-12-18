@@ -64,17 +64,10 @@ class CmoGrivanceWorkflowController extends Controller
         $cmoCheck = PermissionManagement::CmoCheck($scheme_id);
         if ($cmoCheck) {
             $user_id = Auth::user()->id;
-            if (AuthChecker::OperatorChecker()) {
-                $designation = 'Operator';
-            } elseif (AuthChecker::VerifierChecker()) {
-                $designation = 'Verifier';
-            } elseif (AuthChecker::ApproverChecker()) {
-                $designation = 'Approver';
-            } elseif (AuthChecker::HODChecker()) {
-                $designation = 'HOD';
-            } else {
-                $designation = Auth::user()->designation_id;
-            }
+            $is_verifer = AuthChecker::VerifierChecker();
+            $is_approver = AuthChecker::ApproverChecker();
+            $is_hod = AuthChecker::HODChecker();
+            
             $mapObj = DB::connection('pgsql_mis')
                 ->table('public.duty_assignement')
                 ->where('user_id', $user_id)

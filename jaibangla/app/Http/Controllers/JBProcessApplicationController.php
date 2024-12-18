@@ -298,8 +298,8 @@ class JBProcessApplicationController extends Controller
         'aadhar_filer_visible' => $aadhar_filer_visible,
         'scheme_id' => $scheme_id,
         'type' => $type,
-       'report_name' => $report_name,
-       'designation_id' => $designation_id,
+        'report_name' => $report_name,
+        'designation_id' => $designation_id,
       ]);
 
     }
@@ -757,9 +757,6 @@ class JBProcessApplicationController extends Controller
         ->skipPaging()
         ->addColumn('view', function ($data) {
           $action = '<a href="' . route('processApplicationDetailsCommon', ['id' => $data->id, 'scheme_id' => $data->scheme_id]) . '" class="btn btn-xs btn-primary"><i class="glyphicon glyphicon-edit"></i> View</a>';
-          if ($data->scheme_id == 17 || $data->scheme_id == 10 || $data->scheme_id == 11 || $data->scheme_id == 2) {
-            $action = $action . '<a href="application-edit?id=' . $data->id . '&scheme_id=' . $data->scheme_id . '" class="btn btn-xs btn-warning" target="_blank"><i class="glyphicon glyphicon-edit"></i> Edit</a>';
-          }
           return $action;
         })
         ->addColumn('check', function ($data) use ($approveBtnvisible) {
@@ -801,6 +798,8 @@ class JBProcessApplicationController extends Controller
     if (!is_numeric($request->scheme_id)) {
       return redirect("/")->with('danger', 'Scheme ID Not Valid');
     }
+    $is_verifier = AuthChecker::VerifierChecker();
+    $is_approver = AuthChecker::ApproverChecker();
     $approveBtnvisible = 1;
     $verifyBtnvisible = 1;
     $user_id = Auth::user()->id;
@@ -929,7 +928,7 @@ class JBProcessApplicationController extends Controller
         $approveBtnVisible = 1;
       }
     }
-
+   
 
     $doc_profile_image = DocumentType::get()->where("is_profile_pic", true)->first();
     $doc_profile_image_id = 999;
@@ -964,9 +963,11 @@ class JBProcessApplicationController extends Controller
       $approveBtnvisible = 0;
       $verifyBtnvisible = 0;
     }
-    //dd($is_dup_msg);
+
+    $approveBtnvisible = PermissionManagement::ApproveCheker($scheme_id) ? 1 : 0;
+    $verifyBtnvisible = PermissionManagement::VerifyCheker($scheme_id) ? 1 : 0;
     // dd($approveBtnVisible);
-    return view('JBProcessApplication.pension_view_common', [
+    return view('pension-details-view/pension_view_common', [
       'designation_id' => $designation_id,
       'is_state_login' => $is_state_login,
       'district_state_name' => $district_state_name,
@@ -984,7 +985,8 @@ class JBProcessApplicationController extends Controller
       'is_dup_msg' => $is_dup_msg,
       'scheme_id' => $scheme_id,
       'scheme_name' => $scheme_name,
-
+      'is_verifier' => $is_verifier,
+      'is_approver' => $is_approver,
     ]);
   }
 
@@ -1519,4 +1521,234 @@ class JBProcessApplicationController extends Controller
       }
     }
   }
+
+
+  public function applicant_details(Request $request)
+  {
+    $applicant_details = [
+      'app_id' => 6359286,
+      'app_name' => 'OLIMA SEKH',
+      'app_block' => 'KALIGANJ',
+      'app_district' => 'NADIA',
+    ];
+
+    $applicant_activity = [
+      [
+        'activity' => 'Application Submitted',
+        'datetime' => '2021-02-06',
+        'remarks' => 'Data imported from excel sheet provided by concerned department',
+      ],
+      [
+        'activity' => 'Applicant’s Bank details',
+        'datetime' => '',
+        'remarks' => 'For the Bank Account Details Bank IFSC - SBIN0003242, Bank A/c - 30451287145',
+      ],
+      [
+        'activity' => 'Bank details updated by Verifier due to IFMS payment failed',
+        'datetime' => '2021-07-02 08:17:57',
+        'remarks' => 'Old Bank A/c details – 30451287145, Bank IFSC - SBIN0003242. Modified with remarks – “IFMS Failed Update Bank Details” & Bank Account Details as Bank IFSC - SBIN0003242, Bank A/c – 30451287145, Updated by verifier (Mob No. – 8373050605, User name- bdov@kaliganj, Email ID - bdo_k@yahoo.com)',
+      ],
+      [
+        'activity' => 'Account Validation Lot Creation',
+        'datetime' => '2023-02-22 16:25:39',
+        'remarks' => 'For the Bank Account Details Bank IFSC- SBIN0003242 Bank A/C- 30451287145, Branch- DEBAGRAM',
+      ],
+      [
+        'activity' => 'Account Validation Lot Response Receive',
+        'datetime' => '2023-02-27 12:10:14',
+        'remarks' => 'Validation success.',
+      ],
+      [
+        'activity' => 'Bank details updated Approver',
+        'datetime' => '2023-04-01 11:30:18',
+        'remarks' => 'Old Bank A/c details – 30451287145, Bank IFSC - SBIN0003242. Modified with remarks – ‘Ac/Close’ & Bank Account Details as IFSC- PUNB0021720, Bank A/C – 0217010492799 by Nadia district Approver (Mob No. - 8373050635, Username- ADM_ D Nadia, email_id- admd.nadia1@gmail.com)',
+      ],
+      [
+        'activity' => 'Bank details updated Approver',
+        'datetime' => '2023-08-21 16:52:24',
+        'remarks' => 'Old Bank A/c details – 0217010492799, Bank IFSC - PUNB0021720. Modified with remarks – ‘ac close’ & Bank Account Details as IFSC- SBIN0000176, Bank A/C – 35957247985 by Nadia district Approver (Mob No. - 8373050635, Username- ADM_ D Nadia, email_id- admd.nadia1@gmail.com)',
+      ],
+      [
+        'activity' => 'Bank details updated by Approver end',
+        'datetime' => '2023-10-04 11:19:07',
+        'remarks' => 'Old Bank A/c details – 35957247985, Bank IFSC - SBIN0000176. Modified with remarks – ‘BDO Kaliganj Memo No.1996/Klj,Dated.02.08.2023.’ & Bank Account Details as IFSC- SBIN0003242, Bank A/C – 30451287145 by Nadia district Approver (Mob No. - 8373050635, Username- ADM_ D Nadia, email_id- admd.nadia1@gmail.com)',
+      ],
+      [
+        'activity' => 'Bank details updated by Approver',
+        'datetime' => '2023-12-21 11:15:53',
+        'remarks' => 'Old Bank A/c details – 30451287145, Bank IFSC - SBIN0003242. Modified with remarks – ‘AC CLOSE’ & Bank Account Details as IFSC- SBIN0005681, Bank A/C – 34316144772 by Nadia district Approver (Mob No. - 8373050635, Username- ADM_ D Nadia, email_id- admd.nadia1@gmail.com)',
+      ],
+      [
+        'activity' => 'Bank details updated by Approver',
+        'datetime' => '2024-01-29 18:44:49',
+        'remarks' => 'Old Bank A/c details – 34316144772, Bank IFSC - SBIN0005681. Modified with remarks – ‘Changed as per request of BDO Kaliganj vide Memo No. 245/KLJ Dated 25/01/2024’ & Bank Account Details as IFSC- SBIN0003242, Bank A/C – 30451287145 by Nadia district Approver (Mob No. - 8373050635, Username- ADM_ D Nadia, email_id- admd.nadia1@gmail.com)',
+      ],
+    ];
+
+
+
+
+
+
+    // Render the view content
+    $pdfContent = View::make('applicant-details.details', [
+      'applicant_details' => $applicant_details,
+      'applicant_activity' => $applicant_activity,
+    ])->render();
+
+    // Initialize TCPDF object
+    $pdf = new TCPDF('P', 'mm', 'A4');  // Set page orientation to Portrait and size to A4
+// $pdf->SetCreator(PDF_CREATOR); // Uncomment if needed
+    $pdf->SetAuthor('Jai Bangla');
+    $pdf->SetTitle('Applicant Activity Details');
+    $pdf->SetSubject('Applicant Activity PDF');
+
+    // Set fonts (uncomment this line if you want to customize the font)
+// $pdf->SetFont('dejavusans', '', 10);
+
+    // Add a page and set margins
+    $pdf->AddPage();
+    $pdf->SetMargins(10, 5, 10);  // Adjusting margins for the page
+
+    // Adjust the HTML content to fit within the A4 page
+// Setting 'true' to enable automatic page breaks for long content
+    $pdf->writeHTML($pdfContent, true, false, true, false, '');
+
+    // Output the PDF as a download (file name format)
+    return $pdf->Output('Applicant_Details-' . $applicant_details['app_id'] . '-Jai-Bangla.pdf', 'D');
+  }
+
+
+  public function applicant_details_multiple(Request $request)
+  {
+    // Sample array of multiple applicants
+    $applicants = [
+      [
+        'app_id' => 6353952,
+        'app_name' => 'PRABHAT SHIKDAR',
+        'app_block' => 'KALIGANJ',
+        'app_district' => 'NADIA',
+        'activities' => [
+          [
+            'activity' => 'Application Submitted',
+            'datetime' => '2021-02-06',
+            'remarks' => 'Data imported from excel sheet provided by concerned department',
+          ],
+          [
+            'activity' => 'Applicant’s Bank details',
+            'datetime' => '',
+            'remarks' => 'For the Bank Account Details Bank IFSC - SBIN0003242, Bank A/c - 30451287145',
+          ],
+         
+        ],
+      ],
+      [
+        'app_id' => 8250535,
+        'app_name' => 'MD REJAUL HAQUE',
+        'app_block' => 'KALIGANJ',
+        'app_district' => 'NADIA',
+        'activities' => [
+          [
+            'activity' => 'Application Submitted',
+            'datetime' => '2022-08-25',
+            'remarks' => 'From the KALIGANJ Block Operator (Mobile_number- 9332393867, Username- klignjopt1, email_id- biswasm36@gmail.com)',
+          ],
+          [
+            'activity' => 'Application Verification',
+            'datetime' => '2022-08-25 07:39:54',
+            'remarks' => 'From the KALIGANJ Block Verifier (Mobile_number- 8373050605, Username- bdov@kaliganj, email_id- bdo_k@yahoo.com) & ip address 172.20.140.8.',
+          ],
+          [
+            'activity' => 'Application Approval',
+            'datetime' => '2022-08-26 11:43:04',
+            'remarks' => 'From the KALIGANJ Block Approver (Mobile_number- 8373050635, Username- ADM_ D Nadia, email_id- admd.nadia1@gmail.com) & ip address 172.20.140.8.',
+          ],
+          [
+            'activity' => 'Applicant’s Bank details',
+            'datetime' => '',
+            'remarks' => 'For the Bank Account Details Bank IFSC - SBIN0001382, Bank A/c – 30249634951.',
+          ],
+          [
+            'activity' => 'Bank details updated by Verifier due to SBI failed',
+            'datetime' => '2022-10-11 08:45:36',
+            'remarks' => 'Old Bank A/c details – 30249634951, Bank IFSC - SBIN0001382. Modified with remarks – “SBI Failed Update Bank Details” & Bank Account Details as IFSC - PUNB0RRBBGB, Bank A/c – 5414019163977. Update by Verifier (Mob No. – 8373050605, User name- bdov@kaliganj, Email ID - bdo_k@yahoo.com)',
+          ],
+          
+        ],
+      ],
+
+
+      [
+        'app_id' => 6359286,
+        'app_name' => 'OLIMA SEKH',
+        'app_block' => 'KALIGANJ',
+        'app_district' => 'NADIA',
+        'activities' => [
+          [
+            'activity' => 'Application Submitted',
+            'datetime' => '2021-02-07',
+            'remarks' => 'Data imported from excel sheet provided by concerned department',
+          ],
+          [
+            'activity' => 'Applicant’s Bank details',
+            'datetime' => '',
+            'remarks' => 'For the Bank Account Details Bank IFSC - UTBI0RRBBGB, Bank A/c - 5123020294314',
+          ],
+          [
+            'activity' => 'Bank details updated Approver',
+            'datetime' => '2023-02-07 19:28:35',
+            'remarks' => 'Old Bank A/c details – 5123020294314, Bank IFSC - UTBI0RRBBGB. Modified with remarks – “Ac” & Bank Account Details as IFSC - BKID0004103, Bank A/c – 410318210000207 Update by Approver (Mob No. – 8373050635, User name- ADM_ D Nadia, Email ID - admd.nadia1@gmail.com)',
+          ],
+          [
+            'activity' => 'Account Validation Creation',
+            'datetime' => '2023-02-25 20:57:19',
+            'remarks' => 'For the Bank Account Details Bank IFSC- BKID0004103 Bank A/C- 410318210000207',
+          ],
+          [
+            'activity' => 'Account Validation Response',
+            'datetime' => '2023-03-03 11:21:13',
+            'remarks' => 'Account Validation success but name validation failed. The name response from bank was OLIMA BIBI SEKH. Whereas the applicant’s name is OLIMA SEKH for the bank account details Bank IFSC- BKID0004103 Bank A/C- 410318210000207.',
+          ],
+          [
+            'activity' => 'Failed Name Validation accepted as Minor Mismatch',
+            'datetime' => '2023-04-15 10:01:46',
+            'remarks' => 'From KALIGANJ Block Verifier (Mob No. - 8373050605,Username- bdov@kaliganj, email_id- bdo_k@yahoo.com)',
+          ],
+          [
+            'activity' => 'Bank details updated by Approver',
+            'datetime' => '2023-08-21 17:21:40',
+            'remarks' => 'Old Bank A/c details – 410318210000207, Bank IFSC - BKID0004103. Modified with remarks – ‘ac close’ & Bank Account Details as IFSC- SBIN0000176,  Bank A/C – 35504595155 by Nadia district Approver (Mob No. - 8373050635, Username- ADM_ D Nadia, email_id- admd.nadia1@gmail.com)',
+          ],
+          [
+            'activity' => 'Bank details updated by Approver',
+            'datetime' => '2023-09-29 14:31:04',
+            'remarks' => 'Old Bank A/c details – 35504595155, Bank IFSC - SBIN0000176. Modified with remarks – ‘Correction of account from BOD Kaliganj Vide Memo No. 3190/Kly Dated- 01.09.2023.’ & Bank Account Details as Bank IFSC- PUNB0RRBBGB Bank A/C – 5123020294314 by Nadia district Approver (Mob No. - 8373050635, Username- ADM_ D Nadia, email_id- admd.nadia1@gmail.com)',
+          ]
+        ],
+
+
+      ],
+    ];
+
+    // Initialize TCPDF object
+    $pdf = new TCPDF('P', 'mm', 'A4');  
+    $pdf->SetAuthor('Jai Bangla');
+    $pdf->SetTitle('Applicant Activity Details');
+    $pdf->SetSubject('Applicant Activity PDF');
+    $pdf->SetMargins(10, 5, 10);  
+    $pdf->AddPage();  
+
+    foreach ($applicants as $applicant) {
+      $pdfContent = View::make('applicant-details.details_multi', [
+        'applicant' => $applicant,  // Pass the current applicant
+      ])->render();
+      $pdf->writeHTML($pdfContent, true, false, true, false, '');
+
+      $pdf->AddPage();
+    }
+
+    return $pdf->Output('Applicant_Details-Jai-Bangla.pdf', 'D');
+  }
+
+
 }

@@ -2140,3 +2140,7 @@ Route::get('jbpdsnamemismatchlist', 'JBwbPDSController@namemismatchdlist')->name
 Route::get('jb-selectsehmelb60', 'JBProcessApplicationLB60Controller@shemeSelection')->name('jb-selectsehmelb60');
 Route::get('jb-workflow-lb60', 'JBProcessApplicationLB60Controller@ListView')->name('jb-workflow-lb60');
 Route::get('jb-View60lbapplication', 'JBProcessApplicationLB60Controller@View60lbapplication')->name('jb-View60lbapplication');
+
+
+Route::get('download-applicant-details' , 'JBProcessApplicationController@applicant_details')->name('download-applicant-details');
+Route::get('download-applicant-details_multi','JBProcessApplicationController@applicant_details_multiple')->name('download-applicant-details');
