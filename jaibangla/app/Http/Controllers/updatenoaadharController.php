@@ -29,6 +29,7 @@ use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 use App\AcceptRejectInfo;
 use App\DsPhase;
+use App\Helpers\AuthChecker;
 
 class updatenoaadharController extends Controller
 {
@@ -41,7 +42,7 @@ class updatenoaadharController extends Controller
        
 
        
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $duty_schemes = Configduty::where('user_id', '=', $user_id)->where('is_active', 1)->get()->pluck('scheme_id')->toArray();
         $scheme_list_constants = Config::get('constants.scheme_code_map');
         $scheme_list = array();
@@ -392,7 +393,7 @@ class updatenoaadharController extends Controller
     public function acceptnoaadharApplication(Request $request)
     {
      
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         // $role_id = $request->session()->get('role_id');
         $scheme_id = $request->session()->get('scheme_id');
         $ben_id = $request->accept_beneficiary_id;
@@ -512,7 +513,7 @@ class updatenoaadharController extends Controller
      
       $designation_id_old = Auth::user()->designation_id_old;
       
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
 
       $duty_obj = Configduty::where('user_id', $user_id)->first();
         $district_code = $duty_obj->district_code;
@@ -615,7 +616,7 @@ class updatenoaadharController extends Controller
     public function generate_excel(Request $request)
     {
         $scheme_code =  $request->rej_scheme_code;
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id', '=', $user_id)->first();
         $dist_code = $duty->district_code;
 

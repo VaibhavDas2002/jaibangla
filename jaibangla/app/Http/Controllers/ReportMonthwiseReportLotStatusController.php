@@ -8,6 +8,7 @@ use App\Configduty;
 use DB;
 use Auth;
 use App\lot_master;
+use App\Helpers\AuthChecker;
 
 class ReportMonthwiseReportLotStatusController extends Controller
 {
@@ -18,7 +19,7 @@ class ReportMonthwiseReportLotStatusController extends Controller
   	}
     public function index(Request $request){
       if (Auth::user()->designation_id_old == 'DDO' || Auth::user()->designation_id_old == 'HOD') {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $schemes=Configduty::where('user_id','=',$user_id)->where('is_active',1)->get();
 
         if(request()->ajax())
@@ -130,7 +131,7 @@ class ReportMonthwiseReportLotStatusController extends Controller
     }
   	// public function index(Request $request){
    //    if (Auth::user()->designation_id_old == 'DDO' || Auth::user()->designation_id_old == 'HOD') {
-   //      $user_id = Auth::user()->id;
+   //      $user_id = AuthChecker::getUserId();
    //      $schemes=Configduty::where('user_id','=',$user_id)->where('is_active',1)->get();
 
    //      if(request()->ajax())
@@ -148,7 +149,7 @@ class ReportMonthwiseReportLotStatusController extends Controller
           
    //        if ($scheme == 'All') {
    //          $scheme_str = '';
-   //          $user_id = Auth::user()->id;
+   //          $user_id = AuthChecker::getUserId();
    //          $schemes=Configduty::select('scheme_id')->where('user_id','=',$user_id)->where('is_active',1)->get();
    //          foreach ($schemes as $k) {
    //            $scheme_id = $k->scheme_id;

@@ -13,6 +13,7 @@ use App\UrbanBody;
 use App\Taluka;
 use App\UpdateBenDetails;
 use Auth;
+use App\Helpers\AuthChecker;
 
 class UpdatebenDetailsController extends Controller
 {
@@ -21,7 +22,7 @@ class UpdatebenDetailsController extends Controller
     }
     
     public function index(){
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $mapObj = Configduty::where('user_id',$user_id)->where('is_active',1)->first();
         /*$scheme = Configduty::leftJoin('m_scheme','m_scheme.id','duty_assignement.scheme_id')
                 ->where('duty_assignement.user_id',$user_id)
@@ -32,7 +33,7 @@ class UpdatebenDetailsController extends Controller
     }
     
     public function searchByBenName(Request $request){
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $designation = Auth::user()->designation_id_old;
         $mapObj = Configduty::where('user_id',$user_id)->where('is_active',1)->first();
         $dist_code = $mapObj->district_code;
@@ -295,7 +296,7 @@ class UpdatebenDetailsController extends Controller
         }
 
         if (!empty($old_value) && !empty($input)) {
-            $user_id = Auth::user()->id;
+            $user_id = AuthChecker::getUserId();
         } 
         if (!empty($old_value) && !empty($input)) {
             $updateBenObj = new  UpdateBenDetails();
@@ -365,7 +366,7 @@ class UpdatebenDetailsController extends Controller
     }
 	
    public function stopPayment(Request $request,$id){
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $doc_types= DB::select(DB::raw("select * from m_attached_doc where id=".$request->stop_payment_reason));
         
         $this->validate($request, [
@@ -509,7 +510,7 @@ class UpdatebenDetailsController extends Controller
     }
 
    public function pauseBenPayment($id){
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $stop_details = BeneficiaryPensions::find($id);
         $is_saved = BeneficiaryPensions::where('id',$id)->update(['next_level_role_id'=>-98]);
         $is_paused = DB::select('SELECT public."payment_adjustment"('.$id.', -98)');
@@ -529,7 +530,7 @@ class UpdatebenDetailsController extends Controller
     public function resumeBenPayment(Request $request){
         $last_yymm = $request->resume_month;
         $id = $request->ben_id;
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $stop_details = BeneficiaryPensions::find($id);
         if ($request->lot_generate_no < 0) {
             $input = [
@@ -576,7 +577,7 @@ class UpdatebenDetailsController extends Controller
     }
 	
     public function stopPaymentReport(Request $request){
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $scheme_id = Configduty::select('scheme_id')->distinct()->where('user_id','=',$user_id)->where('is_active',1)->get();
         if(request()->ajax())
         {

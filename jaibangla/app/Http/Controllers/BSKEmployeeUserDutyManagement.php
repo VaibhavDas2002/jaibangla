@@ -18,6 +18,8 @@ use App\GP;
 use Illuminate\Support\Facades\Log;
 use App\Users_audit_trail;
 use Validator;
+use App\Helpers\AuthChecker;
+
 
 class BSKEmployeeUserDutyManagement extends Controller
 {
@@ -25,7 +27,7 @@ class BSKEmployeeUserDutyManagement extends Controller
         $this->middleware('auth');
     }
     public function index() {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $designation_id_old = Auth::user()->designation_id_old;
         $dutys = Configduty::where('user_id', '=', $user_id)->where('is_active', 1)->get(); 
         if ($dutys->isEmpty()) {
@@ -56,7 +58,7 @@ class BSKEmployeeUserDutyManagement extends Controller
     public function bskEmpUserGetData(Request $request) {
         if ($request->ajax()) {
             // dd($request->all());
-            $user_id = Auth::user()->id;
+            $user_id = AuthChecker::getUserId();
             $designation_id_old = Auth::user()->designation_id_old;
             $dutys = Configduty::where('user_id', '=', $user_id)->where('is_active', 1)->get();
 

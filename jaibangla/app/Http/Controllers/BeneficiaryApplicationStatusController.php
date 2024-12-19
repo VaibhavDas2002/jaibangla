@@ -15,19 +15,20 @@ use App\UpdateBenDetails;
 use App\DupliacteApproveReject;
 use Auth;
 use Elibyy\TCPDF\Facades\TCPDF as PDF;
+use App\Helpers\AuthChecker;
 
 class BeneficiaryApplicationStatusController extends Controller
 {
     public function index()
     {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $mapObj = Configduty::where('user_id',$user_id)->where('is_active',1)->first();
         $scheme = Configduty::select('scheme_id')->where('user_id',$user_id)->where('is_active',1)->get();
         return view('ben-application-status/index_app_status',['schemes' => $scheme, 'mapping_level' => $mapObj->mapping_level, 'district_code' => $mapObj->district_code]);
     }
     public function searchResult(Request $request)
     {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $designation_id_old = Auth::user()->designation_id_old;
         $mapObj = Configduty::where('user_id',$user_id)->where('is_active',1)->first();
         $dist_code = $mapObj->district_code;

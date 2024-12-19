@@ -36,6 +36,7 @@ use App\BenDocsPurohitMonthlyICAD;
 use App\Configduty;
 use App\Traits\TraitLifeCertificateValidate;
 use Maatwebsite\Excel\Excel;
+use App\Helpers\AuthChecker;
 
 class BioAuthLifeCertController extends Controller
 {
@@ -49,7 +50,7 @@ class BioAuthLifeCertController extends Controller
         try {
         ini_set('max_execution_time', 20);
         // $scheme_id = $this->scheme_id;
-        //$user_id = Auth::user()->id;
+        //$user_id = AuthChecker::getUserId();
         $scheme_id = $request->scheme_id;
         $district_code = $request->dist_code;
         $is_faulty = 0;

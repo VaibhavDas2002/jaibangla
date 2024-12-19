@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Config;
 use App\BankDetails;
 use App\DocumentType;
+use App\Helpers\AuthChecker;
 use App\Helpers\DupCheck;
 class UpdateBankStopPaymentController extends Controller
 {
@@ -35,9 +36,9 @@ class UpdateBankStopPaymentController extends Controller
 		if (empty($schema_name)) {
 		  $schema_name = 'pension';
 		}
-		$table_name =  strtolower($schema_name) . '.beneficiary';
+		$table_name =  strtolower($schema_name) . '.beneficiaries';
 	  } else {
-		$table_name =  'pension.beneficiary';
+		$table_name =  'pension.beneficiaries';
 	  }
 	  return $table_name;
 	}
@@ -46,13 +47,13 @@ class UpdateBankStopPaymentController extends Controller
   */
   public function index()
   {
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $designation = Auth::user()->designation_id_old;
-    if ($designation == 'Approver' || $designation == 'Verifier') {
+    if (AuthChecker::ApproverChecker() || AuthChecker::VerifierChecker()) {
       $mapObj = Configduty::where('user_id', $user_id)->where('is_active', 1)->first();
-      if ($designation == 'Approver') {
+      if (AuthChecker::ApproverChecker()) {
         $scheme = Configduty::select('scheme_id')->where('user_id', $user_id)->where('is_active', 1)->get();
-      } else if ($designation == 'Verifier') {
+      } else if (AuthChecker::VerifierChecker()) {
         $scheme = Configduty::select('scheme_id')->distinct()->where('user_id', $user_id)->where('is_active', 1)->whereIn('scheme_id', array(2,10,11,3,1,19))->get();
       }
 
@@ -70,7 +71,7 @@ class UpdateBankStopPaymentController extends Controller
   {
     // dd($request);
     if ($request->ajax()) {
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       $designation = Auth::user()->designation_id_old;
       $mapObj = Configduty::where('user_id', $user_id)->where('is_active', 1)->first();
       $dist_code = $mapObj->district_code;
@@ -106,7 +107,7 @@ class UpdateBankStopPaymentController extends Controller
         $table_name =  'pension.beneficiaries';
       }
 
-      if ($designation == 'Approver' || $designation == 'Verifier') {
+      if (AuthChecker::VerifierChecker() ||AuthChecker::ApproverChecker()) {
         $type = $request->select_type;
         $first_name = strtoUpper(trim($request->ben_fname));
         $middle_name = strtoUpper(trim($request->ben_mname));
@@ -313,7 +314,7 @@ class UpdateBankStopPaymentController extends Controller
   */
   public function updateBenBankDetails(Request $request)
   {
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $scheme_id = $request->scheme_id;
     $roleArray = $request->session()->get('role');
     $district_code = NULL;
@@ -732,14 +733,14 @@ class UpdateBankStopPaymentController extends Controller
       if ($validator->passes()) {
         $scheme_id = $request->scheme_id;
         $designation = Auth::user()->designation_id_old;
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         // dd($scheme_id);
         $table = $this->getSchemaName($scheme_id);
         $schemaarr=explode('.', $table);
         $schema=$schemaarr[0];
         
 
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $roleArray = $request->session()->get('role');
         $district_code = NULL;
         $urban_body_code = NULL;
@@ -959,7 +960,7 @@ class UpdateBankStopPaymentController extends Controller
       return response()->json($response, $statusCode);
     }
     try {
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       $id = $request->id;
       $scheme_id = $request->scheme_id;
       $ip_address = request()->ip();
@@ -1042,7 +1043,7 @@ class UpdateBankStopPaymentController extends Controller
       return response()->json($response, $statusCode);
     }
     try {
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       $id = $request->id;
       $scheme_id = $request->scheme_id;
       $ip_address = request()->ip();
@@ -1234,7 +1235,7 @@ class UpdateBankStopPaymentController extends Controller
             $return_text = 'Parameter Not Valid3';
             return redirect("/")->with('error',  $return_text);
         }
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $encolserData = DB::connection('pgsql_encwrite')->table('jb_doc.ben_attach_documents')->where('document_type', $request->doc_type)->where('beneficiary_id', $id)->first();
         // dd($encolserData);
         if (empty($encolserData->beneficiary_id)) {

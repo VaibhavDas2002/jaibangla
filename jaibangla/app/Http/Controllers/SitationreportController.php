@@ -22,6 +22,8 @@ use App\PreviousCaseArrest;
 use App\Cspolicestation;
 use App\CrimeHead;
 use App\MissingDetails;
+use App\Helpers\AuthChecker;
+
 
 class SitationreportController extends Controller
 {
@@ -55,7 +57,7 @@ class SitationreportController extends Controller
 		    ['status', '=', 0],
 		    ['report_date', '=', date("Y-m-d")]
 		])->get();
-    	$user_id = Auth::user()->id;
+    	$user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id','=',$user_id)->first();
     	$returnObj="";	
 
@@ -128,7 +130,7 @@ class SitationreportController extends Controller
 
     public function backDateCase(){
         
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id','=',$user_id)->first();        
         $policestations = Cspolicestation::where('cs_ps_code', '=', $duty->ps_code)->get();  
         $crimeHeads = CrimeHead::all();
@@ -137,7 +139,7 @@ class SitationreportController extends Controller
     }
 
     public function saveBackDateCaseDetails(Request $request){
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id','=',$user_id)->first();
         $arrest_date = date('Y-m-d', strtotime("-1 days"));
         $input=[
@@ -157,7 +159,7 @@ class SitationreportController extends Controller
     
 
     public function saveCompoundSlip(Request $request){
-    	$user_id = Auth::user()->id;
+    	$user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id','=',$user_id)->first();        
     	$date = date('Y-m-d', strtotime("-1 days"));
     	$input=[	
@@ -171,7 +173,7 @@ class SitationreportController extends Controller
     }
 
     public function saveExciseArrest(Request $request){
-    	$user_id = Auth::user()->id;
+    	$user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id','=',$user_id)->first();        
     	$date = date('Y-m-d', strtotime("-1 days"));
     	$input=[	
@@ -188,7 +190,7 @@ class SitationreportController extends Controller
     
     
     public function saveArrestSizure(Request $request){
-    	$user_id = Auth::user()->id;
+    	$user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id','=',$user_id)->first();        
     	$date = date('Y-m-d', strtotime("-1 days"));
     	$input=[	
@@ -213,7 +215,7 @@ class SitationreportController extends Controller
 
 
     public function saveWarrent(Request $request){
-    	$user_id = Auth::user()->id;
+    	$user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id','=',$user_id)->first();        
     	$date = date('Y-m-d', strtotime("-1 days"));
     	$input=[	
@@ -229,7 +231,7 @@ class SitationreportController extends Controller
 
 
     public function savePreventiveArrest(Request $request){
-    	$user_id = Auth::user()->id;
+    	$user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id','=',$user_id)->first();        
     	$date = date('Y-m-d', strtotime("-1 days"));
     	$input=[	
@@ -248,7 +250,7 @@ class SitationreportController extends Controller
     }
 
     public function saveMissingDetails(Request $request){
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id','=',$user_id)->first();
         $date = date('Y-m-d', strtotime("-1 days"));
         $input=[
@@ -272,7 +274,7 @@ class SitationreportController extends Controller
 		    ['status', '=', 0],
 		    ['report_date', '=', date("Y-m-d")]
 		])->get();
-    	$user_id = Auth::user()->id;
+    	$user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id','=',$user_id)->first();
     	$returnObj="";	
     	 

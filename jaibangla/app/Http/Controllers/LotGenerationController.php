@@ -15,13 +15,14 @@ use App\Scheme;
 use Auth;
 use App\Configduty;
 use App\BeneficiaryPensions;
+use App\Helpers\AuthChecker;
 
 class LotGenerationController extends Controller
 {
     public function index()
     {   
         //sayantika department
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id','=',$user_id)->first();
         $is_active = $duty->is_active;
         
@@ -93,7 +94,7 @@ class LotGenerationController extends Controller
     //dd($scheme_id,$location_code,$level,$reportdistrict_data);
     if($scheme_id==0 && $location_code==0 && $level==0 && $reportdistrict_data==0){
      // dd("I m here");
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       $schemes=Configduty::where('user_id','=',$user_id)->where('is_active',1)->get();
       $count=BeneficiaryPensions::where(function($query) use ($schemes){
           foreach($schemes as $scheme){
@@ -274,7 +275,7 @@ public function getdata(Request $request){
                            
                             
                         );
-  	$user_id = Auth::user()->id;
+  	$user_id = AuthChecker::getUserId();
     $schemes=Configduty::where('user_id','=',$user_id)->where('is_active',1)->get();
    
     // dd($schemes->scheme_id);

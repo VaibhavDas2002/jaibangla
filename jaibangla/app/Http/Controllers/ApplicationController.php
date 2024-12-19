@@ -20,6 +20,8 @@ use App\Http\Controllers\SmsSendController;
 use Auth;
 use Image;
 use App\User;
+use App\Helpers\AuthChecker;
+
 
 
 class ApplicationController extends Controller
@@ -53,7 +55,7 @@ class ApplicationController extends Controller
 
 		 $users = User::All();
 
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id','=',$user_id)->first();
         //$approvedapplications = applicationModel::where('is_fee_paid','=','Y')->where('current_status', '=', 'READY')->paginate(10); 
 
@@ -63,7 +65,7 @@ class ApplicationController extends Controller
         echo "</pre>";
         die();*/
 
-       // $user_id = Auth::user()->id;
+       // $user_id = AuthChecker::getUserId();
         //$duty = Configduty::where('user_id','=',$user_id)->first();
         //$pendingapplications = applicationModel::where('is_fee_paid','=','Y')->where('current_status', '=', 'APPROVEDBYDCP')->where('police_station_code', '=', $duty->ps_code)->paginate(10); 
 

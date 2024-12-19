@@ -33,6 +33,8 @@ use App\DsPhase;
 use App\Scheme;
 use App\RejectRevertReason;
 use App\AcceptRejectInfo;
+use App\Helpers\AuthChecker;
+
 class StopBeneficiaryController  extends Controller
 {
     public function __construct()
@@ -76,7 +78,7 @@ class StopBeneficiaryController  extends Controller
     {
      
       $designation_id_old = Auth::user()->designation_id_old;
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
   
       $scheme_id = $request->scheme_id;
       if (!ctype_digit($scheme_id)) {
@@ -341,7 +343,7 @@ class StopBeneficiaryController  extends Controller
     {
       //dd($request);
      
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $scheme_id = $request->scheme_id;       
         if (!ctype_digit($scheme_id)) {
           return redirect("/")->with('error', 'Scheme Not Valid');

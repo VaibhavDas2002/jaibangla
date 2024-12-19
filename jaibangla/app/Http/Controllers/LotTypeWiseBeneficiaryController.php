@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Helpers\AuthChecker;
 
 class LotTypeWiseBeneficiaryController extends Controller
 {
@@ -31,7 +32,7 @@ class LotTypeWiseBeneficiaryController extends Controller
 
     public function index()
     {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         // dd($user_id);
         $schemearray = array();
         $lottype_master = LotTypeMaster::orderBy('id')->get();

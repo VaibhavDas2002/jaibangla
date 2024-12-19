@@ -30,7 +30,7 @@ class GenericLotController extends Controller
 	public function lotGenericIndex()
 	{
 		$generic_class = "active";
-		$user_id = Auth::user()->id;
+		$user_id = AuthChecker::getUserId();
 		$schemearray=array();
 		$lottype_master = LotTypeMaster::orderBy('id')->get();
 		$report = DB::select(DB::raw("select id,scheme_name from m_scheme where id in (select scheme_id from duty_assignement where user_id=" . $user_id . " and is_active=1)"));
@@ -54,7 +54,7 @@ class GenericLotController extends Controller
 	public function viewAppendLotResult(Request $request)
 	{ //dd($request->all());
 		$schemearray=array();
-		$user_id = Auth::user()->id;
+		$user_id = AuthChecker::getUserId();
 		$report = DB::select(DB::raw("select id,scheme_name from m_scheme where id in (select scheme_id from duty_assignement where user_id=" . $user_id . " and is_active=1)"));
 	
 		foreach($report as $reportVal){
@@ -379,7 +379,7 @@ class GenericLotController extends Controller
 
 		//         }
 		/*		$new_lot_data = DB::select(DB::raw("select lot_no,credit_count from sbi.transaction_lot where lot_no in (select repeat_drn_part from lot_master where lot_no in ('" . $in_lot_no . "'))"));
-		$user_id = Auth::user()->id;
+		$user_id = AuthChecker::getUserId();
 		$schemeObj = Configduty::where('user_id', '=', $user_id)->where('is_active', 1)->first();
 		$report = DB::select(DB::raw("select id,scheme_name from m_scheme where id in (select scheme_id from duty_assignement where user_id=" . $user_id . " and is_active=1)"));
 

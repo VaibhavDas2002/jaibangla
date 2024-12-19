@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Configduty;
 use App\District;
 use App\GP;
+use App\Helpers\AuthChecker;
 use App\Taluka;
 use App\Scheme;
 use App\UrbanBody;
@@ -22,6 +23,11 @@ use Illuminate\Support\Facades\Validator;
 use App\Ward;
 use Exception;
 
+
+
+
+
+
 class DownloadPaymentStatusController extends Controller
 {
   public function __construct()
@@ -32,7 +38,7 @@ class DownloadPaymentStatusController extends Controller
 
   public function index()
   {
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $mapObj = Configduty::where('user_id', $user_id)->where('is_active', 1)->get()->pluck('scheme_id');
     $scheme = Scheme::whereIn('id', $mapObj)->get();
     $is_urbanObj = Configduty::where('user_id', $user_id)->where('is_active', 1)->first();
@@ -167,8 +173,7 @@ class DownloadPaymentStatusController extends Controller
   /* New Section Date: 17-08-2022 (Only For HOD and DDO) */
   public function getPayeeListIndex(Request $request)
   {
-    $designationId = Auth::user()->designation_id_old;
-    $userId = Auth::user()->id;
+    $userId = AuthChecker::getUserId();
     $sceme_list = DB::select(DB::raw("select id,scheme_name from m_scheme where id IN (13, 5) and id in (select scheme_id from duty_assignement where user_id=" . $userId . " and is_active=1) and is_active=1 order by scheme_name"));
     // dd($sceme_list);
     $base_date  = '2021-08-16';
@@ -182,9 +187,9 @@ class DownloadPaymentStatusController extends Controller
     $gp_ward_visible = 0;
     $muncList = collect([]);
     $gpList = collect([]);
-    if ($designation_id_old == 'Admin' || $designation_id_old == 'HOD' ||  $designation_id_old == 'Dashboard') {
+    if (AuthChecker::AdminChecker() || AuthChecker::HODChecker() ||  AuthChecker::DashboardChecker() ) {
       $district_visible = 1;
-    } else if ($designation_id_old == 'Approver' || $designation_id_old == 'Verifier' || $designation_id_old == 'StatusCheckerDistrict' || $designation_id_old == 'StatusCheckerField') {
+    } else if (AuthChecker::ApproverChecker() || AuthChecker::VerifierChecker() || AuthChecker::StatusCheckerDistrictChecker() || AuthChecker::StatusCheckerFieldChecker()) {
       $is_urban_visible = $block_visible = 1;
       $district_code = NULL;
       $is_urban = NULL;
@@ -247,7 +252,6 @@ class DownloadPaymentStatusController extends Controller
         'block_munc_corp_code_fk' => $block_munc_corp_code_fk,
         'municipality_visible' => $municipality_visible,
         'gp_ward_visible' => $gp_ward_visible,
-        'is_urban_visible' => $is_urban_visible,
         'base_date' => $base_date,
         'c_date' => $c_date,
         'gpList' => $gpList,

@@ -22,6 +22,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use App\Helpers\AuthChecker;
+
 
 class AadharBankDupCountComtroller extends Controller
 {
@@ -48,7 +50,7 @@ class AadharBankDupCountComtroller extends Controller
     }
     public function index()
     {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         if (Auth::user()->designation_id_old == 'Admin') {
             $schemes = Scheme::where('id','<>',20)->where('is_active', 1)->get();
             // dd($schemes);

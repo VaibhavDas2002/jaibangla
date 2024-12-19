@@ -9,6 +9,7 @@ use Auth;
 use App\Configduty;
 use App\Scheme;
 use App\lot_master;
+use App\Helpers\AuthChecker;
 
 class LargeLotGenerationSbiController extends Controller
 {
@@ -65,7 +66,7 @@ class LargeLotGenerationSbiController extends Controller
 //end use
     public function index()
     { 
-    	$user_id = Auth::user()->id;
+    	$user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id','=',$user_id)
         					->where('is_active',1)
         					->first();
@@ -89,7 +90,7 @@ class LargeLotGenerationSbiController extends Controller
         $in_lot_month = $request->month;
         
 
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id','=',$user_id)
         					->where('is_active',1)
         					->first();

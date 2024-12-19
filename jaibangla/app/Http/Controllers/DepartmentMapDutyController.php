@@ -16,13 +16,14 @@ use App\Ward;
 use App\GP;
 use Illuminate\Support\Facades\Log;
 use App\Users_audit_trail;
+use App\Helpers\AuthChecker;
 
 class DepartmentMapDutyController extends Controller
 {
 
     public function index()
     {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $designation_id_old = Auth::user()->designation_id_old;
         if ($designation_id_old != 'HOD' &&  $designation_id_old != 'Admin') {
             return redirect("/")->with('success', 'User Disabled');
@@ -58,7 +59,7 @@ class DepartmentMapDutyController extends Controller
         if ($designation_id_old != 'HOD' &&  $designation_id_old != 'Admin') {
             return redirect("/")->with('success', 'User Disabled');
         }
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $dutys = Configduty::where('user_id', '=', $user_id)->where('is_active', 1)->get(); //->first();
         //$is_active = $duty->is_active;
         //$dist_code = $duty->district_code;

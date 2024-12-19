@@ -20,6 +20,8 @@ use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Location_change_mapping;
 use App\Location_change_mapping_track;
+use App\Helpers\AuthChecker;
+
 class LocationChnageController extends Controller
 {
     public function __construct()
@@ -39,7 +41,7 @@ class LocationChnageController extends Controller
             return redirect("/")->with('error', 'Scheme Not Valid');
         }
         $scheme_id=$request->scheme_id;
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $designation_id_old = Auth::user()->designation_id_old;
         if ($designation_id_old != 'Approver') {
             return redirect('/')->with('error', 'Not Allowded');
@@ -265,7 +267,7 @@ class LocationChnageController extends Controller
         $scheme_id=trim($request->scheme_id);
         $new_block_ulb_code=trim($request->new_block_ulb_code);
         $new_gp_ward_code=trim($request->new_gp_ward_code);
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $duty= Configduty::where('user_id', '=', $user_id)->where('is_active', 1)->where('scheme_id', $scheme_id)->first();
         if(empty($duty)){
             return redirect('/')->with('error', 'Not Allowded');

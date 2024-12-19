@@ -38,6 +38,8 @@ use App\AcceptRejectInfo;
 use App\MapLavel;
 use App\BenDocs;
 use App\DsPhase;
+use App\Helpers\AuthChecker;
+
 class OapWcdVerifiedRejectionController extends Controller
 {
     public function __construct()
@@ -50,7 +52,7 @@ class OapWcdVerifiedRejectionController extends Controller
   }
   public function index(Request $request){
     
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
         $dutyObj = Configduty::where('user_id', '=', $user_id)
             ->where('is_active', 1)
             ->first();  
@@ -73,7 +75,7 @@ class OapWcdVerifiedRejectionController extends Controller
 
     public function list(Request $request){
         // dd($request->all());
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       $dutyObj = Configduty::where('user_id', '=', $user_id)
           ->where('is_active', 1)
           ->first();
@@ -260,7 +262,7 @@ class OapWcdVerifiedRejectionController extends Controller
             return response()->json($response, $statusCode);
         }
         try {
-            $user_id = Auth::user()->id;
+            $user_id = AuthChecker::getUserId();
             $mapObj = DB::connection('pgsql_mis')
                 ->table('public.duty_assignement')
                 ->where('user_id', $user_id)
@@ -340,7 +342,7 @@ class OapWcdVerifiedRejectionController extends Controller
             if (!is_numeric($id)) {
                 return redirect("/")->with('danger', 'Applicant ID Not Valid');
             }
-            $user_id = Auth::user()->id;
+            $user_id = AuthChecker::getUserId();
             $duty = Configduty::where('user_id', '=', $user_id)->where('is_active', 1)->first();
             $roleArray = $request->session()->get('role');
             // dd($roleArray);
@@ -430,7 +432,7 @@ class OapWcdVerifiedRejectionController extends Controller
    public function benReject(Request $request){
     try {
         //  dd($request->all());
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
             $mapObj = DB::connection('pgsql_mis')
                 ->table('public.duty_assignement')
                 ->where('user_id', $user_id)

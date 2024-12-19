@@ -23,6 +23,8 @@ use App\Ward;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use App\Helpers\AuthChecker;
+
 
 class DuplicateAadharMobileController extends Controller
 {
@@ -47,7 +49,7 @@ class DuplicateAadharMobileController extends Controller
         $is_active = 0;
         $roleArray = $request->session()->get('role');
         $designation_id_old = Auth::user()->designation_id_old;
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         // echo $user_id;die();
         $district_visible = $is_urban_visible = $block_visible = 1;
         $municipality_visible = 0;

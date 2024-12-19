@@ -17,6 +17,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use App\Helpers\AuthChecker;
+
 
 class lotWiseBenCountController extends Controller
 {
@@ -46,7 +48,7 @@ class lotWiseBenCountController extends Controller
 
     public function index()
     {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $designation_id_old = Auth::user()->designation_id_old;
         // echo $designation_id_old;die;
         $duty = Configduty::where('user_id', '=', $user_id)->first();

@@ -62,7 +62,7 @@ class ReportDuplicateStopPaymentBenController extends Controller
 
     public function index1(){
     	if (Auth::user()->designation_id_old == 'HOD') {
-    		$user_id = Auth::user()->id;
+    		$user_id = AuthChecker::getUserId();
         	$schemeObj=Configduty::select('scheme_id')->where('user_id','=',$user_id)->where('is_active',1)->get();
         	$scheme = Scheme::whereIn('id',$schemeObj)->get();
     		return view('report-duplicate-stop-payment/index',['schemes' => $scheme]);

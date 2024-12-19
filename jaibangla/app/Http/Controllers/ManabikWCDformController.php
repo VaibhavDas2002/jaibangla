@@ -37,6 +37,8 @@ use App\Traits\TraitAadharValidate;
 use App\Traits\TraitCasteCertificateValidate;
 use App\Traits\TraitLifeCertificateValidate;
 use Illuminate\Support\Facades\Session;
+use App\Helpers\AuthChecker;
+
 class ManabikWCDformController extends Controller
 {
     use TraitCasteCertificateValidate;
@@ -215,7 +217,7 @@ class ManabikWCDformController extends Controller
     {
         $wq=1;
         $ds_phase = DsPhase::where('is_current', TRUE)->first();
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         //$server_ip =$_SERVER['SERVER_ADDR'];
         $base_url = url('/');
         $uploaded_doc = array();
@@ -816,7 +818,7 @@ class ManabikWCDformController extends Controller
     public function applicationlist()
     {
         //DB::enableQueryLog();
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $rows = PensionSc::orderBy('id', 'desc')->paginate(500);
         return view('pension_list', ['nhm_employee_details' => $rows]);
     }
@@ -1045,7 +1047,7 @@ class ManabikWCDformController extends Controller
             $urban_code_state = NULL;
         }
         $c_time=date('Y-m-d H:i:s');
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $input = [
             //'name' => $request['name']
             'ben_fname' => $request->first_name,
@@ -1564,7 +1566,7 @@ class ManabikWCDformController extends Controller
     public function editList(Request $request)
     {
         $scheme_id =  $this->scheme_id;
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $designation_id_old = Auth::user()->designation_id_old;
         if (!in_array($designation_id_old, array('Operator'))) {
             return redirect("/")->with('error', 'Not Allowed');
@@ -1805,7 +1807,7 @@ class ManabikWCDformController extends Controller
     public function editUnlock(Request $request)
     {
         $scheme_id =  $this->scheme_id;
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $designation_id_old = Auth::user()->designation_id_old;
         if (!in_array($designation_id_old, array('Operator'))) {
             return redirect("/")->with('error', 'Not Allowed');
@@ -1998,7 +2000,7 @@ class ManabikWCDformController extends Controller
     function editManabikPost(Request $request)
     {
         $scheme_id =  $this->scheme_id;
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $designation_id_old = Auth::user()->designation_id_old;
         if (!in_array($designation_id_old, array('Operator'))) {
             return redirect("/")->with('error', 'Not Allowed');

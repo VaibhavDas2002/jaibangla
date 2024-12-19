@@ -9,6 +9,7 @@ use Auth;
 use App\Configduty;
 use App\lot_master;
 use App\Scheme;
+use App\Helpers\AuthChecker;
 
 class ReportRepeatLotMasterController extends Controller
 {
@@ -20,7 +21,7 @@ class ReportRepeatLotMasterController extends Controller
     }
 
     public function selectYearMonth(){
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $schemes=Configduty::where('user_id','=',$user_id)->where('is_active',1)->get();
         return view('report-repeat-lot-master/selectYearMonth',['schemes'=>$schemes]);
     }

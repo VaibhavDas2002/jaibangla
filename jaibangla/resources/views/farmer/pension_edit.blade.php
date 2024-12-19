@@ -30,7 +30,8 @@ scratch. This page gets rid of all links and provides the needed markup only.
     type="text/css" />
 
   <!-- bootstrap wysihtml5 - text editor -->
-  <link rel="stylesheet" href="{{ asset("/bower_components/AdminLTE/plugins/bootstrap-wysihtml5/bootstrap3-wysihtml5.min.css")}}">
+  <link rel="stylesheet"
+    href="{{ asset("/bower_components/AdminLTE/plugins/bootstrap-wysihtml5/bootstrap3-wysihtml5.min.css")}}">
 
   <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
   <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -164,29 +165,29 @@ desired effect
               </div>
 
               <div>
-                @if ( ($message = Session::get('success')) && ($id =Session::get('id')))
-                <div class="alert alert-success alert-block">
-                  <button type="button" class="close" data-dismiss="alert">×</button>
-                  <strong>{{ $message }} with Application ID: {{$id}}</strong>
-                  <form method="POST" action="{{ route('nhmemployee.printSingleEmployee', ['id' => $id]) }}">
+                @if (($message = Session::get('success')) && ($id = Session::get('id')))
+          <div class="alert alert-success alert-block">
+            <button type="button" class="close" data-dismiss="alert">×</button>
+            <strong>{{ $message }} with Application ID: {{$id}}</strong>
+            <form method="POST" action="{{ route('nhmemployee.printSingleEmployee', ['id' => $id]) }}">
 
-                    <input type="hidden" name="f_member_array" id="f_member_array" >
-                    <input type="hidden" name="f_land_array" id="f_land_array" >
-                    <input type="hidden" name="hidden_land_count" id="hidden_land_count" value="">
+            <input type="hidden" name="f_member_array" id="f_member_array">
+            <input type="hidden" name="f_land_array" id="f_land_array">
+            <input type="hidden" name="hidden_land_count" id="hidden_land_count" value="">
 
-                  </form>
+            </form>
 
-                </div>
-                @endif
+          </div>
+        @endif
                 @if(count($errors) > 0)
-                <div class="alert alert-danger alert-block">
-                  <ul>
-                    @foreach($errors as $error)
-                    <li><strong> {{ $error }}</strong></li>
-                    @endforeach
-                  </ul>
-                </div>
-                @endif
+          <div class="alert alert-danger alert-block">
+            <ul>
+            @foreach($errors as $error)
+        <li><strong> {{ $error }}</strong></li>
+      @endforeach
+            </ul>
+          </div>
+        @endif
                 <!--   @if ($message = Session::get('failure'))
               <div class="alert alert-success alert-block">
                 <button type="button" class="close" data-dismiss="alert">×</button> 
@@ -197,7 +198,8 @@ desired effect
               <!-- /.box-header -->
               <!-- form start -->
               <form method="post" id="register_form"
-                action="{{ route('oap-farmer.application-update', ['id' => $row->id]) }}" enctype="multipart/form-data" autocomplete="off" >
+                action="{{ route('oap-farmer.application-update', ['id' => $row->id]) }}" enctype="multipart/form-data"
+                autocomplete="off">
                 {{ csrf_field() }}
 
 
@@ -223,15 +225,15 @@ desired effect
                         Account Details</b></a>
                   </li>
 
-                    <li class="nav-item">
-                    <a class="nav-link inactive_tab1" id="list_land_details"
-                      style="border:1px solid #ccc"><b>Land Details</b></a>
-                    </li>
+                  <li class="nav-item">
+                    <a class="nav-link inactive_tab1" id="list_land_details" style="border:1px solid #ccc"><b>Land
+                        Details</b></a>
+                  </li>
 
-                    <li class="nav-item">
-                    <a class="nav-link inactive_tab1" id="list_fm_details"
-                      style="border:1px solid #ccc"><b>Family Members</b></a>
-                    </li>
+                  <li class="nav-item">
+                    <a class="nav-link inactive_tab1" id="list_fm_details" style="border:1px solid #ccc"><b>Family
+                        Members</b></a>
+                  </li>
 
                   <li class="nav-item">
                     <a class="nav-link inactive_tab1" id="list_experience_details"
@@ -270,10 +272,10 @@ desired effect
 
 
 
-                         
-            
 
-                <!-- <div class="form-group col-md-12">
+
+
+                        <!-- <div class="form-group col-md-12">
                   <label class="required-field"><b>Application Type: </b></label>
                 </div>
                 <div class="form-group col-md-4 ">
@@ -286,8 +288,8 @@ desired effect
                 <h3 class=""> For <b>Duare Sarkar</b> entry please select from dropdown <i><b>"Form through Duare Sarkar camp"</b></i></h3>
                 </div> -->
 
-                
-               <!--  <div class="row" id="duare_sarkar_section" >
+
+                        <!--  <div class="row" id="duare_sarkar_section" >
               
                 <div class="form-group col-md-4">
                  <label class="required-field">Duare Sarkar Registration No.</label>
@@ -307,7 +309,7 @@ desired effect
                   &nbsp;
                 </div>
                 </div> -->
-               
+
 
 
                         <div class="form-group col-md-12">
@@ -323,7 +325,7 @@ desired effect
 
                                     <span id="error_signature_image" class="text-danger"></span>
                                     </div>  -->
-                     
+
 
                         <input type="hidden" name="scheme_id" value="{{ $scheme_id }}">
 
@@ -351,10 +353,10 @@ desired effect
                           <select class="form-control" name="gender" id="gender" tabindex="4">
 
                             <option value="">--Select--</option>
-                            @foreach(Config::get('constants.gender') as $key=>$val)
-                            
-                            <option value="{{$key}}" @if(trim($row->gender)==$key) selected @endif>{{$val}}</option>
-                            @endforeach
+                            @foreach(Config::get('constants.gender') as $key => $val)
+
+                <option value="{{$key}}" @if(trim($row->gender) == $key) selected @endif>{{$val}}</option>
+              @endforeach
 
                           </select>
                           <span id="error_gender" class="text-danger"></span>
@@ -365,7 +367,8 @@ desired effect
                           <input type="date" name="dob" id="dob" class="form-control" tabindex="5"
                             value="{{$row->dob}}" />
 
-                            <input type="hidden" name="hidden_dob_format" id="hidden_dob_format" value="{{date('d/m/Y', strtotime($row->dob)) }}">
+                          <input type="hidden" name="hidden_dob_format" id="hidden_dob_format"
+                            value="{{date('d/m/Y', strtotime($row->dob)) }}">
 
                           <!-- <input type="text" id="dob" name="dob"class="form-control" data-inputmask="'alias': 'dd/mm/yyyy'" data-mask placeholder="dd/mm/yyyy"> -->
                           <span id="error_dob" class="text-danger"></span>
@@ -373,10 +376,10 @@ desired effect
                         <div class="form-group col-md-4">
                           <label class="required-field">Age<span style=""></span></label>
                           <input type="hidden" name="hidden_age" id="hidden_age" value="{{ $row->ben_age }}">
-                          
+
 
                           <input type="text" name="txt_age" id="txt_age" class="form-control NumOnly" placeholder="Age"
-                            value="{{ $row->ben_age }}" maxlength="3" tabindex="6"  />
+                            value="{{ $row->ben_age }}" maxlength="3" tabindex="6" />
                           <span id="error_txt_age" class="text-danger"></span>
 
                         </div>
@@ -441,9 +444,9 @@ desired effect
                         <div class="form-group col-md-4">
                           <label class="required-field">Caste</label>
                           <select class="form-control" name="caste_category" id="caste_category" tabindex="13">
-                          @foreach(Config::get('constants.caste') as $key=>$val)
-                            <option value="{{$key}}" {{$row->caste_category==$key?'selected':''}}>{{$val}}</option>
-                          @endforeach   
+                            @foreach(Config::get('constants.caste') as $key => $val)
+                <option value="{{$key}}" {{$row->caste_category == $key ? 'selected' : ''}}>{{$val}}</option>
+              @endforeach
                           </select>
                           <span id="error_caste_category" class="text-danger"></span>
                         </div>
@@ -454,13 +457,13 @@ desired effect
                           <label class="required-field">Marital Status</label>
                           <select class="form-control" name="marital_status" id="marital_status" tabindex="14">
                             <option value="">--Select--</option>
-                            @foreach(Config::get('constants.marital_status') as $key=>$val)
-                            @if($key=='Seperated')
-                            @continue;
-                            @endif
-                            <option value="{{$key}}" @if(trim($row->marital_status) == $key) selected @endif >{{$val}}
-                            </option>
-                            @endforeach
+                            @foreach(Config::get('constants.marital_status') as $key => $val)
+                @if($key == 'Seperated')
+          @continue;
+        @endif
+                <option value="{{$key}}" @if(trim($row->marital_status) == $key) selected @endif>{{$val}}
+                </option>
+              @endforeach
                           </select>
                           <span id="error_marital_status" class="text-danger"></span>
                         </div>
@@ -549,10 +552,10 @@ desired effect
                                 <select class="form-control " name="ration_card_cat" id="ration_card_cat" tabindex="1"
                                   style="margin-left:-15px; margin-right:-15px;">
                                   <option value="">Category</option>
-                                  @foreach(Config::get('constants.ration_cat') as $key=>$val)
-                                  <option value="{{$key}}" @if($row->ration_card_cat == $key) selected @endif >{{$val}}
-                                  </option>
-                                  @endforeach
+                                  @foreach(Config::get('constants.ration_cat') as $key => $val)
+                    <option value="{{$key}}" @if($row->ration_card_cat == $key) selected @endif>{{$val}}
+                    </option>
+                  @endforeach
                                 </select>
 
                               </div>
@@ -687,9 +690,13 @@ desired effect
                             <select name="district" id="district" class="form-control  client-js-district" tabindex="2">
                               <option value="">--Select --</option>
                               @foreach ($districts as $district)
-                              <option value="{{$district->district_code}}" @if($row->dist_code==
-                                $district->district_code) selected @endif> {{$district->district_name}}</option>
-                              @endforeach
+                                <option value="{{$district->district_code}}"
+                                @if(
+                    $row->dist_code ==
+                    $district->district_code
+                  ) selected @endif>
+                                {{$district->district_name}}</option>
+                @endforeach
                             </select>
                             <span id="error_district" class="text-danger"></span>
 
@@ -703,13 +710,16 @@ desired effect
                             <select name="asmb_cons" id="asmb_cons" class="form-control client-js-assembly"
                               tabindex="3">
                               <option value="">--Select--</option>
-                              @if(count($assemly_list)>0)
+                              @if(count($assemly_list) > 0)
                               @foreach ($assemly_list as $assemb)
-                              <option value="{{$assemb->ac_no}}" @if($row->assembly_code==
-                                $assemb->ac_no) selected @endif> {{trim($assemb->ac_name)}}</option>
-                              @endforeach
-                              @endif
-                           
+                        <option value="{{$assemb->ac_no}}" @if(
+                $row->assembly_code ==
+                $assemb->ac_no
+              ) selected
+            @endif> {{trim($assemb->ac_name)}}</option>
+                @endforeach
+                @endif
+
                               </option>
                             </select>
                             <span id="error_asmb_cons" class="text-danger"></span>
@@ -726,10 +736,10 @@ desired effect
 
                             <select name="urban_code" id="urban_code" class="form-control client-js-urban" tabindex="4">
                               <option value="">--Select --</option>
-                              @foreach(Config::get('constants.rural_urban') as $key=>$val)
-                              <option value="{{$key}}" @if( $row->rural_urban_id == $key) selected @endif >{{$val}}
-                              </option>
-                              @endforeach
+                              @foreach(Config::get('constants.rural_urban') as $key => $val)
+                  <option value="{{$key}}" @if($row->rural_urban_id == $key) selected @endif>{{$val}}
+                  </option>
+                @endforeach
                             </select>
                             <span id="error_urban_code" class="text-danger"></span>
                           </div>
@@ -743,12 +753,15 @@ desired effect
 
                             <select name="block" id="block" class="form-control  client-js-localbody" tabindex="5">
                               <option value="">--Select --</option>
-                              @if(count($block_munc_list)>0)
+                              @if(count($block_munc_list) > 0)
                               @foreach ($block_munc_list as $blkmunc)
-                              <option value="{{$blkmunc->code}}" @if($row->block_ulb_code==
-                                $blkmunc->code) selected @endif> {{trim($blkmunc->val)}}</option>
-                              @endforeach
-                              @endif
+                        <option value="{{$blkmunc->code}}" @if(
+                $row->block_ulb_code ==
+                $blkmunc->code
+              ) selected
+            @endif> {{trim($blkmunc->val)}}</option>
+                @endforeach
+                @endif
 
                             </select>
                             <span id="error_block" class="text-danger"></span>
@@ -760,12 +773,15 @@ desired effect
 
                             <select name="gp_ward" id="gp_ward" class="form-control  client-js-gpward" tabindex="6">
                               <option value="">--Select --</option>
-                              @if(count($gp_ward_list)>0)
+                              @if(count($gp_ward_list) > 0)
                               @foreach ($gp_ward_list as $gpward)
-                              <option value="{{$gpward->code}}" @if($row->gp_ward_code==
-                                $gpward->code) selected @endif> {{trim($gpward->val)}}</option>
-                              @endforeach
-                              @endif
+                        <option value="{{$gpward->code}}" @if(
+                $row->gp_ward_code ==
+                $gpward->code
+            ) selected @endif>
+                        {{trim($gpward->val)}}</option>
+                @endforeach
+                @endif
                             </select>
                             <span id="error_gp_ward" class="text-danger"></span>
                           </div>
@@ -910,81 +926,86 @@ desired effect
                     </div>
                   </div>
 
-                   <div class="tab-pane fade" id="land_details">
+                  <div class="tab-pane fade" id="land_details">
                     <div class="panel panel-default">
                       <div class="panel-heading">
                         <h4><b>Land Details</b></h4>
                       </div>
                       <div class="panel-body">
-                      <button type="button" name="btn_add_land" id="btn_add_land"
-                            class="btn btn-primary pull-right" data-toggle="modal" data-target="#addLandModal">Add Land Details</button>
-                            <br/>
-                       <table id="landList" class="table table-bordred table-striped" cellspacing="0" width="100%"> 
-                        <thead>
-                        <tr role="row" class="sorting_asc" style="font-size: 12px;">
-                          <th>Serial No</th>
-                          <th>Block</th>
-                          <th>Mouza</th>
-                          <th>JL NO.</th>
-                          <th>Khatian No.</th>
-                          <th>Daag No.</th>
-                          <th>Quantity</th>
+                        <button type="button" name="btn_add_land" id="btn_add_land" class="btn btn-primary pull-right"
+                          data-toggle="modal" data-target="#addLandModal">Add Land Details</button>
+                        <br />
+                        <table id="landList" class="table table-bordred table-striped" cellspacing="0" width="100%">
+                          <thead>
+                            <tr role="row" class="sorting_asc" style="font-size: 12px;">
+                              <th>Serial No</th>
+                              <th>Block</th>
+                              <th>Mouza</th>
+                              <th>JL NO.</th>
+                              <th>Khatian No.</th>
+                              <th>Daag No.</th>
+                              <th>Quantity</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+
+                            @if($row->land_json != '')
+                              @php                        
+                      $land_list_arr = json_decode($row->land_json);
+                  $i = 1;
+              @endphp
+                              @foreach($land_list_arr as $result)
+
+                        <tr id="id_{{$i}}">
+                        <td>{{$i}}</td>
+                        <td>{{trim($result->block_name)}}</td>
+                        <td>{{$result->mouza}}</td>
+                        <td>{{$result->jl_no}}</td>
+                        <td>{{$result->khatian_no}}</td>
+                        <td>{{$result->daag_no}}</td>
+                        <td>{{$result->quantity}}</td>
+                        <td class='del-lnd'><a class='btn btn-danger' href='javascript:viod(0)'
+                          onclick='delete_land({{$i}})'>Delete</a></td>
                         </tr>
-                         </thead>
-                       <tbody>                     
-       
-                        @if($row->land_json != '')
-                        @php                        
-                        $land_list_arr = json_decode($row->land_json);                         
-                        $i=1;
-                        @endphp
-                        @foreach($land_list_arr as $result)
-                       
-                           <tr id="id_{{$i}}">
-                               <td>{{$i}}</td>
-                                <td>{{trim($result->block_name)}}</td>
-                                <td>{{$result->mouza}}</td>
-                                <td>{{$result->jl_no}}</td>
-                                <td>{{$result->khatian_no}}</td>
-                                <td>{{$result->daag_no}}</td>
-                                <td>{{$result->quantity}}</td>
-                                <td class='del-lnd'><a class='btn btn-danger' href='javascript:viod(0)' onclick='delete_land({{$i}})'>Delete</a></td>
-                           </tr>     
                         @php
-                          $i=$i+1;
-                        @endphp
-                        @endforeach 
-                        @endif
-         
-                       </tbody>
-                       </table>
-                       <br/>
+                $i = $i + 1;
+              @endphp
+                @endforeach
+              @endif
+
+                          </tbody>
+                        </table>
+                        <br />
 
                         <div class="form-group col-md-12">
-                        <label class="">&nbsp;</label>                       
-                        <span id="error_land_count" class="text-danger"></span>
+                          <label class="">&nbsp;</label>
+                          <span id="error_land_count" class="text-danger"></span>
                         </div>
 
                         <div class="form-group col-md-4">
-                        <label class="required-field">Select Cultivation by Applicant(Yes/No)</label>
-                        <select class="form-control " name="cultivation_by_applicant" id="cultivation_by_applicant">
-                        <option value="Yes"  @if($row->cultivation_by_applicant=="Yes") selected @endif >Yes</option>
-                        <option value="No"  @if($row->cultivation_by_applicant=="No") selected @endif >No</option>
-                        </select>
-                        <span id="error_cultivation_by_applicant" class="text-danger"></span>
+                          <label class="required-field">Select Cultivation by Applicant(Yes/No)</label>
+                          <select class="form-control " name="cultivation_by_applicant" id="cultivation_by_applicant">
+                            <option value="Yes" @if($row->cultivation_by_applicant == "Yes") selected @endif>Yes</option>
+                            <option value="No" @if($row->cultivation_by_applicant == "No") selected @endif>No</option>
+                          </select>
+                          <span id="error_cultivation_by_applicant" class="text-danger"></span>
                         </div>
 
-                         <div class="form-group col-md-4">
-                         <label class="">Source of Present Income</label>
-                         <input type="text" name="source_income" id="source_income" class="form-control" placeholder="Source of Present Income"  value="{{ $row->source_income }}" maxlength="300" tabindex="3" />
-                         <span id="error_source_income" class="text-danger"></span>
-                         </div>
+                        <div class="form-group col-md-4">
+                          <label class="">Source of Present Income</label>
+                          <input type="text" name="source_income" id="source_income" class="form-control"
+                            placeholder="Source of Present Income" value="{{ $row->source_income }}" maxlength="300"
+                            tabindex="3" />
+                          <span id="error_source_income" class="text-danger"></span>
+                        </div>
 
-                         <div class="form-group col-md-4">
-                         <label class="">Any other Benefits received</label>
-                         <input type="text" name="any_other_benefitis" id="any_other_benefitis" class="form-control" placeholder="Any other Benefits received"  value="{{ $row->any_other_benefitis }}" maxlength="300" tabindex="3" />
-                         <span id="error_any_other_benefitis" class="text-danger"></span>
-                         </div>
+                        <div class="form-group col-md-4">
+                          <label class="">Any other Benefits received</label>
+                          <input type="text" name="any_other_benefitis" id="any_other_benefitis" class="form-control"
+                            placeholder="Any other Benefits received" value="{{ $row->any_other_benefitis }}"
+                            maxlength="300" tabindex="3" />
+                          <span id="error_any_other_benefitis" class="text-danger"></span>
+                        </div>
 
 
                         <div class="col-md-12" align="center">
@@ -998,58 +1019,59 @@ desired effect
                     </div>
                   </div>
 
-                   <div class="tab-pane fade" id="fm_details">
+                  <div class="tab-pane fade" id="fm_details">
                     <div class="panel panel-default">
                       <div class="panel-heading">
                         <h4><b>Family Details</b></h4>
                       </div>
                       <div class="panel-body">
-                      <button type="button" name="btn_add_fm" id="btn_add_fm"
-                            class="btn btn-primary pull-right" data-toggle="modal" data-target="#addMemberModal">Add Family Members</button>
-                            <br/>
-                       <table id="memberList" class="table table-bordred table-striped" cellspacing="0" width="100%"> 
-                        <thead>
-                        <tr role="row" class="sorting_asc" style="font-size: 12px;">
-                          <th>Serial No</th>
-                          <th>Name </th>
-                          <th>Address</th>
-                          <th>Age in Years</th>
-                          <th>Profession</th>
-                          <th>Monthly Income(Rs.)</th>
-                          <th>Relation with Applicant</th>
-                          <th>Dependent on Applicant</th>
-                        </tr>
-                         </thead>
-                       <tbody>                     
-       
-                        @if($row->member_json != '')
-                        @php
-                        $family_list_arr = json_decode($row->member_json);
+                        <button type="button" name="btn_add_fm" id="btn_add_fm" class="btn btn-primary pull-right"
+                          data-toggle="modal" data-target="#addMemberModal">Add Family Members</button>
+                        <br />
+                        <table id="memberList" class="table table-bordred table-striped" cellspacing="0" width="100%">
+                          <thead>
+                            <tr role="row" class="sorting_asc" style="font-size: 12px;">
+                              <th>Serial No</th>
+                              <th>Name </th>
+                              <th>Address</th>
+                              <th>Age in Years</th>
+                              <th>Profession</th>
+                              <th>Monthly Income(Rs.)</th>
+                              <th>Relation with Applicant</th>
+                              <th>Dependent on Applicant</th>
+                            </tr>
+                          </thead>
+                          <tbody>
 
-                        $i=1;
-                        @endphp
-                        @foreach($family_list_arr as $result)
-                       
-                           <tr id="id_{{$i}}">
-                               <td>{{$i}}</td>
-                                <td>{{trim($result->f_member_name)}}</td>
-                                <td>{{$result->f_member_address}}</td>
-                                <td>{{$result->f_member_age}}</td>
-                                <td>{{$result->f_member_profession}}</td>
-                                <td>{{$result->f_member_monthly_income}}</td>
-                                <td>{{$result->f_member_relationship}}</td>
-                                <td>{{$result->f_member_dependent_by_applicant}}</td>
-                                <td class='del-mem'><a class='btn btn-danger' href='javascript:viod(0)' onclick='delete_member({{$i}})'>Delete</a></td>
-                           </tr>     
+                            @if($row->member_json != '')
+                              @php
+                  $family_list_arr = json_decode($row->member_json);
+
+                  $i = 1;
+              @endphp
+                              @foreach($family_list_arr as $result)
+
+                        <tr id="id_{{$i}}">
+                        <td>{{$i}}</td>
+                        <td>{{trim($result->f_member_name)}}</td>
+                        <td>{{$result->f_member_address}}</td>
+                        <td>{{$result->f_member_age}}</td>
+                        <td>{{$result->f_member_profession}}</td>
+                        <td>{{$result->f_member_monthly_income}}</td>
+                        <td>{{$result->f_member_relationship}}</td>
+                        <td>{{$result->f_member_dependent_by_applicant}}</td>
+                        <td class='del-mem'><a class='btn btn-danger' href='javascript:viod(0)'
+                          onclick='delete_member({{$i}})'>Delete</a></td>
+                        </tr>
                         @php
-                        $i=$i+1;
-                        @endphp
-                        @endforeach 
-                        @endif   
-         
-                       </tbody>
-                       </table>
-                       <br/>
+                $i = $i + 1;
+              @endphp
+                @endforeach
+              @endif
+
+                          </tbody>
+                        </table>
+                        <br />
 
 
                         <div class="col-md-12" align="center">
@@ -1075,28 +1097,30 @@ desired effect
                         <!-- Document Dynamic-->
                         {!! $document_msg !!}
                         @foreach ($doc_list_man as $doc_man)
-                        <div class="form-group col-md-12">
-                          <label class="">{{ $doc_man->doc_name }}</label>
-                          <input type="file" name="doc_{{ $doc_man->id }}" id="doc_{{ $doc_man->id }}"
-                            class="form-control" tabindex="1" />
-                          <div class="imageSize">(Image type must be {{ $doc_man->doc_type }} and image size max
-                            {{ $doc_man->doc_size_kb }}KB)</div>
-                          <span id="error_doc_{{ $doc_man->id }}" class="text-danger"></span>
-                        </div>
+              <div class="form-group col-md-12">
+                <label class="">{{ $doc_man->doc_name }}</label>
+                <input type="file" name="doc_{{ $doc_man->id }}" id="doc_{{ $doc_man->id }}"
+                class="form-control" tabindex="1" />
+                <div class="imageSize">(Image type must be {{ $doc_man->doc_type }} and image size max
+                {{ $doc_man->doc_size_kb }}KB)
+                </div>
+                <span id="error_doc_{{ $doc_man->id }}" class="text-danger"></span>
+              </div>
 
-                        @endforeach
+            @endforeach
 
                         @foreach ($doc_list_opt as $doc_opt)
-                        <div class="form-group col-md-12">
-                          <label class="">{{ $doc_opt->doc_name }}</label>
-                          <input type="file" name="doc_{{ $doc_opt->id }}" id="doc_{{ $doc_opt->id }}"
-                            class="form-control" tabindex="1" />
-                          <div class="imageSize">(Image type must be {{ $doc_opt->doc_type }} and image size max
-                            {{ $doc_opt->doc_size_kb }}KB)</div>
-                          <span id="error_doc_{{ $doc_man->id }}" class="text-danger"></span>
-                        </div>
+              <div class="form-group col-md-12">
+                <label class="">{{ $doc_opt->doc_name }}</label>
+                <input type="file" name="doc_{{ $doc_opt->id }}" id="doc_{{ $doc_opt->id }}"
+                class="form-control" tabindex="1" />
+                <div class="imageSize">(Image type must be {{ $doc_opt->doc_type }} and image size max
+                {{ $doc_opt->doc_size_kb }}KB)
+                </div>
+                <span id="error_doc_{{ $doc_man->id }}" class="text-danger"></span>
+              </div>
 
-                        @endforeach
+            @endforeach
                         <!-- <div class="jumbotron alert alert-warning">
                                       <h1 class="display-2">Document Upload</h1>
                                       <hr class="my-4">
@@ -1257,10 +1281,12 @@ desired effect
                         <div class="row">
                           <?php
 $row_receive_pension = array();
-if ($row->receive_pension != null) $row_receive_pension = explode(',', $row->receive_pension);
+if ($row->receive_pension != null)
+  $row_receive_pension = explode(',', $row->receive_pension);
 //;
 $row_social_security_pension = array();
-if ($row->social_security_pension != null) $row_social_security_pension = explode(',', $row->social_security_pension);
+if ($row->social_security_pension != null)
+  $row_social_security_pension = explode(',', $row->social_security_pension);
 //explode(',',);
 
 ?>
@@ -1269,14 +1295,14 @@ if ($row->social_security_pension != null) $row_social_security_pension = explod
                             <label>Presently, I am reciving following pension(s) from</label>
 
                             <br />
-                            @foreach(Config::get('constants.pension_body') as $key=>$desc)
-                            <label>
-                              <input type="checkbox" class="receive-pension" name="receive_pension[]" value="{{$key}}"
-                                @if(in_array($key,$row_receive_pension,true)) checked @endif> {{$desc}}
-                            </label>
+                            @foreach(Config::get('constants.pension_body') as $key => $desc)
+                <label>
+                  <input type="checkbox" class="receive-pension" name="receive_pension[]" value="{{$key}}"
+                  @if(in_array($key, $row_receive_pension, true)) checked @endif> {{$desc}}
+                </label>
 
-                            <br />
-                            @endforeach
+                <br />
+              @endforeach
 
                             <label>In case the applicant is receiving pension from other sources</label>
                             <br />
@@ -1302,16 +1328,16 @@ if ($row->social_security_pension != null) $row_social_security_pension = explod
 
                             <br />
 
-                            @foreach(Config::get('constants.social_pension_cat') as $key=>$desc)
-                            <label>
-                              <input type="checkbox" class="social-security-pension" name="social_security_pension[]"
-                                value="{{$key}}" @if(in_array($key,$row_social_security_pension,true)) checked @endif>
-                              {{$desc}}
-                            </label>
+                            @foreach(Config::get('constants.social_pension_cat') as $key => $desc)
+                <label>
+                  <input type="checkbox" class="social-security-pension" name="social_security_pension[]"
+                  value="{{$key}}" @if(in_array($key, $row_social_security_pension, true)) checked @endif>
+                  {{$desc}}
+                </label>
 
 
-                            <br />
-                            @endforeach
+                <br />
+              @endforeach
 
                           </div>
 
@@ -1342,7 +1368,8 @@ if ($row->social_security_pension != null) $row_social_security_pension = explod
 
                 </div>
 
-                 <div class="modal fade" id="addLandModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal fade" id="addLandModal" tabindex="-1" role="dialog"
+                  aria-labelledby="exampleModalLabel" aria-hidden="true">
                   <div class="modal-dialog" role="document">
                     <div class="modal-content">
                       <div class="modal-header">
@@ -1352,62 +1379,64 @@ if ($row->social_security_pension != null) $row_social_security_pension = explod
                         </button>
                       </div>
                       <div class="modal-body">
-                         <div class="row">
+                        <div class="row">
                           <div class="form-group col-md-12">
-                          <label class="">Select Own Land / Barga Land</label>
-                          <select class="form-control " name="land_type" id="land_type">
-                          <option value="Own Land"  @if(old('land_type')=="Own Land") selected @endif >Own Land</option>
-                          <option value="Barga Land"  @if(old('land_type')=="Barga Land") selected @endif >Barga Land</option>
-                          </select>
-                          <span id="error_land_type" class="text-danger"></span>
-                          </div> 
-                         
+                            <label class="">Select Own Land / Barga Land</label>
+                            <select class="form-control " name="land_type" id="land_type">
+                              <option value="Own Land" @if(old('land_type') == "Own Land") selected @endif>Own Land
+                              </option>
+                              <option value="Barga Land" @if(old('land_type') == "Barga Land") selected @endif>Barga Land
+                              </option>
+                            </select>
+                            <span id="error_land_type" class="text-danger"></span>
+                          </div>
+
                           <div class="form-group col-md-12" id="">
                             <label class="required-field">Block</label>
-                             <input type="text" name="block_name" id="block_name" class="form-control special-char"
+                            <input type="text" name="block_name" id="block_name" class="form-control special-char"
                               placeholder="Block" maxlength="100" value="" tabindex="4" />
-                            <span id="error_block_name" class="text-danger"></span>                           
+                            <span id="error_block_name" class="text-danger"></span>
                           </div>
 
                           <div class="form-group col-md-12" id="">
                             <label class="required-field">Mouza</label>
-                             <input type="text" name="mouza" id="mouza" class="form-control special-char"
+                            <input type="text" name="mouza" id="mouza" class="form-control special-char"
                               placeholder="Mouza" maxlength="100" value="" tabindex="4" />
-                            <span id="error_mouza" class="text-danger"></span>                           
+                            <span id="error_mouza" class="text-danger"></span>
                           </div>
 
                           <div class="form-group col-md-12" id="">
                             <label class="required-field">JL NO.</label>
-                             <input type="text" name="jl_no" id="jl_no" class="form-control NumOnly"
-                              placeholder="JL NO." maxlength="100" value="" tabindex="4" />
-                            <span id="error_jl_no" class="text-danger"></span>                           
+                            <input type="text" name="jl_no" id="jl_no" class="form-control NumOnly" placeholder="JL NO."
+                              maxlength="100" value="" tabindex="4" />
+                            <span id="error_jl_no" class="text-danger"></span>
                           </div>
 
                           <div class="form-group col-md-12" id="">
                             <label class="required-field">Khatian No.</label>
-                             <input type="text" name="khatian_no" id="khatian_no" class="form-control NumOnly"
+                            <input type="text" name="khatian_no" id="khatian_no" class="form-control NumOnly"
                               placeholder="Khatian No." maxlength="100" value="" tabindex="4" />
-                            <span id="error_khatian_no" class="text-danger"></span>                           
+                            <span id="error_khatian_no" class="text-danger"></span>
                           </div>
 
                           <div class="form-group col-md-12" id="">
                             <label class="required-field">Daag No.</label>
-                             <input type="text" name="daag_no" id="daag_no" class="form-control NumOnly"
+                            <input type="text" name="daag_no" id="daag_no" class="form-control NumOnly"
                               placeholder="Daag No." maxlength="100" value="" tabindex="4" />
-                            <span id="error_daag_no" class="text-danger"></span>                           
+                            <span id="error_daag_no" class="text-danger"></span>
                           </div>
 
                           <div class="form-group col-md-12" id="">
                             <label class="required-field">Quantity</label>
                             <input type="text" name="quantity" id="quantity" class="form-control price-field"
                               placeholder="Quantity" maxlength="100" value="" tabindex="4" />
-                            <span id="error_quantity" class="text-danger"></span>                           
+                            <span id="error_quantity" class="text-danger"></span>
                           </div>
 
-                          
-                          
-                           
-                         </div>
+
+
+
+                        </div>
                       </div>
                       <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -1417,7 +1446,8 @@ if ($row->social_security_pension != null) $row_social_security_pension = explod
                   </div>
                 </div>
 
-            <div class="modal fade" id="addMemberModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal fade" id="addMemberModal" tabindex="-1" role="dialog"
+                  aria-labelledby="exampleModalLabel" aria-hidden="true">
                   <div class="modal-dialog" role="document">
                     <div class="modal-content">
                       <div class="modal-header">
@@ -1427,61 +1457,64 @@ if ($row->social_security_pension != null) $row_social_security_pension = explod
                         </button>
                       </div>
                       <div class="modal-body">
-                         <div class="row">
-                           <div class="form-group col-md-12" id="">
+                        <div class="row">
+                          <div class="form-group col-md-12" id="">
                             <label class="required-field">Name</label>
-                             <input type="text" name="f_member_name" id="f_member_name" class="form-control txtOnly"
+                            <input type="text" name="f_member_name" id="f_member_name" class="form-control txtOnly"
                               placeholder="Member Name" maxlength="255" value="" tabindex="4" />
-                            <span id="error_f_member_name" class="text-danger"></span>                           
-                          </div>  
+                            <span id="error_f_member_name" class="text-danger"></span>
+                          </div>
 
                           <div class="form-group col-md-12" id="">
                             <label class="required-field">Address</label>
-                             <input type="text" name="f_member_address" id="f_member_address" class="form-control"
+                            <input type="text" name="f_member_address" id="f_member_address" class="form-control"
                               placeholder="Address" value="" tabindex="4" />
-                            <span id="error_f_member_address" class="text-danger"></span>                           
-                          </div>
-                         
-                          <div class="form-group col-md-12" id="">
-                            <label class="required-field">Age in Years</label>
-                             <input type="text" name="f_member_age" id="f_member_age" class="form-control NumOnly"
-                              placeholder="Age" maxlength="3" value="" tabindex="4" />
-                            <span id="error_f_member_age" class="text-danger"></span>                           
+                            <span id="error_f_member_address" class="text-danger"></span>
                           </div>
 
-                           <div class="form-group col-md-12" id="">
+                          <div class="form-group col-md-12" id="">
+                            <label class="required-field">Age in Years</label>
+                            <input type="text" name="f_member_age" id="f_member_age" class="form-control NumOnly"
+                              placeholder="Age" maxlength="3" value="" tabindex="4" />
+                            <span id="error_f_member_age" class="text-danger"></span>
+                          </div>
+
+                          <div class="form-group col-md-12" id="">
                             <label class="">Profession</label>
-                             <input type="text" name="f_member_profession" id="f_member_profession" class="form-control special-char"
-                              placeholder="Profession" maxlength="255" value="" tabindex="4" />
-                            <span id="error_f_member_profession" class="text-danger"></span>                           
-                          </div> 
+                            <input type="text" name="f_member_profession" id="f_member_profession"
+                              class="form-control special-char" placeholder="Profession" maxlength="255" value=""
+                              tabindex="4" />
+                            <span id="error_f_member_profession" class="text-danger"></span>
+                          </div>
 
                           <div class="form-group col-md-12" id="">
                             <label class="">Monthly Income(Rs.)</label>
-                            <input type="text" name="f_member_monthly_income" id="f_member_monthly_income" class="form-control price-field"
-                            placeholder="Monthly Income(Rs.)" maxlength="9" value=""
-                            tabindex="85">
-                            <span id="error_f_member_monthly_income" class="text-danger"></span>                           
+                            <input type="text" name="f_member_monthly_income" id="f_member_monthly_income"
+                              class="form-control price-field" placeholder="Monthly Income(Rs.)" maxlength="9" value=""
+                              tabindex="85">
+                            <span id="error_f_member_monthly_income" class="text-danger"></span>
                           </div>
 
                           <div class="form-group col-md-12" id="">
                             <label class="">Relation with Applicant</label>
-                             <input type="text" name="f_member_relationship" id="f_member_relationship" class="form-control special-char"
-                              placeholder="Relation with Applicant" maxlength="100" value="" tabindex="4" />
-                            <span id="error_f_member_relationship" class="text-danger"></span>                           
+                            <input type="text" name="f_member_relationship" id="f_member_relationship"
+                              class="form-control special-char" placeholder="Relation with Applicant" maxlength="100"
+                              value="" tabindex="4" />
+                            <span id="error_f_member_relationship" class="text-danger"></span>
                           </div>
 
                           <div class="form-group col-md-6">
-                          <label class="">Select Dependent on Applicant (Yes/No)</label>
-                          <select class="form-control " name="f_member_dependent_by_applicant" id="f_member_dependent_by_applicant">
-                          <option value="Yes"  @if(old('dependent_by_applicant')=="Yes") selected @endif >Yes</option>
-                          <option value="No"  @if(old('dependent_by_applicant')=="No") selected @endif >No</option>
-                          </select>
-                          <span id="error_f_member_dependent_by_applicant" class="text-danger"></span>
+                            <label class="">Select Dependent on Applicant (Yes/No)</label>
+                            <select class="form-control " name="f_member_dependent_by_applicant"
+                              id="f_member_dependent_by_applicant">
+                              <option value="Yes" @if(old('dependent_by_applicant') == "Yes") selected @endif>Yes</option>
+                              <option value="No" @if(old('dependent_by_applicant') == "No") selected @endif>No</option>
+                            </select>
+                            <span id="error_f_member_dependent_by_applicant" class="text-danger"></span>
                           </div>
-                          
-                           
-                         </div>
+
+
+                        </div>
                       </div>
                       <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -1548,11 +1581,11 @@ if ($row->social_security_pension != null) $row_social_security_pension = explod
                                 <div class="modal_field_name"></div>
                                 <div class="modal_field_value" id="">
                                   <p>
-                                    <h2>Government of West Bengal</h2>
+                                  <h2>Government of West Bengal</h2>
                                   </p>
                                 </div>
                                 <p>
-                                  <h2>Jai Bangla Pension Scheme</h2>
+                                <h2>Jai Bangla Pension Scheme</h2>
                                 </p>
                                 <!--  <p><h3> Information Form for SC/ST Pension Scheme 2020</h3></p></div> -->
                               </div>
@@ -1574,14 +1607,14 @@ if ($row->social_security_pension != null) $row_social_security_pension = explod
                             </div>
 
 
-               <!--  <div class="row">
+                            <!--  <div class="row">
                     <div class="col-md-12">
                         <div class="modal_field_name">Entry Type:</div>
                         <div class="modal_field_value" id="entry_type_modal"></div>
                     </div>
                 </div> -->
 
-                 <!--  <div class="row duare_sarkar_modal">
+                            <!--  <div class="row duare_sarkar_modal">
                         
                         <div class="col-md-6">
                         <div class="modal_field_name" style="margin-right:6%;">Duare Sarkar Registration No.:</div>
@@ -1851,72 +1884,74 @@ if ($row->social_security_pension != null) $row_social_security_pension = explod
                               </div>
                             </div>
                             <div class="row">
-                              <table id="landListModal" class="table table-bordred table-striped" cellspacing="0" width="100%"> 
-                              <thead>
-                              <tr role="row" class="sorting_asc" style="font-size: 12px;">
-                                <th>Serial No</th>
-                                <th>Block</th>
-                                <th>Mouza</th>
-                                <th>JL NO.</th>
-                                <th>Khatian No.</th>
-                                <th>Daag No.</th>
-                                <th>Quantity</th>
-                              </tr>
-                              </thead>
-                            <tbody>
-                            
-                            </tbody>
-                            </table>
-                            </div> 
+                              <table id="landListModal" class="table table-bordred table-striped" cellspacing="0"
+                                width="100%">
+                                <thead>
+                                  <tr role="row" class="sorting_asc" style="font-size: 12px;">
+                                    <th>Serial No</th>
+                                    <th>Block</th>
+                                    <th>Mouza</th>
+                                    <th>JL NO.</th>
+                                    <th>Khatian No.</th>
+                                    <th>Daag No.</th>
+                                    <th>Quantity</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
 
-                            <div class="row">                                              
-                      
-                            <div class="col-md-12">
-                             <div class="modal_field_name">Select Cultivation by Applicant(Yes/No):</div>
-                             <div class="modal_field_value" id="cultivation_by_applicant_modal"></div>
+                                </tbody>
+                              </table>
                             </div>
 
-                            <div class="col-md-12">
-                              <div class="modal_field_name">Source of Present Income:</div>
-                              <div class="modal_field_value" id="source_income_modal"></div>
-                            </div>
+                            <div class="row">
 
-                            <div class="col-md-12">
-                            <div class="modal_field_name">Any other Benefits received:</div>
-                            <div class="modal_field_value" id="any_other_benefitis_modal"></div>
-                            </div>
+                              <div class="col-md-12">
+                                <div class="modal_field_name">Select Cultivation by Applicant(Yes/No):</div>
+                                <div class="modal_field_value" id="cultivation_by_applicant_modal"></div>
+                              </div>
 
-                            </div>                           
+                              <div class="col-md-12">
+                                <div class="modal_field_name">Source of Present Income:</div>
+                                <div class="modal_field_value" id="source_income_modal"></div>
+                              </div>
+
+                              <div class="col-md-12">
+                                <div class="modal_field_name">Any other Benefits received:</div>
+                                <div class="modal_field_value" id="any_other_benefitis_modal"></div>
+                              </div>
+
+                            </div>
 
                           </div>
 
 
-                      <div class="section1">
+                          <div class="section1">
                             <div class="row color1">
                               <div class="col-md-12">
                                 <h2 style="">Family Members</h2>
                               </div>
                             </div>
                             <div class="row">
-                              <table id="memberListModal" class="table table-bordred table-striped" cellspacing="0" width="100%"> 
-                              <thead>
-                              <tr role="row" class="sorting_asc" style="font-size: 12px;">
-                                <th>Serial No</th>
-                                <th>Name </th>
-                                <th>Address</th>
-                                <th>Age in Years</th>
-                                <th>Profession</th>
-                                <th>Monthly Income(Rs.)</th>
-                                <th>Relation with Applicant</th>
-                                <th>Dependent on Applicant</th>
-                              </tr>
-                              </thead>
-                            <tbody>
-                            
-                            </tbody>
-                            </table>
+                              <table id="memberListModal" class="table table-bordred table-striped" cellspacing="0"
+                                width="100%">
+                                <thead>
+                                  <tr role="row" class="sorting_asc" style="font-size: 12px;">
+                                    <th>Serial No</th>
+                                    <th>Name </th>
+                                    <th>Address</th>
+                                    <th>Age in Years</th>
+                                    <th>Profession</th>
+                                    <th>Monthly Income(Rs.)</th>
+                                    <th>Relation with Applicant</th>
+                                    <th>Dependent on Applicant</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+
+                                </tbody>
+                              </table>
                             </div>
-                             
+
 
                           </div>
 
@@ -1972,10 +2007,13 @@ if ($row->social_security_pension != null) $row_social_security_pension = explod
                               </div>
 
                               {{-- <div class="col-md-12">
-                        <div class="modal_field_name">In case the applicant is receiving pension from other sources:</div>
-                        <div class="modal_field_value">1.<span id="receiving_pension_other_source_1_txt"></span></div>
-                        <div class="modal_field_value">2.<span id="receiving_pension_other_source_2_txt"></span></div>
-                        </div>  --}}
+                                <div class="modal_field_name">In case the applicant is receiving pension from other
+                                  sources:</div>
+                                <div class="modal_field_value">1.<span id="receiving_pension_other_source_1_txt"></span>
+                                </div>
+                                <div class="modal_field_value">2.<span id="receiving_pension_other_source_2_txt"></span>
+                                </div>
+                              </div> --}}
                               <div class="col-md-12" style="
                         float: left;
                         font-weight: 700;
@@ -1987,8 +2025,10 @@ if ($row->social_security_pension != null) $row_social_security_pension = explod
                                   <li>1.<span id="receiving_pension_other_source_1_txt"></span></li>
                                   <li>2.<span id="receiving_pension_other_source_2_txt"></span></li>
                                 </ul>
-                                {{-- <div class="modal_field_value">1.<span id="receiving_pension_other_source_1_txt"></span></div>
-                        <div class="modal_field_value">2.<span id="receiving_pension_other_source_2_txt"></span></div> --}}
+                                {{-- <div class="modal_field_value">1.<span
+                                    id="receiving_pension_other_source_1_txt"></span></div>
+                                <div class="modal_field_value">2.<span id="receiving_pension_other_source_2_txt"></span>
+                                </div> --}}
                               </div>
                               <div class="col-md-12">
                                 <div class="modal_field_name">Presently, I am reciving following pension(s) from:</div>
@@ -2046,8 +2086,8 @@ if ($row->social_security_pension != null) $row_social_security_pension = explod
 
                       </div>
 
-                    <input type="hidden" name="f_member_array" id="f_member_array" >
-                    <input type="hidden" name="f_land_array" id="f_land_array" >
+                      <input type="hidden" name="f_member_array" id="f_member_array">
+                      <input type="hidden" name="f_land_array" id="f_land_array">
 
 
                       <div class="modal-footer" style="text-align: center;">
@@ -2101,11 +2141,11 @@ if ($row->social_security_pension != null) $row_social_security_pension = explod
     <!-- ./wrapper -->
 
     <!-- REQUIRED JS SCRIPTS -->
-    <script src="{{ asset ("/bower_components/AdminLTE/plugins/jQuery/jquery-2.2.3.min.js") }}"></script>
+    <script src="{{ asset("/bower_components/AdminLTE/plugins/jQuery/jquery-2.2.3.min.js") }}"></script>
     <script src="{{ asset("js/select2.full.min.js") }}"></script>
 
     <!-- Bootstrap 3.3.2 JS -->
-    <script src="{{ asset ("/bower_components/AdminLTE/bootstrap/js/bootstrap.min.js") }}" type="text/javascript">
+    <script src="{{ asset("/bower_components/AdminLTE/bootstrap/js/bootstrap.min.js") }}" type="text/javascript">
     </script>
 
     <script src="{{ URL::asset('js/site.js') }}"></script>
@@ -2113,12 +2153,12 @@ if ($row->social_security_pension != null) $row_social_security_pension = explod
     <script src="{{ URL::asset('js/master-data-v2.js') }}"></script>
     <script src="{{ URL::asset('js/site-client.js') }}"></script>
 
-     <script src="{{ URL::asset('js/validateAdhar.js') }}"></script>
+    <script src="{{ URL::asset('js/validateAdhar.js') }}"></script>
 
 
 
     <!-- AdminLTE App -->
-    <script src="{{ asset ("/bower_components/AdminLTE/dist/js/app.min.js") }}" type="text/javascript"></script>
+    <script src="{{ asset("/bower_components/AdminLTE/dist/js/app.min.js") }}" type="text/javascript"></script>
     <script>
       $('.select2').select2();
     </script>
@@ -2131,1737 +2171,1631 @@ if ($row->social_security_pension != null) $row_social_security_pension = explod
 
     <script>
       var specialKeys = new Array();
-        specialKeys.push(8); //Backspace
-        function IsNumeric(e) {
-          alert()
-            var keyCode = e.which ? e.which : e.keyCode
-            var ret = ((keyCode >= 48 && keyCode <= 57) || specialKeys.indexOf(keyCode) != -1);
-            document.getElementById("error").style.display = ret ? "none" : "inline";
-            return ret;
+      specialKeys.push(8); //Backspace
+      function IsNumeric(e) {
+        alert()
+        var keyCode = e.which ? e.which : e.keyCode
+        var ret = ((keyCode >= 48 && keyCode <= 57) || specialKeys.indexOf(keyCode) != -1);
+        document.getElementById("error").style.display = ret ? "none" : "inline";
+        return ret;
+      }
+
+      function readURL(input) {
+        if (input.files && input.files[0]) {
+          var reader = new FileReader();
+
+          reader.onload = function (e) {
+            $('#passport_image_view').attr('src', e.target.result);
+            $('#passport_image_view_modal').attr('src', e.target.result);
+          }
+
+          reader.readAsDataURL(input.files[0]);
         }
+      }
 
-function readURL(input) {
-  if (input.files && input.files[0]) {
-    var reader = new FileReader();
-    
-    reader.onload = function(e) {
-      $('#passport_image_view').attr('src', e.target.result);
-       $('#passport_image_view_modal').attr('src', e.target.result);
-    }
-    
-    reader.readAsDataURL(input.files[0]);
-  }
-}
-
-// Document Dynamic
-$("#doc_{{$profile_img}}").change(function() {
-$("#passport_image_view").show();
-  readURL(this);
-});
+      // Document Dynamic
+      $("#doc_{{$profile_img}}").change(function () {
+        $("#passport_image_view").show();
+        readURL(this);
+      });
 
 
-// function readURL2(input) {
-//   if (input.files && input.files[0]) {
-//     var reader = new FileReader();
-    
-//     reader.onload = function(e) {
-//       $('#signature_image_view').attr('src', e.target.result);
-//       $('#signature_image_view_modal').attr('src', e.target.result);
-//     }
-    
-//     reader.readAsDataURL(input.files[0]);
-//   }
-// }
+      // function readURL2(input) {
+      //   if (input.files && input.files[0]) {
+      //     var reader = new FileReader();
 
-// $("#signature_image_").change(function() {
-//   readURL2(this);
-// });
+      //     reader.onload = function(e) {
+      //       $('#signature_image_view').attr('src', e.target.result);
+      //       $('#signature_image_view_modal').attr('src', e.target.result);
+      //     }
+
+      //     reader.readAsDataURL(input.files[0]);
+      //   }
+      // }
+
+      // $("#signature_image_").change(function() {
+      //   readURL2(this);
+      // });
 
 
 
-$(document).ready(function(){
+      $(document).ready(function () {
 
-    $(".aadhar-text").hide();
-    $(".aadhar-text-modal").hide();
-    $("#submitting").hide();
-    $("#submit_loader").hide();
-    $("#passport_image_view").hide(); 
-    $("#spouse_section").hide();  
-
-
-
-    $('form.submit-once').submit(function(e){
-    if( $(this).hasClass('form-submitted') ){
-        e.preventDefault();
-        return;
-    }
-    $(this).addClass('form-submitted');
-   });
-
-    // if($("#entry_type").val() == "Form through Duare Sarkar camp" )
-    // {
-    //    $("#duare_sarkar_section").show(); 
-    // }
-    // else
-    // {
-    //    $("#duare_sarkar_section").hide(); 
-    // }  
-
-
-    // $("#entry_type").on('change', function(){
-
-    //   var duare_status =  $("#entry_type").val();
-    //   if(duare_status == "Form through Duare Sarkar camp")
-    //   {
-    //     $("#duare_sarkar_section").show(); 
-    //   } 
-    //   else
-    //   {
-    //     $("#duare_sarkar_section").hide();
-    //   }
-    // });
-
-    if($("#marital_status").val() == "Married" )
-    {
-        $("#spouse_section").show(); 
-    }
-
-
-    $("#marital_status").on('change', function(){
-
-      var marital_status =  $("#marital_status").val();
-      if(marital_status == "Married")
-      {
-        $("#spouse_section").show(); 
-      } 
-      else
-      {
+        $(".aadhar-text").hide();
+        $(".aadhar-text-modal").hide();
+        $("#submitting").hide();
+        $("#submit_loader").hide();
+        $("#passport_image_view").hide();
         $("#spouse_section").hide();
-      }
-    });
-  
-  
-    //$(".submitting").attr("disabled", true);
-
-    var selectedRP = new Array();
-  
-    $(".receive-pension").click(function(){        
-
-    selectedRP = [];
-      
-        var n1 = jQuery(".receive-pension:checked").length;
-        if (n1 > 0){
-         
-            jQuery(".receive-pension:checked").each(function(){
-                selectedRP.push( $(this).val());
-            });
-        }  
-
-        $("#receive-pension-modal").text(selectedRP)
-        
-    });
-    @if(isset($row_receive_pension))
-    @foreach(Config::get('constants.pension_body') as $key=>$desc)
-    var receive='';
-    receive="{!! $key !!}";
-    @if(in_array($key,$row_receive_pension,true))
-    selectedRP.push( receive);
-    @endif
-
-        @endforeach
-        $("#receive-pension-modal").text(selectedRP)
-       @endif
 
 
 
-                var selectedCategory = new Array();    
-    $(".social-security-pension").click(function(){ 
+        $('form.submit-once').submit(function (e) {
+          if ($(this).hasClass('form-submitted')) {
+            e.preventDefault();
+            return;
+          }
+          $(this).addClass('form-submitted');
+        });
 
-      selectedCategory = [];
-        var n2 = jQuery(".social-security-pension:checked").length;
-        if (n2 > 0){
-         
-            jQuery(".social-security-pension:checked").each(function(){
-                selectedCategory.push($(this).val());
-            });
-        }  
-
-        $("#checkbox-tick-modal").text(selectedCategory)
-
-       
-    });
-
-
-    @if(isset($row_social_security_pension))
-    @foreach(Config::get('constants.social_pension_cat') as $key=>$desc)
-    var security="";
-     security="{!! $key !!}";
-    @if(in_array($key,$row_social_security_pension,true))
-    selectedCategory.push( security);
-    @endif
-
-        @endforeach
-        $("#checkbox-tick-modal").text(selectedCategory)
-                @endif
+        // if($("#entry_type").val() == "Form through Duare Sarkar camp" )
+        // {
+        //    $("#duare_sarkar_section").show(); 
+        // }
+        // else
+        // {
+        //    $("#duare_sarkar_section").hide(); 
+        // }  
 
 
+        // $("#entry_type").on('change', function(){
 
-     $("#dob").on('blur',function(){ 
-       var today = new Date();
-       var birthDate = new Date($('#dob').val());
+        //   var duare_status =  $("#entry_type").val();
+        //   if(duare_status == "Form through Duare Sarkar camp")
+        //   {
+        //     $("#duare_sarkar_section").show(); 
+        //   } 
+        //   else
+        //   {
+        //     $("#duare_sarkar_section").hide();
+        //   }
+        // });
 
-      
-
-      var diff_ms = today.getTime() - birthDate.getTime();
-      var age_dt = new Date(diff_ms); 
-       var age = Math.ceil(age_dt.getUTCFullYear() - 1970);
-
-       if(isNaN(age)){
-         age = 0;
-       }
-       $('#hidden_age').val(age); 
-       $('#txt_age').val(age);
-     });
-
-    // $("#dob").on('blur',function(){ 
-
-    // //var today = new Date();   
-
-    // var today = new Date('2020-01-01');
-    
-    // var birthDate = new Date($('#dob').val());
-    
-    // var age = today.getFullYear() - birthDate.getFullYear();
-   
-    // var m = today.getMonth() - birthDate.getMonth();
-    // if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-    //     age--;
-    // }    
-    //  $('#hidden_age').val(age); 
-    // $('#txt_age').val(age);
-    // });
-
-    $('.txtOnly').keypress(function (e) {
-            var regex = new RegExp(/^[a-zA-Z\s]+$/);
-            var str = String.fromCharCode(!e.charCode ? e.which : e.charCode);
-            if (regex.test(str)) {
-                return true;
-            }
-            else {
-                e.preventDefault();
-                return false;
-            }
-    });
-
-   
-  $(".NumOnly").keyup(function(event) {
-              
-        $(this).val($(this).val().replace(/[^\d].+/, ""));
-            if ((event.which < 48 || event.which > 57)) {
-                event.preventDefault();
-            }
-        }); 
-
-
-/*$('.txtOnly').keydown(function (e) {
-  
-    if (e.altKey) {
-    
-      e.preventDefault();
-      
-    } else {
-    
-      var key = e.keyCode;
-      
-      if (!((key == 8) || (key == 32) || (key == 46) || (key >= 35 && key <= 40) || (key >= 65 && key <= 90))) {
-      
-        e.preventDefault();
-        
-      }
-
-    }
-    
-  });*/
-
-  
-
- 
-
-// $('.NumOnly').keydown(function (e) {
-  
-//     if (e.altKey) {
-    
-//       e.preventDefault();
-      
-//     } else {
-    
-//       var key = e.keyCode;
-      
-//       if (key > 31 && (key < 48 || key > 57)) {
-      
-//         e.preventDefault();
-        
-//       }
-
-//     }
-    
-//   });
-
-$('.special-char').keyup(function()
-  {
-    var yourInput = $(this).val();
-    re = /[`~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/gi;
-    var isSplChar = re.test(yourInput);
-    if(isSplChar)
-    {
-      var no_spl_char = yourInput.replace(/[`~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/gi, '');
-      $(this).val(no_spl_char);
-    }
-  });
-
- $(".price-field").keyup(function() 
-        {
-          var val = $(this).val();
-          if(isNaN(val)){
-          val = val.replace(/[^0-9\.]/g,'');
-          if(val.split('.').length>2) 
-          val =val.replace(/\.+$/,"");
+        if ($("#marital_status").val() == "Married") {
+          $("#spouse_section").show();
         }
-        $(this).val(val);        
+
+
+        $("#marital_status").on('change', function () {
+
+          var marital_status = $("#marital_status").val();
+          if (marital_status == "Married") {
+            $("#spouse_section").show();
+          }
+          else {
+            $("#spouse_section").hide();
+          }
         });
 
 
- 
- $('#btn_personal_details').click(function(){  
+        //$(".submitting").attr("disabled", true);
 
-//var error_title ='';
-  var error_duare_sarkar_reg_no = '';
-  var error_duare_sarkar_date = '';
-  var error_first_name = '';
-  var error_last_name = '';
-  var error_gender = '';
-  var error_dob ="";
-  var error_txt_age = '';
-  var error_father_first_name = '';
-  var error_father_last_name = '';
+        var selectedRP = new Array();
 
-  var error_mother_first_name = '';
-  var error_mother_last_name = '';
-  var error_caste_category = '';
-  var error_marital_status = '';
+        $(".receive-pension").click(function () {
 
-  var error_monthly_income = '';
+          selectedRP = [];
 
-  //------ Dob date format change for modal -------
+          var n1 = jQuery(".receive-pension:checked").length;
+          if (n1 > 0) {
 
-      var splitDate_dob = $('#dob').val().split('-');
-      var year = splitDate_dob[0];
-      var month = splitDate_dob[1];
-      var day = splitDate_dob[2];      
-      $('#hidden_dob_format').val(day + '/' + month + '/' + year);
+            jQuery(".receive-pension:checked").each(function () {
+              selectedRP.push($(this).val());
+            });
+          }
 
-      //------ Duare  Sarkar date format change for modal -------
+          $("#receive-pension-modal").text(selectedRP)
 
-      // if($.trim($('#duare_sarkar_date').val()).length > 0)
-      // {
+        });
+        @if(isset($row_receive_pension))
+      @foreach(Config::get('constants.pension_body') as $key => $desc)
+      var receive = '';
+      receive = "{!! $key !!}";
+      @if(in_array($key, $row_receive_pension, true))
+      selectedRP.push(receive);
+    @endif
 
-      // var splitDate_reg = $('#duare_sarkar_date').val().split('-');
-      // var year = splitDate_reg[0];
-      // var month = splitDate_reg[1];
-      // var day = splitDate_reg[2];      
-      // $('#hidden_duare_sarkar_date_format').val(day + '/' + month + '/' + year);
-      // }
-
-  //--------- Calculate age from dob, it is repeated code in time of next click if dob already selected ----
-
-      var today = new Date();
-      var birthDate = new Date($('#dob').val());      
-
-      var diff_ms = today.getTime() - birthDate.getTime();
-      var age_dt = new Date(diff_ms); 
-      var age = Math.ceil(age_dt.getUTCFullYear() - 1970);
-
-      if(isNaN(age)){
-        age = 0;
-      }
-      $('#hidden_age').val(age); 
-      // $('#txt_age').val(age);
+    @endforeach
+      $("#receive-pension-modal").text(selectedRP)
+    @endif
 
 
-  // if($.trim($('#entry_type').val()) == "Form through Duare Sarkar camp")
-  // {
 
-  //     if($.trim($('#duare_sarkar_reg_no').val()).length == 0)
-  //     {
-  //      error_duare_sarkar_reg_no = 'Duare Sarkar Registration No. is required';
-  //      $('#error_duare_sarkar_reg_no').text(error_duare_sarkar_reg_no);
-  //      $('#duare_sarkar_reg_no').addClass('has-error');
-  //     }
-  //     else
-  //     {
-  //      error_duare_sarkar_reg_no = '';
-  //      $('#error_duare_sarkar_reg_no').text(error_duare_sarkar_reg_no);
-  //      $('#duare_sarkar_reg_no').removeClass('has-error');
-  //     }
+        var selectedCategory = new Array();
+        $(".social-security-pension").click(function () {
 
-  //     if($.trim($('#duare_sarkar_date').val()).length == 0)
-  //     {
-  //      error_duare_sarkar_date = 'Duare Sarkar Date is required';
-  //      $('#error_duare_sarkar_date').text(error_duare_sarkar_date);
-  //      $('#duare_sarkar_date').addClass('has-error');
-  //     }
-  //     else
-  //     {
-  //      error_duare_sarkar_date = '';
-  //      $('#error_duare_sarkar_date').text(error_duare_sarkar_date);
-  //      $('#duare_sarkar_date').removeClass('has-error');
-  //     }
+          selectedCategory = [];
+          var n2 = jQuery(".social-security-pension:checked").length;
+          if (n2 > 0) {
 
-   
-  // }
-  // else
-  // {
-  //      error_duare_sarkar_reg_no = '';
-  //      $('#error_duare_sarkar_reg_no').text(error_duare_sarkar_reg_no);
-  //      $('#duare_sarkar_reg_no').removeClass('has-error');
+            jQuery(".social-security-pension:checked").each(function () {
+              selectedCategory.push($(this).val());
+            });
+          }
 
-  //      error_duare_sarkar_date = '';
-  //      $('#error_duare_sarkar_date').text(error_duare_sarkar_date);
-  //      $('#duare_sarkar_date').removeClass('has-error');
-  // }
-  
+          $("#checkbox-tick-modal").text(selectedCategory)
 
-  if($.trim($('#first_name').val()).length == 0)
-  {
-   error_first_name = 'First Name is required';
-   $('#error_first_name').text(error_first_name);
-   $('#first_name').addClass('has-error');
-  }
-  else
-  {
-   error_first_name = '';
-   $('#error_first_name').text(error_first_name);
-   $('#first_name').removeClass('has-error');
-  }
 
-  if($.trim($('#last_name').val()).length == 0)
-  {
-   error_last_name = 'Last Name is required';
-   $('#error_last_name').text(error_last_name);
-   $('#last_name').addClass('has-error');
-  }
-  else
-  {
-   error_last_name = '';
-   $('#error_last_name').text(error_last_name);
-   $('#last_name').removeClass('has-error');
-  }
+        });
 
-   if($.trim($('#gender').val()).length == 0)
-  {
-   error_gender = 'Gender is required';
-   $('#error_gender').text(error_gender);
-   $('#gender').addClass('has-error');
-  }
-  else
-  {
-   error_gender = '';
-   $('#error_gender').text(error_gender);
-   $('#gender').removeClass('has-error');
-  }
-  
 
- // if($.trim($('#dob').val()).length > 0)
- // {   
+        @if(isset($row_social_security_pension))
+      @foreach(Config::get('constants.social_pension_cat') as $key => $desc)
+      var security = "";
+      security = "{!! $key !!}";
+      @if(in_array($key, $row_social_security_pension, true))
+      selectedCategory.push(security);
+    @endif
 
- //     var string = $.trim($('#dob').val());   
- //     var result = string.split('-');
- //     var year = result[result.length - 3];
+    @endforeach
+      $("#checkbox-tick-modal").text(selectedCategory)
+    @endif
 
-     
 
- //    if(year < 1900  || year > 2000 )
- //    {
- //     error_dob = "Date of Birth range is not properly";
- //     $('#error_dob').text(error_dob);
- //     $('#dob').addClass('has-error');
- //    }
- //    else
- //    {      
- //     error_dob = '';
- //     $('#error_dob').text(error_dob);
- //     $('#dob').removeClass('has-error');    
 
- //    }
+        $("#dob").on('blur', function () {
+          var today = new Date();
+          var birthDate = new Date($('#dob').val());
 
- // } 
 
-  
 
-  if($.trim($('#txt_age').val()) > 0)
-  { 
-    error_txt_age = '';
-    $('#error_txt_age').text(error_txt_age);
-    $('#txt_age').removeClass('has-error');
-  }
-  else
-  {
-    error_txt_age = 'Age is required';
-    $('#error_txt_age').text(error_txt_age);
-    $('#txt_age').addClass('has-error');
-    
-  }
+          var diff_ms = today.getTime() - birthDate.getTime();
+          var age_dt = new Date(diff_ms);
+          var age = Math.ceil(age_dt.getUTCFullYear() - 1970);
+
+          if (isNaN(age)) {
+            age = 0;
+          }
+          $('#hidden_age').val(age);
+          $('#txt_age').val(age);
+        });
+
+        // $("#dob").on('blur',function(){ 
+
+        // //var today = new Date();   
+
+        // var today = new Date('2020-01-01');
+
+        // var birthDate = new Date($('#dob').val());
+
+        // var age = today.getFullYear() - birthDate.getFullYear();
+
+        // var m = today.getMonth() - birthDate.getMonth();
+        // if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        //     age--;
+        // }    
+        //  $('#hidden_age').val(age); 
+        // $('#txt_age').val(age);
+        // });
+
+        $('.txtOnly').keypress(function (e) {
+          var regex = new RegExp(/^[a-zA-Z\s]+$/);
+          var str = String.fromCharCode(!e.charCode ? e.which : e.charCode);
+          if (regex.test(str)) {
+            return true;
+          }
+          else {
+            e.preventDefault();
+            return false;
+          }
+        });
+
+
+        $(".NumOnly").keyup(function (event) {
+
+          $(this).val($(this).val().replace(/[^\d].+/, ""));
+          if ((event.which < 48 || event.which > 57)) {
+            event.preventDefault();
+          }
+        });
+
+
+        /*$('.txtOnly').keydown(function (e) {
+          
+            if (e.altKey) {
+            
+              e.preventDefault();
+              
+            } else {
+            
+              var key = e.keyCode;
+              
+              if (!((key == 8) || (key == 32) || (key == 46) || (key >= 35 && key <= 40) || (key >= 65 && key <= 90))) {
+              
+                e.preventDefault();
+                
+              }
+        
+            }
+            
+          });*/
 
 
 
 
-  if($.trim($('#father_first_name').val()).length == 0)
-  {
-   error_father_first_name = 'First Name is required';
-   $('#error_father_first_name').text(error_father_first_name);
-   $('#father_first_name').addClass('has-error');
-  }
-  else
-  {
-   error_father_first_name = '';
-   $('#error_father_first_name').text(error_father_first_name);
-   $('#father_first_name').removeClass('has-error');
-  }
 
-  if($.trim($('#father_last_name').val()).length == 0)
-  {
-   error_father_last_name = 'Last Name is required';
-   $('#error_father_last_name').text(error_father_last_name);
-   $('#father_last_name').addClass('has-error');
-  }
-  else
-  {
-   error_father_last_name = '';
-   $('#error_father_last_name').text(error_father_last_name);
-   $('#father_last_name').removeClass('has-error');
-  }
+        // $('.NumOnly').keydown(function (e) {
 
-  //  if($.trim($('#mother_first_name').val()).length == 0)
-  // {
-  //  error_mother_first_name = 'First Name is required';
-  //  $('#error_mother_first_name').text(error_mother_first_name);
-  //  $('#mother_first_name').addClass('has-error');
-  // }
-  // else
-  // {
-  //  error_mother_first_name = '';
-  //  $('#error_mother_first_name').text(error_mother_first_name);
-  //  $('#mother_first_name').removeClass('has-error');
-  // }
+        //     if (e.altKey) {
 
-  // if($.trim($('#mother_last_name').val()).length == 0)
-  // {
-  //  error_mother_last_name = 'Last Name is required';
-  //  $('#error_mother_last_name').text(error_mother_last_name);
-  //  $('#mother_last_name').addClass('has-error');
-  // }
-  // else
-  // {
-  //  error_mother_lst_name = '';
-  //  $('#error_mother_last_name').text(error_mother_last_name);
-  //  $('#mother_last_name').removeClass('has-error');
-  // }
+        //       e.preventDefault();
 
-  if($.trim($('#caste_category').val()).length == 0)
-  {
-   error_caste_category = 'Caste is required';
-   $('#error_caste_category').text(error_caste_category);
-   $('#caste_category').addClass('has-error');
-  }
-  else
-  {
-   error_caste_category = '';
-   $('#error_caste_category').text(error_caste_category);
-   $('#caste_category').removeClass('has-error');
-  }
+        //     } else {
 
-  if($.trim($('#marital_status').val()).length == 0)
-  {
-   error_marital_status = 'Marital Status is required';
-   $('#error_marital_status').text(error_marital_status);
-   $('#marital_status').addClass('has-error');
-  }
-  else
-  {
-   error_marital_status = '';
-   $('#error_marital_status').text(error_marital_status);
-   $('#marital_status').removeClass('has-error');
-  }
+        //       var key = e.keyCode;
 
-  if($.trim($('#monthly_income').val()).length == 0)
-  {
-   error_monthly_income = 'Monthly Family Income is required';
-   $('#error_monthly_income').text(error_monthly_income);
-   $('#monthly_income').addClass('has-error');
-  }
-  else
-  {
-   error_monthly_income = '';
-   $('#error_monthly_income').text(error_monthly_income);
-   $('#monthly_income').removeClass('has-error');
-  } 
+        //       if (key > 31 && (key < 48 || key > 57)) {
 
-   if( error_duare_sarkar_reg_no != '' || error_duare_sarkar_date != '' || error_first_name != '' || error_last_name != '' || error_gender != '' || error_txt_age != '' || error_father_first_name != '' || error_father_last_name != '' || error_mother_first_name != '' || error_mother_last_name != '' || error_caste_category != '' || error_marital_status != '' || error_monthly_income != '' )
+        //         e.preventDefault();
 
-  
+        //       }
 
-   //if( error_first_name != '')
+        //     }
+
+        //   });
+
+        $('.special-char').keyup(function () {
+          var yourInput = $(this).val();
+          re = /[`~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/gi;
+          var isSplChar = re.test(yourInput);
+          if (isSplChar) {
+            var no_spl_char = yourInput.replace(/[`~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/gi, '');
+            $(this).val(no_spl_char);
+          }
+        });
+
+        $(".price-field").keyup(function () {
+          var val = $(this).val();
+          if (isNaN(val)) {
+            val = val.replace(/[^0-9\.]/g, '');
+            if (val.split('.').length > 2)
+              val = val.replace(/\.+$/, "");
+          }
+          $(this).val(val);
+        });
 
 
-  {
-   return false;
-  }
-  else
-  {   
-   
 
-   /*******SD**********/
-   $('#list_personal_details').removeClass('active active_tab1');
-   $('#list_personal_details').removeAttr('href data-toggle');
-   $('#personal_details').removeClass('active');
-   $('#list_personal_details').addClass('inactive_tab1');
-   $('#list_id_details').removeClass('inactive_tab1');
-   $('#list_id_details').addClass('active_tab1 active');
-   $('#list_id_details').attr('href', '#id_details');
-   $('#list_id_details').attr('data-toggle', 'tab');
-   $('#id_details').addClass('active in');
-   /*******************/
-  }
+        $('#btn_personal_details').click(function () {
 
-});
+          //var error_title ='';
+          var error_duare_sarkar_reg_no = '';
+          var error_duare_sarkar_date = '';
+          var error_first_name = '';
+          var error_last_name = '';
+          var error_gender = '';
+          var error_dob = "";
+          var error_txt_age = '';
+          var error_father_first_name = '';
+          var error_father_last_name = '';
+
+          var error_mother_first_name = '';
+          var error_mother_last_name = '';
+          var error_caste_category = '';
+          var error_marital_status = '';
+
+          var error_monthly_income = '';
+
+          //------ Dob date format change for modal -------
+
+          var splitDate_dob = $('#dob').val().split('-');
+          var year = splitDate_dob[0];
+          var month = splitDate_dob[1];
+          var day = splitDate_dob[2];
+          $('#hidden_dob_format').val(day + '/' + month + '/' + year);
+
+          //------ Duare  Sarkar date format change for modal -------
+
+          // if($.trim($('#duare_sarkar_date').val()).length > 0)
+          // {
+
+          // var splitDate_reg = $('#duare_sarkar_date').val().split('-');
+          // var year = splitDate_reg[0];
+          // var month = splitDate_reg[1];
+          // var day = splitDate_reg[2];      
+          // $('#hidden_duare_sarkar_date_format').val(day + '/' + month + '/' + year);
+          // }
+
+          //--------- Calculate age from dob, it is repeated code in time of next click if dob already selected ----
+
+          var today = new Date();
+          var birthDate = new Date($('#dob').val());
+
+          var diff_ms = today.getTime() - birthDate.getTime();
+          var age_dt = new Date(diff_ms);
+          var age = Math.ceil(age_dt.getUTCFullYear() - 1970);
+
+          if (isNaN(age)) {
+            age = 0;
+          }
+          $('#hidden_age').val(age);
+          // $('#txt_age').val(age);
 
 
- $('#previous_btn_id_details').click(function(){
+          // if($.trim($('#entry_type').val()) == "Form through Duare Sarkar camp")
+          // {
 
-  $('#list_id_details').removeClass('active active_tab1');
-  $('#list_id_details').removeAttr('href data-toggle');
-  $('#id_details').removeClass('active in');
-  $('#list_id_details').addClass('inactive_tab1');
-  $('#list_personal_details').removeClass('inactive_tab1');
-  $('#list_personal_details').addClass('active_tab1 active');
-  $('#list_personal_details').attr('href', '#personal_details');
-  $('#list_personal_details').attr('data-toggle', 'tab');
-  $('#personal_details').addClass('active in');
- });
+          //     if($.trim($('#duare_sarkar_reg_no').val()).length == 0)
+          //     {
+          //      error_duare_sarkar_reg_no = 'Duare Sarkar Registration No. is required';
+          //      $('#error_duare_sarkar_reg_no').text(error_duare_sarkar_reg_no);
+          //      $('#duare_sarkar_reg_no').addClass('has-error');
+          //     }
+          //     else
+          //     {
+          //      error_duare_sarkar_reg_no = '';
+          //      $('#error_duare_sarkar_reg_no').text(error_duare_sarkar_reg_no);
+          //      $('#duare_sarkar_reg_no').removeClass('has-error');
+          //     }
 
-$('#btn_id_details').click(function(){  
+          //     if($.trim($('#duare_sarkar_date').val()).length == 0)
+          //     {
+          //      error_duare_sarkar_date = 'Duare Sarkar Date is required';
+          //      $('#error_duare_sarkar_date').text(error_duare_sarkar_date);
+          //      $('#duare_sarkar_date').addClass('has-error');
+          //     }
+          //     else
+          //     {
+          //      error_duare_sarkar_date = '';
+          //      $('#error_duare_sarkar_date').text(error_duare_sarkar_date);
+          //      $('#duare_sarkar_date').removeClass('has-error');
+          //     }
 
-  var error_ration_card_cat = '';
-  var error_ration_card_no = '';
-  var error_epic_voter_id = '';
-  var error_aadhar_no = '';
-  
 
-  if($.trim($('#ration_card_cat').val()).length == 0)
-  {
-   error_ration_card_cat = 'Digital Ration Card Category is required';
-   $('#error_ration_card_cat').text(error_ration_card_cat);
-   $('#ration_card_cat').addClass('has-error');
-  }
-  else
-  {
-   error_ration_card_cat = '';
-   $('#error_ration_card_cat').text(error_ration_card_cat);
-   $('#ration_card_cat').removeClass('has-error');
-  }
+          // }
+          // else
+          // {
+          //      error_duare_sarkar_reg_no = '';
+          //      $('#error_duare_sarkar_reg_no').text(error_duare_sarkar_reg_no);
+          //      $('#duare_sarkar_reg_no').removeClass('has-error');
 
-   if($.trim($('#ration_card_no').val()).length == 0)
-  {
-   error_ration_card_no = 'Digital Ration Card No. is required';
-   $('#error_ration_card_no').text(error_ration_card_no);
-   $('#ration_card_no').addClass('has-error');
-  }
-  else
-  {
+          //      error_duare_sarkar_date = '';
+          //      $('#error_duare_sarkar_date').text(error_duare_sarkar_date);
+          //      $('#duare_sarkar_date').removeClass('has-error');
+          // }
 
-    if($.trim($('#ration_card_no').val()).length >10)
-    {
-      error_ration_card_no = 'Digital Ration Card No should not be greater bthan 10 digit';
-     $('#error_ration_card_no').text(error_ration_card_no);
-     $('#ration_card_no').addClass('has-error');
 
-    }
-    else
-    {
-      error_ration_card_no = '';
-      $('#error_ration_card_no').text(error_ration_card_no);
-      $('#ration_card_no').removeClass('has-error');
+          if ($.trim($('#first_name').val()).length == 0) {
+            error_first_name = 'First Name is required';
+            $('#error_first_name').text(error_first_name);
+            $('#first_name').addClass('has-error');
+          }
+          else {
+            error_first_name = '';
+            $('#error_first_name').text(error_first_name);
+            $('#first_name').removeClass('has-error');
+          }
 
-    }
-  
-  }
+          if ($.trim($('#last_name').val()).length == 0) {
+            error_last_name = 'Last Name is required';
+            $('#error_last_name').text(error_last_name);
+            $('#last_name').addClass('has-error');
+          }
+          else {
+            error_last_name = '';
+            $('#error_last_name').text(error_last_name);
+            $('#last_name').removeClass('has-error');
+          }
 
-  if($.trim($('#epic_voter_id').val()).length == 0)
-  {
-   error_epic_voter_id = 'EPIC/Voter Id.No is required';
-   $('#error_epic_voter_id').text(error_epic_voter_id);
-   $('#epic_voter_id').addClass('has-error');
-  }
-  else
-  {
-   error_epic_voter_id = '';
-   $('#error_epic_voter_id').text(error_epic_voter_id);
-   $('#epic_voter_id').removeClass('has-error');
-  }
+          if ($.trim($('#gender').val()).length == 0) {
+            error_gender = 'Gender is required';
+            $('#error_gender').text(error_gender);
+            $('#gender').addClass('has-error');
+          }
+          else {
+            error_gender = '';
+            $('#error_gender').text(error_gender);
+            $('#gender').removeClass('has-error');
+          }
 
-  if($.trim($('#aadhar_no').val()) != "")
-  {
-    
-   $(".aadhar-text").show();
-   $(".aadhar-text-modal").show();
 
-     if($.trim($('#aadhar_no').val()).length != 12)
-     {
+          // if($.trim($('#dob').val()).length > 0)
+          // {   
 
-     error_aadhar_no = 'Aadhar No should be 12 digit ';
-     $('#error_aadhar_no').text(error_aadhar_no);
-     $('#aadhar_no').addClass('has-error');
-     }
-     else
-     {
-         var aadhar_no=$('#aadhar_no').val();
-         var aadhar_valid=validate_adhar(aadhar_no);      
-         if(aadhar_valid){
-            error_aadhar_no = '';
-            $('#error_aadhar_no').text(error_aadhar_no);
-            $('#aadhar_no').removeClass('has-error');
-         }
-         else{
-            error_aadhar_no = 'Invalid Aadhar No.';
+          //     var string = $.trim($('#dob').val());   
+          //     var result = string.split('-');
+          //     var year = result[result.length - 3];
+
+
+
+          //    if(year < 1900  || year > 2000 )
+          //    {
+          //     error_dob = "Date of Birth range is not properly";
+          //     $('#error_dob').text(error_dob);
+          //     $('#dob').addClass('has-error');
+          //    }
+          //    else
+          //    {      
+          //     error_dob = '';
+          //     $('#error_dob').text(error_dob);
+          //     $('#dob').removeClass('has-error');    
+
+          //    }
+
+          // } 
+
+
+
+          if ($.trim($('#txt_age').val()) > 0) {
+            error_txt_age = '';
+            $('#error_txt_age').text(error_txt_age);
+            $('#txt_age').removeClass('has-error');
+          }
+          else {
+            error_txt_age = 'Age is required';
+            $('#error_txt_age').text(error_txt_age);
+            $('#txt_age').addClass('has-error');
+
+          }
+
+
+
+
+          if ($.trim($('#father_first_name').val()).length == 0) {
+            error_father_first_name = 'First Name is required';
+            $('#error_father_first_name').text(error_father_first_name);
+            $('#father_first_name').addClass('has-error');
+          }
+          else {
+            error_father_first_name = '';
+            $('#error_father_first_name').text(error_father_first_name);
+            $('#father_first_name').removeClass('has-error');
+          }
+
+          if ($.trim($('#father_last_name').val()).length == 0) {
+            error_father_last_name = 'Last Name is required';
+            $('#error_father_last_name').text(error_father_last_name);
+            $('#father_last_name').addClass('has-error');
+          }
+          else {
+            error_father_last_name = '';
+            $('#error_father_last_name').text(error_father_last_name);
+            $('#father_last_name').removeClass('has-error');
+          }
+
+          //  if($.trim($('#mother_first_name').val()).length == 0)
+          // {
+          //  error_mother_first_name = 'First Name is required';
+          //  $('#error_mother_first_name').text(error_mother_first_name);
+          //  $('#mother_first_name').addClass('has-error');
+          // }
+          // else
+          // {
+          //  error_mother_first_name = '';
+          //  $('#error_mother_first_name').text(error_mother_first_name);
+          //  $('#mother_first_name').removeClass('has-error');
+          // }
+
+          // if($.trim($('#mother_last_name').val()).length == 0)
+          // {
+          //  error_mother_last_name = 'Last Name is required';
+          //  $('#error_mother_last_name').text(error_mother_last_name);
+          //  $('#mother_last_name').addClass('has-error');
+          // }
+          // else
+          // {
+          //  error_mother_lst_name = '';
+          //  $('#error_mother_last_name').text(error_mother_last_name);
+          //  $('#mother_last_name').removeClass('has-error');
+          // }
+
+          if ($.trim($('#caste_category').val()).length == 0) {
+            error_caste_category = 'Caste is required';
+            $('#error_caste_category').text(error_caste_category);
+            $('#caste_category').addClass('has-error');
+          }
+          else {
+            error_caste_category = '';
+            $('#error_caste_category').text(error_caste_category);
+            $('#caste_category').removeClass('has-error');
+          }
+
+          if ($.trim($('#marital_status').val()).length == 0) {
+            error_marital_status = 'Marital Status is required';
+            $('#error_marital_status').text(error_marital_status);
+            $('#marital_status').addClass('has-error');
+          }
+          else {
+            error_marital_status = '';
+            $('#error_marital_status').text(error_marital_status);
+            $('#marital_status').removeClass('has-error');
+          }
+
+          if ($.trim($('#monthly_income').val()).length == 0) {
+            error_monthly_income = 'Monthly Family Income is required';
+            $('#error_monthly_income').text(error_monthly_income);
+            $('#monthly_income').addClass('has-error');
+          }
+          else {
+            error_monthly_income = '';
+            $('#error_monthly_income').text(error_monthly_income);
+            $('#monthly_income').removeClass('has-error');
+          }
+
+          if (error_duare_sarkar_reg_no != '' || error_duare_sarkar_date != '' || error_first_name != '' || error_last_name != '' || error_gender != '' || error_txt_age != '' || error_father_first_name != '' || error_father_last_name != '' || error_mother_first_name != '' || error_mother_last_name != '' || error_caste_category != '' || error_marital_status != '' || error_monthly_income != '')
+
+
+
+          //if( error_first_name != '')
+
+
+          {
+            return false;
+          }
+          else {
+
+
+            /*******SD**********/
+            $('#list_personal_details').removeClass('active active_tab1');
+            $('#list_personal_details').removeAttr('href data-toggle');
+            $('#personal_details').removeClass('active');
+            $('#list_personal_details').addClass('inactive_tab1');
+            $('#list_id_details').removeClass('inactive_tab1');
+            $('#list_id_details').addClass('active_tab1 active');
+            $('#list_id_details').attr('href', '#id_details');
+            $('#list_id_details').attr('data-toggle', 'tab');
+            $('#id_details').addClass('active in');
+            /*******************/
+          }
+
+        });
+
+
+        $('#previous_btn_id_details').click(function () {
+
+          $('#list_id_details').removeClass('active active_tab1');
+          $('#list_id_details').removeAttr('href data-toggle');
+          $('#id_details').removeClass('active in');
+          $('#list_id_details').addClass('inactive_tab1');
+          $('#list_personal_details').removeClass('inactive_tab1');
+          $('#list_personal_details').addClass('active_tab1 active');
+          $('#list_personal_details').attr('href', '#personal_details');
+          $('#list_personal_details').attr('data-toggle', 'tab');
+          $('#personal_details').addClass('active in');
+        });
+
+        $('#btn_id_details').click(function () {
+
+          var error_ration_card_cat = '';
+          var error_ration_card_no = '';
+          var error_epic_voter_id = '';
+          var error_aadhar_no = '';
+
+
+          if ($.trim($('#ration_card_cat').val()).length == 0) {
+            error_ration_card_cat = 'Digital Ration Card Category is required';
+            $('#error_ration_card_cat').text(error_ration_card_cat);
+            $('#ration_card_cat').addClass('has-error');
+          }
+          else {
+            error_ration_card_cat = '';
+            $('#error_ration_card_cat').text(error_ration_card_cat);
+            $('#ration_card_cat').removeClass('has-error');
+          }
+
+          if ($.trim($('#ration_card_no').val()).length == 0) {
+            error_ration_card_no = 'Digital Ration Card No. is required';
+            $('#error_ration_card_no').text(error_ration_card_no);
+            $('#ration_card_no').addClass('has-error');
+          }
+          else {
+
+            if ($.trim($('#ration_card_no').val()).length > 10) {
+              error_ration_card_no = 'Digital Ration Card No should not be greater bthan 10 digit';
+              $('#error_ration_card_no').text(error_ration_card_no);
+              $('#ration_card_no').addClass('has-error');
+
+            }
+            else {
+              error_ration_card_no = '';
+              $('#error_ration_card_no').text(error_ration_card_no);
+              $('#ration_card_no').removeClass('has-error');
+
+            }
+
+          }
+
+          if ($.trim($('#epic_voter_id').val()).length == 0) {
+            error_epic_voter_id = 'EPIC/Voter Id.No is required';
+            $('#error_epic_voter_id').text(error_epic_voter_id);
+            $('#epic_voter_id').addClass('has-error');
+          }
+          else {
+            error_epic_voter_id = '';
+            $('#error_epic_voter_id').text(error_epic_voter_id);
+            $('#epic_voter_id').removeClass('has-error');
+          }
+
+          if ($.trim($('#aadhar_no').val()) != "") {
+
+            $(".aadhar-text").show();
+            $(".aadhar-text-modal").show();
+
+            if ($.trim($('#aadhar_no').val()).length != 12) {
+
+              error_aadhar_no = 'Aadhar No should be 12 digit ';
+              $('#error_aadhar_no').text(error_aadhar_no);
+              $('#aadhar_no').addClass('has-error');
+            }
+            else {
+              var aadhar_no = $('#aadhar_no').val();
+              var aadhar_valid = validate_adhar(aadhar_no);
+              if (aadhar_valid) {
+                error_aadhar_no = '';
+                $('#error_aadhar_no').text(error_aadhar_no);
+                $('#aadhar_no').removeClass('has-error');
+              }
+              else {
+                error_aadhar_no = 'Invalid Aadhar No.';
+                $('#error_aadhar_no').text(error_aadhar_no);
+                $('#aadhar_no').addClass('has-error');
+              }
+            }
+          }
+          else {
+
+            error_aadhar_no = 'Aadhar No is required ';
             $('#error_aadhar_no').text(error_aadhar_no);
             $('#aadhar_no').addClass('has-error');
-         }
-     }
-  } 
-  else
-  {
 
-     error_aadhar_no = 'Aadhar No is required ';
-     $('#error_aadhar_no').text(error_aadhar_no);
-     $('#aadhar_no').addClass('has-error');
-
-  }
-  
-  
-   if(  error_ration_card_cat != '' || error_ration_card_no != '' || error_epic_voter_id != '' || error_aadhar_no !="" )
-   //  if(  error_ration_card_cat != ''  )
- 
-  {
-   return false;
-  }
-  else
-  {
-    
-   
-
-   /*******SD**********/
-   $('#list_id_details').removeClass('active active_tab1');
-   $('#list_id_details').removeAttr('href data-toggle');
-   $('#id_details').removeClass('active');
-   $('#list_id_details').addClass('inactive_tab1');
-   $('#list_contact_details').removeClass('inactive_tab1');
-   $('#list_contact_details').addClass('active_tab1 active');
-   $('#list_contact_details').attr('href', '#contact_details');
-   $('#list_contact_details').attr('data-toggle', 'tab');
-   $('#contact_details').addClass('active in');
-   /*******************/
-  }
-
-});
-
-
- $('#previous_btn_contact_details').click(function(){
-
-  $('#list_contact_details').removeClass('active active_tab1');
-  $('#list_contact_details').removeAttr('href data-toggle');
-  $('#contact_details').removeClass('active in');
-  $('#list_contact_details').addClass('inactive_tab1');
-
-  $('#list_id_details').removeClass('inactive_tab1');
-  $('#list_id_details').addClass('active_tab1 active');
-  $('#list_id_details').attr('href', '#id_details');
-  $('#list_id_details').attr('data-toggle', 'tab');
-  $('#id_details').addClass('active in');
- });
- 
- function ltrim(str){
-    return str.replace(/^0+/, "");
- }
-
- $('#btn_contact_details').click(function(){ 
-
-  var error_district =''; 
-  var error_asmb_cons ='';
-
-  var error_urban_code ='';
-  var error_block ='';
-  var error_gp_ward ='';
-
-  var error_village ='';  
-  var error_post_office ='';
-  var error_pin_code ='';
-  var error_police_station ='';
-  var error_residency_period ='';
-  var error_mobile_no ='';
-
-  var error_email ='';
-
-  if($.trim($('#district').val()).length == 0)
-  {
-   error_district = 'District is required';
-   $('#error_district').text(error_district);
-   $('#district').addClass('has-error');
-  }
-  else
-  {
-   error_district = '';
-   $('#error_district').text(error_district);
-   $('#district').removeClass('has-error');
-  }
-  
-
-  
-
-  if($.trim($('#urban_code').val()).length == 0)
-  {
-   error_urban_code = 'Rural/Urban is required';
-   $('#error_urban_code').text(error_urban_code);
-   $('#urban_code').addClass('has-error');
-  }
-  else
-  {
-   error_urban_code = '';
-   $('#error_urban_code').text(error_urban_code);
-   $('#urban_code').removeClass('has-error');
-  }
-
-
-  if($.trim($('#block').val()).length == 0)
-  {
-   error_block = 'Block/Municipality is required';
-   $('#error_block').text(error_block);
-   $('#block').addClass('has-error');
-  }
-  else
-  {
-   error_block = '';
-   $('#error_block').text(error_block);
-   $('#block').removeClass('has-error');
-  }
-
-
-  if($.trim($('#gp_ward').val()).length == 0)
-  {
-   error_gp_ward = 'GP/Ward No. is required';
-   $('#error_gp_ward').text(error_gp_ward);
-   $('#gp_ward').addClass('has-error');
-  }
-  else
-  {
-   error_gp_ward = '';
-   $('#error_gp_ward').text(error_gp_ward);
-   $('#gp_ward').removeClass('has-error');
-  }
-
-
-
-
-   if($.trim($('#village').val()).length == 0)
-  {
-   error_village = 'Village/Town/City is required';
-   $('#error_village').text(error_village);
-   $('#village').addClass('has-error');
-  }
-  else
-  {
-   error_village = '';
-   $('#error_village').text(error_village);
-   $('#village').removeClass('has-error');
-  }
-
-  if($.trim($('#post_office').val()).length == 0)
-  {
-   error_post_office = 'Post Office is required';
-   $('#error_post_office').text(error_post_office);
-   $('#post_office').addClass('has-error');
-  }
-  else
-  {
-   error_post_office = '';
-   $('#error_post_office').text(error_post_office);
-   $('#post_office').removeClass('has-error');
-  }
-
-  if($.trim($('#pin_code').val()).length == 0)
-  {
-   error_pin_code = 'Pin Code is required';
-   $('#error_pin_code').text(error_pin_code);
-   $('#pin_code').addClass('has-error');
-  }
-  else
-  {
-
-     if($.trim($('#pin_code').val()).length !=6)
-    {
-      error_pin_code = 'Pin Code must be 6 digit';
-     $('#error_pin_code').text(error_pin_code);
-     $('#pin_code').addClass('has-error');
-    }
-    else
-    {
-     error_pin_code = '';
-     $('#error_pin_code').text(error_pin_code);
-     $('#pin_code').removeClass('has-error');
-
-    }
-   
-  }
-
-
-   if($.trim($('#police_station').val()).length == 0)
-  {
-   error_police_station = 'Police Station is required';
-   $('#error_police_station').text(error_police_station);
-   $('#police_station').addClass('has-error');
-  }
-  else
-  {
-   error_police_station = '';
-   $('#error_police_station').text(error_police_station);
-   $('#police_station').removeClass('has-error');
-  }
-
-
-   if($.trim($('#residency_period').val()).length == 0)
-  {
-   error_residency_period = 'Number of years Dwelling in WB is required';
-   $('#error_residency_period').text(error_residency_period);
-   $('#residency_period').addClass('has-error');
-  }
-  else
-  {
-
-      if($.trim($('#residency_period').val()) >150 )
-      {
-       error_residency_period = 'Number of years is not properly';
-       $('#error_residency_period').text(error_residency_period);
-       $('#residency_period').addClass('has-error');
-      }
-      else
-      {
-       error_residency_period = '';
-       $('#error_residency_period').text(error_residency_period);
-       $('#residency_period').removeClass('has-error');
-      }
-
-   
-  }
-
-
-   if($.trim($('#mobile_no').val()) != '')
-  { 
-
-    if(ltrim($.trim($('#mobile_no').val())).length !=10)
-    {
-     error_mobile_no = 'Mobile Number must be 10 digit';
-    $('#error_mobile_no').text(error_mobile_no);
-    $('#mobile_no').addClass('has-error');
-    }
-    else
-    {
-     error_mobile_no = '';
-    $('#error_mobile_no').text(error_mobile_no);
-    $('#mobile_no').removeClass('has-error');
-
-    }
-  }
-
-
-  if($.trim($('#email').val()).length == 0)
-  {
-   error_email = '';
-   $('#error_email').text(error_email);
-   $('#email').removeClass('has-error');
-  }
-  else
-  {
-
-     if((/^[a-zA-Z0-9._-]+@([a-zA-Z0-9.-]+\.)+[a-zA-Z.]{2,5}$/).exec($.trim($('#email').val()))== null)
-     {
-     error_email = 'Email Id is invalid';
-     $('#error_email').text(error_email);
-     $('#email').addClass('has-error');
-     }
-     else
-     {
-      error_email = '';
-     $('#error_email').text(error_email);
-     $('#email').removeClass('has-error');
-     }
-
-  }
-
-  
-  
-  
-
-   if(error_district != '' || error_asmb_cons != '' || error_urban_code != '' || error_block != '' || error_gp_ward != '' || error_village != '' || error_post_office != '' || error_pin_code != '' || error_police_station != '' || error_residency_period != '' || error_mobile_no != ''  || error_email != '' )
-
-   //if(error_asmb_cons != ''  )
-  {
-   return false;
-  }
-  else
-  {
-   
-   $('#list_contact_details').removeClass('active active_tab1');
-   $('#list_contact_details').removeAttr('href data-toggle');
-   $('#contact_details').removeClass('active');
-   $('#list_contact_details').addClass('inactive_tab1');
-   $('#list_bank_details').removeClass('inactive_tab1');
-   $('#list_bank_details').addClass('active_tab1 active');
-   $('#list_bank_details').attr('href', '#bank_details');
-   $('#list_bank_details').attr('data-toggle', 'tab');
-   $('#bank_details').addClass('active in');
-
-   
-  }
-
- });
-
-
- 
- $('#previous_btn_bank_details').click(function(){
-  $('#list_bank_details').removeClass('active active_tab1');
-  $('#list_bank_details').removeAttr('href data-toggle');
-  $('#bank_details').removeClass('active in');
-  $('#list_bank_details').addClass('inactive_tab1');
-  $('#list_contact_details').removeClass('inactive_tab1');
-  $('#list_contact_details').addClass('active_tab1 active');
-  $('#list_contact_details').attr('href', '#contact_details');
-  $('#list_contact_details').attr('data-toggle', 'tab');
-  $('#contact_details').addClass('active in');
- });
-
- $('#bank_ifsc_code').blur(function(){
-    $ifsc_data = $.trim($('#bank_ifsc_code').val());
-    $ifscRGEX = /^[a-z]{4}0[a-z0-9]{6}$/i;
-    if($ifscRGEX.test($ifsc_data))
-    {
-      $('#bank_ifsc_code').removeClass('has-error');
-      $('#error_bank_ifsc_code').text('');
-      $('#error_name_of_bank').html('<img  src="{{ asset('images/ZKZg.gif') }}" width="50px" height="50px"/>');
-      $('#error_bank_branch').html('<img  src="{{ asset('images/ZKZg.gif') }}" width="50px" height="50px"/>');
-
-      $.ajax({
-        type: 'POST',
-        url: '{{ url('legacy/getBankDetails') }}',
-        data: {
-          ifsc: $ifsc_data,
-          _token: '{{ csrf_token() }}',
-        },
-        success: function (data) {
-          if (!data || data.length === 0) {
-            $('#error_bank_ifsc_code').text('No data found with the IFSC');
-            $('#bank_ifsc_code').addClass('has-error');
-            return;
           }
-          data = JSON.parse(data);
-         // console.log(data);
-          $('#name_of_bank').val(data.bank);
-          $('#bank_branch').val(data.branch);
-           $('#error_name_of_bank').html('');
-          $('#error_bank_branch').html('');
-        },
-        error: function (ex) {
-          $('#error_bank_ifsc_code').text('Data fetch error');
-          $('#bank_ifsc_code').addClass('has-error');
+
+
+          if (error_ration_card_cat != '' || error_ration_card_no != '' || error_epic_voter_id != '' || error_aadhar_no != "")
+          //  if(  error_ration_card_cat != ''  )
+
+          {
+            return false;
+          }
+          else {
+
+
+
+            /*******SD**********/
+            $('#list_id_details').removeClass('active active_tab1');
+            $('#list_id_details').removeAttr('href data-toggle');
+            $('#id_details').removeClass('active');
+            $('#list_id_details').addClass('inactive_tab1');
+            $('#list_contact_details').removeClass('inactive_tab1');
+            $('#list_contact_details').addClass('active_tab1 active');
+            $('#list_contact_details').attr('href', '#contact_details');
+            $('#list_contact_details').attr('data-toggle', 'tab');
+            $('#contact_details').addClass('active in');
+            /*******************/
+          }
+
+        });
+
+
+        $('#previous_btn_contact_details').click(function () {
+
+          $('#list_contact_details').removeClass('active active_tab1');
+          $('#list_contact_details').removeAttr('href data-toggle');
+          $('#contact_details').removeClass('active in');
+          $('#list_contact_details').addClass('inactive_tab1');
+
+          $('#list_id_details').removeClass('inactive_tab1');
+          $('#list_id_details').addClass('active_tab1 active');
+          $('#list_id_details').attr('href', '#id_details');
+          $('#list_id_details').attr('data-toggle', 'tab');
+          $('#id_details').addClass('active in');
+        });
+
+        function ltrim(str) {
+          return str.replace(/^0+/, "");
         }
+
+        $('#btn_contact_details').click(function () {
+
+          var error_district = '';
+          var error_asmb_cons = '';
+
+          var error_urban_code = '';
+          var error_block = '';
+          var error_gp_ward = '';
+
+          var error_village = '';
+          var error_post_office = '';
+          var error_pin_code = '';
+          var error_police_station = '';
+          var error_residency_period = '';
+          var error_mobile_no = '';
+
+          var error_email = '';
+
+          if ($.trim($('#district').val()).length == 0) {
+            error_district = 'District is required';
+            $('#error_district').text(error_district);
+            $('#district').addClass('has-error');
+          }
+          else {
+            error_district = '';
+            $('#error_district').text(error_district);
+            $('#district').removeClass('has-error');
+          }
+
+
+
+
+          if ($.trim($('#urban_code').val()).length == 0) {
+            error_urban_code = 'Rural/Urban is required';
+            $('#error_urban_code').text(error_urban_code);
+            $('#urban_code').addClass('has-error');
+          }
+          else {
+            error_urban_code = '';
+            $('#error_urban_code').text(error_urban_code);
+            $('#urban_code').removeClass('has-error');
+          }
+
+
+          if ($.trim($('#block').val()).length == 0) {
+            error_block = 'Block/Municipality is required';
+            $('#error_block').text(error_block);
+            $('#block').addClass('has-error');
+          }
+          else {
+            error_block = '';
+            $('#error_block').text(error_block);
+            $('#block').removeClass('has-error');
+          }
+
+
+          if ($.trim($('#gp_ward').val()).length == 0) {
+            error_gp_ward = 'GP/Ward No. is required';
+            $('#error_gp_ward').text(error_gp_ward);
+            $('#gp_ward').addClass('has-error');
+          }
+          else {
+            error_gp_ward = '';
+            $('#error_gp_ward').text(error_gp_ward);
+            $('#gp_ward').removeClass('has-error');
+          }
+
+
+
+
+          if ($.trim($('#village').val()).length == 0) {
+            error_village = 'Village/Town/City is required';
+            $('#error_village').text(error_village);
+            $('#village').addClass('has-error');
+          }
+          else {
+            error_village = '';
+            $('#error_village').text(error_village);
+            $('#village').removeClass('has-error');
+          }
+
+          if ($.trim($('#post_office').val()).length == 0) {
+            error_post_office = 'Post Office is required';
+            $('#error_post_office').text(error_post_office);
+            $('#post_office').addClass('has-error');
+          }
+          else {
+            error_post_office = '';
+            $('#error_post_office').text(error_post_office);
+            $('#post_office').removeClass('has-error');
+          }
+
+          if ($.trim($('#pin_code').val()).length == 0) {
+            error_pin_code = 'Pin Code is required';
+            $('#error_pin_code').text(error_pin_code);
+            $('#pin_code').addClass('has-error');
+          }
+          else {
+
+            if ($.trim($('#pin_code').val()).length != 6) {
+              error_pin_code = 'Pin Code must be 6 digit';
+              $('#error_pin_code').text(error_pin_code);
+              $('#pin_code').addClass('has-error');
+            }
+            else {
+              error_pin_code = '';
+              $('#error_pin_code').text(error_pin_code);
+              $('#pin_code').removeClass('has-error');
+
+            }
+
+          }
+
+
+          if ($.trim($('#police_station').val()).length == 0) {
+            error_police_station = 'Police Station is required';
+            $('#error_police_station').text(error_police_station);
+            $('#police_station').addClass('has-error');
+          }
+          else {
+            error_police_station = '';
+            $('#error_police_station').text(error_police_station);
+            $('#police_station').removeClass('has-error');
+          }
+
+
+          if ($.trim($('#residency_period').val()).length == 0) {
+            error_residency_period = 'Number of years Dwelling in WB is required';
+            $('#error_residency_period').text(error_residency_period);
+            $('#residency_period').addClass('has-error');
+          }
+          else {
+
+            if ($.trim($('#residency_period').val()) > 150) {
+              error_residency_period = 'Number of years is not properly';
+              $('#error_residency_period').text(error_residency_period);
+              $('#residency_period').addClass('has-error');
+            }
+            else {
+              error_residency_period = '';
+              $('#error_residency_period').text(error_residency_period);
+              $('#residency_period').removeClass('has-error');
+            }
+
+
+          }
+
+
+          if ($.trim($('#mobile_no').val()) != '') {
+
+            if (ltrim($.trim($('#mobile_no').val())).length != 10) {
+              error_mobile_no = 'Mobile Number must be 10 digit';
+              $('#error_mobile_no').text(error_mobile_no);
+              $('#mobile_no').addClass('has-error');
+            }
+            else {
+              error_mobile_no = '';
+              $('#error_mobile_no').text(error_mobile_no);
+              $('#mobile_no').removeClass('has-error');
+
+            }
+          }
+
+
+          if ($.trim($('#email').val()).length == 0) {
+            error_email = '';
+            $('#error_email').text(error_email);
+            $('#email').removeClass('has-error');
+          }
+          else {
+
+            if ((/^[a-zA-Z0-9._-]+@([a-zA-Z0-9.-]+\.)+[a-zA-Z.]{2,5}$/).exec($.trim($('#email').val())) == null) {
+              error_email = 'Email Id is invalid';
+              $('#error_email').text(error_email);
+              $('#email').addClass('has-error');
+            }
+            else {
+              error_email = '';
+              $('#error_email').text(error_email);
+              $('#email').removeClass('has-error');
+            }
+
+          }
+
+
+
+
+
+          if (error_district != '' || error_asmb_cons != '' || error_urban_code != '' || error_block != '' || error_gp_ward != '' || error_village != '' || error_post_office != '' || error_pin_code != '' || error_police_station != '' || error_residency_period != '' || error_mobile_no != '' || error_email != '')
+
+          //if(error_asmb_cons != ''  )
+          {
+            return false;
+          }
+          else {
+
+            $('#list_contact_details').removeClass('active active_tab1');
+            $('#list_contact_details').removeAttr('href data-toggle');
+            $('#contact_details').removeClass('active');
+            $('#list_contact_details').addClass('inactive_tab1');
+            $('#list_bank_details').removeClass('inactive_tab1');
+            $('#list_bank_details').addClass('active_tab1 active');
+            $('#list_bank_details').attr('href', '#bank_details');
+            $('#list_bank_details').attr('data-toggle', 'tab');
+            $('#bank_details').addClass('active in');
+
+
+          }
+
+        });
+
+
+
+        $('#previous_btn_bank_details').click(function () {
+          $('#list_bank_details').removeClass('active active_tab1');
+          $('#list_bank_details').removeAttr('href data-toggle');
+          $('#bank_details').removeClass('active in');
+          $('#list_bank_details').addClass('inactive_tab1');
+          $('#list_contact_details').removeClass('inactive_tab1');
+          $('#list_contact_details').addClass('active_tab1 active');
+          $('#list_contact_details').attr('href', '#contact_details');
+          $('#list_contact_details').attr('data-toggle', 'tab');
+          $('#contact_details').addClass('active in');
+        });
+
+        $('#bank_ifsc_code').blur(function () {
+          $ifsc_data = $.trim($('#bank_ifsc_code').val());
+          $ifscRGEX = /^[a-z]{4}0[a-z0-9]{6}$/i;
+          if ($ifscRGEX.test($ifsc_data)) {
+            $('#bank_ifsc_code').removeClass('has-error');
+            $('#error_bank_ifsc_code').text('');
+            $('#error_name_of_bank').html('<img  src="{{ asset('images/ZKZg.gif') }}" width="50px" height="50px"/>');
+            $('#error_bank_branch').html('<img  src="{{ asset('images/ZKZg.gif') }}" width="50px" height="50px"/>');
+
+            $.ajax({
+              type: 'POST',
+              url: '{{ url('legacy/getBankDetails') }}',
+              data: {
+                ifsc: $ifsc_data,
+                _token: '{{ csrf_token() }}',
+              },
+              success: function (data) {
+                if (!data || data.length === 0) {
+                  $('#error_bank_ifsc_code').text('No data found with the IFSC');
+                  $('#bank_ifsc_code').addClass('has-error');
+                  return;
+                }
+                data = JSON.parse(data);
+                // console.log(data);
+                $('#name_of_bank').val(data.bank);
+                $('#bank_branch').val(data.branch);
+                $('#error_name_of_bank').html('');
+                $('#error_bank_branch').html('');
+              },
+              error: function (ex) {
+                $('#error_bank_ifsc_code').text('Data fetch error');
+                $('#bank_ifsc_code').addClass('has-error');
+              }
+            });
+
+          } else {
+            $('#error_bank_ifsc_code').text('IFSC format invalid please check the code');
+            $('#bank_ifsc_code').addClass('has-error');
+          }
+        });
+
+        $('#btn_bank_details').click(function () {
+
+
+          var error_name_of_bank = '';
+          var error_bank_branch = '';
+          var error_bank_account_number = '';
+          var error_bank_ifsc_code = '';
+
+
+
+          if ($.trim($('#name_of_bank').val()).length == 0) {
+            error_name_of_bank = 'Name of Bank is required';
+            $('#error_name_of_bank').text(error_name_of_bank);
+            $('#name_of_bank').addClass('has-error');
+          }
+          else {
+            error_name_of_bank = '';
+            $('#error_name_of_bank').text(error_name_of_bank);
+            $('#name_of_bank').removeClass('has-error');
+          }
+
+          if ($.trim($('#bank_branch').val()).length == 0) {
+            error_bank_branch = 'Bank Branch is required';
+            $('#error_bank_branch').text(error_bank_branch);
+            $('#bank_branch').addClass('has-error');
+          }
+          else {
+            error_bank_branch = '';
+            $('#error_bank_branch').text(error_bank_branch);
+            $('#bank_branch').removeClass('has-error');
+          }
+
+          if ($.trim($('#bank_account_number').val()).length == 0) {
+            error_bank_account_number = 'Bank Account Number is required';
+            $('#error_bank_account_number').text(error_bank_account_number);
+            $('#bank_account_number').addClass('has-error');
+          }
+          else {
+            error_bank_account_number = '';
+            $('#error_bank_account_number').text(error_bank_account_number);
+            $('#bank_account_number').removeClass('has-error');
+          }
+
+          if ($.trim($('#bank_ifsc_code').val()).length == 0) {
+            error_bank_ifsc_code = 'IFS Code is required';
+            $('#error_bank_ifsc_code').text(error_bank_ifsc_code);
+            $('#bank_ifsc_code').addClass('has-error');
+          }
+          else {
+            error_bank_ifsc_code = '';
+            $('#error_bank_ifsc_code').text(error_bank_ifsc_code);
+            $('#bank_ifsc_code').removeClass('has-error');
+          }
+
+          $ifsc_data = $.trim($('#bank_ifsc_code').val());
+          $ifscRGEX = /^[a-z]{4}0[a-z0-9]{6}$/i;
+          if ($ifscRGEX.test($ifsc_data)) {
+            error_bank_ifsc_code = '';
+            $('#error_bank_ifsc_code').text(error_bank_ifsc_code);
+            $('#bank_ifsc_code').removeClass('has-error');
+          }
+          else {
+            error_bank_ifsc_code = 'Please check IFS Code format';
+            $('#error_bank_ifsc_code').text(error_bank_ifsc_code);
+            $('#bank_ifsc_code').addClass('has-error');
+          }
+
+
+          if (error_name_of_bank != '' || error_bank_branch != '' || error_bank_account_number != '' || error_bank_ifsc_code != '')
+          // if(error_name_of_bank !='' )
+          {
+            return false;
+          }
+          else {
+
+            $('#list_bank_details').removeClass('active active_tab1');
+            $('#list_bank_details').removeAttr('href data-toggle');
+            $('#bank_details').removeClass('active');
+            $('#list_bank_details').addClass('inactive_tab1');
+            $('#list_land_details').removeClass('inactive_tab1');
+            $('#list_land_details').addClass('active_tab1 active');
+            $('#list_land_details').attr('href', '#experience_details');
+            $('#list_land_details').attr('data-toggle', 'tab');
+            $('#land_details').addClass('active in');
+          }
+
+        });
+
+        $('#previous_btn_land_details').click(function () {
+          $('#list_land_details').removeClass('active active_tab1');
+          $('#list_land_details').removeAttr('href data-toggle');
+          $('#land_details').removeClass('active in');
+          $('#list_land_details').addClass('inactive_tab1');
+          $('#list_bank_details').removeClass('inactive_tab1');
+          $('#list_bank_details').addClass('active_tab1 active');
+          $('#list_bank_details').attr('href', '#bank_details');
+          $('#list_bank_details').attr('data-toggle', 'tab');
+          $('#bank_details').addClass('active in');
+        });
+
+        $('#btn_land_details').click(function () {
+
+          var error_land_count = '';
+          var error_cultivation_by_applicant = '';
+
+          var rowCount = $('#landList tbody tr').length;
+          // if(rowCount==0)
+          // {
+          //   error_land_count = 'Please add land details';
+          //   $('#error_land_count').text(error_land_count);
+          // }
+          // else
+          // {
+          //   error_land_count = '';
+          //   $('#error_land_count').text(error_land_count);
+          // }
+
+          if ($.trim($('#cultivation_by_applicant').val()).length == 0) {
+            error_cultivation_by_applicant = 'Select Cultivation by Applicant is required';
+            $('#error_cultivation_by_applicant').text(error_cultivation_by_applicant);
+            $('#cultivation_by_applicant').addClass('has-error');
+          }
+          else {
+            error_cultivation_by_applicant = '';
+            $('#error_cultivation_by_applicant').text(error_cultivation_by_applicant);
+            $('#cultivation_by_applicant').removeClass('has-error');
+          }
+
+
+          if (error_land_count != '' || error_cultivation_by_applicant != '')
+          // if(error_name_of_bank !='' )
+          {
+            return false;
+          }
+          else {
+
+            $('#list_land_details').removeClass('active active_tab1');
+            $('#list_land_details').removeAttr('href data-toggle');
+            $('#land_details').removeClass('active');
+            $('#list_land_details').addClass('inactive_tab1');
+            $('#list_fm_details').removeClass('inactive_tab1');
+            $('#list_fm_details').addClass('active_tab1 active');
+            $('#list_fm_details').attr('href', '#experience_details');
+            $('#list_fm_details').attr('data-toggle', 'tab');
+            $('#fm_details').addClass('active in');
+          }
+
+        });
+
+        $('#previous_btn_fm_details').click(function () {
+          $('#list_fm_details').removeClass('active active_tab1');
+          $('#list_fm_details').removeAttr('href data-toggle');
+          $('#fm_details').removeClass('active in');
+          $('#list_fm_details').addClass('inactive_tab1');
+          $('#list_land_details').removeClass('inactive_tab1');
+          $('#list_land_details').addClass('active_tab1 active');
+          $('#list_land_details').attr('href', '#bank_details');
+          $('#list_land_details').attr('data-toggle', 'tab');
+          $('#land_details').addClass('active in');
+        });
+
+        $('#btn_fm_details').click(function () {
+
+          $('#list_fm_details').removeClass('active active_tab1');
+          $('#list_fm_details').removeAttr('href data-toggle');
+          $('#fm_details').removeClass('active');
+          $('#list_fm_details').addClass('inactive_tab1');
+          $('#list_experience_details').removeClass('inactive_tab1');
+          $('#list_experience_details').addClass('active_tab1 active');
+          $('#list_experience_details').attr('href', '#experience_details');
+          $('#list_experience_details').attr('data-toggle', 'tab');
+          $('#experience_details').addClass('active in');
+        });
+
+
+        $('#previous_btn_experience_details').click(function () {
+          $('#list_experience_details').removeClass('active active_tab1');
+          $('#list_experience_details').removeAttr('href data-toggle');
+          $('#experience_details').removeClass('active in');
+          $('#list_experience_details').addClass('inactive_tab1');
+          $('#list_fm_details').removeClass('inactive_tab1');
+          $('#list_fm_details').addClass('active_tab1 active');
+          $('#list_fm_details').attr('href', '#bank_details');
+          $('#list_fm_details').attr('data-toggle', 'tab');
+          $('#fm_details').addClass('active in');
+        });
+
+
+
+        $('#btn_experience_details').click(function () {
+
+          var error_passport_image = "";
+          var error_signature_image = "";
+          var error_cast_certificate_file = "";
+          var error_disability_certificate_file = "";
+          var error_digital_ration_card_file = "";
+
+          var error_aadhar_card_file = "";
+          var error_voter_id_file = "";
+          var error_residential_certificate_file = "";
+          var error_income_certificate_file = "";
+          var error_bank_passbook_file = "";
+          var error_other_file = "";
+
+          var file_size = 2097152;
+
+          var image_mime = ["image/jpg", "image/jpeg", "image/png", "image/gif"];
+          var image_pdf_mime = ["image/jpg", "image/jpeg", "image/png", "image/gif", "application/pdf"];
+
+
+
+          $('#list_experience_details').removeClass('active active_tab1');
+          $('#list_experience_details').removeAttr('href data-toggle');
+          $('#experience_details').removeClass('active');
+          $('#list_experience_details').addClass('inactive_tab1');
+
+
+          $('#list_decl_details').removeClass('inactive_tab1');
+          $('#list_decl_details').addClass('active_tab1 active');
+          $('#list_decl_details').attr('href', '#decl_details');
+          $('#list_decl_details').attr('data-toggle', 'tab');
+          $('#decl_details').addClass('active in');
+          //}
+
+        });
+
+
+
+        $('#previous_btn_decl_details').click(function () {
+
+          $('#list_decl_details').removeClass('active active_tab1');
+          $('#list_decl_details').removeAttr('href data-toggle');
+          $('#decl_details').removeClass('active in');
+          $('#list_decl_details').addClass('inactive_tab1');
+
+
+          $('#list_experience_details').removeClass('inactive_tab1');
+          $('#list_experience_details').addClass('active_tab1 active');
+          $('#list_experience_details').attr('href', '#experience_details');
+          $('#list_experience_details').attr('data-toggle', 'tab');
+          $('#experience_details').addClass('active in');
+        });
+
+
+
+        /***************************SD*********************************/
+        $('#btn_submit_preview').click(function () {
+
+          $(".modal-submit").show();
+          $("#submitting").hide();
+          $("#submit_loader").hide();
+
+          $("#confirm-submit").modal("show");
+
+
+
+        });
+
+        $('#btn_submit_preview').click(function () {
+
+          $('#entry_type_modal').text($('#entry_type').val());
+
+          if ($('#entry_type').val() == 'Form through Duare Sarkar camp') {
+
+            $('#duare_sarkar_reg_no_modal').text($('#duare_sarkar_reg_no').val());
+            $('#duare_sarkar_date_modal').text($('#hidden_duare_sarkar_date_format').val());
+            $('.duare_sarkar_modal').show();
+          }
+          else {
+            $('.duare_sarkar_modal').hide();
+          }
+
+          $('#name_modal').text($('#first_name').val() + ' ' + $('#middle_name').val() + ' ' + $('#last_name').val());
+          $('#gender_modal').text($('#gender').val());
+          $('#dob_modal').text($('#hidden_dob_format').val());
+          $('#father_name_modal').text($('#father_first_name').val() + ' ' + $('#father_middle_name').val() + ' ' + $('#father_last_name').val());
+          $('#mother_name_modal').text($('#mother_first_name').val() + ' ' + $('#mother_middle_name').val() + ' ' + $('#mother_last_name').val());
+
+
+          $('#caste_category_modal').text($('#caste_category').val());
+          $('#marital_status_modal').text($('#marital_status').val());
+          $('#fisherman_comm_modal').text($('#fisherman_comm').val());
+          $('#spouse_name_modal').text($('#spouse_first_name').val() + ' ' + $('#spouse_middle_name').val() + ' ' + $('#spouse_last_name').val());
+          $('#bpl_seq_no_modal').text($('#bpl_seq_no').val());
+          $('#bpl_id_no_modal').text($('#bpl_id_no').val());
+          $('#bpl_total_score_modal').text($('#bpl_total_score').val());
+          $('#monthly_income_modal').text($('#monthly_income').val());
+
+          $('#ration_card_no_modal').text($('#ration_card_cat').val() + '-' + $('#ration_card_no').val());
+
+          //$('#ration_card_cat_modal').text($('#ration_card_cat').val());
+          //$('#ration_card_no_modal').text($('#ration_card_no').val());
+          $('#ahl_tin_modal').text($('#ahl_tin').val());
+          $('#aadhar_no_modal').text($('#aadhar_no').val());
+          $('#epic_voter_id_modal').text($('#epic_voter_id').val());
+          $('#pan_no_modal').text($('#pan_no').val());
+
+
+          $('#state_modal').text($('#state').val());
+          $('#asmb_cons_modal').text($('#asmb_cons :selected').text());
+          $('#district_modal').text($("#district :selected").text());
+          $('#police_station_modal').text($('#police_station').val());
+          $('#block_modal').text($("#block :selected").text());
+          $('#gp_ward_modal').text($("#gp_ward :selected").text());
+          $('#village_modal').text($('#village').val());
+          $('#house_modal').text($('#house').val());
+          $('#post_office_modal').text($('#post_office').val());
+          $('#pin_code_modal').text($('#pin_code').val());
+          $('#mobile_no_modal').text($('#mobile_no').val());
+          $('#email_modal').text($('#email').val());
+          $('#bank_account_number_modal').text($('#bank_account_number').val());
+          $('#name_of_bank_modal').text($('#name_of_bank').val());
+          $('#bank_branch_modal').text($('#bank_branch').val());
+          $('#bank_ifsc_code_modal').text($('#bank_ifsc_code').val());
+
+          $('#cultivation_by_applicant_modal').text($('#cultivation_by_applicant').val());
+          $('#source_income_modal').text($('#source_income').val());
+          $('#any_other_benefitis_modal').text($('#any_other_benefitis').val());
+
+
+          $('#nominate_name_modal').text($('#nominate_name').val());
+          $('#nominate_address_modal').text($('#nominate_address').val());
+          $('#nominate_relationship_modal').text($('#nominate_relationship').val());
+
+
+          $('#av_status_modal').text($("#av_status option:selected").text());
+          $('#text_1_modal').text($('#text_1').val());
+          $('#text_2_modal').text($('#text_2').val());
+          $('#receiving_pension_other_source_1_txt').text($('#receiving_pension_other_source_1').val());
+          $('#receiving_pension_other_source_2_txt').text($('#receiving_pension_other_source_2').val());
+          $('#residency_period_modal').text($('#residency_period').val());
+
+          $("#landListModal tbody").html('');
+          var tr = $("#landList").find("TR:has(td:not(:last-child))").clone();
+          $("#landListModal tbody").append(tr);
+          $("#landListModal tbody tr td.del-lnd").hide();
+
+          $("#memberListModal tbody").html('');
+          var tr = $("#memberList").find("TR:has(td:not(:last-child))").clone();
+          $("#memberListModal tbody").append(tr);
+          $("#memberListModal tbody tr td.del-mem").hide();
+
+
+
+
+
+
+
+
+          // $('.modal-submit').click(function(){
+          // $(".modal-submit").attr("disabled", true);
+
+
+          // });
+
+
+        });
+
+        $('.modal-submit').on('click', function () {
+
+          var table2 = document.getElementById('landListModal');
+          var jsonArr2 = [];
+          for (var i = 0, row; row = table2.rows[i]; i++) {
+            if (i == 0)
+              continue;
+            var col2 = row.cells;
+            var jsonObj2 = {
+              slno: col2[0].innerHTML,
+              block_name: col2[1].innerHTML,
+              mouza: col2[2].innerHTML,
+              jl_no: col2[3].innerHTML,
+              khatian_no: col2[4].innerHTML,
+              daag_no: col2[5].innerHTML,
+              quantity: col2[6].innerHTML
+            }
+
+            jsonArr2.push(jsonObj2);
+          }
+
+          $('#f_land_array').val(JSON.stringify(jsonArr2));
+
+          var table = document.getElementById('memberListModal');
+          var jsonArr = [];
+          for (var i = 0, row; row = table.rows[i]; i++) {
+            if (i == 0)
+              continue;
+            var col = row.cells;
+            var jsonObj = {
+              slno: col[0].innerHTML,
+              f_member_name: col[1].innerHTML,
+              f_member_address: col[2].innerHTML,
+              f_member_age: col[3].innerHTML,
+              f_member_profession: col[4].innerHTML,
+              f_member_monthly_income: col[5].innerHTML,
+              f_member_relationship: col[6].innerHTML,
+              f_member_dependent_by_applicant: col[6].innerHTML
+
+            }
+
+            jsonArr.push(jsonObj);
+          }
+          ;
+          $('#f_member_array').val(JSON.stringify(jsonArr));
+
+
+          console.log(JSON.stringify(jsonArr))
+          $(".modal-submit").hide();
+          $("#submitting").show();
+          $("#submit_loader").show();
+          //$("#register_form").submit();
+          //return false;
+        });
+
+
+
+        /***************************************************************/
       });
 
-    }else{
-      $('#error_bank_ifsc_code').text('IFSC format invalid please check the code');
-      $('#bank_ifsc_code').addClass('has-error');
-    }
- });
-
- $('#btn_bank_details').click(function(){   
-  
-  
-  var error_name_of_bank =''; 
-  var error_bank_branch =''; 
-  var error_bank_account_number =''; 
-  var error_bank_ifsc_code =''; 
-
- 
-
-  if($.trim($('#name_of_bank').val()).length == 0)
-  {
-   error_name_of_bank = 'Name of Bank is required';
-   $('#error_name_of_bank').text(error_name_of_bank);
-   $('#name_of_bank').addClass('has-error');
-  }
-  else
-  {
-   error_name_of_bank = '';
-   $('#error_name_of_bank').text(error_name_of_bank);
-   $('#name_of_bank').removeClass('has-error');
-  }
-
-   if($.trim($('#bank_branch').val()).length == 0)
-  {
-   error_bank_branch = 'Bank Branch is required';
-   $('#error_bank_branch').text(error_bank_branch);
-   $('#bank_branch').addClass('has-error');
-  }
-  else
-  {
-   error_bank_branch = '';
-   $('#error_bank_branch').text(error_bank_branch);
-   $('#bank_branch').removeClass('has-error');
-  }
-
-   if($.trim($('#bank_account_number').val()).length == 0)
-  {
-   error_bank_account_number = 'Bank Account Number is required';
-   $('#error_bank_account_number').text(error_bank_account_number);
-   $('#bank_account_number').addClass('has-error');
-  }
-  else
-  {
-   error_bank_account_number = '';
-   $('#error_bank_account_number').text(error_bank_account_number);
-   $('#bank_account_number').removeClass('has-error');
-  }
-
-  if($.trim($('#bank_ifsc_code').val()).length == 0)
-  {
-   error_bank_ifsc_code = 'IFS Code is required';
-   $('#error_bank_ifsc_code').text(error_bank_ifsc_code);
-   $('#bank_ifsc_code').addClass('has-error');
-  }
-  else
-  {
-   error_bank_ifsc_code = '';
-   $('#error_bank_ifsc_code').text(error_bank_ifsc_code);
-   $('#bank_ifsc_code').removeClass('has-error');
-  }
-
-  $ifsc_data = $.trim($('#bank_ifsc_code').val());
-  $ifscRGEX = /^[a-z]{4}0[a-z0-9]{6}$/i;
-  if($ifscRGEX.test($ifsc_data))
-  {
-    error_bank_ifsc_code = '';
-    $('#error_bank_ifsc_code').text(error_bank_ifsc_code);
-    $('#bank_ifsc_code').removeClass('has-error');
-  }
-  else{
-    error_bank_ifsc_code = 'Please check IFS Code format';
-    $('#error_bank_ifsc_code').text(error_bank_ifsc_code);
-    $('#bank_ifsc_code').addClass('has-error');    
-  }
-
-  
-   if(error_name_of_bank !='' || error_bank_branch !=''||  error_bank_account_number !='' || error_bank_ifsc_code !='')
-    // if(error_name_of_bank !='' )
-  {
-   return false;
-  }
-  else
-  {
-    
-    $('#list_bank_details').removeClass('active active_tab1');
-    $('#list_bank_details').removeAttr('href data-toggle');
-    $('#bank_details').removeClass('active');
-    $('#list_bank_details').addClass('inactive_tab1');
-    $('#list_land_details').removeClass('inactive_tab1');
-    $('#list_land_details').addClass('active_tab1 active');
-    $('#list_land_details').attr('href', '#experience_details');
-    $('#list_land_details').attr('data-toggle', 'tab');
-    $('#land_details').addClass('active in');
-  }
-
- });
-
- $('#previous_btn_land_details').click(function(){
-  $('#list_land_details').removeClass('active active_tab1');
-  $('#list_land_details').removeAttr('href data-toggle');
-  $('#land_details').removeClass('active in');
-  $('#list_land_details').addClass('inactive_tab1');
-  $('#list_bank_details').removeClass('inactive_tab1');
-  $('#list_bank_details').addClass('active_tab1 active');
-  $('#list_bank_details').attr('href', '#bank_details');
-  $('#list_bank_details').attr('data-toggle', 'tab');
-  $('#bank_details').addClass('active in');
-  });
-
- $('#btn_land_details').click(function(){ 
-  
-  var error_land_count ='';
-  var error_cultivation_by_applicant ='';
-
-  var rowCount = $('#landList tbody tr').length;
-  // if(rowCount==0)
-  // {
-  //   error_land_count = 'Please add land details';
-  //   $('#error_land_count').text(error_land_count);
-  // }
-  // else
-  // {
-  //   error_land_count = '';
-  //   $('#error_land_count').text(error_land_count);
-  // }
-
-  if($.trim($('#cultivation_by_applicant').val()).length == 0)
-  {
-   error_cultivation_by_applicant = 'Select Cultivation by Applicant is required';
-   $('#error_cultivation_by_applicant').text(error_cultivation_by_applicant);
-   $('#cultivation_by_applicant').addClass('has-error');
-  }
-  else
-  {
-   error_cultivation_by_applicant = '';
-   $('#error_cultivation_by_applicant').text(error_cultivation_by_applicant);
-   $('#cultivation_by_applicant').removeClass('has-error');
-  }  
-
-  
-  if(error_land_count !='' || error_cultivation_by_applicant !='' )
-    // if(error_name_of_bank !='' )
-  {
-   return false;
-  }
-  else
-  {
-    
-   $('#list_land_details').removeClass('active active_tab1');
-    $('#list_land_details').removeAttr('href data-toggle');
-    $('#land_details').removeClass('active');
-    $('#list_land_details').addClass('inactive_tab1');
-    $('#list_fm_details').removeClass('inactive_tab1');
-    $('#list_fm_details').addClass('active_tab1 active');
-    $('#list_fm_details').attr('href', '#experience_details');
-    $('#list_fm_details').attr('data-toggle', 'tab');
-    $('#fm_details').addClass('active in');
-  }
-
- });
-
- $('#previous_btn_fm_details').click(function(){
-  $('#list_fm_details').removeClass('active active_tab1');
-  $('#list_fm_details').removeAttr('href data-toggle');
-  $('#fm_details').removeClass('active in');
-  $('#list_fm_details').addClass('inactive_tab1');
-  $('#list_land_details').removeClass('inactive_tab1');
-  $('#list_land_details').addClass('active_tab1 active');
-  $('#list_land_details').attr('href', '#bank_details');
-  $('#list_land_details').attr('data-toggle', 'tab');
-  $('#land_details').addClass('active in');
- });
-
- $('#btn_fm_details').click(function(){ 
-
-    $('#list_fm_details').removeClass('active active_tab1');
-    $('#list_fm_details').removeAttr('href data-toggle');
-    $('#fm_details').removeClass('active');
-    $('#list_fm_details').addClass('inactive_tab1');
-    $('#list_experience_details').removeClass('inactive_tab1');
-    $('#list_experience_details').addClass('active_tab1 active');
-    $('#list_experience_details').attr('href', '#experience_details');
-    $('#list_experience_details').attr('data-toggle', 'tab');
-    $('#experience_details').addClass('active in');
-});
-
- 
-$('#previous_btn_experience_details').click(function(){
-  $('#list_experience_details').removeClass('active active_tab1');
-  $('#list_experience_details').removeAttr('href data-toggle');
-  $('#experience_details').removeClass('active in');
-  $('#list_experience_details').addClass('inactive_tab1');
-  $('#list_fm_details').removeClass('inactive_tab1');
-  $('#list_fm_details').addClass('active_tab1 active');
-  $('#list_fm_details').attr('href', '#bank_details');
-  $('#list_fm_details').attr('data-toggle', 'tab');
-  $('#fm_details').addClass('active in');
- });
- 
-
-
-  $('#btn_experience_details').click(function(){
-
-  var error_passport_image="";
-  var error_signature_image="";
-  var error_cast_certificate_file="";
-  var error_disability_certificate_file="";
-  var error_digital_ration_card_file="";
-
-  var error_aadhar_card_file="";
-  var error_voter_id_file="";
-  var error_residential_certificate_file="";
-  var error_income_certificate_file="";
-  var error_bank_passbook_file="";
-  var error_other_file="";
-
-  var file_size = 2097152;
-  
-  var image_mime = ["image/jpg" , "image/jpeg", "image/png", "image/gif"];
-  var image_pdf_mime = ["image/jpg" , "image/jpeg", "image/png", "image/gif", "application/pdf"];
-
-  
-    
-    $('#list_experience_details').removeClass('active active_tab1');
-    $('#list_experience_details').removeAttr('href data-toggle');
-    $('#experience_details').removeClass('active');
-    $('#list_experience_details').addClass('inactive_tab1');
-
-
-    $('#list_decl_details').removeClass('inactive_tab1');
-    $('#list_decl_details').addClass('active_tab1 active');
-    $('#list_decl_details').attr('href', '#decl_details');
-    $('#list_decl_details').attr('data-toggle', 'tab');
-    $('#decl_details').addClass('active in');
-  //}
-
- });
-
- 
-
-  $('#previous_btn_decl_details').click(function(){
-
-  $('#list_decl_details').removeClass('active active_tab1');
-  $('#list_decl_details').removeAttr('href data-toggle');
-  $('#decl_details').removeClass('active in');
-  $('#list_decl_details').addClass('inactive_tab1');
-
-
-  $('#list_experience_details').removeClass('inactive_tab1');
-  $('#list_experience_details').addClass('active_tab1 active');
-  $('#list_experience_details').attr('href', '#experience_details');
-  $('#list_experience_details').attr('data-toggle', 'tab');
-  $('#experience_details').addClass('active in');
- });
-
- 
-
-/***************************SD*********************************/
-$('#btn_submit_preview').click(function(){
-  
-  $(".modal-submit").show();
-  $("#submitting").hide();
-  $("#submit_loader").hide();
-
-  $("#confirm-submit").modal("show");
-
-
-
-});
-
-$('#btn_submit_preview').click(function() { 
-
-    $('#entry_type_modal').text($('#entry_type').val());
-
-    if($('#entry_type').val()=='Form through Duare Sarkar camp')
-    {
-
-    $('#duare_sarkar_reg_no_modal').text($('#duare_sarkar_reg_no').val());
-    $('#duare_sarkar_date_modal').text($('#hidden_duare_sarkar_date_format').val());
-    $('.duare_sarkar_modal').show();
-    }
-    else
-    {
-      $('.duare_sarkar_modal').hide();
-    }
-    
-    $('#name_modal').text($('#first_name').val()+' '+$('#middle_name').val()+' '+$('#last_name').val());
-    $('#gender_modal').text($('#gender').val());
-    $('#dob_modal').text($('#hidden_dob_format').val());
-    $('#father_name_modal').text($('#father_first_name').val()+' '+$('#father_middle_name').val()+' '+$('#father_last_name').val());
-    $('#mother_name_modal').text($('#mother_first_name').val()+' '+$('#mother_middle_name').val()+' '+$('#mother_last_name').val());
-
-
-    $('#caste_category_modal').text($('#caste_category').val());
-    $('#marital_status_modal').text($('#marital_status').val());
-    $('#fisherman_comm_modal').text($('#fisherman_comm').val());
-    $('#spouse_name_modal').text($('#spouse_first_name').val()+' '+$('#spouse_middle_name').val()+' '+$('#spouse_last_name').val());
-    $('#bpl_seq_no_modal').text($('#bpl_seq_no').val());
-    $('#bpl_id_no_modal').text($('#bpl_id_no').val());
-    $('#bpl_total_score_modal').text($('#bpl_total_score').val());
-    $('#monthly_income_modal').text($('#monthly_income').val());
-
-    $('#ration_card_no_modal').text($('#ration_card_cat').val()+'-'+$('#ration_card_no').val());
-
-    //$('#ration_card_cat_modal').text($('#ration_card_cat').val());
-    //$('#ration_card_no_modal').text($('#ration_card_no').val());
-    $('#ahl_tin_modal').text($('#ahl_tin').val());
-    $('#aadhar_no_modal').text($('#aadhar_no').val());
-    $('#epic_voter_id_modal').text($('#epic_voter_id').val());
-    $('#pan_no_modal').text($('#pan_no').val());
-
-
-    $('#state_modal').text($('#state').val());
-     $('#asmb_cons_modal').text($('#asmb_cons :selected').text());
-    $('#district_modal').text($("#district :selected").text());
-    $('#police_station_modal').text($('#police_station').val());
-    $('#block_modal').text($("#block :selected").text());
-    $('#gp_ward_modal').text($("#gp_ward :selected").text());
-    $('#village_modal').text($('#village').val());
-    $('#house_modal').text($('#house').val());
-    $('#post_office_modal').text($('#post_office').val());
-    $('#pin_code_modal').text($('#pin_code').val());
-    $('#mobile_no_modal').text($('#mobile_no').val());
-    $('#email_modal').text($('#email').val());
-    $('#bank_account_number_modal').text($('#bank_account_number').val());
-    $('#name_of_bank_modal').text($('#name_of_bank').val());
-    $('#bank_branch_modal').text($('#bank_branch').val());
-    $('#bank_ifsc_code_modal').text($('#bank_ifsc_code').val());
-
-    $('#cultivation_by_applicant_modal').text($('#cultivation_by_applicant').val());
-    $('#source_income_modal').text($('#source_income').val());
-    $('#any_other_benefitis_modal').text($('#any_other_benefitis').val());
-
-
-    $('#nominate_name_modal').text($('#nominate_name').val());
-    $('#nominate_address_modal').text($('#nominate_address').val());
-    $('#nominate_relationship_modal').text($('#nominate_relationship').val());
-
-
-    $('#av_status_modal').text($("#av_status option:selected" ).text());   
-    $('#text_1_modal').text($('#text_1').val());
-    $('#text_2_modal').text($('#text_2').val());
-    $('#receiving_pension_other_source_1_txt').text($('#receiving_pension_other_source_1').val());
-    $('#receiving_pension_other_source_2_txt').text($('#receiving_pension_other_source_2').val());
-    $('#residency_period_modal').text($('#residency_period').val());
-
-    $("#landListModal tbody").html('');
-    var tr = $("#landList").find("TR:has(td:not(:last-child))").clone();
-    $("#landListModal tbody").append(tr);
-    $("#landListModal tbody tr td.del-lnd").hide();
-
-    $("#memberListModal tbody").html('');
-    var tr = $("#memberList").find("TR:has(td:not(:last-child))").clone();
-    $("#memberListModal tbody").append(tr);
-    $("#memberListModal tbody tr td.del-mem").hide();
-
-    
-
-
-
-
-
-
-// $('.modal-submit').click(function(){
-// $(".modal-submit").attr("disabled", true);
-
-
-// });
-
-    
-});
-
- $('.modal-submit').on('click',function(){
-
-    var table2 = document.getElementById('landListModal');
-    var jsonArr2 = [];
-    for(var i =0,row;row = table2.rows[i];i++){
-      if(i==0)
-      continue;
-         var col2 = row.cells;
-         var jsonObj2 = {
-              slno        : col2[0].innerHTML,
-              block_name  : col2[1].innerHTML,
-              mouza       : col2[2].innerHTML,
-              jl_no       : col2[3].innerHTML,
-              khatian_no  : col2[4].innerHTML,
-              daag_no     : col2[5].innerHTML,
-              quantity    : col2[6].innerHTML
-           }
-
-        jsonArr2.push(jsonObj2);
-    }
-    
-    $('#f_land_array').val(JSON.stringify(jsonArr2));
-
-    var table = document.getElementById('memberListModal');
-    var jsonArr = [];
-    for(var i =0,row;row = table.rows[i];i++){
-      if(i==0)
-      continue;
-         var col = row.cells;
-         var jsonObj = {
-              slno                    : col[0].innerHTML,
-              f_member_name           : col[1].innerHTML,
-              f_member_address        : col[2].innerHTML,
-              f_member_age            : col[3].innerHTML,
-              f_member_profession     : col[4].innerHTML,
-              f_member_monthly_income : col[5].innerHTML,
-              f_member_relationship   : col[6].innerHTML,
-              f_member_dependent_by_applicant: col[6].innerHTML
-              
-           }
-
-        jsonArr.push(jsonObj);
-    }
-    ;
-    $('#f_member_array').val(JSON.stringify(jsonArr));
-
-
-    console.log(JSON.stringify(jsonArr))
-    $(".modal-submit").hide();
-    $("#submitting").show();
-    $("#submit_loader").show();
-    //$("#register_form").submit();
-    //return false;
-    });
-
-
-
-/***************************************************************/
-});
-
-
-   $('#btn_addLand').click(function(){ 
-     
-      var error_block_name = '';  
-      var error_mouza = '';  
-      var error_jl_no = '';
-      var error_khatian_no = '';
-      var error_daag_no = '';
-      var error_quantity = '';
-
-      if($.trim($('#block_name').val()).length == 0)
-      {
-       error_block_name = 'Block Name is required';
-       $('#error_block_name').text(error_block_name);
-       $('#block_name').addClass('has-error');
-      }
-      else
-      {
-       error_block_name = '';
-       $('#error_block_name').text(error_block_name);
-       $('#block_name').removeClass('has-error');
+
+      $('#btn_addLand').click(function () {
+
+        var error_block_name = '';
+        var error_mouza = '';
+        var error_jl_no = '';
+        var error_khatian_no = '';
+        var error_daag_no = '';
+        var error_quantity = '';
+
+        if ($.trim($('#block_name').val()).length == 0) {
+          error_block_name = 'Block Name is required';
+          $('#error_block_name').text(error_block_name);
+          $('#block_name').addClass('has-error');
+        }
+        else {
+          error_block_name = '';
+          $('#error_block_name').text(error_block_name);
+          $('#block_name').removeClass('has-error');
+        }
+
+        if ($.trim($('#mouza').val()).length == 0) {
+          error_mouza = 'Mouza is required';
+          $('#error_mouza').text(error_mouza);
+          $('#mouza').addClass('has-error');
+        }
+        else {
+          error_mouza = '';
+          $('#error_mouza').text(error_mouza);
+          $('#mouza').removeClass('has-error');
+        }
+
+        if ($.trim($('#jl_no').val()).length == 0) {
+          error_jl_no = 'JL No. is required';
+          $('#error_jl_no').text(error_jl_no);
+          $('#jl_no').addClass('has-error');
+        }
+        else {
+          error_jl_no = '';
+          $('#error_jl_no').text(error_jl_no);
+          $('#jl_no').removeClass('has-error');
+        }
+
+        if ($.trim($('#khatian_no').val()).length == 0) {
+          error_khatian_no = 'Khatian No. is required';
+          $('#error_khatian_no').text(error_khatian_no);
+          $('#khatian_no').addClass('has-error');
+        }
+        else {
+          error_khatian_no = '';
+          $('#error_khatian_no').text(error_khatian_no);
+          $('#khatian_no').removeClass('has-error');
+        }
+
+        if ($.trim($('#daag_no').val()).length == 0) {
+          error_daag_no = 'Daag No. is required';
+          $('#error_daag_no').text(error_daag_no);
+          $('#daag_no').addClass('has-error');
+        }
+        else {
+          error_daag_no = '';
+          $('#error_daag_no').text(error_daag_no);
+          $('#daag_no').removeClass('has-error');
+        }
+
+        if ($.trim($('#quantity').val()).length == 0) {
+          error_quantity = 'Quantity is required';
+          $('#error_quantity').text(error_quantity);
+          $('#quantity').addClass('has-error');
+        }
+        else {
+          error_quantity = '';
+          $('#error_quantity').text(error_quantity);
+          $('#quantity').removeClass('has-error');
+        }
+
+
+        ///var valid=1 ;
+        if (error_block_name != '' || error_mouza != '' || error_jl_no != '' || error_khatian_no != '' || error_daag_no != '' || error_quantity != '') {
+          // alert('ok');
+          return false;
+        }
+        else {
+          var block_name = $("#block_name").val();
+          var mouza = $("#mouza").val();
+          var jl_no = $("#jl_no").val();
+          var khatian_no = $("#khatian_no").val();
+          var daag_no = $("#daag_no").val();
+          var quantity = $("#quantity").val();
+
+
+
+          var rowCount = $('#landList tbody tr').length;
+          if (rowCount == 0)
+            var i = 1;
+          else
+            var i = rowCount + 1;
+          var markup = "<tr id='id_" + i + "'><td>" + i + "</td><td>" + block_name + "</td><td>" + mouza + "</td><td>" + jl_no + "</td><td>" + khatian_no + "</td><td>" + daag_no + "</td><td>" + quantity + "</td><td class='del-lnd'><a class='btn btn-danger' href='javascript:viod(0)' onclick='delete_land(" + i + ")'>Delete</a></td></tr>";
+          var tableBody = $("#landList tbody");
+          var rowCount = $('#landList tbody tr').length;
+          // alert(rowCount);
+          tableBody.append(markup);
+          $("#block_name").val('');
+          $("#mouza").val('');
+          $("#jl_no").val('');
+          $("#khatian_no").val('');
+          $("#daag_no").val('');
+          $("#quantity").val('');
+          $("#addLandModal").modal('hide');
+        }
+      })
+
+      $('#btn_addMember').click(function () {
+        //alert()
+        var error_f_member_name = '';
+        var error_f_member_address = '';
+        var error_f_member_age = '';
+
+        if ($.trim($('#f_member_name').val()).length == 0) {
+          error_f_member_name = 'Name is required';
+          $('#error_f_member_name').text(error_f_member_name);
+          $('#f_member_name').addClass('has-error');
+        }
+        else {
+          error_f_member_name = '';
+          $('#error_f_member_name').text(error_f_member_name);
+          $('#f_member_name').removeClass('has-error');
+        }
+
+        if ($.trim($('#f_member_address').val()).length == 0) {
+          error_f_member_address = 'Address is required';
+          $('#error_f_member_address').text(error_f_member_address);
+          $('#f_member_address').addClass('has-error');
+        }
+        else {
+          error_f_member_address = '';
+          $('#error_f_member_address').text(error_f_member_address);
+          $('#f_member_address').removeClass('has-error');
+        }
+
+        if ($.trim($('#f_member_age').val()).length == 0) {
+          error_f_member_age = 'Age is required';
+          $('#error_f_member_age').text(error_f_member_age);
+          $('#f_member_age').addClass('has-error');
+        }
+        else {
+          error_f_member_age = '';
+          $('#error_f_member_age').text(error_f_member_age);
+          $('#f_member_age').removeClass('has-error');
+        }
+
+
+        ///var valid=1 ;
+        if (error_f_member_name != '' || error_f_member_address != '' || error_f_member_age != '') {
+          // alert('ok');
+          return false;
+        }
+        else {
+          var f_member_name = $("#f_member_name").val();
+          var f_member_address = $("#f_member_address").val();
+          var f_member_age = $("#f_member_age").val();
+          var f_member_profession = $("#f_member_profession").val();
+          var f_member_monthly_income = $("#f_member_monthly_income").val();
+          var f_member_relationship = $("#f_member_relationship").val();
+          var f_member_dependent_by_applicant = $("#f_member_dependent_by_applicant option:selected").text();
+
+          $("#hidden_land_count").val(1);
+
+
+          var rowCount = $('#memberList tbody tr').length;
+          if (rowCount == 0)
+            var i = 1;
+          else
+            var i = rowCount + 1;
+          var markup = "<tr id='id_" + i + "'><td>" + i + "</td><td>" + f_member_name + "</td><td>" + f_member_address + "</td><td>" + f_member_age + "</td><td>" + f_member_profession + "</td><td>" + f_member_monthly_income + "</td><td>" + f_member_relationship + "</td><td>" + f_member_dependent_by_applicant + "</td><td class='del-mem'><a class='btn btn-danger' href='javascript:viod(0)' onclick='delete_member(" + i + ")'>Delete</a></td></tr>";
+          var tableBody = $("#memberList tbody");
+          var rowCount = $('#memberList tbody tr').length;
+          // alert(rowCount);
+          tableBody.append(markup);
+          $("#f_member_name").val('');
+          $("#f_member_address").val('');
+          $("#f_member_age").val('');
+          $("#f_member_profession").val('');
+          $("#f_member_monthly_income").val('');
+          $("#f_member_relationship").val('');
+          $("#f_member_dependent_by_applicant").val('Yes');
+          $("#addMemberModal").modal('hide');
+        }
+      })
+
+      function delete_land(sl_no) {
+        //$("#memberList").find("tr:gt(0)").remove();
+        var confirm_y_n = confirm('Are you sure?');
+        if (confirm_y_n) {
+          var row = $('#landList tr#id_' + sl_no);
+          var siblings = row.siblings();
+          $('#landList tr#id_' + sl_no).remove();
+          siblings.each(function (index) {                     // *
+            $(this).children('td').first().text(index + 1); // *
+          });
+
+        }
       }
 
-      if($.trim($('#mouza').val()).length == 0)
-      {
-       error_mouza = 'Mouza is required';
-       $('#error_mouza').text(error_mouza);
-       $('#mouza').addClass('has-error');
-      }
-      else
-      {
-       error_mouza = '';
-       $('#error_mouza').text(error_mouza);
-       $('#mouza').removeClass('has-error');
-      }
-      
-      if($.trim($('#jl_no').val()).length == 0)
-      {
-       error_jl_no = 'JL No. is required';
-       $('#error_jl_no').text(error_jl_no);
-       $('#jl_no').addClass('has-error');
-      }
-      else
-      {
-       error_jl_no = '';
-       $('#error_jl_no').text(error_jl_no);
-       $('#jl_no').removeClass('has-error');
-      }
+      function delete_member(sl_no) {
+        //$("#memberList").find("tr:gt(0)").remove();
+        var confirm_y_n = confirm('Are you sure?');
+        if (confirm_y_n) {
+          var row = $('#memberList tr#id_' + sl_no);
+          var siblings = row.siblings();
+          $('#memberList tr#id_' + sl_no).remove();
+          siblings.each(function (index) {                     // *
+            $(this).children('td').first().text(index + 1); // *
+          });
 
-      if($.trim($('#khatian_no').val()).length == 0)
-      {
-       error_khatian_no = 'Khatian No. is required';
-       $('#error_khatian_no').text(error_khatian_no);
-       $('#khatian_no').addClass('has-error');
+        }
       }
-      else
-      {
-       error_khatian_no = '';
-       $('#error_khatian_no').text(error_khatian_no);
-       $('#khatian_no').removeClass('has-error');
-      }
-
-      if($.trim($('#daag_no').val()).length == 0)
-      {
-       error_daag_no = 'Daag No. is required';
-       $('#error_daag_no').text(error_daag_no);
-       $('#daag_no').addClass('has-error');
-      }
-      else
-      {
-       error_daag_no = '';
-       $('#error_daag_no').text(error_daag_no);
-       $('#daag_no').removeClass('has-error');
-      }
-
-      if($.trim($('#quantity').val()).length == 0)
-      {
-       error_quantity = 'Quantity is required';
-       $('#error_quantity').text(error_quantity);
-       $('#quantity').addClass('has-error');
-      }
-      else
-      {
-       error_quantity = '';
-       $('#error_quantity').text(error_quantity);
-       $('#quantity').removeClass('has-error');
-      }      
-      
-       
-      ///var valid=1 ;
-     if( error_block_name != '' || error_mouza != '' || error_jl_no != '' || error_khatian_no != '' || error_daag_no != '' || error_quantity != '' )
-      {
-       // alert('ok');
-       return false;
-      }
-      else
-      {   
-        var block_name       =  $("#block_name").val();
-        var mouza            =  $("#mouza").val();
-        var jl_no            =  $("#jl_no").val();
-        var khatian_no       =  $("#khatian_no").val();
-        var daag_no          =  $("#daag_no").val();    
-        var quantity         =  $("#quantity").val();
-       
-       
-        
-        var rowCount = $('#landList tbody tr').length;
-        if(rowCount==0)
-        var i=1;
-        else
-        var i=rowCount+1;
-        var markup = "<tr id='id_"+ i + "'><td>"+ i + "</td><td>"+ block_name + "</td><td>"+ mouza + "</td><td>"+ jl_no + "</td><td>"+ khatian_no + "</td><td>"+ daag_no + "</td><td>"+ quantity + "</td><td class='del-lnd'><a class='btn btn-danger' href='javascript:viod(0)' onclick='delete_land("+i+")'>Delete</a></td></tr>";
-        var tableBody = $("#landList tbody");
-        var rowCount = $('#landList tbody tr').length;
-       // alert(rowCount);
-        tableBody.append(markup);
-        $("#block_name").val('');  
-        $("#mouza").val('');     
-        $("#jl_no").val('');
-        $("#khatian_no").val('');
-        $("#daag_no").val('');
-        $("#quantity").val('');       
-        $("#addLandModal").modal('hide');
-      }
-    })
-
-    $('#btn_addMember').click(function(){ 
-      //alert()
-      var error_f_member_name = '';  
-      var error_f_member_address = '';  
-      var error_f_member_age = '';
-
-      if($.trim($('#f_member_name').val()).length == 0)
-      {
-       error_f_member_name = 'Name is required';
-       $('#error_f_member_name').text(error_f_member_name);
-       $('#f_member_name').addClass('has-error');
-      }
-      else
-      {
-       error_f_member_name = '';
-       $('#error_f_member_name').text(error_f_member_name);
-       $('#f_member_name').removeClass('has-error');
-      }
-
-      if($.trim($('#f_member_address').val()).length == 0)
-      {
-       error_f_member_address = 'Address is required';
-       $('#error_f_member_address').text(error_f_member_address);
-       $('#f_member_address').addClass('has-error');
-      }
-      else
-      {
-       error_f_member_address = '';
-       $('#error_f_member_address').text(error_f_member_address);
-       $('#f_member_address').removeClass('has-error');
-      }
-      
-       if($.trim($('#f_member_age').val()).length == 0)
-      {
-       error_f_member_age = 'Age is required';
-       $('#error_f_member_age').text(error_f_member_age);
-       $('#f_member_age').addClass('has-error');
-      }
-      else
-      {
-       error_f_member_age = '';
-       $('#error_f_member_age').text(error_f_member_age);
-       $('#f_member_age').removeClass('has-error');
-      }
-      
-       
-      ///var valid=1 ;
-     if( error_f_member_name != '' || error_f_member_address != '' || error_f_member_age != '')
-      {
-       // alert('ok');
-       return false;
-      }
-      else
-      {   
-        var f_member_name       = $("#f_member_name").val();
-        var f_member_address    = $("#f_member_address").val();
-        var f_member_age        = $("#f_member_age").val();
-        var f_member_profession      = $("#f_member_profession").val();
-        var f_member_monthly_income  = $("#f_member_monthly_income").val();    
-        var f_member_relationship    = $("#f_member_relationship").val();
-        var f_member_dependent_by_applicant  = $("#f_member_dependent_by_applicant option:selected" ).text(); 
-
-        $("#hidden_land_count").val(1);
-       
-        
-        var rowCount = $('#memberList tbody tr').length;
-        if(rowCount==0)
-        var i=1;
-        else
-         var i=rowCount+1;
-        var markup = "<tr id='id_"+ i + "'><td>"+ i + "</td><td>"+ f_member_name + "</td><td>"+ f_member_address + "</td><td>"+ f_member_age + "</td><td>"+ f_member_profession + "</td><td>"+ f_member_monthly_income + "</td><td>"+ f_member_relationship + "</td><td>"+ f_member_dependent_by_applicant + "</td><td class='del-mem'><a class='btn btn-danger' href='javascript:viod(0)' onclick='delete_member("+i+")'>Delete</a></td></tr>";
-        var tableBody = $("#memberList tbody");
-        var rowCount = $('#memberList tbody tr').length;
-       // alert(rowCount);
-        tableBody.append(markup);
-        $("#f_member_name").val('');  
-        $("#f_member_address").val('');     
-        $("#f_member_age").val('');
-        $("#f_member_profession").val('');
-        $("#f_member_monthly_income").val('');
-        $("#f_member_relationship").val('');
-        $("#f_member_dependent_by_applicant").val('Yes');   
-        $("#addMemberModal").modal('hide');
-      }
-    })
-
-  function delete_land(sl_no){
-   //$("#memberList").find("tr:gt(0)").remove();
-   var confirm_y_n=confirm('Are you sure?');
-   if(confirm_y_n){
-     var row = $('#landList tr#id_'+sl_no); 
-     var siblings = row.siblings();  
-        $('#landList tr#id_'+sl_no).remove();
-        siblings.each(function(index) {                     // *
-                $(this).children('td').first().text(index + 1); // *
-            });                 
- 
-   }
-  }
-
-  function delete_member(sl_no){
-   //$("#memberList").find("tr:gt(0)").remove();
-   var confirm_y_n=confirm('Are you sure?');
-   if(confirm_y_n){
-     var row = $('#memberList tr#id_'+sl_no); 
-     var siblings = row.siblings();  
-        $('#memberList tr#id_'+sl_no).remove();
-        siblings.each(function(index) {                     // *
-                $(this).children('td').first().text(index + 1); // *
-            });                 
- 
-   }
-  }
     </script>
 
     <!-- 

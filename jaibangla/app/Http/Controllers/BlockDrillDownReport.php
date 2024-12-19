@@ -16,6 +16,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use Validator;
+use App\Helpers\AuthChecker;
+
+
 
 class BlockDrillDownReport extends Controller
 {
@@ -25,7 +28,7 @@ class BlockDrillDownReport extends Controller
     }
     public function index()
     {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id', '=', $user_id)->first();
         $schemes = Scheme::where('is_active', 1)->get(['scheme_name as name', 'id as id']);
         //$districts = District::all();
@@ -151,7 +154,7 @@ class BlockDrillDownReport extends Controller
      $district_code=$request->level2;
   }
   else{
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $duty = Configduty::where('user_id','=',$user_id)->first();  
     $district_code=$duty->district_code;
    } 	   
@@ -286,7 +289,7 @@ class BlockDrillDownReport extends Controller
     public function getlistsubmitted($block_code, $scheme_id)
     {
 
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id', '=', $user_id)->first();
 
         //$district_code=$duty->district_code;
@@ -324,7 +327,7 @@ class BlockDrillDownReport extends Controller
     public function getlistapproved($block_code, $scheme_id)
     {
 
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id', '=', $user_id)->first();
 
         //$district_code=$duty->district_code;
@@ -364,7 +367,7 @@ class BlockDrillDownReport extends Controller
     public function getlistverified($block_code, $scheme_id)
     {
 
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id', '=', $user_id)->first();
 
         //$district_code=$duty->district_code;
@@ -400,7 +403,7 @@ class BlockDrillDownReport extends Controller
     //Payment Drill Down 
     public function payment($type)
     {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id', '=', $user_id)->first();
         //$schemes = Scheme::get(['scheme_name as name', 'id as id']);
         $schemes = DB::select(DB::raw("select id,scheme_name as name from m_scheme where id in (select scheme_id from duty_assignement where user_id=" . $user_id . " and is_active=1 ) and is_active=1 order by scheme_name"));
@@ -573,7 +576,7 @@ class BlockDrillDownReport extends Controller
     //Consolidated Report Block/Municipality wise
     public function consol_report()
     {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id', '=', $user_id)->first();
         $district_code = $duty->district_code;
         $district_name = District::where('district_code', $district_code)->pluck('district_name')->first();
@@ -597,7 +600,7 @@ class BlockDrillDownReport extends Controller
     {
         $schemes = array();
         if (request()->ajax()) {
-            $user_id = Auth::user()->id;
+            $user_id = AuthChecker::getUserId();
             $scheme_id = $request->scheme_id;
             $rural_urban = $request->rural_urban;
             $year = $request->fin_year;
@@ -805,7 +808,7 @@ class BlockDrillDownReport extends Controller
     public function indexdistconsol($district_code)
     {
 
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $district_code = $district_code;
         $district_name = District::where('district_code', $district_code)->pluck('district_name')->first();
         $c_time = Carbon::now();
@@ -827,7 +830,7 @@ class BlockDrillDownReport extends Controller
 
     public function consol_report_sbi()
     {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id', '=', $user_id)->first();
         $district_code = $duty->district_code;
         $district_name = District::where('district_code', $district_code)->pluck('district_name')->first();
@@ -852,7 +855,7 @@ class BlockDrillDownReport extends Controller
         //DB::enableQueryLog();
         $schemes = array();
         if (request()->ajax()) {
-            $user_id = Auth::user()->id;
+            $user_id = AuthChecker::getUserId();
             $scheme_id = $request->scheme_id;
             $rural_urban = $request->rural_urban;
             $year = $request->fin_year;
@@ -1010,7 +1013,7 @@ class BlockDrillDownReport extends Controller
     public function indexdistconsol_sbi($district_code)
     {
 
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $district_code = $district_code;
         $district_name = District::where('district_code', $district_code)->pluck('district_name')->first();
         $c_time = Carbon::now();
@@ -1031,7 +1034,7 @@ class BlockDrillDownReport extends Controller
     //WCD Consolidated Report Block/Municipality wise
     public function wcdconsol_report()
     {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id', '=', $user_id)->first();
         $schemes = Scheme::where('is_active', 1)->whereIn('id', [2, 10, 11])->get(['scheme_name as name', 'id as id']);
         $district_code = $duty->district_code;
@@ -1045,7 +1048,7 @@ class BlockDrillDownReport extends Controller
     {
         //DB::enableQueryLog();
         if (request()->ajax()) {
-            $user_id = Auth::user()->id;
+            $user_id = AuthChecker::getUserId();
             $district_code = $request->level2;
             $scheme_id = $request->level1a;
             $pensioner_type = $request->level1c;
@@ -1140,7 +1143,7 @@ class BlockDrillDownReport extends Controller
         $is_active = 0;
         $roleArray = $request->session()->get('role');
         $designation_id_old = Auth::user()->designation_id_old;
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $district_visible = $is_urban_visible = $block_visible = 1;
         $scheme_arr = array();
         $schemes = DB::select(DB::raw("select id,scheme_name from m_scheme where  id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . ")"));

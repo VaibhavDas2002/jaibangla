@@ -15,6 +15,7 @@ use App\UpdateBenDetails;
 use Excel;
 use App\Configduty;
 use App\DocumentType;
+use App\Helpers\AuthChecker;
 use App\SubDistrict;
 use App\Taluka;
 use App\Ward;
@@ -22,6 +23,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+
+
 
 class AadharMobileDeDuplicateWorkFlowController extends Controller
 {
@@ -31,32 +34,27 @@ class AadharMobileDeDuplicateWorkFlowController extends Controller
     date_default_timezone_set('Asia/Kolkata');
     set_time_limit(180);
   }
-  /*
-    Get Schema name using the scheme id
-  */
   private function getSchemaName($scheme_id)
   {
     if (!is_null($scheme_id)) {
-      $sObj =  Scheme::select('id', 'short_code')->where('id', '=', $scheme_id)->first();
-      //$parameter['scheme_id'] = $scheme_id;
-      $schema_name =  $sObj->short_code;
-      //dd($schema_name);
+      $sObj = Scheme::select('id', 'short_code')->where('id', '=', $scheme_id)->first();
+      $schema_name = $sObj->short_code;
       if (empty($schema_name)) {
         $schema_name = 'pension';
       }
-      $table_name =  strtolower($schema_name) . '.beneficiaries';
+      $table_name = strtolower($schema_name) . '.beneficiaries';
     } else {
-      $table_name =  'pension.beneficiaries';
+      $table_name = 'pension.beneficiaries';
     }
     return $table_name;
   }
   /*
-		Get First Landing Page only shown in the verifier end
+    Get First Landing Page only shown in the verifier end
   */
   public function index()
   {
     $designation_id_old = Auth::user()->designation_id_old;
-    if ($designation_id_old == 'Verifier') {
+    if (AuthChecker::VerifierChecker()) {
       $is_active = 1;
     } else {
       $is_active = 0;
@@ -64,10 +62,10 @@ class AadharMobileDeDuplicateWorkFlowController extends Controller
     if ($is_active == 0) {
       return redirect("/")->with('error', 'User Disabled. ');
     }
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $mapObj = DB::table('public.duty_assignement')->where('user_id', $user_id)->where('is_active', 1)->first();
     $scheme = DB::select(DB::raw("select id,scheme_name from m_scheme where  id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . " )"));
-    if (Auth::user()->designation_id_old == "Verifier") {
+    if (AuthChecker::VerifierChecker()) {
       if (count($scheme) > 0) {
         $municipality_visible = 0;
         $gp_ward_visible = 1;
@@ -123,7 +121,7 @@ class AadharMobileDeDuplicateWorkFlowController extends Controller
       if (!ctype_digit($scheme_id)) {
         return redirect("/")->with('error', 'Scheme Not Valid');
       }
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       $designation_id_old = Auth::user()->designation_id_old;
       $errormsg = Config::get('constants.errormsg');
       $roleArray = $request->session()->get('role');
@@ -146,7 +144,7 @@ class AadharMobileDeDuplicateWorkFlowController extends Controller
           break;
         }
       }
-      if ($designation_id_old == 'Verifier') {
+      if (AuthChecker::VerifierChecker()) {
         $is_active = 1;
       } else {
         $is_active = 0;
@@ -154,8 +152,11 @@ class AadharMobileDeDuplicateWorkFlowController extends Controller
       if ($is_active == 0 || (empty($district_code) && empty($urban_body_code)) || empty($mapping_level)) {
         // return redirect("/")->with('error', 'User Disabled. ');
         return $response = array(
-          'status' => 0, 'msg' => array("User Disabled."),
-          'type' => 'red', 'icon' => 'fa fa-warning', 'title' => 'Warning!!'
+          'status' => 0,
+          'msg' => array("User Disabled."),
+          'type' => 'red',
+          'icon' => 'fa fa-warning',
+          'title' => 'Warning!!'
         );
       }
 
@@ -164,7 +165,7 @@ class AadharMobileDeDuplicateWorkFlowController extends Controller
       $table_name = 'pension.beneficiaries';
 
       if ($mapping_level == 'Block') {
-//         if($scheme_id==3)
+        //         if($scheme_id==3)
 //         {
 //           $query = "select * from " . $table_name . " where is_rejected=0 and ((dup_aadhar = 1 and dup_aadhar_edit_role_id = 1) or (dup_mobile = 1 and dup_mobile_edit_role_id = 1)) and scheme_id = " . $scheme_id . " and created_by_dist_code = " . $district_code . " and created_by_local_body_code = " . $urban_body_code . " ";
 // dd($query);
@@ -192,9 +193,9 @@ class AadharMobileDeDuplicateWorkFlowController extends Controller
       return datatables()->of($data)
         ->addColumn('view', function ($data) {
           $action = '';
-          if($data ->payment_suspended == 1 ){
-            $action='<b>Mark due to JNMP</b>';
-          }{
+          if ($data->payment_suspended == 1) {
+            $action = '<b>Mark due to JNMP</b>';
+          } {
             if ($data->dup_aadhar == 1 and $data->dup_aadhar_edit_role_id == 1) {
               $action .= '<button onclick=verifyAadharMobileFunction(' . $data->id . ',' . $data->scheme_id . ',"aadhar") class="btn btn-xs btn-primary" title="Update Aadhar Card"><i class="glyphicon glyphicon-edit"></i> Verify Aadhar</button>';
             }
@@ -272,7 +273,7 @@ class AadharMobileDeDuplicateWorkFlowController extends Controller
           break;
         }
       }
-      if ($designation_id_old == 'Verifier') {
+      if (AuthChecker::VerifierChecker()) {
         $is_active = 1;
       } else {
         $is_active = 0;
@@ -280,8 +281,11 @@ class AadharMobileDeDuplicateWorkFlowController extends Controller
       if ($is_active == 0 || (empty($district_code) && empty($urban_body_code)) || empty($mapping_level)) {
         // return redirect("/")->with('error', 'User Disabled. ');
         return $response = array(
-          'status' => 0, 'msg' => array("User Disabled."),
-          'type' => 'red', 'icon' => 'fa fa-warning', 'title' => 'Warning!!'
+          'status' => 0,
+          'msg' => array("User Disabled."),
+          'type' => 'red',
+          'icon' => 'fa fa-warning',
+          'title' => 'Warning!!'
         );
       }
 
@@ -299,17 +303,23 @@ class AadharMobileDeDuplicateWorkFlowController extends Controller
         ->first();
 
       $doc_list = DocumentType::select('id', 'doc_type', 'doc_name', 'doc_size_kb')->where('id', 6)->first();
-      if($ben_details->payment_suspended == 1){
-        return  $response = array(
-          'status' => 1, 'msg' => 'Mark due to JNMP.',
-          'type' => 'red', 'icon' => 'fa fa-warning', 'title' => 'Information!!'
+      if ($ben_details->payment_suspended == 1) {
+        return $response = array(
+          'status' => 1,
+          'msg' => 'Mark due to JNMP.',
+          'type' => 'red',
+          'icon' => 'fa fa-warning',
+          'title' => 'Information!!'
         );
       }
       // print_r($ben_details);die;
       if ($ben_details == null) {
-        return  $response = array(
-          'status' => 1, 'msg' => 'Somethimg went wrong.',
-          'type' => 'red', 'icon' => 'fa fa-warning', 'title' => 'Warning!!'
+        return $response = array(
+          'status' => 1,
+          'msg' => 'Somethimg went wrong.',
+          'type' => 'red',
+          'icon' => 'fa fa-warning',
+          'title' => 'Warning!!'
         );
       } else {
         $mask_aadhar = '';
@@ -328,13 +338,26 @@ class AadharMobileDeDuplicateWorkFlowController extends Controller
         //   $mask_mobile = $mobile;
         // }
         $ben_arr = array(
-          'ben_name' => trim($ben_details->ben_fname) . ' ' . trim($ben_details->ben_mname) . ' ' . trim($ben_details->ben_lname), 'id' => $ben_details->id, 'scheme_id' => $ben_details->scheme_id,
+          'ben_name' => trim($ben_details->ben_fname) . ' ' . trim($ben_details->ben_mname) . ' ' . trim($ben_details->ben_lname),
+          'id' => $ben_details->id,
+          'scheme_id' => $ben_details->scheme_id,
           'father_name' => trim($ben_details->father_fname) . ' ' . trim($ben_details->father_mname) . ' ' . trim($ben_details->father_lname),
-          'caste' => trim($ben_details->caste), 'gender' => trim($ben_details->gender),
+          'caste' => trim($ben_details->caste),
+          'gender' => trim($ben_details->gender),
           'dob' => date('d-m-Y', strtotime($ben_details->dob)),
-          'bank_code' => trim($ben_details->bank_code), 'bank_ifsc' => trim($ben_details->bank_ifsc),
-          'branch_name' => trim($ben_details->branch_name), 'bank_name' => trim($ben_details->bank_name), 'mobile_no' => trim($ben_details->mobile_no), 'application_id' => $ben_details->created_by_dist_code . str_pad($ben_details->scheme_id, 2, 0, STR_PAD_LEFT) . str_pad($ben_details->id, 15, 0, STR_PAD_LEFT), 'aadhar_no' => trim($ben_details->aadhar_no),
-          'doc_name' => $doc_list->doc_name, 'doc_id' => $doc_list->id, 'doc_type' => $doc_list->doc_type, 'doc_size_kb' => $doc_list->doc_size_kb, 'mask_aadhar_no' => $mask_aadhar, 'mask_mobile_no' => $mask_mobile
+          'bank_code' => trim($ben_details->bank_code),
+          'bank_ifsc' => trim($ben_details->bank_ifsc),
+          'branch_name' => trim($ben_details->branch_name),
+          'bank_name' => trim($ben_details->bank_name),
+          'mobile_no' => trim($ben_details->mobile_no),
+          'application_id' => $ben_details->created_by_dist_code . str_pad($ben_details->scheme_id, 2, 0, STR_PAD_LEFT) . str_pad($ben_details->id, 15, 0, STR_PAD_LEFT),
+          'aadhar_no' => trim($ben_details->aadhar_no),
+          'doc_name' => $doc_list->doc_name,
+          'doc_id' => $doc_list->id,
+          'doc_type' => $doc_list->doc_type,
+          'doc_size_kb' => $doc_list->doc_size_kb,
+          'mask_aadhar_no' => $mask_aadhar,
+          'mask_mobile_no' => $mask_mobile
         );
         $response = $ben_arr;
       }
@@ -404,7 +427,7 @@ class AadharMobileDeDuplicateWorkFlowController extends Controller
             break;
           }
         }
-        if ($designation_id_old == 'Verifier') {
+        if (AuthChecker::VerifierChecker()) {
           $is_active = 1;
         } else {
           $is_active = 0;
@@ -412,8 +435,11 @@ class AadharMobileDeDuplicateWorkFlowController extends Controller
         if ($is_active == 0 || (empty($district_code) && empty($urban_body_code)) || empty($mapping_level)) {
           // return redirect("/")->with('error', 'User Disabled. ');
           return $response = array(
-            'status' => 0, 'msg' => array("User Disabled."),
-            'type' => 'red', 'icon' => 'fa fa-warning', 'title' => 'Warning!!'
+            'status' => 0,
+            'msg' => array("User Disabled."),
+            'type' => 'red',
+            'icon' => 'fa fa-warning',
+            'title' => 'Warning!!'
           );
         }
 
@@ -458,8 +484,11 @@ class AadharMobileDeDuplicateWorkFlowController extends Controller
           }
           DB::commit();
           $response = array(
-            'status' => 1, 'msg' => $msg,
-            'type' => 'green', 'icon' => 'fa fa-check', 'title' => 'Success'
+            'status' => 1,
+            'msg' => $msg,
+            'type' => 'green',
+            'icon' => 'fa fa-check',
+            'title' => 'Success'
           );
         } catch (\Exception $e) {
           //  dd($e);
@@ -468,16 +497,22 @@ class AadharMobileDeDuplicateWorkFlowController extends Controller
           $return_text = 'Error. Please try again';
           $return_msg = array("" . $return_text);
           return $response = array(
-            'status' => $return_status, 'msg' => $return_msg,
-            'type' => 'red', 'icon' => 'fa fa-warning', 'title' => 'Warning!!'
+            'status' => $return_status,
+            'msg' => $return_msg,
+            'type' => 'red',
+            'icon' => 'fa fa-warning',
+            'title' => 'Warning!!'
           );
         }
       } else {
         $return_status = 0;
         $return_msg = $validator->errors()->all();
         $response = array(
-          'status' => $return_status, 'msg' => $return_msg,
-          'type' => 'red', 'icon' => 'fa fa-warning', 'title' => 'Warning!!'
+          'status' => $return_status,
+          'msg' => $return_msg,
+          'type' => 'red',
+          'icon' => 'fa fa-warning',
+          'title' => 'Warning!!'
         );
       }
     } catch (\Exception $e) {
@@ -529,7 +564,7 @@ class AadharMobileDeDuplicateWorkFlowController extends Controller
           break;
         }
       }
-      if ($designation_id_old == 'Verifier') {
+      if (AuthChecker::VerifierChecker()) {
         $is_active = 1;
       } else {
         $is_active = 0;
@@ -537,8 +572,11 @@ class AadharMobileDeDuplicateWorkFlowController extends Controller
       if ($is_active == 0 || (empty($district_code) && empty($urban_body_code)) || empty($mapping_level)) {
         // return redirect("/")->with('error', 'User Disabled. ');
         return $response = array(
-          'status' => 0, 'msg' => array("User Disabled."),
-          'type' => 'red', 'icon' => 'fa fa-warning', 'title' => 'Warning!!'
+          'status' => 0,
+          'msg' => array("User Disabled."),
+          'type' => 'red',
+          'icon' => 'fa fa-warning',
+          'title' => 'Warning!!'
         );
       }
 
@@ -549,9 +587,12 @@ class AadharMobileDeDuplicateWorkFlowController extends Controller
 
       $data = DB::table($ben_docs_table)->where('ben_id', $ben_id)->where('is_active', TRUE)->where('doc_type_id', 6)->first();
       if ($data == null) {
-        return  $response = array(
-          'status' => 1, 'msg' => 'Somethimg went wrong..!',
-          'type' => 'red', 'icon' => 'fa fa-warning', 'title' => 'Warning!!'
+        return $response = array(
+          'status' => 1,
+          'msg' => 'Somethimg went wrong..!',
+          'type' => 'red',
+          'icon' => 'fa fa-warning',
+          'title' => 'Warning!!'
         );
       }
       $response = array('doc_name' => $data->doc_name, 'doc_id' => $data->id, 'doc_type_name' => $data->doc_type_name);
@@ -574,7 +615,7 @@ class AadharMobileDeDuplicateWorkFlowController extends Controller
   public function indexApprove()
   {
     $designation_id_old = Auth::user()->designation_id_old;
-    if ($designation_id_old == 'Approver') {
+    if (AuthChecker::ApproverChecker()) {
       $is_active = 1;
     } else {
       $is_active = 0;
@@ -582,10 +623,10 @@ class AadharMobileDeDuplicateWorkFlowController extends Controller
     if ($is_active == 0) {
       return redirect("/")->with('error', 'User Disabled. ');
     }
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $mapObj = DB::table('public.duty_assignement')->where('user_id', $user_id)->where('is_active', 1)->first();
     $scheme = DB::select(DB::raw("select id,scheme_name from m_scheme where  id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . ")"));
-    if (Auth::user()->designation_id_old == "Approver") {
+    if (AuthChecker::ApproverChecker()) {
       if (count($scheme) > 0) {
         return view('DuplicateAadharUpdate/approve_index', [
           'schemes' => $scheme,
@@ -614,18 +655,24 @@ class AadharMobileDeDuplicateWorkFlowController extends Controller
       if (empty($scheme_id)) {
         // return redirect("/")->with('error', 'Scheme Not Valid');
         return $response = array(
-          'status' => 0, 'msg' => array("Scheme Not Valid."),
-          'type' => 'red', 'icon' => 'fa fa-warning', 'title' => 'Warning!!'
+          'status' => 0,
+          'msg' => array("Scheme Not Valid."),
+          'type' => 'red',
+          'icon' => 'fa fa-warning',
+          'title' => 'Warning!!'
         );
       }
       if (!ctype_digit($scheme_id)) {
         // return redirect("/")->with('error', 'Scheme Not Valid');
         return $response = array(
-          'status' => 0, 'msg' => array("Scheme Not Valid."),
-          'type' => 'red', 'icon' => 'fa fa-warning', 'title' => 'Warning!!'
+          'status' => 0,
+          'msg' => array("Scheme Not Valid."),
+          'type' => 'red',
+          'icon' => 'fa fa-warning',
+          'title' => 'Warning!!'
         );
       }
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       $designation_id_old = Auth::user()->designation_id_old;
       $errormsg = Config::get('constants.errormsg');
       $roleArray = $request->session()->get('role');
@@ -648,7 +695,7 @@ class AadharMobileDeDuplicateWorkFlowController extends Controller
           break;
         }
       }
-      if ($designation_id_old == 'Approver') {
+      if (Authchecker::ApproverChecker()) {
         $is_active = 1;
       } else {
         $is_active = 0;
@@ -656,8 +703,11 @@ class AadharMobileDeDuplicateWorkFlowController extends Controller
       if ($is_active == 0 || (empty($district_code))) {
         // return redirect("/")->with('error', 'User Disabled. ');
         return $response = array(
-          'status' => 0, 'msg' => array("User Disabled."),
-          'type' => 'red', 'icon' => 'fa fa-warning', 'title' => 'Warning!!'
+          'status' => 0,
+          'msg' => array("User Disabled."),
+          'type' => 'red',
+          'icon' => 'fa fa-warning',
+          'title' => 'Warning!!'
         );
       }
 
@@ -758,7 +808,7 @@ class AadharMobileDeDuplicateWorkFlowController extends Controller
           break;
         }
       }
-      if ($designation_id_old == 'Approver') {
+      if (AuthChecker::ApproverChecker()) {
         $is_active = 1;
       } else {
         $is_active = 0;
@@ -766,8 +816,11 @@ class AadharMobileDeDuplicateWorkFlowController extends Controller
       if ($is_active == 0 || (empty($district_code))) {
         // return redirect("/")->with('error', 'User Disabled. ');
         return $response = array(
-          'status' => 0, 'msg' => array("User Disabled."),
-          'type' => 'red', 'icon' => 'fa fa-warning', 'title' => 'Warning!!'
+          'status' => 0,
+          'msg' => array("User Disabled."),
+          'type' => 'red',
+          'icon' => 'fa fa-warning',
+          'title' => 'Warning!!'
         );
       }
 
@@ -782,17 +835,23 @@ class AadharMobileDeDuplicateWorkFlowController extends Controller
         ->where('created_by_dist_code', $district_code)
         ->where('id', $id)
         ->first();
-      if($ben_details->payment_suspended == 1){
-        return  $response = array(
-          'status' => 1, 'msg' => 'Mark due to JNMP.',
-          'type' => 'red', 'icon' => 'fa fa-warning', 'title' => 'Information!!'
+      if ($ben_details->payment_suspended == 1) {
+        return $response = array(
+          'status' => 1,
+          'msg' => 'Mark due to JNMP.',
+          'type' => 'red',
+          'icon' => 'fa fa-warning',
+          'title' => 'Information!!'
         );
       }
       // print_r($ben_details);die;
       if ($ben_details == null) {
-        return  $response = array(
-          'status' => 1, 'msg' => 'Somethimg went wrong.',
-          'type' => 'red', 'icon' => 'fa fa-warning', 'title' => 'Warning!!'
+        return $response = array(
+          'status' => 1,
+          'msg' => 'Somethimg went wrong.',
+          'type' => 'red',
+          'icon' => 'fa fa-warning',
+          'title' => 'Warning!!'
         );
       } else {
         $mask_aadhar = '';
@@ -811,12 +870,20 @@ class AadharMobileDeDuplicateWorkFlowController extends Controller
         //   $mask_mobile = $mobile;
         // }
         $ben_arr = array(
-          'ben_name' => trim($ben_details->ben_fname) . ' ' . trim($ben_details->ben_mname) . ' ' . trim($ben_details->ben_lname), 'id' => $ben_details->id, 'scheme_id' => $ben_details->scheme_id,
+          'ben_name' => trim($ben_details->ben_fname) . ' ' . trim($ben_details->ben_mname) . ' ' . trim($ben_details->ben_lname),
+          'id' => $ben_details->id,
+          'scheme_id' => $ben_details->scheme_id,
           'father_name' => trim($ben_details->father_fname) . ' ' . trim($ben_details->father_mname) . ' ' . trim($ben_details->father_lname),
-          'caste' => trim($ben_details->caste), 'gender' => trim($ben_details->gender),
+          'caste' => trim($ben_details->caste),
+          'gender' => trim($ben_details->gender),
           'dob' => date('d-m-Y', strtotime($ben_details->dob)),
-          'bank_code' => trim($ben_details->bank_code), 'bank_ifsc' => trim($ben_details->bank_ifsc),
-          'branch_name' => trim($ben_details->branch_name), 'bank_name' => trim($ben_details->bank_name), 'mobile_no' => trim($ben_details->mobile_no), 'application_id' => $ben_details->created_by_dist_code . str_pad($ben_details->scheme_id, 2, 0, STR_PAD_LEFT) . str_pad($ben_details->id, 15, 0, STR_PAD_LEFT), 'aadhar_no' => trim($ben_details->aadhar_no)
+          'bank_code' => trim($ben_details->bank_code),
+          'bank_ifsc' => trim($ben_details->bank_ifsc),
+          'branch_name' => trim($ben_details->branch_name),
+          'bank_name' => trim($ben_details->bank_name),
+          'mobile_no' => trim($ben_details->mobile_no),
+          'application_id' => $ben_details->created_by_dist_code . str_pad($ben_details->scheme_id, 2, 0, STR_PAD_LEFT) . str_pad($ben_details->id, 15, 0, STR_PAD_LEFT),
+          'aadhar_no' => trim($ben_details->aadhar_no)
         );
         $response = $ben_arr;
       }
@@ -846,18 +913,21 @@ class AadharMobileDeDuplicateWorkFlowController extends Controller
     }
     try {
       $roleArray = $request->session()->get('role');
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       $designation_id_old = Auth::user()->designation_id_old;
       $errormsg = Config::get('constants.errormsg');
       $duty = Configduty::where('user_id', '=', $user_id)->where('is_active', 1)->first();
       if ($duty->isEmpty) {
         return $response = array(
-          'status' => 0, 'msg' => array("Unauthorized."),
-          'type' => 'red', 'icon' => 'fa fa-warning', 'title' => 'Warning!!'
+          'status' => 0,
+          'msg' => array("Unauthorized."),
+          'type' => 'red',
+          'icon' => 'fa fa-warning',
+          'title' => 'Warning!!'
         );
       }
 
-      if ($designation_id_old == 'Approver') {
+      if (AuthChecker::ApproverChecker()) {
         $is_bulk = $request->is_bulk;
         if ($is_bulk == 1) {
           $fg_is_bulk = 1;
@@ -866,8 +936,11 @@ class AadharMobileDeDuplicateWorkFlowController extends Controller
         }
       } else {
         return $response = array(
-          'status' => 0, 'msg' => array("Unauthorized."),
-          'type' => 'red', 'icon' => 'fa fa-warning', 'title' => 'Warning!!'
+          'status' => 0,
+          'msg' => array("Unauthorized."),
+          'type' => 'red',
+          'icon' => 'fa fa-warning',
+          'title' => 'Warning!!'
         );
       }
       $remarks = trim($request->accept_reject_comments);
@@ -895,12 +968,15 @@ class AadharMobileDeDuplicateWorkFlowController extends Controller
 
       $benIdArr = array_unique($benIdArr);
       $schemeIdArr = array_unique($schemeIdArr);
-      $updateTypeArr =  array_unique($updateTypeArr);
+      $updateTypeArr = array_unique($updateTypeArr);
 
       if (count($schemeIdArr) != 1) {
         return $response = array(
-          'status' => 0, 'msg' => array("Something went wrong in the scheme."),
-          'type' => 'red', 'icon' => 'fa fa-warning', 'title' => 'Warning!!'
+          'status' => 0,
+          'msg' => array("Something went wrong in the scheme."),
+          'type' => 'red',
+          'icon' => 'fa fa-warning',
+          'title' => 'Warning!!'
         );
       }
       $scheme_id = implode("", $schemeIdArr);
@@ -918,8 +994,11 @@ class AadharMobileDeDuplicateWorkFlowController extends Controller
       if ($is_active == 0 || (empty($district_code))) {
         // return redirect("/")->with('error', 'User Disabled. ');
         return $response = array(
-          'status' => 0, 'msg' => array("User Disabled."),
-          'type' => 'red', 'icon' => 'fa fa-warning', 'title' => 'Warning!!'
+          'status' => 0,
+          'msg' => array("User Disabled."),
+          'type' => 'red',
+          'icon' => 'fa fa-warning',
+          'title' => 'Warning!!'
         );
       }
 
@@ -961,8 +1040,11 @@ class AadharMobileDeDuplicateWorkFlowController extends Controller
         }
         DB::commit();
         $response = array(
-          'status' => 1, 'msg' => $msg,
-          'type' => 'green', 'icon' => 'fa fa-check', 'title' => 'Success'
+          'status' => 1,
+          'msg' => $msg,
+          'type' => 'green',
+          'icon' => 'fa fa-check',
+          'title' => 'Success'
         );
       } catch (\Exception $e) {
         // dd($e);
@@ -971,8 +1053,11 @@ class AadharMobileDeDuplicateWorkFlowController extends Controller
         $return_text = 'Error. Please try again.';
         $return_msg = array("" . $return_text);
         return $response = array(
-          'status' => $return_status, 'msg' => $return_msg,
-          'type' => 'red', 'icon' => 'fa fa-warning', 'title' => 'Warning!!'
+          'status' => $return_status,
+          'msg' => $return_msg,
+          'type' => 'red',
+          'icon' => 'fa fa-warning',
+          'title' => 'Warning!!'
         );
       }
     } catch (\Exception $e) {

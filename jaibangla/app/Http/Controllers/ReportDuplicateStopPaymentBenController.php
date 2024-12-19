@@ -22,6 +22,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Helpers\AuthChecker;
+
 
 class ReportDuplicateStopPaymentBenController extends Controller
 {
@@ -51,7 +53,7 @@ class ReportDuplicateStopPaymentBenController extends Controller
   {
     $is_active = 0;
     $roleArray = $request->session()->get('role');
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $designation_id_old = Auth::user()->designation_id_old;
     $district_visible = $is_urban_visible = $block_visible = 1;
     $municipality_visible = 0;

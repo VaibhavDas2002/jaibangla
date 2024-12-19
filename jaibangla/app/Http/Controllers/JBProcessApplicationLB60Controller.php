@@ -23,6 +23,8 @@ use App\BenDocs;
 use App\DsPhase;
 use App\SubDistrict;
 use Carbon;
+
+
 class JBProcessApplicationLB60Controller extends Controller
 {
     public function __construct()
@@ -457,7 +459,7 @@ class JBProcessApplicationLB60Controller extends Controller
             $back_to_lb = 1;
             $undo = 0;
             $encloser_list = array();
-            $user_id = Auth::user()->id;
+            $user_id = AuthChecker::getUserId();
             $doc_type_id_arr = array($this->supporting_dob_type_id, $this->reason_order_type_id);
             $supporting = DocumentType::select('id', 'doc_size_kb', 'doc_name', 'doc_type', 'doucument_group')->whereIn("id", $doc_type_id_arr)->get();
             $age_supporting = $supporting->where('id', $this->supporting_dob_type_id)->first();
@@ -835,7 +837,7 @@ class JBProcessApplicationLB60Controller extends Controller
         try {
 
             $designation_id_old = Auth::user()->designation_id_old;
-            $user_id = Auth::user()->id;
+            $user_id = AuthChecker::getUserId();
 
             if (!in_array($designation_id_old, array('Verifier', 'Approver'))) {
                 return redirect("/")->with('danger', 'Not Allowed');
@@ -1846,7 +1848,7 @@ class JBProcessApplicationLB60Controller extends Controller
                 $return_text = 'Document type Not Valid';
                 //return redirect("/")->with('error',  $return_text);
             }
-            $user_id = Auth::user()->id;
+            $user_id = AuthChecker::getUserId();
             $designation_id_old = Auth::user()->designation_id_old;
             $scheme_obj = Scheme::where('id', $scheme_id)->where('is_active', 1)->first();
             if (empty($scheme_obj)) {
@@ -2013,7 +2015,7 @@ class JBProcessApplicationLB60Controller extends Controller
     {
 
         $designation_id_old = Auth::user()->designation_id_old;
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         if ($designation_id_old == 'Approver') {
             //dd('ok');
             $scheme_id = $request->scheme_id;
@@ -2659,7 +2661,7 @@ class JBProcessApplicationLB60Controller extends Controller
     public function applicationListExcel(Request $request)
     {
         try {
-            $user_id = Auth::user()->id;
+            $user_id = AuthChecker::getUserId();
             $scheme_id = $request->scheme_id;
             if (!ctype_digit($scheme_id)) {
                 return redirect("/")->with('error', 'Scheme Not Valid');

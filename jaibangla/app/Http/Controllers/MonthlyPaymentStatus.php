@@ -12,6 +12,7 @@ use App\Scheme;
 use Config;
 use Carbon\Carbon;
 use App\Configduty;
+use App\Helpers\AuthChecker;
 
 class MonthlyPaymentStatus extends Controller
 {
@@ -29,7 +30,7 @@ class MonthlyPaymentStatus extends Controller
     $designation_id_old = Auth::user()->designation_id_old;
     $district_visible = $is_urban_visible = $block_visible = $scheme_visible = 1;
     $scheme_arr = array();
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $payment_mode = $request->payment_mode;
     if ($payment_mode != 'IFMS' && $payment_mode != 'SBI') {
       return redirect('/')->with('error', 'Payment Mode Not Valid');
@@ -128,7 +129,7 @@ class MonthlyPaymentStatus extends Controller
     $attributes['lot_month'] = 'Select Month';
     $validator = Validator::make($request->all(), $rules, $messages, $attributes);
     if ($validator->passes()) {
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       $lot_year = $request->lot_year;
       $lot_month = $request->lot_month;
       $payment_mode = $request->payment_mode;

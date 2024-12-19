@@ -15,6 +15,7 @@ use App\UpdateBenDetails;
 use App\DupliacteApproveReject;
 use App\lot_master;
 use Auth;
+use App\Helpers\AuthChecker;
 
 class BeneficiaryPaymentStatusController extends Controller
 {
@@ -31,7 +32,7 @@ class BeneficiaryPaymentStatusController extends Controller
         }
         /**/
 
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         //$scheme = Scheme::all();
         $dutyObj = Configduty::where('user_id', $user_id)->first();
         $schemes = Configduty::select('scheme_id')->distinct()->where('user_id', $user_id)->where('is_active', 1)->get();

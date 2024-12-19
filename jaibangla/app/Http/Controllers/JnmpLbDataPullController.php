@@ -22,12 +22,13 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Helpers\AuthChecker;
 
 class JnmpLbDataPullController extends Controller
 {
     public function index()
     {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $designation_id_old = Auth::user()->designation_id_old;
         $schemes = Scheme::where('is_active', 1)->get();
         if ($designation_id_old == 'Admin') {

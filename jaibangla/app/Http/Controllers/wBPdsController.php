@@ -33,6 +33,8 @@ use App\Ward;
 use App\GP;
 use Carbon\Carbon;
 use App\Helpers\Helper;
+use App\Helpers\AuthChecker;
+
 class wBPdsController extends Controller
 {
 
@@ -465,7 +467,7 @@ class wBPdsController extends Controller
     public function wbpdsviewreport(Request $request)
     {
       $designation_id_old = Auth::user()->designation_id_old;
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
   
       $scheme_id = $request->scheme_id;
       if (!ctype_digit($scheme_id)) {
@@ -571,7 +573,7 @@ class wBPdsController extends Controller
     {
       $doc_type_id = $this->doc_type_id;
       $designation_id_old = Auth::user()->designation_id_old;
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       $id = $request->id;
       
       $scheme_id = $request->scheme_id;

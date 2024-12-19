@@ -14,12 +14,13 @@ use App\Taluka;
 use App\UpdateBenDetails;
 use App\DupliacteApproveReject;
 use Auth;
+use App\Helpers\AuthChecker;
 
 class ApplicationStatusController extends Controller
 {
     public function index()
     {
-        //$user_id = Auth::user()->id;
+        //$user_id = AuthChecker::getUserId();
         $district = District::all();
         //print_r($district);
         $scheme = Scheme::where('is_active', 1)->get();
@@ -36,7 +37,7 @@ class ApplicationStatusController extends Controller
             'block_ulb' => 'required|not-in:0'
         ]);
 
-        // $user_id = Auth::user()->id;
+        // $user_id = AuthChecker::getUserId();
         // $dutyObj = Configduty::where('user_id',$user_id)->first();
         // $dist_code = $dutyObj->district_code;
 

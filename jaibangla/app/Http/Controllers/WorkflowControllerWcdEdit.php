@@ -26,6 +26,8 @@ use App\RejectRevertReason;
 use App\AcceptRejectInfo;
 use App\Scheme;
 use App\BenDocs;
+use App\Helpers\AuthChecker;
+
 class WorkflowControllerWcdEdit extends Controller
 {
   public function __construct()
@@ -37,7 +39,7 @@ class WorkflowControllerWcdEdit extends Controller
   public function applicationdetails(Request $request)
   {
     $designation_id_old = Auth::user()->designation_id_old;
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
   
       $scheme_id=$request->scheme_id;
       if (!ctype_digit($scheme_id)) {
@@ -489,7 +491,7 @@ class WorkflowControllerWcdEdit extends Controller
   public function showApplicantDetails(Request $request)
   {
     $designation_id_old = Auth::user()->designation_id_old;
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     
       $scheme_id=$request->scheme_id;
       if (!ctype_digit($scheme_id)) {
@@ -607,7 +609,7 @@ class WorkflowControllerWcdEdit extends Controller
   public function verifydata(Request $request)
   {
     $designation_id_old = Auth::user()->designation_id_old;
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
    
       $scheme_id=$request->scheme_id;
       if (!ctype_digit($scheme_id)) {
@@ -731,7 +733,7 @@ class WorkflowControllerWcdEdit extends Controller
   public function MassEmployeeApproval(Request $request)
   {
     $designation_id_old = Auth::user()->designation_id_old;
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
    
       $scheme_id=$request->scheme_id;
       if (!ctype_digit($scheme_id)) {

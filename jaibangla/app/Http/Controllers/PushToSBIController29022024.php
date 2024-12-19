@@ -37,14 +37,14 @@ class PushToSBIController extends Controller
 
     public function index()
     {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $report = DB::select(DB::raw("select id,scheme_name from m_scheme where id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . ")"));
         return view('push-sbi/index', ['reports' => $report]);
     }
 
     public function lot_listing(Request $request)
     {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         //$schemes=Configduty::where('user_id','=',$user_id)->where('is_active',1)->first();
         $lot_master = SBITransactionLot::where('scheme_id', $request->select_scheme)
             ->leftJoin('public.m_scheme', 'public.m_scheme.id', 'transaction_lot.scheme_id')
@@ -60,7 +60,7 @@ class PushToSBIController extends Controller
 
     public function push_single_lot(Request $request)
     {
-        //  $user_id = Auth::user()->id;
+        //  $user_id = AuthChecker::getUserId();
         // // $schemes=Configduty::where('user_id','=',$user_id)->where('is_active',1)->first();
         //  $lot_master = SBITransactionLot::where('scheme_id',$request->scheme_id)->where('lot_no',$request->lot_no)
         //              ->leftJoin('public.m_scheme','public.m_scheme.id','transaction_lot.scheme_id')

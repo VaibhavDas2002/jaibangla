@@ -23,6 +23,7 @@ use App\AcceptRejectInfo;
 use App\Scheme;
 use App\DocumentType;
 use Validator;
+use App\Helpers\AuthChecker;
 
 class WorkflowNsapController extends Controller
 {
@@ -35,7 +36,7 @@ class WorkflowNsapController extends Controller
   public function shemeSelectionnsapmarked(Request $request)
   {
     $designation_id_old = Auth::user()->designation_id_old;
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     if ($designation_id_old == 'Verifier') {
       $schemes = DB::select(DB::raw("select id,scheme_name,display_name,is_active from m_scheme where id  IN (11) and  id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . ") order by rank"));
       //dd($schemes);
@@ -55,7 +56,7 @@ class WorkflowNsapController extends Controller
     return redirect('/')->with('error', 'Not Allowded');
     $designation_id_old = Auth::user()->designation_id_old;
     //dd($designation_id_old);
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     if ($designation_id_old == 'Verifier' || $designation_id_old == 'Approver') {
       $scheme_id = $request->scheme_id;
       if (!ctype_digit($scheme_id)) {
@@ -169,7 +170,7 @@ class WorkflowNsapController extends Controller
   {
     return redirect('/')->with('error', 'Not Allowded');
     $designation_id_old = Auth::user()->designation_id_old;
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     if ($designation_id_old == 'Verifier' || $designation_id_old == 'Approver') {
       $scheme_id = $request->scheme_id;
       if (!ctype_digit($scheme_id)) {
@@ -649,7 +650,7 @@ class WorkflowNsapController extends Controller
   {
     return redirect('/')->with('error', 'Not Allowded');
     $designation_id_old = Auth::user()->designation_id_old;
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     if ($designation_id_old == 'Verifier' || $designation_id_old == 'Approver') {
       $scheme_id = $request->scheme_id;
       if (!ctype_digit($scheme_id)) {
@@ -911,7 +912,7 @@ class WorkflowNsapController extends Controller
   {
     return redirect('/')->with('error', 'Not Allowded');
     $designation_id_old = Auth::user()->designation_id_old;
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     if ($designation_id_old == 'Approver') {
       //dd('ok');
       $scheme_id = $request->scheme_id;
@@ -988,7 +989,7 @@ class WorkflowNsapController extends Controller
   public function generate_excel(Request $request)
   {
     $designation_id_old = Auth::user()->designation_id_old;
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     if (empty($request->scheme_id)) {
       return redirect('/')->with('error', 'Scheme Id Required');
     }

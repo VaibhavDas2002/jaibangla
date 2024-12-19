@@ -14,6 +14,7 @@ use App\Taluka;
 use App\UpdateBenDetails;
 use App\DupliacteApproveReject;
 use Auth;
+use App\Helpers\AuthChecker;
 
 class BeneficiaryPaymentStatusController extends Controller
 {
@@ -23,7 +24,7 @@ class BeneficiaryPaymentStatusController extends Controller
             return redirect('/login');
         }
         /**/
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $dutyObj = Configduty::where('user_id',$user_id)->first();
         $dist_code = $dutyObj->district_code;
         $is_urban = $dutyObj->is_urban;
@@ -43,7 +44,7 @@ class BeneficiaryPaymentStatusController extends Controller
             'scheme_type' => 'required|not-in:0'
         ]);  
 
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $dutyObj = Configduty::where('user_id',$user_id)->first();
         $dist_code = $dutyObj->district_code;
 

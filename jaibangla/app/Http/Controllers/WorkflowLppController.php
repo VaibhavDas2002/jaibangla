@@ -37,6 +37,8 @@ use App\Helpers\Helper;
 use App\AcceptRejectInfo;
 use App\MapLavel;
 use App\BenDocs;
+use App\Helpers\AuthChecker;
+
 class WorkflowLppController extends Controller
 {
 
@@ -53,7 +55,7 @@ class WorkflowLppController extends Controller
   {
     try {
       $designation_id_old = Auth::user()->designation_id_old;
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       if ($designation_id_old == 'HOD') {
         $schemes = DB::select(DB::raw("select id,scheme_name,display_name,is_active from m_scheme where id IN (8,9) and   id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . ") order by rank"));
         //dd($schemes);
@@ -77,7 +79,7 @@ class WorkflowLppController extends Controller
     $this->middleware('auth');
     $designation_id_old = Auth::user()->designation_id_old;
     //dd($designation_id_old);
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
 
     $scheme_id = $request->scheme_id;
     if (!ctype_digit($scheme_id)) {
@@ -264,7 +266,7 @@ class WorkflowLppController extends Controller
     try {
       $this->middleware('auth');
       $designation_id_old = Auth::user()->designation_id_old;
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       $id = $request->id;
       // dd($id);
       if (empty($request->id)) {
@@ -367,7 +369,7 @@ class WorkflowLppController extends Controller
 
       $this->middleware('auth');
       $designation_id_old = Auth::user()->designation_id_old;
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       if (empty($request->beneficiary_id)) {
         return redirect("/")->with('danger', 'Beneficiary ID Not Found');
       }

@@ -50,6 +50,8 @@ use App\AcceptRejectInfo;
 use App\Traits\TraitCasteCertificateValidate;
 use App\Traits\TraitLifeCertificateValidate;
 use App\Traits\TraitAadharValidate;
+use App\Helpers\AuthChecker;
+
 class OAPFarmerformController extends Controller
 {
     use TraitCasteCertificateValidate;
@@ -201,7 +203,7 @@ class OAPFarmerformController extends Controller
   public function store(Request $request)
   {
     // return redirect("/")->with('error', 'Data entry temporary suspended.');
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $users = User::find($user_id);
     //  $server_ip =$_SERVER['SERVER_ADDR'];
     $base_url = url('/');
@@ -940,7 +942,7 @@ if(!empty($request->aadhar_no)){
     $i=0;
     $j=0;
     $c_time=date('Y-m-d H:i:s');
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
 
     foreach ($doc_list as $doc) {
         if ($request->hasFile('doc_' . $doc)) {
@@ -1304,10 +1306,9 @@ if(!empty($request->aadhar_no)){
 
   public function editOapFarmerList(Request $request)
   {
-
-
+    // dd($request->all());
     $scheme_id =  $this->scheme_id;
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $designation_id_old = Auth::user()->designation_id_old;
     if (!in_array($designation_id_old, array('Operator'))) {
       return redirect("/")->with('error', 'Not Allowed');
@@ -1328,9 +1329,11 @@ if(!empty($request->aadhar_no)){
         break;
       }
     }
+    // dd($is_active);
     if ($is_active == 0) {
       return redirect("/")->with('error', 'User Disabled');
     }
+    // dd('ok'); 
     $scheme_row = Scheme::select('scheme_name')->where('id', $this->scheme_id)->first();
     $scheme_name = $scheme_row->scheme_name;
     $report_type_name = 'Approved List ';
@@ -1495,7 +1498,7 @@ if(!empty($request->aadhar_no)){
   {
 
     $scheme_id =  $this->scheme_id;
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $designation_id_old = Auth::user()->designation_id_old;
     if (!in_array($designation_id_old, array('Operator'))) {
       return redirect("/")->with('error', 'Not Allowed');
@@ -1665,7 +1668,7 @@ if(!empty($request->aadhar_no)){
   function editOapFarmerPost(Request $request)
   {
     $scheme_id =  $this->scheme_id;
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $designation_id_old = Auth::user()->designation_id_old;
     if (!in_array($designation_id_old, array('Operator'))) {
       return redirect("/")->with('error', 'Not Allowed');
@@ -2299,7 +2302,7 @@ if(!empty($request->aadhar_no)){
   public function oapFarmerApprovedEdit(Request $request)
   {
 
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $scheme_id = 0;
     $ben_table = "";
     if ($request->get('pr1')) {
@@ -2310,7 +2313,7 @@ if(!empty($request->aadhar_no)){
     }
     $is_active = 0;
     $roleArray = $request->session()->get('role');
-
+    
     //echo "<pre>"; print_r($roleArray ); 
     foreach ($roleArray as $roleObj) {
 
@@ -2333,7 +2336,6 @@ if(!empty($request->aadhar_no)){
         break;
       }
     }
-
     //echo $is_active; exit;
     if ($is_active == 1) {
       $approveBtnvisible = 1;
@@ -2977,7 +2979,7 @@ if(!empty($request->aadhar_no)){
       $Verified = "Verified";
       $Rejected = 1;
       $comments = $request->comments;
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       $duty = Configduty::where('user_id', '=', $user_id)->where('scheme_id', $scheme_id)->first();
       $role = MapLavel::where('scheme_id', $scheme_id)->where('role_name', Auth::user()->designation_id_old)->where('stack_level', $duty->mapping_level)->first();
 
@@ -3079,7 +3081,7 @@ if(!empty($request->aadhar_no)){
       $Rejected = 1;
       $comments = $request->comments;
 
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       $duty = Configduty::where('user_id', '=', $user_id)->where('scheme_id', $scheme_id)->first();
       $role = MapLavel::where('scheme_id', $scheme_id)->where('role_name', Auth::user()->designation_id_old)->where('stack_level', $duty->mapping_level)->first();
       if ($_POST['submit'] == 'Approve') {
@@ -3167,7 +3169,7 @@ if(!empty($request->aadhar_no)){
       $id = $request->benId;
       $comments = $request->comments;
 
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       $duty = Configduty::where('user_id', '=', $user_id)->where('scheme_id', $scheme_id)->first();
       $role = MapLavel::where('scheme_id', $scheme_id)->where('role_name', Auth::user()->designation_id_old)->where('stack_level', $duty->mapping_level)->first();
       $inputs = request()->input('approvalcheck');

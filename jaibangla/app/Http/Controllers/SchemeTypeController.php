@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Schemetype;
 use Auth;
+use App\Helpers\AuthChecker;
 
 class SchemeTypeController extends Controller
 {
@@ -23,7 +24,7 @@ class SchemeTypeController extends Controller
 
     public function index(Request $request)
     {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         //print_r($user_id);
         //dd($request->session()->get('role'));
         $schemetype = Schemetype::paginate(20);

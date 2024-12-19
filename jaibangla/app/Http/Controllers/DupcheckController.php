@@ -52,6 +52,8 @@ use App\Traits\TraitCasteCertificateValidate;
 use App\Traits\TraitLifeCertificateValidate;
 use App\Traits\TraitAadharValidate;
 use Illuminate\Support\Facades\Session;
+use App\Helpers\AuthChecker;
+
 class DupcheckController extends Controller
 {
     public function __construct()
@@ -61,7 +63,7 @@ class DupcheckController extends Controller
     }
     public function index(){
         try {
-            $user_id = Auth::user()->id;
+            $user_id = AuthChecker::getUserId();
             $designation_id_old = Auth::user()->designation_id_old;
             if($designation_id_old == 'Admin'){
                 $scheme_id=10;

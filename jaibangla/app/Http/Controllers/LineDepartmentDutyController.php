@@ -16,6 +16,7 @@ use App\Ward;
 use App\GP;
 use App\Department;
 use Illuminate\Support\Facades\Log;
+use App\Helpers\AuthChecker;
 
 class LineDepartmentDutyController extends Controller
 {
@@ -29,7 +30,7 @@ class LineDepartmentDutyController extends Controller
      */
     public function index()
     {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id','=',$user_id)->first();
         //Log::info($duty->district_code);
         $is_active = $duty->is_active;
@@ -48,7 +49,7 @@ class LineDepartmentDutyController extends Controller
     {
         //
         //$schemes=DB::table('m_scheme')->orderby('id')->get();
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id','=',$user_id)->first();
         //$is_active = $duty->is_active;
         //$dist_code = $duty->district_code;

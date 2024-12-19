@@ -14,6 +14,8 @@ use App\UpdateBenDetails;
 use App\BeneficiaryPensions;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Helpers\AuthChecker;
+
 
 class RevertBackController extends Controller
 {
@@ -36,7 +38,7 @@ class RevertBackController extends Controller
 
     public function shemeSessionCheck(Request $request){
 
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       $scheme_id=0;
       $ben_table="";
 
@@ -135,7 +137,7 @@ class RevertBackController extends Controller
         $urban_body_code = $request->session()->get('bodyCode');
         $taluka_code = $request->session()->get('bodyCode');
         $role_id=$request->session()->get('role_id');
-    	$user_id = Auth::user()->id;
+    	$user_id = AuthChecker::getUserId();
 
         $schemeObj = DB::table('public.m_scheme')->where('id', $scheme_id)->first();
 
@@ -382,7 +384,7 @@ class RevertBackController extends Controller
         $urban_body_code = $request->session()->get('bodyCode');
         $taluka_code = $request->session()->get('bodyCode');
         $role_id=$request->session()->get('role_id');
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $body_code = $request->session()->get('bodyCode');
         $id=$request->id;
         $appPrefix = "App";
@@ -422,7 +424,7 @@ class RevertBackController extends Controller
         $urban_body_code = $request->session()->get('bodyCode');
         $taluka_code = $request->session()->get('bodyCode');
         $role_id=$request->session()->get('role_id');
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $body_code = $request->session()->get('bodyCode');
         if($scheme_id==1){
          $pr1='st';
@@ -443,7 +445,7 @@ class RevertBackController extends Controller
         //$comments=$request->comments;
         
         //$scheme_id = 3;
-    	$user_id = Auth::user()->id;    	
+    	$user_id = AuthChecker::getUserId();    	
     	$duty = Configduty::where('user_id','=',$user_id)->where('scheme_id',$scheme_id)->first();
     	$role=MapLavel::where('scheme_id',$scheme_id)->where('role_name',Auth::user()->designation_id_old)->where('stack_level',$duty->mapping_level)->first();
 

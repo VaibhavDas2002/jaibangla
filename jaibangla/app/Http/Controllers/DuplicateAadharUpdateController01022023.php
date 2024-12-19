@@ -65,7 +65,7 @@ class DuplicateAadharUpdateController extends Controller
     if ($is_active == 0) {
       return redirect("/")->with('error', 'User Disabled. ');
     }
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $mapObj = DB::table('public.duty_assignement')->where('user_id', $user_id)->where('is_active', 1)->first();
     $scheme = DB::select(DB::raw("select id,scheme_name from m_scheme where  id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . " and scheme_id in(2,10,11) )"));
     if (Auth::user()->designation_id_old == "Operator") {
@@ -99,7 +99,7 @@ class DuplicateAadharUpdateController extends Controller
       if (!ctype_digit($scheme_id)) {
         return redirect("/")->with('error', 'Scheme Not Valid');
       }
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       $designation_id_old = Auth::user()->designation_id_old;
       $errormsg = Config::get('constants.errormsg');
       $roleArray = $request->session()->get('role');

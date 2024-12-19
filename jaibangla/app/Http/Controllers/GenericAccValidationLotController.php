@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use Barryvdh\DomPDF\PDF;
 use Illuminate\Support\Facades\Storage;
+use App\Helpers\AuthChecker;
 
 class GenericAccValidationLotController extends Controller
 {
@@ -34,7 +35,7 @@ class GenericAccValidationLotController extends Controller
 	public function index()
 	{
 		return redirect("/")->with('success', 'Validation Lot creation is temporarily suspended due to financial year end migration.');
-		$user_id = Auth::user()->id;
+		$user_id = AuthChecker::getUserId();
 		$designation_id_old = Auth::user()->designation_id_old;
 		$report = DB::select(DB::raw("select id,scheme_name from m_scheme where id in (select scheme_id from duty_assignement where user_id=" . $user_id . " and is_active=1) and id in(2,10,11)"));
 		$bank_list = DB::table('sbi.npci_nach_live_banks')->get();

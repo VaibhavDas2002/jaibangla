@@ -35,6 +35,8 @@ use App\Scheme;
 use App\RejectRevertReason;
 use App\AcceptRejectInfo;
 use App\Traits\TraitAadharValidate;
+use App\Helpers\AuthChecker;
+
 class ValidationCorrectionPendingController extends Controller
 {
     use TraitAadharValidate;
@@ -68,7 +70,7 @@ class ValidationCorrectionPendingController extends Controller
         return $table_name;
     }
     public function index(){
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $designation = Auth::user()->designation_id_old;
         $mapObj = DB::connection('pgsql_mis')
             ->table('public.duty_assignement')
@@ -445,7 +447,7 @@ class ValidationCorrectionPendingController extends Controller
             }else{
                 $is_validation =1;
             }
-            $user_id = Auth::user()->id;
+            $user_id = AuthChecker::getUserId();
                 $mapObj = DB::connection('pgsql_mis')
                 ->table('public.duty_assignement')
                 ->where('user_id', $user_id)
@@ -803,7 +805,7 @@ class ValidationCorrectionPendingController extends Controller
             $id = $request->id;
             $gp_mun = $request->gp_mun;
             $scheme_id = $request->scheme_id;
-            $user_id = Auth::user()->id;
+            $user_id = AuthChecker::getUserId();
             $designation = Auth::user()->designation_id_old;
             $mapObj = DB::connection('pgsql_mis')
                 ->table('public.duty_assignement')
@@ -935,7 +937,7 @@ class ValidationCorrectionPendingController extends Controller
     }
 
     public function approver(){
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $dutyObj = Configduty::where('user_id', '=', $user_id)
             ->where('is_active', 1)
             ->first();
@@ -961,7 +963,7 @@ class ValidationCorrectionPendingController extends Controller
     }
     public function approverList(Request $request){
         //   dd($request->all());
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $dutyObj = Configduty::where('user_id', '=', $user_id)
             ->where('is_active', 1)
             ->first();
@@ -1183,7 +1185,7 @@ class ValidationCorrectionPendingController extends Controller
             $response = ['error' => 'Error occured in form submit.'];
             return response()->json($response, $statusCode);
         }
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $dutyObj = Configduty::where('user_id', '=', $user_id)
             ->where('is_active', 1)
             ->first();
@@ -1200,7 +1202,7 @@ class ValidationCorrectionPendingController extends Controller
             $scheme_id = $parts[1];
             if ($opreation_type == 'A') {
                 try {
-                    $user_id = Auth::user()->id;
+                    $user_id = AuthChecker::getUserId();
                     $ip_address = request()->ip();
                     $table = $this->getSchemaName($scheme_id);
                     $ben_details = DB::connection('pgsql_paywrite')->table(DB::raw($this->failed_table . ' as f'))
@@ -1417,7 +1419,7 @@ class ValidationCorrectionPendingController extends Controller
             }elseif ($opreation_type == 'T') {
                 $return_msg = 'Beneficiaries Reverted successfully';
                 try {
-                    $user_id = Auth::user()->id;
+                    $user_id = AuthChecker::getUserId();
                     $ip_address = request()->ip();
                     $ben_details = DB::connection('pgsql_paywrite')->table(DB::raw($this->failed_table . ' as f'))
                         ->join('payment.ben_payment_details as ben','f.ben_id', '=', 'ben.ben_id')

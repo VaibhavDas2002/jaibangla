@@ -11,6 +11,8 @@ use App\Scheme;
 use Illuminate\Support\Facades\Log;
 use DB;
 use App\Users_audit_trail;
+use App\Helpers\AuthChecker;
+
 
 class AddSchemeToExistingUserController extends Controller
 {
@@ -24,7 +26,7 @@ class AddSchemeToExistingUserController extends Controller
      */
     public function index(Request $request)
     {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $designation_id_old = Auth::user()->designation_id_old;
         $dutys = Configduty::where('user_id', '=', $user_id)->where('is_active', 1)->get(); //first();
         foreach ($dutys as $duty) {
@@ -121,7 +123,7 @@ class AddSchemeToExistingUserController extends Controller
         if ($designation_id_old != 'Approver' && $designation_id_old != 'HOD' &&  $designation_id_old != 'Admin') {
             return redirect("/")->with('success', 'User Disabled');
         }
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $dutys = Configduty::where('user_id', '=', $user_id)->where('is_active', 1)->get(); //first();
 
         $this->validateInput($request);

@@ -67,11 +67,7 @@ class WorkflowController extends Controller
   public function formEntryOption(Request $request)
   {
     $scheme_not_re = array(4, 12, 14, 15, 16, 18, 19);
-    $user_id = Auth::user()->id;
-    // $designation_id_old = Auth::user()->designation_id_old;
-    // if ($designation_id_old != 'Operator') {
-    //   return redirect('/')->with('error', 'Not Allowded');
-    // }
+    $user_id = AuthChecker::getUserId();
     $auth = AuthChecker::OperatorChecker();
     if (!$auth) {
       return redirect('/')->with('error', 'Not Allowded');
@@ -129,7 +125,7 @@ class WorkflowController extends Controller
   {
     $scheme_not_re = array(4, 12, 14, 15, 16, 18, 19);
     $designation_id_old = Auth::user()->designation_id_old;
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     if ($designation_id_old != 'Operator') {
       return redirect('/')->with('error', 'Not Allowded');
     }
@@ -187,7 +183,7 @@ class WorkflowController extends Controller
   {
     $scheme_not_re = array(4, 12, 14, 15, 16, 18, 19);
     $designation_id_old = Auth::user()->designation_id_old;
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     if ($designation_id_old == 'Verifier') {
 
       $district_arr = Configduty::select('district_code', 'urban_body_code', 'taluka_code', 'is_urban')->where('user_id', $user_id)->where('is_active', 1)->first();
@@ -325,7 +321,7 @@ class WorkflowController extends Controller
 
   public function shemeSessionCheck(Request $request)
   {
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
 
     $scheme_id = 0;
     $ben_table = "";
@@ -458,7 +454,7 @@ class WorkflowController extends Controller
       $is_state_login = $request->session()->get('is_state_login');
 
       // dd(session());
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       $table_name = 'pension.beneficiaries';
 
       if ($table_name == '') {
@@ -1906,7 +1902,7 @@ class WorkflowController extends Controller
        */
       }
     }
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $ben_table = $request->session()->get('ben_table');
     $id = $request->benId;
     $Verified = "Verified";
@@ -1986,7 +1982,7 @@ class WorkflowController extends Controller
     $urban_body_code = $request->session()->get('bodyCode');
     $taluka_code = $request->session()->get('bodyCode');
     $role_id = $request->session()->get('role_id');
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $table_name = $this->getSchemaName($scheme_id);
 
     if ($table_name == '') {
@@ -2100,7 +2096,7 @@ class WorkflowController extends Controller
     $role_id = $request->session()->get('role_id');
     $is_state_login = $request->session()->get('is_state_login');
     //dd($is_state_login);
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $reject_revert_cause_list = RejectRevertReason::where('status', true)->get();
     $id = $request->id;
     $appPrefix = "App";
@@ -2454,7 +2450,7 @@ class WorkflowController extends Controller
     if (!is_numeric($request->scheme_id)) {
       return redirect("/")->with('danger', 'Scheme ID Not Valid');
     }
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $designation_id_old = Auth::user()->designation_id_old;
     if ($designation_id_old == 'Operator') {
       return redirect("/")->with('danger', 'Not Allowded');
@@ -2670,7 +2666,7 @@ class WorkflowController extends Controller
     if ($table_name == '') {
       return redirect('/')->with('error', 'Scheme Not Found...');
     }
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $appPrefix = "App";
     $modelName = $appPrefix . "\\" . $ben_table;
     $id = $request->benId;
@@ -2686,7 +2682,7 @@ class WorkflowController extends Controller
     $accept_reject_model->user_id = $user_id;
     $accept_reject_model->created_by_dist_code = $district_code;
     $accept_reject_model->ip_address = request()->ip();
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $scheme_obj = Scheme::where('id', $scheme_id)->where('is_active', 1)->first();
     if (!empty($scheme_obj->short_code)) {
       $schema = $scheme_obj->short_code;
@@ -2870,7 +2866,7 @@ class WorkflowController extends Controller
     $urban_body_code = $request->session()->get('bodyCode');
     $taluka_code = $request->session()->get('bodyCode');
     $role_id = $request->session()->get('role_id');
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $table_name = $this->getSchemaName($scheme_id);
 
     if ($table_name == '') {
@@ -2897,7 +2893,7 @@ class WorkflowController extends Controller
       $scheme_length = NULL;
       $id_length = NULL;
     }
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $comments = $request->comments;
     $accept_reject_model = new AcceptRejectInfo;
     $accept_reject_model->created_at = $c_time;
@@ -3036,7 +3032,7 @@ class WorkflowController extends Controller
     $urban_body_code = $request->session()->get('bodyCode');
     $taluka_code = $request->session()->get('bodyCode');
     $role_id = $request->session()->get('role_id');
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $table_name = $this->getSchemaName($scheme_id);
 
     if ($table_name == '') {
@@ -3055,7 +3051,7 @@ class WorkflowController extends Controller
     $housingcomments = $request->housingapprovalcomment;
     $housingBenId = $request->housingBenId;
 
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $comments = $request->comments;
     $accept_reject_model = new AcceptRejectInfo;
     $accept_reject_model->created_at = $c_time;
@@ -3185,7 +3181,7 @@ class WorkflowController extends Controller
 
     // $comments=$request->comments;
 
-    // $user_id = Auth::user()->id;        
+    // $user_id = AuthChecker::getUserId();        
     // $duty = Configduty::where('user_id','=',$user_id)->where('scheme_id',$scheme_id)->first();
     // $role=MapLavel::where('scheme_id',$scheme_id)->where('role_name',Auth::user()->designation_id_old)->where('stack_level',$duty->mapping_level)->first();
 
@@ -3236,7 +3232,7 @@ class WorkflowController extends Controller
     $urban_body_code = $request->session()->get('bodyCode');
     $taluka_code = $request->session()->get('bodyCode');
     $role_id = $request->session()->get('role_id');
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $c_time = date('Y-m-d H:i:s', time());
     $id = $request->benId;
     $Verified = "Verified";
@@ -3250,7 +3246,7 @@ class WorkflowController extends Controller
     $accept_reject_model->user_id = $user_id;
     $accept_reject_model->created_by_dist_code = $district_code;
     $accept_reject_model->ip_address = request()->ip();
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $duty = Configduty::where('user_id', '=', $user_id)->where('scheme_id', $scheme_id)->first();
     $role = MapLavel::where('scheme_id', $scheme_id)->where('role_name', Auth::user()->designation_id_old)->where('stack_level', $duty->mapping_level)->first();
     $inputs = request()->input('approvalcheck');
@@ -3306,7 +3302,7 @@ class WorkflowController extends Controller
 
     $approveBtnvisible = 1;
     $verifyBtnvisible = 0;
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $reject_revert_cause_list = RejectRevertReason::where('status', true)->get();
     $id = $request->id;
     $scheme_id = $request->scheme_id;

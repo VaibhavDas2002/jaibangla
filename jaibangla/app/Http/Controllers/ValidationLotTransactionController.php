@@ -27,6 +27,9 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\SSH;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Process\Exception\ProcessFailedException;
+use App\Helpers\AuthChecker;
+
+
 
 class ValidationLotTransactionController extends Controller
 {
@@ -58,7 +61,7 @@ class ValidationLotTransactionController extends Controller
 
     public function lotMasterValidation()
     {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $designation_id_old = Auth::user()->designation_id_old;
         // dd($designation_id_old);
         if ($designation_id_old == 'DDO') {

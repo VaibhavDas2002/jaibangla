@@ -22,6 +22,7 @@ use App\DrillDown_report;
 use File;
 use DateTime;
 use DateTimeZone;
+use App\Helpers\AuthChecker;
 
 class DrillDownReport extends Controller
 {
@@ -58,7 +59,7 @@ class DrillDownReport extends Controller
     $fill_value_arr['fin_year'] = $select_year;
     $fill_value_arr['month'] = $monthName;
     $fill_value_arr['payment_option'] = 1;
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     if ($payment_mode == 'IFMS')
       $payment_scheme_in = array(1, 5, 6, 7, 19);
     elseif ($payment_mode == 'SBI')
@@ -323,7 +324,7 @@ class DrillDownReport extends Controller
     if ($payment_mode != 'IFMS' && $payment_mode != 'SBI') {
       return redirect('/')->with('error', 'Payment Mode Not Valid');
     }
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $designation_id_old = Auth::user()->designation_id_old;
     $scheme_id = $request->scheme_id;
     if (!is_null($scheme_id)) {
@@ -353,7 +354,7 @@ class DrillDownReport extends Controller
     $fill_value_arr['fin_year'] = $select_year;
     $fill_value_arr['month'] = $monthName;
     $fill_value_arr['payment_option'] = 1;
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     if ($payment_mode == 'IFMS')
       $payment_scheme_in = array(1, 5, 6, 7, 19);
     elseif ($payment_mode == 'SBI')

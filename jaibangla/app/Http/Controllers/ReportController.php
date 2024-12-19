@@ -23,6 +23,8 @@ use Session;
 use App\applicationModel;
 use DateTime; 
 use App\Http\Controllers\SmsSendController;
+use App\Helpers\AuthChecker;
+
 
 class ReportController extends Controller
 {
@@ -41,7 +43,7 @@ class ReportController extends Controller
     $applictions = applicationModel::where('current_status', '=', 'READY')->paginate(10);
 
     //$users = User::All();
-    //$user_id = Auth::user()->id;
+    //$user_id = AuthChecker::getUserId();
     //$duty = Configduty::where('user_id','=',$user_id)->first();
     //$applictions = applicationModel::where('current_status', '=', 'READY')->paginate(10);
 
@@ -58,7 +60,7 @@ class ReportController extends Controller
 
     public function app_pending() {
     $users = User::where('is_active',1)->get();
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $duty = Configduty::where('user_id','=',$user_id)->first();
     $applictions = applicationModel::where('is_fee_paid','=','Y')->where('current_status', '=', 'APPROVEDBYDCP' || 'ASSIGNEDTOSIDUE')->where('police_station_code', '=', $duty->ps_code)->paginate(10); 
 
@@ -67,7 +69,7 @@ class ReportController extends Controller
 
     public function app_processing() {
     $users = User::where('is_active',1)->get();
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $duty = Configduty::where('user_id','=',$user_id)->first();
     $applictions = applicationModel::where('is_fee_paid','=','Y')->where('current_status', '=', 'APPROVEDBYACP' ||'APPROVEDBYDCP')->where('police_station_code', '=', $duty->ps_code)->paginate(10); 
 
@@ -75,7 +77,7 @@ class ReportController extends Controller
     }
     public function app_rejected() {
     $users = User::where('is_active',1)->get();
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $duty = Configduty::where('user_id','=',$user_id)->first();
     $applictions = applicationModel::where('is_fee_paid','=','Y')->where('is_rejected', '=', 'N' )->where('police_station_code', '=', $duty->ps_code)->paginate(10); 
 

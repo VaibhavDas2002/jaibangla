@@ -22,6 +22,8 @@ use Redirect;
 use Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use App\Helpers\AuthChecker;
+
 class NHMEmployeeController extends Controller
 {
     
@@ -50,7 +52,7 @@ class NHMEmployeeController extends Controller
     {   
 
 
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         //$districts = District::all();
         $districts = District::where('is_revenue_district','=','1')->get(['district_code','district_name']);
         $major_programme_heads = majorProgammeHeadMaster::all();
@@ -252,7 +254,7 @@ class NHMEmployeeController extends Controller
 
         ///$nhm_employee_details->created_at=date("Y-M-D H:I:S");
         //$nhm_employee_details->updated_at=date("Y-M-D H:I:S");
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id','=',$user_id)->first();
         //dd($duty);
         $mappingLevel=$duty->mapping_level;
@@ -367,7 +369,7 @@ class NHMEmployeeController extends Controller
  public function loadDesignationList($programme_head_id,$service_category,$major_programme_head_id) {
 
         //$id = Auth::guard('api')->id;$id = Auth::guard('api')->user()->id;
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id','=',$user_id)->first();
 
         $mappingLevel=$duty->mapping_level;
@@ -412,7 +414,7 @@ class NHMEmployeeController extends Controller
 
 public function loadPostingPlace($posting_level) {
     
-     $user_id = Auth::user()->id;
+     $user_id = AuthChecker::getUserId();
      $duty = Configduty::where('user_id','=',$user_id)->first();
     
     
@@ -578,7 +580,7 @@ public function loadPostingPlace($posting_level) {
 
 // public function loadPostingPlacedynamic($posting_level) {
     
-//      $user_id = Auth::user()->id;
+//      $user_id = AuthChecker::getUserId();
 //      $duty = Configduty::where('user_id','=',$user_id)->first();
     
     
@@ -678,7 +680,7 @@ public function loadPostingPlace($posting_level) {
 
 public function verify(){
     //DB::enableQueryLog();
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $dutys = Configduty::where('user_id','=',$user_id)->get();
 //dd($duty);
 
@@ -890,7 +892,7 @@ public function verify(){
 
     DB::enableQueryLog();
     $flag=false;
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $dutys = Configduty::where('user_id','=',$user_id)->get();
    //dd($duty);
 
@@ -962,7 +964,7 @@ public function verify(){
 //dd($nhm_employee_details); 
 /*********************************************OLD code till 21-01-2020********************/
    //  $flag=false;
-   //  $user_id = Auth::user()->id;
+   //  $user_id = AuthChecker::getUserId();
    //  $duty = Configduty::where('user_id','=',$user_id)->first();
 
    //  if($duty->mapping_level=="State HQ"){

@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Helpers\AuthChecker;
 
 class AadharMobileDuplicateBenListController extends Controller
 {
@@ -52,7 +53,7 @@ class AadharMobileDuplicateBenListController extends Controller
         $roleArray = $request->session()->get('role');
         // echo '<pre>'; print_r($roleArray);die();
         $designation_id_old = Auth::user()->designation_id_old;
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $district_visible = $is_urban_visible = $block_visible = 1;
         $municipality_visible = 0;
         $gp_ward_visible = 0;
@@ -137,7 +138,7 @@ class AadharMobileDuplicateBenListController extends Controller
     {
         $roleArray = $request->session()->get('role');
         $designation_id_old = Auth::user()->designation_id_old;
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id', '=', $user_id)->first();
         $schemes = DB::select(DB::raw("select id,scheme_name,pr1_code,entry_url,display_name from m_scheme where id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . ") AND id in(2,10,11) order by rank"));
         if ($designation_id_old == 'Admin' || $designation_id_old == 'HOD' || $designation_id_old == 'HOP' || $designation_id_old == 'MisState' ||  $designation_id_old == 'Dashboard') {

@@ -27,7 +27,7 @@ class DistrictDrillDownReport extends Controller
   {
 
 
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $duty = Configduty::where('user_id', '=', $user_id)->first();
     $schemes = Scheme::where('is_active', 1)->get(['scheme_name as name', 'id as id']);
     //$districts = District::all();
@@ -58,7 +58,7 @@ class DistrictDrillDownReport extends Controller
   public function getdata(Request $request)
   {
     DB::enableQueryLog();
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     //$duty = Configduty::where('user_id','=',$user_id)->first();
 
 
@@ -189,7 +189,7 @@ class DistrictDrillDownReport extends Controller
   public function getlistsubmitted($district_code, $scheme_id)
   {
 
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $duty = Configduty::where('user_id', '=', $user_id)->first();
 
     //$district_code=$duty->district_code;
@@ -217,7 +217,7 @@ class DistrictDrillDownReport extends Controller
   public function getlistapproved($district_code, $scheme_id)
   {
 
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $duty = Configduty::where('user_id', '=', $user_id)->first();
 
     //$district_code=$duty->district_code;
@@ -246,7 +246,7 @@ class DistrictDrillDownReport extends Controller
   public function getlistverified($district_code, $scheme_id)
   {
 
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $duty = Configduty::where('user_id', '=', $user_id)->first();
 
     //$district_code=$duty->district_code;
@@ -289,7 +289,7 @@ class DistrictDrillDownReport extends Controller
     } elseif ($s_id == 2) {
       $ben_table = "Manabik";
     }
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
 
     $appPrefix = "App";
     $modelName = $appPrefix . "\\" . $ben_table;
@@ -305,7 +305,7 @@ class DistrictDrillDownReport extends Controller
   public function payment($type)
   {
 
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $duty = Configduty::where('user_id', '=', $user_id)->first();
     $schemes = Scheme::where('is_active', 1)->get(['scheme_name as name', 'id as id']);
 
@@ -316,7 +316,7 @@ class DistrictDrillDownReport extends Controller
   {
     //DB::enableQueryLog();
     if (request()->ajax()) {
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       $scheme_id = $request->level1a;
       $type = $request->type; // TYPE RBI of IFMS
 
@@ -430,7 +430,7 @@ class DistrictDrillDownReport extends Controller
     $monthName = $c_time->format('F');
     //dd($monthName);
     //dd($select_year);
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $schemes = DB::select(DB::raw("select id,scheme_name from m_scheme where id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . ")"));
     return view('District-Drilldown.district_consolidate_report')->with('schemes', $schemes)->with('selected_year', $select_year)->with('selected_month', $monthName);
   }
@@ -439,7 +439,7 @@ class DistrictDrillDownReport extends Controller
   {
     $schemes = array();
     if (request()->ajax()) {
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       $scheme_id = $request->scheme_id;
       $year = $request->fin_year;
       $month = $request->month;
@@ -669,7 +669,7 @@ class DistrictDrillDownReport extends Controller
     $monthName = $c_time->format('F');
     //dd($monthName);
     //dd($select_year);
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $schemes = DB::select(DB::raw("select id,scheme_name from m_scheme where id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . ")"));
     return view('District-Drilldown.district_consolidate_report_sbi')->with('schemes', $schemes)->with('selected_year', $select_year)->with('selected_month', $monthName);
   }
@@ -678,7 +678,7 @@ class DistrictDrillDownReport extends Controller
   {
     $schemes = array();
     if (request()->ajax()) {
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       $scheme_id = $request->scheme_id;
       $year = $request->fin_year;
       $month = $request->month;
@@ -873,7 +873,7 @@ class DistrictDrillDownReport extends Controller
   //Consolidated Report Districtwise WCD
   public function wcdconsol_report()
   {
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $duty = Configduty::where('user_id', '=', $user_id)->first();
     $schemes = Scheme::where('is_active', 1)->whereIn('id', [2, 10, 11])->get(['scheme_name as name', 'id as id']);
 
@@ -883,7 +883,7 @@ class DistrictDrillDownReport extends Controller
   public function getwcdconsol_reportData(Request $request)
   {
     if (request()->ajax()) {
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       $scheme_id = $request->level1a;
       //$pensioner_type = $request->level1c;
 

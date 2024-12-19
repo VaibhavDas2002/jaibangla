@@ -38,6 +38,8 @@ use App\AcceptRejectInfo;
 use App\MapLavel;
 use App\BenDocs;
 use App\BlkUrbanlEntryMapping;
+use App\Helpers\AuthChecker;
+
 
 class processApplicationController extends Controller
 {
@@ -58,7 +60,7 @@ class processApplicationController extends Controller
       $this->middleware('auth');
       $designation_id_old = Auth::user()->designation_id_old;
       //dd($designation_id_old);
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
   
       $scheme_id = $request->scheme_id;
       if (!ctype_digit($scheme_id)) {
@@ -178,7 +180,7 @@ class processApplicationController extends Controller
     
     $approveBtnvisible = 0;
     $verifyBtnvisible = 0;
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $reject_revert_cause_list = RejectRevertReason::where('status', true)->get();
     $id = $request->id;
     $scheme_id = $request->scheme_id;
@@ -340,7 +342,7 @@ class processApplicationController extends Controller
     if (!is_numeric($request->scheme_id)) {
       return redirect("/")->with('danger', 'Scheme ID Not Valid');
     }   
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $reject_revert_cause_list = RejectRevertReason::where('status', true)->get();
     $id = $request->benId;
     $scheme_id = $request->scheme_id;

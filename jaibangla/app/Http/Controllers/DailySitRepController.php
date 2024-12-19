@@ -9,6 +9,10 @@ use App\Dailysitrep;
 use Illuminate\Support\Facades\Log;
 use Auth;
 use App\Configduty;
+use App\Helpers\AuthChecker;
+
+
+
 class DailySitRepController extends Controller
 {
     /**
@@ -25,7 +29,7 @@ class DailySitRepController extends Controller
 
     public function index()
     {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id','=',$user_id)->first();        
         $policestations = Cspolicestation::where('cs_ps_code', '=', $duty->ps_code)->get();        
         $crimeHeads = CrimeHead::all();
@@ -50,7 +54,7 @@ class DailySitRepController extends Controller
      */
     public function store(Request $request)
     {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id','=',$user_id)->first();
         //Log::info('Comm id '.$duty->ps_code);
         $date = date('Y-m-d', strtotime("-1 days"));

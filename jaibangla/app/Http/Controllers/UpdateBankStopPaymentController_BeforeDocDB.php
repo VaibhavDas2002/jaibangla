@@ -44,7 +44,7 @@ class UpdateBankStopPaymentController extends Controller
   */
   public function index()
   {
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $designation = Auth::user()->designation_id_old;
     if ($designation == 'Approver' || $designation == 'Verifier') {
       $mapObj = Configduty::where('user_id', $user_id)->where('is_active', 1)->first();
@@ -67,7 +67,7 @@ class UpdateBankStopPaymentController extends Controller
   public function searchByBenName(Request $request)
   {
     if ($request->ajax()) {
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       $designation = Auth::user()->designation_id_old;
       $mapObj = Configduty::where('user_id', $user_id)->where('is_active', 1)->first();
       $dist_code = $mapObj->district_code;
@@ -548,7 +548,7 @@ class UpdateBankStopPaymentController extends Controller
         $schema=$schemaarr[0];
         
 
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         
         $id = $request->id;
         $remarks = $request->stop_remarks;
@@ -666,7 +666,7 @@ class UpdateBankStopPaymentController extends Controller
       return response()->json($response, $statusCode);
     }
     try {
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       $id = $request->id;
       $scheme_id = $request->scheme_id;
       $table = $this->getSchemaName($scheme_id);
@@ -734,7 +734,7 @@ class UpdateBankStopPaymentController extends Controller
       return response()->json($response, $statusCode);
     }
     try {
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       $id = $request->ben_id;
       $scheme_id = $request->scheme_id;
       $table = $this->getSchemaName($scheme_id);

@@ -25,6 +25,8 @@ use DB;
 use Validator;
 use Auth;
 use Excel;
+use App\Helpers\AuthChecker;
+
 
 
 
@@ -124,7 +126,7 @@ class userDutymanagementController  extends Controller
             if ($designation_id_old == 'Verifier'){
                 return redirect("/")->with('success', 'Not Allowded');
             }
-            $user_id = Auth::user()->id;
+            $user_id = AuthChecker::getUserId();
 
             $errormsg = Config::get('constants.errormsg');
             $departments = Department::where('is_active', 1)->get();
@@ -286,7 +288,7 @@ class userDutymanagementController  extends Controller
     }
     public function Search(Request $request)
     {
-            $user_id = Auth::user()->id;
+            $user_id = AuthChecker::getUserId();
             $designation_id_old = $this->designation_id_old;
             if($designation_id_old=='Admin'){
                 $schme_id_in = Scheme::select('id')->where('is_active',1)->get()->pluck('id')->toArray();
@@ -692,7 +694,7 @@ class userDutymanagementController  extends Controller
             if ($designation_id_old == 'Verifier'){
                 return redirect("/")->with('success', 'Not Allowded');
             }
-            $user_id = Auth::user()->id;
+            $user_id = AuthChecker::getUserId();
             $errormsg = Config::get('constants.errormsg');
             $district_visible=1;
             $is_urban_visible=0;
@@ -874,7 +876,7 @@ class userDutymanagementController  extends Controller
         if ($designation_id_old == 'Verifier'){
             return redirect("/")->with('success', 'Not Allowded');
         }
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $assign_designation_id_old = trim($request->designation_id_old);
         if (!in_array($designation_id_old,array('Admin','HOD','Approver','Verifier'))){
             $msg = 'Not Allowded.';

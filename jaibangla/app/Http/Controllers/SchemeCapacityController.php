@@ -17,6 +17,7 @@ use App\SchemeCapacity;
 use App\SubDistrict;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
+use App\Helpers\AuthChecker;
 
 class SchemeCapacityController extends Controller
 {
@@ -27,7 +28,7 @@ class SchemeCapacityController extends Controller
 	}
 	public function index()
 	{
-		$user_id = Auth::user()->id;
+		$user_id = AuthChecker::getUserId();
 		$schemeObj = Configduty::select('scheme_id')->where('user_id', '=', $user_id)->get();
 		$scheme = Scheme::whereIn('id', $schemeObj)->get();
 		if (Auth::user()->designation_id_old == 'HOD' || Auth::user()->designation_id_old == 'Admin') {

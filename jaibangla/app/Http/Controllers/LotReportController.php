@@ -12,6 +12,9 @@ use Illuminate\Support\Facades\Config;
 use App\Helpers\Helper;
 use App\Helpers\LotGeneration;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Helpers\AuthChecker;
+
+
 
 class LotReportController extends Controller
 {
@@ -57,7 +60,7 @@ class LotReportController extends Controller
     // ###############  Function for validation lot report ###########################
     public function index_validation_lot(Request $request)
     {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $designation_id_old = Auth::user()->designation_id_old;
         $scheme = DB::select(DB::raw("select id,scheme_name from public.m_scheme where id in (select scheme_id from public.duty_assignement where user_id=" . $user_id . " and is_active=1)"));
         if (count($scheme) > 0) {
@@ -116,7 +119,7 @@ class LotReportController extends Controller
     // ###############  Function for payment lot report ###########################
     public function index_payment_lot(Request $request)
     {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $designation_id_old = Auth::user()->designation_id_old;
         $scheme = DB::select(DB::raw("select id,scheme_name from public.m_scheme where id in (select scheme_id from public.duty_assignement where user_id=" . $user_id . " and is_active=1)"));
         if (count($scheme) > 0) {
@@ -210,7 +213,7 @@ class LotReportController extends Controller
     }
 
     public function index_pending_payment_lot(Request $request) {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $designation_id_old = Auth::user()->designation_id_old;
         $scheme = DB::select(DB::raw("select id,scheme_name from public.m_scheme where id in (select scheme_id from public.duty_assignement where user_id=" . $user_id . " and is_active=1)"));
         if (count($scheme) > 0) {
@@ -270,7 +273,7 @@ class LotReportController extends Controller
     }
 
     public function index_pending_lot_report(Request $request) {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $designation_id_old = Auth::user()->designation_id_old;
         $scheme = DB::select(DB::raw("select id,scheme_name from public.m_scheme where id in (select scheme_id from public.duty_assignement where user_id=" . $user_id . " and is_active=1)"));
         if (count($scheme) > 0) {
@@ -341,7 +344,7 @@ class LotReportController extends Controller
     }
 
     public function index_monthly_disbursement(Request $request) {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $designation_id_old = Auth::user()->designation_id_old;
         $scheme = DB::select(DB::raw("select id,scheme_name from public.m_scheme where id in (select scheme_id from public.duty_assignement where user_id=" . $user_id . " and is_active=1)"));
         if (count($scheme) > 0) {
@@ -425,7 +428,7 @@ class LotReportController extends Controller
     }
 
     public function index_date_wise_lot_report(Request $request) {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $designation_id_old = Auth::user()->designation_id_old;
         $scheme = DB::select(DB::raw("select id,scheme_name from public.m_scheme where id in (select scheme_id from public.duty_assignement where user_id=" . $user_id . " and is_active=1)"));
         if (count($scheme) > 0) {

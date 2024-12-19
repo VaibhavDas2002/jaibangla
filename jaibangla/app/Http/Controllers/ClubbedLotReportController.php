@@ -10,6 +10,7 @@ use Auth;
 use App\lot_master;
 
 use App\Scheme;
+use App\Helpers\AuthChecker;
 
 class ClubbedLotReportController extends Controller
 {
@@ -21,7 +22,7 @@ class ClubbedLotReportController extends Controller
   public function selectYearMonth()
   {
     $consolitated = 0;
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $schemes = Configduty::where('user_id', '=', $user_id)->where('is_active', 1)->get();
     return view('clubbed-lot-report/selectYearMonth', ['schemes' => $schemes, 'consolitated' => $consolitated]);
   }
@@ -61,7 +62,7 @@ class ClubbedLotReportController extends Controller
   {
     $consolitated = 1;
     if (Auth::user()->designation_id_old == 'DDO' || Auth::user()->designation_id_old == 'HOD') {
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       $schemes = Configduty::where('user_id', '=', $user_id)->where('is_active', 1)->get();
 
       if (request()->ajax()) {

@@ -13,6 +13,7 @@ use App\PensionSt;
 use App\Manabik;
 use App\UpdateBenDetails;
 use App\Configduty;
+use App\Helpers\AuthChecker;
 use App\SubDistrict;
 use App\Taluka;
 use App\Ward;
@@ -20,6 +21,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Facades\Excel;
+
+
 
 class BSKdrilldownController extends Controller
 {
@@ -39,9 +42,9 @@ class BSKdrilldownController extends Controller
             if (empty($schema_name)) {
                 $schema_name = 'pension';
             }
-            $table_name =  strtolower($schema_name) . '.beneficiary';
+            $table_name =  strtolower($schema_name) . '.beneficiaries';
         } else {
-            $table_name =  'pension.beneficiary';
+            $table_name =  'pension.beneficiaries';
         }
         return $table_name;
     }
@@ -51,7 +54,7 @@ class BSKdrilldownController extends Controller
         $is_active = 0;
         $roleArray = $request->session()->get('role');
         $designation_id_old = Auth::user()->designation_id_old;
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         // echo $user_id;die();
         $district_visible = $is_urban_visible = $block_visible = 1;
         $municipality_visible = 0;
@@ -61,9 +64,9 @@ class BSKdrilldownController extends Controller
         $duty = Configduty::where('user_id', '=', $user_id)->first();
         $schemes = DB::select(DB::raw("select id,scheme_name,pr1_code,entry_url,display_name from m_scheme where id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . ") AND id = 2 order by rank"));
         // print_r($schemes);die();
-        if ($designation_id_old == 'Admin' || $designation_id_old == 'HOD' || $designation_id_old == 'HOP' || $designation_id_old == 'MisState' ||  $designation_id_old == 'Dashboard') {
+        if (AuthChecker::ReportCheckerCommon()) {
             $district_visible = $is_urban_visible = $block_visible = 1;
-        } else if ($designation_id_old == 'Approver' || $designation_id_old == 'Verifier') {
+        } else if (AuthChecker::ApproverChecker() || AuthChecker::VerifierChecker()) {
             // echo $designation_id_old;die();
             $district_code = NULL;
             $is_urban = NULL;
@@ -126,7 +129,6 @@ class BSKdrilldownController extends Controller
                 'block_munc_corp_code_fk' => $block_munc_corp_code_fk,
                 'municipality_visible' => $municipality_visible,
                 'gp_ward_visible' => $gp_ward_visible,
-                'is_urban_visible' => $is_urban_visible,
                 'gpList' => $gpList,
                 'muncList' => $muncList,
                 // 'ds_phase_list' => $ds_phase_list

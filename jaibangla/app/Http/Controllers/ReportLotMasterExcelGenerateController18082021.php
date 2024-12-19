@@ -21,7 +21,7 @@ class ReportLotMasterExcelGenerateController extends Controller
     }
 
     public function selectYearMonth(){
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $schemes=Configduty::where('user_id','=',$user_id)->where('is_active',1)->get();
         return view('report-lot-master-all-info-payment-xls/selectYearMonth',['schemes'=>$schemes]);
     }

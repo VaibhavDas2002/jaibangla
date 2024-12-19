@@ -22,6 +22,8 @@ use File;
 use Illuminate\Support\Facades\Storage;
 use App\Configduty;
 use App\DataSourceCommon;
+use App\Helpers\AuthChecker;
+
 
 class UserManualController extends Controller
 {
@@ -267,7 +269,7 @@ public function upload(Request $request)
     function get(Request $request)
     {
         $designation_id_old = Auth::user()->designation_id_old;
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $schemearray = array();
 		$report = DB::select(DB::raw("select id,scheme_name from public.m_scheme where id in (select scheme_id from public.duty_assignement where user_id=" . $user_id . " and is_active=1)"));
 
@@ -325,7 +327,7 @@ public function upload(Request $request)
     // function gettt(Request $request)
     // {
     //     $designation_id_old = Auth::user()->designation_id_old;
-    //     $user_id = Auth::user()->id;
+    //     $user_id = AuthChecker::getUserId();
     //     $data = UserManual::where('designation_id_old', $designation_id_old)->where('is_active', 1)->get();
     //     $result = array();
     //     $scheme_in = array();
@@ -367,7 +369,7 @@ public function upload(Request $request)
     // function get(Request $request)
     // {
     //     $designation_id_old = Auth::user()->designation_id_old;
-    //     $user_id = Auth::user()->id;
+    //     $user_id = AuthChecker::getUserId();
     //     $data = UserManual::where('designation_id_old', $designation_id_old)->where('is_active', 1)->get();
     //     $result = array();
     //     $scheme_in = array();

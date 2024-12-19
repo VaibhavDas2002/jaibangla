@@ -32,6 +32,8 @@ use App\RejectRevertReason;
 use App\AcceptRejectInfo;
 use App\Helpers\PermissionManagement;
 use App\Helpers\AuthChecker;
+
+
 class CmoGrivanceWorkflowController extends Controller
 {
     public function __construct()
@@ -54,7 +56,7 @@ class CmoGrivanceWorkflowController extends Controller
             }
             $table_name = strtolower($schema_name) . '.beneficiary';
         } else {
-            $table_name = 'pension.beneficiary';
+            $table_name = 'pension.beneficiaries';
         }
         return $table_name;
     }
@@ -63,11 +65,11 @@ class CmoGrivanceWorkflowController extends Controller
         $scheme_id = $request->scheme_id;
         $cmoCheck = PermissionManagement::CmoCheck($scheme_id);
         if ($cmoCheck) {
-            $user_id = Auth::user()->id;
+            $user_id = AuthChecker::getUserId();
             $is_verifer = AuthChecker::VerifierChecker();
             $is_approver = AuthChecker::ApproverChecker();
             $is_hod = AuthChecker::HODChecker();
-            
+
             $mapObj = DB::connection('pgsql_mis')
                 ->table('public.duty_assignement')
                 ->where('user_id', $user_id)
@@ -91,12 +93,16 @@ class CmoGrivanceWorkflowController extends Controller
                             ->get();
                         return view('cmo-grievance/index', [
                             'schemes' => $scheme,
-                            'mapLevel' => $mapObj->mapping_level . $designation,
+                            'mapLevel' => $mapObj->mapping_level,
                             'urban_bodys' => $urban_bodys,
                             'local_body_code' => $urban_body_code,
                             'district_code' => $mapObj->district_code,
                             'scheme_id' => $scheme_id,
                             'scheme_name' => $scheme_name,
+                            'is_verifier' => $is_verifer,
+                            'is_approver' => $is_approver,
+                            'is_hod' => $is_hod,
+
                         ]);
                     } else {
                         $taluka_code = $mapObj->taluka_code;
@@ -105,12 +111,15 @@ class CmoGrivanceWorkflowController extends Controller
                             ->get();
                         return view('cmo-grievance/index', [
                             'schemes' => $scheme,
-                            'mapLevel' => $mapObj->mapping_level . $designation,
+                            'mapLevel' => $mapObj->mapping_level,
                             'gps' => $gps,
                             'local_body_code' => $taluka_code,
                             'district_code' => $mapObj->district_code,
                             'scheme_id' => $scheme_id,
                             'scheme_name' => $scheme_name,
+                            'is_verifier' => $is_verifer,
+                            'is_approver' => $is_approver,
+                            'is_hod' => $is_hod,
                         ]);
                     }
                 } else {
@@ -128,6 +137,9 @@ class CmoGrivanceWorkflowController extends Controller
                         'district_code' => $district_code,
                         'scheme_id' => $scheme_id,
                         'scheme_name' => $scheme_name,
+                        'is_verifier' => $is_verifer,
+                        'is_approver' => $is_approver,
+                        'is_hod' => $is_hod,
                     ]);
                 } else {
                     return redirect('/')->with(
@@ -142,6 +154,9 @@ class CmoGrivanceWorkflowController extends Controller
                         'mapLevel' => $mapObj->mapping_level,
                         'scheme_id' => $scheme_id,
                         'scheme_name' => $scheme_name,
+                        'is_verifier' => $is_verifer,
+                        'is_approver' => $is_approver,
+                        'is_hod' => $is_hod,
                     ]);
                 } else {
                     return redirect('/')->with(
@@ -166,13 +181,13 @@ class CmoGrivanceWorkflowController extends Controller
             $filter_1 = $request->filter_1;
             $filter_2 = $request->filter_2;
             $district_code = $request->district_code;
-            if ($mapLevel == 'BlockVerifier') {
+            if ($mapLevel == 'Block') {
                 if (!empty($request->filter_1)) {
                     $query = " Select * from cmo.cmo_sm_data where jb_local_body_code=" . $local_body_code . " and jb_gp_ward_code=" . $filter_1 . "";
                 } else {
                     $query = " Select * from cmo.cmo_sm_data where jb_local_body_code=" . $local_body_code . "";
                 }
-            } elseif ($mapLevel == 'SubdivVerifier') {
+            } elseif ($mapLevel == 'Subdiv') {
                 if (!empty($request->filter_1) && empty($request->filter_2)) {
                     $query = " Select * from cmo.cmo_sm_data where jb_local_body_code=" . $local_body_code . " and jb_block_ulb_code=" . $filter_1 . "";
                 } elseif (!empty($request->filter_1) && !empty($request->filter_2)) {
@@ -243,7 +258,7 @@ class CmoGrivanceWorkflowController extends Controller
     {
         //   dd($request->all());
         $user_id = AuthChecker::getUserId();
-        $designation = AuthChecker::getDesignationId();
+        // $designation = AuthChecker::getDesignationId();
         $grievance_id = $request->grievance_id;
         $scheme_id = $request->scheme_id;
         $grievance_mobile_no = $request->grievance_mobile_no;
@@ -289,7 +304,7 @@ class CmoGrivanceWorkflowController extends Controller
                 $attributes
             );
             if ($validator->passes()) {
-                $user_id = Auth::user()->id;
+                $user_id = AuthChecker::getUserId();
                 $scheme_id = $request->scheme_id;
                 $grievance_mobile_no = $request->grievance_mobile_no;
                 $grievance_id = $request->grievance_id;
@@ -357,7 +372,7 @@ class CmoGrivanceWorkflowController extends Controller
     public function benlisting(Request $request)
     {
         if ($request->ajax()) {
-            $user_id = Auth::user()->id;
+            $user_id = AuthChecker::getUserId();
             $designation = Auth::user()->designation_id_old;
             $scheme_id = $request->scheme_id;
             $grivence_mobile = $request->grivence_mobile;
@@ -501,7 +516,7 @@ class CmoGrivanceWorkflowController extends Controller
                 $attributes
             );
             if ($validator->passes()) {
-                $user_id = Auth::user()->id;
+                $user_id = AuthChecker::getUserId();
                 $scheme_id = $request->scheme_id;
                 $designation = Auth::user()->designation_id_old;
                 $duty_obj = Configduty::where('user_id', $user_id)->where('scheme_id', $scheme_id)->first();
@@ -627,7 +642,7 @@ class CmoGrivanceWorkflowController extends Controller
                 $attributes
             );
             if ($validator->passes()) {
-                $user_id = Auth::user()->id;
+                $user_id = AuthChecker::getUserId();
                 $scheme_id = $request->scheme_id;
                 $grievance_id = $request->grievance_id;
                 $grievance_mobile_no = $request->grievance_mobile_no;
@@ -705,7 +720,7 @@ class CmoGrivanceWorkflowController extends Controller
 
     public function opListCmo()
     {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $designation = Auth::user()->designation_id_old;
         $mapObj = DB::connection('pgsql_mis')
             ->table('public.duty_assignement')
@@ -817,7 +832,7 @@ class CmoGrivanceWorkflowController extends Controller
         $roleArray = $request->session()->get('role');
         // echo '<pre>'; print_r($roleArray);die();
         $designation_id_old = Auth::user()->designation_id_old;
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $district_visible = $is_urban_visible = $block_visible = 1;
         $municipality_visible = 0;
         $gp_ward_visible = 0;
@@ -899,7 +914,7 @@ class CmoGrivanceWorkflowController extends Controller
     public function hodList(Request $request)
     {
         //   dd($request->all());
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $designation_id_old = Auth::user()->designation_id_old;
         $scheme_code = $request->scheme_code;
         $district = $request->district;
@@ -943,7 +958,7 @@ class CmoGrivanceWorkflowController extends Controller
                     })
                     ->addColumn('address', function ($data) use ($districts) {
                         $address = '';
-                        if (!empty($$district)) {
+                        if (!empty($district)) {
                             $address = 'District - ' . $districts->district_name . '<br>';
                         }
                         if ($data->rural_urban_id == 1) {
@@ -1072,7 +1087,7 @@ class CmoGrivanceWorkflowController extends Controller
             $response = ['error' => 'Error occured in form submit.'];
             return response()->json($response, $statusCode);
         }
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $dutyObj = Configduty::where('user_id', '=', $user_id)
             ->where('is_active', 1)
             ->first();
@@ -1447,7 +1462,6 @@ class CmoGrivanceWorkflowController extends Controller
                 'block_munc_corp_code_fk' => $block_munc_corp_code_fk,
                 'municipality_visible' => $municipality_visible,
                 'gp_ward_visible' => $gp_ward_visible,
-                'is_urban_visible' => $is_urban_visible,
                 'base_date' => $base_date,
                 'c_date' => $c_date,
                 'gpList' => $gpList,
@@ -1594,11 +1608,11 @@ class CmoGrivanceWorkflowController extends Controller
             }
 
             if (!empty($from_date)) {
-                $form_date_formatted = \Carbon\Carbon::parse($from_date)->format('d-m-Y');
+                $form_date_formatted = Carbon::parse($from_date)->format('d-m-Y');
                 $heading_msg = $heading_msg . " from " . $form_date_formatted;
             }
             if (!empty($to_date)) {
-                $to_date_formatted = \Carbon\Carbon::parse($to_date)->format('d-m-Y');
+                $to_date_formatted = Carbon::parse($to_date)->format('d-m-Y');
                 $heading_msg = $heading_msg . " to  " . $to_date_formatted;
             }
         } else {

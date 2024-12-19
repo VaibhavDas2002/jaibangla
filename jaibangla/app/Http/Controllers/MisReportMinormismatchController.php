@@ -17,6 +17,8 @@ use App\GP;
 use App\RejectRevertReason;
 use Carbon\Carbon;
 use App\DsPhase;
+use App\Helpers\AuthChecker;
+
 
 class MisReportMinormismatchController extends Controller
 {
@@ -57,7 +59,7 @@ class MisReportMinormismatchController extends Controller
         } else {
             return redirect('/')->with('error', 'Signature Error: Report Type not selected');
         }
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $scheme_list = DB::select(DB::raw("select id,scheme_name from m_scheme where id  in (select scheme_id from duty_assignement where user_id=" . $user_id . " and is_active=1) and is_active=1 order by scheme_name"));
 
 

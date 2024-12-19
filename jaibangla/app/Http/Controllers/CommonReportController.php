@@ -16,6 +16,8 @@ use Illuminate\Support\Facades\Session;
 use Excel;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Response as FacadeResponse;
+use App\Helpers\AuthChecker;
+
 class CommonReportController extends Controller
 {
   public function __construct()
@@ -27,7 +29,7 @@ class CommonReportController extends Controller
 
   /* Report For WCD OAP Different Age De-activated Case */
   public function wcdAgeDiffStopPaymentIndex(Request $request) {
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $schemes = DB::select(DB::raw("select id,scheme_name from m_scheme where id in (select scheme_id from duty_assignement where user_id=" . $user_id . " and is_active=1 and scheme_id in(2,10,11))"));
     return view('common_report.wcd_age_stop_payment_report', ['report'=>$schemes]);
   }
@@ -137,7 +139,7 @@ class CommonReportController extends Controller
      // return redirect("/")->with('error',  $return_text);
     }
     //dd($return_text);
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $designation_id_old = Auth::user()->designation_id_old;
     $scheme_obj = Scheme::where('id', $scheme_id)->where('is_active', 1)->first();
     if (empty($scheme_obj)) {

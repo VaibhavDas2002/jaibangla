@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Auth;
 Use App\SitrepConfiguration;
+use App\Helpers\AuthChecker;
+
 
 class SitrepConfigurationController extends Controller
 {
@@ -42,7 +44,7 @@ class SitrepConfigurationController extends Controller
      */
     public function store(Request $request)
     {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id','=',$user_id)->first();        
         //$this->validateInput($request);  
         SitrepConfiguration::create([

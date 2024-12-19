@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\DB;
 use App\nhm_employee_details;
 use Auth;
 use App\Configduty;
+use App\Helpers\AuthChecker;
+
 
 class EmployeeReportGeneration extends Controller
 {
@@ -27,7 +29,7 @@ class EmployeeReportGeneration extends Controller
         else
         {
 
-                $user_id = Auth::user()->id;
+                $user_id = AuthChecker::getUserId();
                 $duty = Configduty::where('user_id','=',$user_id)->first();
 
                 if($duty->mapping_level=="State HQ"){

@@ -32,6 +32,8 @@ use App\Ward;
 use App\GP;
 use Carbon\Carbon;
 use App\Helpers\Helper;
+use App\Helpers\AuthChecker;
+
 class DuplicateBanklppController extends Controller
 {
     public function __construct()
@@ -44,7 +46,7 @@ class DuplicateBanklppController extends Controller
     public function dupList(Request $request)
     {
         $this->middleware('auth');
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $designation_id_old = Auth::user()->designation_id_old;
         $errormsg = Config::get('constants.errormsg');
         $roleArray = $request->session()->get('role');
@@ -104,7 +106,7 @@ class DuplicateBanklppController extends Controller
         $this->middleware('auth');
         $urban_body_code = NULL;
         $district_code= NULL;
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $designation_id_old = Auth::user()->designation_id_old;
         $errormsg = Config::get('constants.errormsg');
         $roleArray = $request->session()->get('role');
@@ -227,7 +229,7 @@ class DuplicateBanklppController extends Controller
     public function dedupBankUpdateLPP(Request $request)
     {
         $this->middleware('auth');
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $designation_id_old = Auth::user()->designation_id_old;
         $errormsg = Config::get('constants.errormsg');
         $roleArray = $request->session()->get('role');
@@ -346,7 +348,7 @@ class DuplicateBanklppController extends Controller
     public function dedupBankUpdatePostLPP(Request $request)
     {
         $this->middleware('auth');
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $designation_id_old = Auth::user()->designation_id_old;
         $urban_body_code = NULL;
         $district_code= NULL;
@@ -664,7 +666,7 @@ class DuplicateBanklppController extends Controller
     public function dedupBankSameLPP(Request $request)
     {
         $this->middleware('auth');
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $designation_id_old = Auth::user()->designation_id_old;
         $urban_body_code = NULL;
         $district_code= NULL;
@@ -842,7 +844,7 @@ class DuplicateBanklppController extends Controller
     public function dupBankRejectLPP(Request $request)
     {
         $this->middleware('auth');
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $designation_id_old = Auth::user()->designation_id_old;
         $urban_body_code = NULL;
         $district_code= NULL;

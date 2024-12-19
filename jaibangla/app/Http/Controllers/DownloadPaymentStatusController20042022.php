@@ -18,7 +18,7 @@ class DownloadPaymentStatusController extends Controller
     }
 
     public function index(){
-    	$user_id = Auth::user()->id;
+    	$user_id = AuthChecker::getUserId();
         $mapObj = Configduty::where('user_id',$user_id)->where('is_active',1)->get()->pluck('scheme_id');
         $scheme = Scheme::whereIn('id',$mapObj)->get();
         $is_urbanObj = Configduty::where('user_id',$user_id)->where('is_active',1)->first();

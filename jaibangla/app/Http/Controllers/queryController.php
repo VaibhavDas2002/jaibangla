@@ -42,7 +42,7 @@ class queryController extends Controller
        
 
        
-       // $user_id = Auth::user()->id;
+       // $user_id = AuthChecker::getUserId();
         // $duty_schemes = Configduty::where('user_id', '=', $user_id)->where('is_active', 1)->get()->pluck('scheme_id')->toArray();
         // $scheme_list_constants = Config::get('constants.scheme_code_map');
         // $scheme_list = array();

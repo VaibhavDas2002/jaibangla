@@ -92,11 +92,14 @@ use App\BenDocs;
 use Illuminate\Support\Facades\Storage;
 use App\AcceptRejectInfo;
 use App\BenEntry;
+use App\Helpers\AuthChecker;
 use App\Traits\TraitAadharValidate;
 use App\Traits\TraitCasteCertificateValidate;
 use App\Traits\TraitLifeCertificateValidate;
 use Illuminate\Support\Facades\Session;
 use App\Helpers\DupCheck;
+
+
 class PensionformController extends Controller
 {
 
@@ -206,7 +209,7 @@ class PensionformController extends Controller
      */
     public function store(Request $request)
     {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $designation_id_old = Auth::user()->designation_id_old;
         if (!in_array($designation_id_old, array('Operator'))) {
             return redirect("/")->with('error', 'Not Allowed');
@@ -683,7 +686,7 @@ class PensionformController extends Controller
     public function applicationlist()
     {
         //DB::enableQueryLog();
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $rows = PensionSc::orderBy('id', 'desc')->paginate(500);
         return view('pension_list', ['nhm_employee_details' => $rows]);
     }
@@ -691,7 +694,7 @@ class PensionformController extends Controller
     {
         //DB::enableQueryLog();
 
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
 
         if ($request->get('pr1')) {
             if ($request->get('pr1') == "farmer") {
@@ -756,7 +759,7 @@ class PensionformController extends Controller
     {
         //DB::enableQueryLog();
 
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $designation_id_old = Auth::user()->designation_id_old;
         //dd($designation_id_old);
         if ($designation_id_old != 'Operator') {
@@ -888,7 +891,7 @@ class PensionformController extends Controller
                 return redirect("/")->with('danger', 'Applicant ID Not Valid');
             }
             $is_active = 0;
-            $user_id = Auth::user()->id;
+            $user_id = AuthChecker::getUserId();
 
             $duty = Configduty::where('user_id', '=', $user_id)->where('is_active', 1)->first();
 
@@ -1086,7 +1089,7 @@ class PensionformController extends Controller
 
     public function applicationeditview(Request $request)
     {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $id = (int) $request->id;
         $scheme_id = (int) $request->scheme_id;
         $designation_id_old = Auth::user()->designation_id_old;
@@ -1482,7 +1485,7 @@ class PensionformController extends Controller
         //     dd(11);
         // }
         $c_time = date('Y-m-d H:i:s');
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $input = [
             //'name' => $request['name']
             //'ben_fname' => $request->first_name,
@@ -1870,7 +1873,7 @@ class PensionformController extends Controller
     {
 
         //$id = Auth::guard('api')->id;$id = Auth::guard('api')->user()->id;
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id', '=', $user_id)->first();
 
         $mappingLevel = $duty->mapping_level;
@@ -1916,7 +1919,7 @@ class PensionformController extends Controller
     public function loadPostingPlace($posting_level)
     {
 
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id', '=', $user_id)->first();
 
 
@@ -2046,7 +2049,7 @@ class PensionformController extends Controller
 
     // public function loadPostingPlacedynamic($posting_level) {
 
-    //      $user_id = Auth::user()->id;
+    //      $user_id = AuthChecker::getUserId();
     //      $duty = Configduty::where('user_id','=',$user_id)->first();
 
 
@@ -2248,7 +2251,7 @@ class PensionformController extends Controller
 
         DB::enableQueryLog();
         $flag = false;
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $dutys = Configduty::where('user_id', '=', $user_id)->get();
         //dd($duty);
 
@@ -2307,7 +2310,7 @@ class PensionformController extends Controller
         //dd($nhm_employee_details); 
         /*********************************************OLD code till 21-01-2020********************/
         //  $flag=false;
-        //  $user_id = Auth::user()->id;
+        //  $user_id = AuthChecker::getUserId();
         //  $duty = Configduty::where('user_id','=',$user_id)->first();
 
         //  if($duty->mapping_level=="State HQ"){
@@ -2640,7 +2643,7 @@ class PensionformController extends Controller
     {
         // dd($request->all());
         //dd(123);
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $designation_id = Auth::user()->designation_id_old;
         //dd($designation_id);
         if ($designation_id != 'Operator') {
@@ -2867,13 +2870,13 @@ class PensionformController extends Controller
     }
     public function schemelistforUpdate(Request $request)
     {
-        $arr = SchemecodeStatic::getpr1ListPurohit();
-        $monthlySlug = $arr['monthly']['slug'];
-        $housingSlug = $arr['housing']['slug'];
-        $designationId = Auth::user()->designation_id_old;
-        $userId = Auth::user()->id;
-        $scheme_list = DB::select(DB::raw("select id,display_name,pr1_code,scheme_name,short_code from m_scheme where id in (select scheme_id from duty_assignement where user_id=" . $userId . " and is_active=1) and is_active=1 order by rank"));
-        return view('commonView.schemelistforUpdate', ['scheme_list' => $scheme_list, 'monthlySlug' => $monthlySlug, 'housingSlug' => $housingSlug]);
+        $auth = AuthChecker::ReportChecker();
+        if ($auth) {
+            $userId = Auth::user()->id;
+            $scheme_list = DB::select(DB::raw("select id,display_name,pr1_code,scheme_name,short_code from m_scheme where id in (select scheme_id from duty_assignement where user_id=" . $userId . " and is_active=1) and is_active=1 order by rank"));
+            return view('commonView.schemelistforUpdate', ['scheme_list' => $scheme_list]);
+        }
+
     }
     function replaceNullValueWithEmptyString(&$value)
     {
@@ -2883,7 +2886,7 @@ class PensionformController extends Controller
     function applicationreject(Request $request)
     {
 
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $c_time = date('Y-m-d H:i:s', time());
         $accept_reject_model = new AcceptRejectInfo;
         $accept_reject_model->created_at = $c_time;

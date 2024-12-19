@@ -7,6 +7,7 @@ use DB;
 use App\User;
 use Auth;
 use App\Configduty;
+use App\Helpers\AuthChecker;
 use App\lot_master;
 use App\Scheme;
 use App\Helpers\Helper;
@@ -14,6 +15,9 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Session;
 use Excel;
+
+
+
 
 class AgeCohortBeneficiaryListController extends Controller
 {
@@ -41,7 +45,7 @@ class AgeCohortBeneficiaryListController extends Controller
   }
   /*Landing Page*/
   public function index(Request $request) {
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $scheme = DB::select(DB::raw("select id,scheme_name from m_scheme where id in (select scheme_id from duty_assignement where user_id=" . $user_id . " and is_active=1 and scheme_id in(10))"));
     return view('ageCohortBenList.index', ['schemes' => $scheme]);
   }
@@ -151,7 +155,7 @@ class AgeCohortBeneficiaryListController extends Controller
             (extract(year from current_date)-extract(year from dob))>=100
           )
         )";
-      if ($designation == 'Verifier') {
+      if (AuthChecker::VerifierChecker()) {
         $query .= ' AND created_by_local_body_code='.$blockCode;
       }
 

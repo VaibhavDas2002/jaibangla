@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 use App\lot_master;
 use Auth;
 use App\Configduty;
+use App\Helpers\AuthChecker;
 
 class RepeatLotController extends Controller
 {
@@ -19,7 +20,7 @@ class RepeatLotController extends Controller
     public function index()
     {
         $lot_month="August";
-        $user_id = Auth::user()->id;        
+        $user_id = AuthChecker::getUserId();        
         $scheme_id = Configduty::where('user_id','=',$user_id)->where('is_active',1)->first();
         $lots = lot_master::where('scheme_id',$scheme_id->scheme_id)
         		//->whereNotNull('ref_no')

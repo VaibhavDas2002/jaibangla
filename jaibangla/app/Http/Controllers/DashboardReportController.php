@@ -15,6 +15,8 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Session;
 // use Excel;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Helpers\AuthChecker;
+
 
 class DashboardReportController extends Controller
 {
@@ -33,7 +35,7 @@ class DashboardReportController extends Controller
         return response()->json($response, $statusCode);
     }
     try {
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       if ($user_id == 5994) { // For LPP retainer and pensioner, purohit monthly 
         $query = "(WITH Duplicates AS
         (
@@ -134,7 +136,7 @@ class DashboardReportController extends Controller
   }
   public function getLppApprovedCount(Request $request) {
     // print 'Die';
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $reports = DB::connection('pgsql_mis')->select("select id,scheme_name from m_scheme where id in (select scheme_id from duty_assignement where user_id=" . $user_id . " and is_active=1) order by scheme_name");
     $s_arr = [];
     foreach ($reports as $k) {

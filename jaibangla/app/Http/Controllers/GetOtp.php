@@ -16,6 +16,8 @@ use App\Scheme;
 use App\Department;
 use App\Designation;
 use Validator;
+use App\Helpers\AuthChecker;
+
 
 class GetOtp extends Controller
 {
@@ -26,7 +28,7 @@ class GetOtp extends Controller
   public function index(Request $request)
   {
     $this->middleware('auth');
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $designation_id_old = Auth::user()->designation_id_old;
     if ($designation_id_old != 'Admin') {
       return redirect('/')->with('error', 'Payment Mode Not Valid');

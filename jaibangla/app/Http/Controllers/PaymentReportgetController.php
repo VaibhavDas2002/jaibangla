@@ -16,6 +16,7 @@ use Carbon\Carbon;
 use Validator;
 use Illuminate\Http\Request;
 use App\GP;
+use App\Helpers\AuthChecker;
 
 class PaymentReportgetController extends Controller
 {
@@ -46,7 +47,7 @@ class PaymentReportgetController extends Controller
             $is_active = 0;
             $roleArray = $request->session()->get('role');
             $designation_id_old = Auth::user()->designation_id_old;
-            $user_id = Auth::user()->id;
+            $user_id = AuthChecker::getUserId();
             // echo $user_id;die();
             $district_visible = $is_urban_visible = $block_visible = 1;
             $municipality_visible = 0;

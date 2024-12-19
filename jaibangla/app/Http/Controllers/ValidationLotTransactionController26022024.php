@@ -54,7 +54,7 @@ class ValidationLotTransactionController extends Controller
 
     public function lotMasterValidation()
     {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $designation_id_old = Auth::user()->designation_id_old;
         // dd($designation_id_old);
         if ($designation_id_old == 'DDO') {

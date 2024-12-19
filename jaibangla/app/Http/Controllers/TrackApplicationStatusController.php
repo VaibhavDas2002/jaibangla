@@ -41,9 +41,9 @@ class TrackApplicationStatusController extends Controller
       if (empty($schema_name)) {
         $schema_name = 'pension';
       }
-      $table_name =  strtolower($schema_name) . '.beneficiary';
+      $table_name =  strtolower($schema_name) . '.beneficiaries';
     } else {
-      $table_name =  'pension.beneficiary';
+      $table_name =  'pension.beneficiaries';
     }
     return $table_name;
   }
@@ -73,9 +73,7 @@ class TrackApplicationStatusController extends Controller
   */
   public function index()
   {
-    $user_id = Auth::user()->id;
-    $designation = Auth::user()->designation_id_old;
-    $mapObj = DB::connection('pgsql_mis')->table('public.duty_assignement')->where('user_id', $user_id)->where('is_active', 1)->first();
+    $user_id = AuthChecker::getUserId();
     $scheme = DB::connection('pgsql_mis')->select('select id,scheme_name from public.m_scheme where id in (select scheme_id from public.duty_assignement where user_id=' . $user_id . ' and is_active=1) and is_active=1 order by scheme_name');
     if (count($scheme) > 0) {
       return view('trackApplicationStatus/index', ['schemes' => $scheme]);

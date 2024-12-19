@@ -16,13 +16,14 @@ use App\Ward;
 use App\GP;
 use Illuminate\Support\Facades\Log;
 use App\Users_audit_trail;
+use App\Helpers\AuthChecker;
 
 class EmployeeUserDutyController extends Controller
 {
 
     public function index()
     {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $designation_id_old = Auth::user()->designation_id_old;
         ////////////////////////////29-06-2020 sd start/////////////////////////////////////////
         $dutys = Configduty::where('user_id', '=', $user_id)->where('is_active', 1)->get(); //first();
@@ -62,7 +63,7 @@ class EmployeeUserDutyController extends Controller
         }
         ////////////////////////////26-06-2020 sd start/////////////////////////////////////////
         /* $schemes=DB::table('m_scheme')->orderby('id')->get();*/
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         /*$duty = Configduty::where('user_id','=',$user_id)->first();*/
         $dutys = Configduty::where('user_id', '=', $user_id)->get();
         //$is_active = $duty->is_active;

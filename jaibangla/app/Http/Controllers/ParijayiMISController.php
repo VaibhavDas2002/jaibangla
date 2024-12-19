@@ -22,6 +22,8 @@ use App\ApplicationStatus;
 use App\StatusCode;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Helpers\AuthChecker;
+
 
 class ParijayiMISController extends Controller
 {   
@@ -32,7 +34,7 @@ class ParijayiMISController extends Controller
 
     public function getStateReport(Request $request)
     {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id','=',$user_id)->first();
         $districts = District::select('district_code','district_name')->get();
         return view('Parijayi.consolidate_report')->with('districts',$districts);
@@ -141,7 +143,7 @@ class ParijayiMISController extends Controller
      //Duplicate MIS
     public function indexDuplicateMIS()
     {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id','=',$user_id)->first();
         $district_code=$duty->district_code;
         $district_name=District::where('district_code',$district_code)->pluck('district_name')->first();
@@ -151,7 +153,7 @@ class ParijayiMISController extends Controller
     }
     public function getDuplicateRecord(Request $request)
     {
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       $district_code=$request->level1;
       $district_name=$request->level2;
       $serachvalue = $request->search['value'];
@@ -237,7 +239,7 @@ class ParijayiMISController extends Controller
      //Duplicate Account No MIS
     public function indexDuplicateAccNoMIS()
     {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id','=',$user_id)->first();
         $district_code=$duty->district_code;
         $district_name=District::where('district_code',$district_code)->pluck('district_name')->first();
@@ -247,7 +249,7 @@ class ParijayiMISController extends Controller
     }
     public function getDuplicateAccNoRecord(Request $request)
     {
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       $district_code=$request->level1;
       $district_name=$request->level2;
       $serachvalue = $request->search['value'];

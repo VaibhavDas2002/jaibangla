@@ -37,6 +37,8 @@ use App\Helpers\Helper;
 use App\AcceptRejectInfo;
 use App\MapLavel;
 use App\BenDocs;
+use App\Helpers\AuthChecker;
+
 class BanfailurelongpenController extends Controller
 {
 
@@ -51,7 +53,7 @@ class BanfailurelongpenController extends Controller
     {
       try{
       $designation_id_old = Auth::user()->designation_id_old;
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       if ($designation_id_old == 'Approver') {
         $schemes = DB::select(DB::raw("select id,scheme_name,display_name,is_active from m_scheme where  id IN (1,3,19) and  id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . ") order by rank"));
         //dd($schemes);
@@ -75,7 +77,7 @@ class BanfailurelongpenController extends Controller
       $this->middleware('auth');
       $designation_id_old = Auth::user()->designation_id_old;
       //dd($designation_id_old);
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
   
       $scheme_id = $request->scheme_id;
       if (!ctype_digit($scheme_id)) {
@@ -288,7 +290,7 @@ class BanfailurelongpenController extends Controller
     try{
       $this->middleware('auth');
       $designation_id_old = Auth::user()->designation_id_old;
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       $id = $request->id;
      // dd($id);
       if (empty($request->id)) {
@@ -432,7 +434,7 @@ class BanfailurelongpenController extends Controller
       if ($designation_id_old!='Approver') {
         return redirect("/")->with('error', 'Not Allowed');
       }
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       $duty_obj = Configduty::where('user_id', $user_id)->first();
       if (empty($duty_obj)) {
         return redirect("/")->with('danger', 'Not Allowed');
@@ -524,8 +526,8 @@ class BanfailurelongpenController extends Controller
       $application_id=$request->application_id;
         $roleArray = $request->session()->get('role');
         $designation_id_old = Auth::user()->designation_id_old;
-        $user_id = Auth::user()->id;
-    //$user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
+    //$user_id = AuthChecker::getUserId();
     $duty_obj = Configduty::where('user_id', $user_id)->first();
     $district_code = $duty_obj->district_code;
     $getModelFunc = new getModelFunc();
@@ -999,7 +1001,7 @@ class BanfailurelongpenController extends Controller
     public function generate_excel(Request $request)
     {
       try{
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       $scheme_id = $request->scheme_id;
       if (empty($scheme_id)) {
         return redirect("/")->with('danger', 'Not Allowed');

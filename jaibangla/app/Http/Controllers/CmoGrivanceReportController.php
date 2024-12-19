@@ -39,6 +39,7 @@ use App\MapLavel;
 use App\BenDocs;
 use Exception;
 use App\Traits\TraitAadharValidate;
+use App\Helpers\AuthChecker;
 
 class CmoGrivanceReportController extends Controller
 {
@@ -439,7 +440,7 @@ class CmoGrivanceReportController extends Controller
         $roleArray = $request->session()->get('role');
         // echo '<pre>'; print_r($roleArray);die();
         $designation_id_old = Auth::user()->designation_id_old;
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $district_visible = $is_urban_visible = $block_visible = 1;
         $municipality_visible = 0;
         $gp_ward_visible = 0;
@@ -532,7 +533,7 @@ class CmoGrivanceReportController extends Controller
         //dd($request->district);
         $roleArray = $request->session()->get('role');
         $designation_id_old = Auth::user()->designation_id_old;
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id', '=', $user_id)->first();
         // $schemes = DB::select(DB::raw("select id,scheme_name,pr1_code,entry_url,display_name from m_scheme where id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . ") AND id in(2,10,11,1,3,19) order by rank"));
         $schemes = DB::select(DB::raw("select id,scheme_name from m_scheme where  id in (select scheme_id from duty_assignement where user_id=" . $user_id . " and is_active=1) and is_active=1 and id = 10 order by scheme_name"));
@@ -671,7 +672,7 @@ class CmoGrivanceReportController extends Controller
     {
         $roleArray = $request->session()->get('role');
         $designation_id_old = Auth::user()->designation_id_old;
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $scheme_id = $request->scheme_id;
         if ($designation_id_old == 'Admin' || $designation_id_old == 'HOD' || $designation_id_old == 'HOP' || $designation_id_old == 'MisState' ||  $designation_id_old == 'Dashboard') {
             $district_code =$request->district;
@@ -760,7 +761,7 @@ class CmoGrivanceReportController extends Controller
     }
     public function revertApplication(Request $request)
     {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $scheme_id = $request->scheme_id;
         $ben_id = $request->ben_id;
         if (empty($request->ben_id)) {
@@ -840,7 +841,7 @@ class CmoGrivanceReportController extends Controller
     }
     public function bulkRevert(Request $request)
     {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $scheme_id = $request->scheme_id;
        
         if (empty($request->scheme_id)) {
@@ -922,7 +923,7 @@ class CmoGrivanceReportController extends Controller
     }
     public function unamrkApplication(Request $request)
     {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $scheme_id = $request->scheme_id;
         $ben_id = $request->ben_id;
         if (empty($request->ben_id)) {
@@ -1006,7 +1007,7 @@ class CmoGrivanceReportController extends Controller
        // dd('ok');
       $this->middleware('auth');
       $designation_id_old = Auth::user()->designation_id_old;
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       $scheme_id = $request->scheme_id;
       if (!ctype_digit($scheme_id)) {
         return redirect("/")->with('error', 'Scheme Not Valid');
@@ -1108,7 +1109,7 @@ class CmoGrivanceReportController extends Controller
       if (!in_array($designation_id_old, array('Verifier'))) {
         return redirect("/")->with('error', 'Not Allowed');
       }
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       $scheme_id = $request->scheme_id;
       $duty_obj = Configduty::where('user_id', $user_id)->where('scheme_id', $scheme_id)->where('is_active', 1)->first();
       $application_type = $request->application_type;
@@ -1240,7 +1241,7 @@ public function checkCmo(Request $request){
       if (!in_array($designation_id_old, array('Operator','Verifier'))) {
         return redirect("/")->with('error', 'Not Allowed');
       }
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       $id = $request->cmo_id;
       if (empty($request->cmo_id)) {
         return redirect("/")->with('danger', 'ID Not Found');
@@ -1381,7 +1382,7 @@ public function checkCmo(Request $request){
       if (!in_array($designation_id_old, array('Operator','Verifier'))) {
         return redirect("/")->with('error', 'Not Allowed');
       }
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       $id = $request->cmo_id;
       if (empty($request->cmo_id)) {
         return redirect("/")->with('danger', 'ID Not Found');
@@ -1440,7 +1441,7 @@ public function checkCmo(Request $request){
     if (!in_array($designation_id_old, array('Verifier'))) {
       return redirect("/")->with('error', 'Not Allowed');
     }
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $scheme_id = $request->scheme_id;
     $cmo_id = $request->cmo_id;
     $mobile_no = trim($request->new_mobile_no);
@@ -1566,7 +1567,7 @@ public function checkCmo(Request $request){
 public function cmoEntrymark(Request $request)
     {
         try{
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $designation_id_old = Auth::user()->designation_id_old;
         if ($designation_id_old != 'Operator') {
             return redirect("/")->with('error', 'Not Allowed');
@@ -1714,7 +1715,7 @@ public function cmoEntrymark(Request $request)
       if (!in_array($designation_id_old, array('Operator','Verifier'))) {
         return redirect("/")->with('error', 'Not Allowed');
       }
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       if (empty($request->scheme_id)) {
         return redirect("/")->with('danger', 'Scheme ID Not Found');
       }

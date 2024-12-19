@@ -20,6 +20,8 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Config;
 use Carbon\Carbon;
+use App\Helpers\AuthChecker;
+
 
 class ChartController extends Controller
 {
@@ -37,7 +39,7 @@ class ChartController extends Controller
     {
       // dd($request->all());
       $designation_id_old = Auth::user()->designation_id_old;
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       if($designation_id_old!='HOD'){
         return redirect("/")->with('danger', 'Not Allowed');
 

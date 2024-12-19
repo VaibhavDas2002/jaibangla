@@ -466,7 +466,6 @@
                 data: function (d) {
                     d._token = "{{csrf_token()}}",
                         d.scheme = "{{ $scheme }}",
-                        d.pr1 = "{{ $pr1 }}",
                         d.is_reverted = $('#is_reverted').val()
                 }
             },
@@ -523,7 +522,7 @@
                 $tr = $tr.prev('parent');
             }
             var data = table.row($tr).data();
-            var page = 'application-details-read_only/' + data['id'];
+            var page = 'processApplicationDetailsCommon/' + data['id'] + '/' + data['scheme'];
             $('#view_form').attr('action', page);
             $('#view_form').submit();
         });

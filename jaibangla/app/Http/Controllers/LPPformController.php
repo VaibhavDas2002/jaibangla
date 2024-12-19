@@ -34,6 +34,8 @@ use App\BenEntry;
 use App\Traits\TraitCasteCertificateValidate;
 use App\Traits\TraitLifeCertificateValidate;
 use App\Traits\TraitAadharValidate;
+use App\Helpers\AuthChecker;
+
 class LPPformController extends Controller
 {
     use TraitCasteCertificateValidate;
@@ -53,7 +55,7 @@ class LPPformController extends Controller
     {
       try{
       $designation_id_old = Auth::user()->designation_id_old;
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       if ($designation_id_old == 'Approver') {
         $schemes = DB::select(DB::raw("select id,scheme_name,display_name,is_active from m_scheme where id IN (8,9) and   id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . ") order by rank"));
         //dd($schemes);
@@ -77,7 +79,7 @@ class LPPformController extends Controller
         $this->middleware('auth');
         $designation_id_old = Auth::user()->designation_id_old;
         //dd($designation_id_old);
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
     
         $scheme_id = $request->scheme_id;
         if (!ctype_digit($scheme_id)) {
@@ -135,7 +137,7 @@ class LPPformController extends Controller
     {
         $this->middleware('auth');
         $designation_id_old = Auth::user()->designation_id_old;
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $scheme_id = $request->scheme_id;
         if (!ctype_digit($scheme_id)) {
           return redirect("/")->with('error', 'Scheme Not Valid');
@@ -885,7 +887,7 @@ public function applicationdetailsReadOnlyLpp(Request $request)
         return redirect("/")->with('danger', 'Applicant ID Not Valid');
     }
     $is_active = 0;
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     
     $duty = Configduty::where('user_id', '=', $user_id)->where('is_active', 1)->first();
     
@@ -991,7 +993,7 @@ public function applicationdetailsReadOnlyLpp(Request $request)
 }
 public function editList(Request $request)
     {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $designation_id_old = Auth::user()->designation_id_old;
         $scheme_id = $request->id;
         if ($request->get('pr1')) {
@@ -1346,7 +1348,7 @@ public function editList(Request $request)
                   $state_created_by_local_body_code = $blockCode;
               
                     $c_time=date('Y-m-d H:i:s');
-                    $user_id = Auth::user()->id;
+                    $user_id = AuthChecker::getUserId();
                 $input = [
                   'ben_fname' => $request->first_name,
                   'ben_mname' =>   $request->middle_name,
@@ -1637,7 +1639,7 @@ public function editList(Request $request)
         public function applicationeditview(Request $request)
         {
          
-            $user_id = Auth::user()->id;
+            $user_id = AuthChecker::getUserId();
             $id = $request->id;
             $scheme_id = (int) $request->scheme_id;
             $designation_id_old = Auth::user()->designation_id_old;
@@ -1723,7 +1725,7 @@ public function editList(Request $request)
     public function applicationReject(Request $request)
     {
     
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $c_time = date('Y-m-d H:i:s', time());
         $accept_reject_model = new AcceptRejectInfo;
         $accept_reject_model->created_at = $c_time;

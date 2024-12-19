@@ -30,6 +30,8 @@ use App\SBITransactionPayLoad;
 
 use Symfony\Component\Process\Process;
 use Symfony\Component\Process\Exception\ProcessFailedException;
+use App\Helpers\AuthChecker;
+
 
 class PushToSBIClubbedController extends Controller
 {
@@ -43,7 +45,7 @@ class PushToSBIClubbedController extends Controller
     /* Clubbed Lot Transaction SBI */
     public function clubbedIndex(Request $request)
     {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $schemes=Configduty::where('user_id','=',$user_id)->where('is_active',1)->first();
         $scheme_id = $schemes->scheme_id;
         
@@ -77,7 +79,7 @@ class PushToSBIClubbedController extends Controller
      */
     public function clubbed_push_single_lot(Request $request)
     {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
        // $schemes=Configduty::where('user_id','=',$user_id)->where('is_active',1)->first();
         $lot_master = ClubbedSBITransactionLot::where('scheme_id',$request->scheme_id)->where('lot_no',$request->lot_no)
                     ->leftJoin('public.m_scheme','public.m_scheme.id','clubbed_transaction_lot.scheme_id')

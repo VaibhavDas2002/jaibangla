@@ -29,6 +29,8 @@ use App\Mail\LoginOTP;
 use App\Mail\OrderShipped;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use App\Helpers\AuthChecker;
+
 
 class PushToIfmsController extends Controller
 {
@@ -39,7 +41,7 @@ class PushToIfmsController extends Controller
 	public function index()
 	{
 		//old code
-		$user_id = Auth::user()->id;
+		$user_id = AuthChecker::getUserId();
 		$schemes = Configduty::where('user_id', '=', $user_id)->where('is_active', 1)->first();
 		//$lot_master = lot_master::paginate(10);
 		$lot_master = lot_master::where('scheme_id', $schemes->scheme_id)->orderBy('created_at', 'desc')->paginate(10);

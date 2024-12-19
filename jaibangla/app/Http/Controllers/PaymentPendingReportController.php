@@ -22,6 +22,8 @@ use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use App\Helpers\AuthChecker;
+
 
 class PaymentPendingReportController extends Controller
 {
@@ -35,7 +37,7 @@ class PaymentPendingReportController extends Controller
   {
     // echo 1;die;
     $designation_id_old = Auth::user()->designation_id_old;
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $scheme = Configduty::select('scheme_id')->where('user_id', $user_id)->where('is_active', 1)->whereIn('scheme_id', [2,10,11])->get();
     if ($designation_id_old == 'HOD') {
       return view('responsePaymentPending/index', ['schemes' => $scheme]);
@@ -48,7 +50,7 @@ class PaymentPendingReportController extends Controller
   public function getDeta(Request $request)
   {
     if ($request->ajax()) {
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       $designation = Auth::user()->designation_id_old;
       $mapObj = Configduty::where('user_id', $user_id)->where('is_active', 1)->first();
       $scheme_id = $request->scheme_id;

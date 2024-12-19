@@ -14,6 +14,7 @@ use App\UpdateBenDetails;
 use App\Configduty;
 use App\DocumentType;
 use App\GP;
+use App\Helpers\AuthChecker;
 use App\SchemeDocMap;
 use App\SubDistrict;
 use App\Taluka;
@@ -24,6 +25,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Facades\Excel;
+
+
 
 class DuplicateAadharUpdateController extends Controller
 {
@@ -38,56 +41,60 @@ class DuplicateAadharUpdateController extends Controller
   private function getSchemaName($scheme_id)
   {
     if (!is_null($scheme_id)) {
-      $sObj =  Scheme::select('id', 'short_code')->where('id', '=', $scheme_id)->first();
+      $sObj = Scheme::select('id', 'short_code')->where('id', '=', $scheme_id)->first();
       //$parameter['scheme_id'] = $scheme_id;
-      $schema_name =  $sObj->short_code;
+      $schema_name = $sObj->short_code;
       //dd($schema_name);
       if (empty($schema_name)) {
         $schema_name = 'pension';
       }
       $table_name = 'pension.beneficiaries';
     } else {
-      $table_name =  'pension.beneficiary';
+      $table_name = 'pension.beneficiary';
     }
     return $table_name;
   }
   /*
-		Get First Landing Page only shown in the operator end
+    Get First Landing Page only shown in the operator end
   */
   public function index()
   {
-    $designation_id_old = Auth::user()->designation_id_old;
-    if ($designation_id_old == 'Operator') {
-      $is_active = 1;
-    } else {
-      $is_active = 0;
-    }
-    if ($is_active == 0) {
-      return redirect("/")->with('error', 'User Disabled. ');
-    }
-    $user_id = Auth::user()->id;
-    $mapObj = DB::table('public.duty_assignement')->where('user_id', $user_id)->where('is_active', 1)->first();
-    $scheme = DB::select(DB::raw("select id,scheme_name from m_scheme where  id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . ")"));
-    if (Auth::user()->designation_id_old == "Operator") {
-      if (count($scheme) > 0) {
-        if ($mapObj->is_urban == 1) {
-          $urban_body_code = $mapObj->urban_body_code;
-          $urban_bodys = UrbanBody::where('sub_district_code', $urban_body_code)->select('urban_body_code', 'urban_body_name')->get();
-          return view('DuplicateAadharUpdate/index_aadhar', ['schemes' => $scheme, 'mapLevel' => $mapObj->mapping_level . $designation_id_old, 'urban_bodys' => $urban_bodys]);
+    $auth = AuthChecker::WorkflowChecker();
+    if ($auth) {
+      $designation_id_old = Auth::user()->designation_id_old;
+      if (AuthChecker::OperatorChecker()) {
+        $is_active = 1;
+      } else {
+        $is_active = 0;
+      }
+      if ($is_active == 0) {
+        return redirect("/")->with('error', 'User Disabled. ');
+      }
+      $user_id = AuthChecker::getUserId();
+      $mapObj = DB::table('public.duty_assignement')->where('user_id', $user_id)->where('is_active', 1)->first();
+      $scheme = DB::select(DB::raw("select id,scheme_name from m_scheme where  id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . ")"));
+      if (AuthChecker::OperatorChecker()) {
+        if (count($scheme) > 0) {
+          if ($mapObj->is_urban == 1) {
+            $urban_body_code = $mapObj->urban_body_code;
+            $urban_bodys = UrbanBody::where('sub_district_code', $urban_body_code)->select('urban_body_code', 'urban_body_name')->get();
+            return view('DuplicateAadharUpdate/index_aadhar', ['schemes' => $scheme, 'mapLevel' => $mapObj->mapping_level . $designation_id_old, 'urban_bodys' => $urban_bodys]);
+          } else {
+            $taluka_code = $mapObj->taluka_code;
+            $gps = GP::where('block_code', $taluka_code)->select('gram_panchyat_code', 'gram_panchyat_name')->get();
+            return view('DuplicateAadharUpdate/index_aadhar', ['schemes' => $scheme, 'mapLevel' => $mapObj->mapping_level . $designation_id_old, 'gps' => $gps]);
+          }
         } else {
-          $taluka_code = $mapObj->taluka_code;
-          $gps = GP::where('block_code', $taluka_code)->select('gram_panchyat_code', 'gram_panchyat_name')->get();
-          return view('DuplicateAadharUpdate/index_aadhar', ['schemes' => $scheme, 'mapLevel' => $mapObj->mapping_level . $designation_id_old, 'gps' => $gps]);
+          return redirect("/")->with('success', 'User disabled. No scheme assign to this user');
         }
       } else {
-        return redirect("/")->with('success', 'User disabled. No scheme assign to this user');
+        return redirect("/")->with('success', 'UnAuthorized');
       }
-    } else {
-      return redirect("/")->with('success', 'UnAuthorized');
     }
+
   }
   /*
-		Get Beneficiary Data
+    Get Beneficiary Data
   */
   public function getDuplicateAadharListView(Request $request)
   {
@@ -102,7 +109,7 @@ class DuplicateAadharUpdateController extends Controller
       if (!ctype_digit($scheme_id)) {
         return redirect("/")->with('error', 'Scheme Not Valid');
       }
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       $designation_id_old = Auth::user()->designation_id_old;
       $errormsg = Config::get('constants.errormsg');
       $roleArray = $request->session()->get('role');
@@ -162,9 +169,9 @@ class DuplicateAadharUpdateController extends Controller
       return datatables()->of($data)
         ->addColumn('view', function ($data) {
           $action = '';
-          if($data ->payment_suspended == 1 ){
-            $action='<b>Mark due to JNMP</b>';
-          }else{
+          if ($data->payment_suspended == 1) {
+            $action = '<b>Mark due to JNMP</b>';
+          } else {
             if ($data->dup_aadhar == 1 and $data->dup_aadhar_edit_role_id == '') {
               $action .= '<button onclick=editAadharFunction(' . $data->id . ',' . $data->scheme_id . ') class="btn btn-xs btn-primary" title="Update Aadhar Card"><i class="glyphicon glyphicon-edit"></i> Edit Aadhar</button>';
             }
@@ -271,10 +278,13 @@ class DuplicateAadharUpdateController extends Controller
         ->where('id', $id)
         ->first();
 
-      if($ben_details->payment_suspended == 1){
-        return  $response = array(
-          'status' => 1, 'msg' => 'Mark due to JNMP.',
-          'type' => 'red', 'icon' => 'fa fa-warning', 'title' => 'Information!!'
+      if ($ben_details->payment_suspended == 1) {
+        return $response = array(
+          'status' => 1,
+          'msg' => 'Mark due to JNMP.',
+          'type' => 'red',
+          'icon' => 'fa fa-warning',
+          'title' => 'Information!!'
         );
       }
 
@@ -282,19 +292,33 @@ class DuplicateAadharUpdateController extends Controller
 
       // print($ben_details->ben_fname);die;
       if ($ben_details == null) {
-        return  $response = array(
-          'status' => 1, 'msg' => 'Somethimg went wrong.',
-          'type' => 'red', 'icon' => 'fa fa-warning', 'title' => 'Warning!!'
+        return $response = array(
+          'status' => 1,
+          'msg' => 'Somethimg went wrong.',
+          'type' => 'red',
+          'icon' => 'fa fa-warning',
+          'title' => 'Warning!!'
         );
       } else {
         $ben_arr = array(
-          'ben_name' => trim($ben_details->ben_fname) . ' ' . trim($ben_details->ben_mname) . ' ' . trim($ben_details->ben_lname), 'id' => $ben_details->id, 'scheme_id' => $ben_details->scheme_id,
+          'ben_name' => trim($ben_details->ben_fname) . ' ' . trim($ben_details->ben_mname) . ' ' . trim($ben_details->ben_lname),
+          'id' => $ben_details->id,
+          'scheme_id' => $ben_details->scheme_id,
           'father_name' => trim($ben_details->father_fname) . ' ' . trim($ben_details->father_mname) . ' ' . trim($ben_details->father_lname),
-          'caste' => trim($ben_details->caste), 'gender' => trim($ben_details->gender),
+          'caste' => trim($ben_details->caste),
+          'gender' => trim($ben_details->gender),
           'dob' => date('d-m-Y', strtotime($ben_details->dob)),
-          'bank_code' => trim($ben_details->bank_code), 'bank_ifsc' => trim($ben_details->bank_ifsc),
-          'branch_name' => trim($ben_details->branch_name), 'bank_name' => trim($ben_details->bank_name), 'mobile_no' => trim($ben_details->mobile_no), 'application_id' => $ben_details->created_by_dist_code . str_pad($ben_details->scheme_id, 2, 0, STR_PAD_LEFT) . str_pad($ben_details->id, 15, 0, STR_PAD_LEFT), 'aadhar_no' => trim($ben_details->aadhar_no),
-          'doc_name' => $doc_list->doc_name, 'doc_id' => $doc_list->id, 'doc_type' => $doc_list->doc_type, 'doc_size_kb' => $doc_list->doc_size_kb
+          'bank_code' => trim($ben_details->bank_code),
+          'bank_ifsc' => trim($ben_details->bank_ifsc),
+          'branch_name' => trim($ben_details->branch_name),
+          'bank_name' => trim($ben_details->bank_name),
+          'mobile_no' => trim($ben_details->mobile_no),
+          'application_id' => $ben_details->created_by_dist_code . str_pad($ben_details->scheme_id, 2, 0, STR_PAD_LEFT) . str_pad($ben_details->id, 15, 0, STR_PAD_LEFT),
+          'aadhar_no' => trim($ben_details->aadhar_no),
+          'doc_name' => $doc_list->doc_name,
+          'doc_id' => $doc_list->id,
+          'doc_type' => $doc_list->doc_type,
+          'doc_size_kb' => $doc_list->doc_size_kb
         );
         $response = $ben_arr;
       }
@@ -357,7 +381,7 @@ class DuplicateAadharUpdateController extends Controller
         $ben_id = $request->id;
         $old_aadhar_no = $request->old_aadhar_no;
         $remarks = $request->remarks;
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $designation_id_old = Auth::user()->designation_id_old;
         $roleArray = $request->session()->get('role');
         $district_code = NULL;
@@ -396,13 +420,16 @@ class DuplicateAadharUpdateController extends Controller
         $beneficiary_arc_table = strtolower($scheme_short_code) . '.arc_beneficiary';
 
         // Update Ben Details Log
-        $benDetails = DB::table($beneficiary_table)->where('id',$ben_id)->first();
+        $benDetails = DB::table($beneficiary_table)->where('id', $ben_id)->first();
         // dd($benDetails);
-        if($benDetails->payment_suspended == 1){
-          $errorMsg='<b>Approved but Beneficiary Payment has been Suspended due to Death case(As per the data Comes from Janma-Mrityu Portal)</b>';
+        if ($benDetails->payment_suspended == 1) {
+          $errorMsg = '<b>Approved but Beneficiary Payment has been Suspended due to Death case(As per the data Comes from Janma-Mrityu Portal)</b>';
           return $response = array(
-            'status' => 0, 'msg' => $errorMsg,
-            'type' => 'red', 'icon' => 'fa fa-warning', 'title' => 'Warning!!'
+            'status' => 0,
+            'msg' => $errorMsg,
+            'type' => 'red',
+            'icon' => 'fa fa-warning',
+            'title' => 'Warning!!'
           );
         }
         $old_value = [];
@@ -449,48 +476,54 @@ class DuplicateAadharUpdateController extends Controller
         $u_extension = $doc_file->getClientOriginalExtension();
         $mime_type = $doc_file->getMimeType();
 
-        if(strtolower($mime_type)=='image/jpeg'){
-          if($u_extension=='jpg' || $u_extension=='jpeg'){
-            $extension=$u_extension;
-          }
-          else{
-              $errorMsg = "You are trying to upload an incorrect file for ".$doc_list[0]->doc_name;
-              return $response = array(
-                'status' => 0, 'msg' => $errorMsg,
-                'type' => 'red', 'icon' => 'fa fa-warning', 'title' => 'Warning!!'
-              );
-          }
-        }
-        else if(strtolower($mime_type)=='image/png'){
-            $extension='png';
-        }else if(strtolower($mime_type)=='image/gif'){
-            $extension='gif';
-        }else if(strtolower($mime_type)=='application/pdf'){
-            $extension='pdf';
-        }
-        else{
-            $errorMsg = "You are trying to upload an incorrect file for ".$doc_list[0]->doc_name;
+        if (strtolower($mime_type) == 'image/jpeg') {
+          if ($u_extension == 'jpg' || $u_extension == 'jpeg') {
+            $extension = $u_extension;
+          } else {
+            $errorMsg = "You are trying to upload an incorrect file for " . $doc_list[0]->doc_name;
             return $response = array(
-              'status' => 0, 'msg' => $errorMsg,
-              'type' => 'red', 'icon' => 'fa fa-warning', 'title' => 'Warning!!'
+              'status' => 0,
+              'msg' => $errorMsg,
+              'type' => 'red',
+              'icon' => 'fa fa-warning',
+              'title' => 'Warning!!'
             );
+          }
+        } else if (strtolower($mime_type) == 'image/png') {
+          $extension = 'png';
+        } else if (strtolower($mime_type) == 'image/gif') {
+          $extension = 'gif';
+        } else if (strtolower($mime_type) == 'application/pdf') {
+          $extension = 'pdf';
+        } else {
+          $errorMsg = "You are trying to upload an incorrect file for " . $doc_list[0]->doc_name;
+          return $response = array(
+            'status' => 0,
+            'msg' => $errorMsg,
+            'type' => 'red',
+            'icon' => 'fa fa-warning',
+            'title' => 'Warning!!'
+          );
         }
-        if($u_extension!=$extension){
-            $errorMsg = "You are trying to upload an incorrect file for ".$doc_list[0]->doc_name;
-            return $response = array(
-              'status' => 0, 'msg' => $errorMsg,
-              'type' => 'red', 'icon' => 'fa fa-warning', 'title' => 'Warning!!'
-            );
+        if ($u_extension != $extension) {
+          $errorMsg = "You are trying to upload an incorrect file for " . $doc_list[0]->doc_name;
+          return $response = array(
+            'status' => 0,
+            'msg' => $errorMsg,
+            'type' => 'red',
+            'icon' => 'fa fa-warning',
+            'title' => 'Warning!!'
+          );
         }
 
         $base64 = base64_encode($img_data);
-        
+
         $c_datetime = date('Y-m-d H:i:s', time());
 
         DB::connection('pgsql')->beginTransaction();
         DB::connection('pgsql_encwrite')->beginTransaction();
         try {
-          DB::statement("INSERT INTO ".$beneficiary_arc_table."(id, 
+          DB::statement("INSERT INTO " . $beneficiary_arc_table . "(id, 
              dist_code, ben_fname, ben_mname, ben_lname, gender, dob, ben_age, 
             caste, marital_status, father_fname, father_mname, father_lname, mother_fname, 
             mother_mname, mother_lname, spouse_fname, spouse_mname, spouse_lname, mothly_income, 
@@ -521,7 +554,7 @@ class DuplicateAadharUpdateController extends Controller
             ration_card_cat, rural_urban_id, lot_generated, 
             bank_edited, bank_code, payment_count, last_paid_yymm, 
             av_status, legacy_import, 
-            receiving_pension_other_source_1, receiving_pension_other_source_2 from ".$beneficiary_table." where id=" . $ben_id . ")");
+            receiving_pension_other_source_1, receiving_pension_other_source_2 from " . $beneficiary_table . " where id=" . $ben_id . ")");
           /*foreach ($uploaded_doc as $doc_type => $doc) {
             $ben_docs = DB::table($ben_docs_table)->where('ben_id', $ben_id)
               ->where('doc_type_id', $doc_type)->where('is_active', TRUE)->first();
@@ -555,19 +588,19 @@ class DuplicateAadharUpdateController extends Controller
           }*/
 
           $fun_call = DB::connection('pgsql_encwrite')->select("SELECT jb_doc.ben_docs_insert_archive(
-            in_beneficiary_id => ".$ben_id.",
-            in_scheme_id => ".$scheme_id.",
-            in_document_type => ".$doc.",
-            in_attched_document => '".$base64."',
-            in_created_by_level => '".$mapping_level."',
-            in_created_by => ".$user_id.",
-            in_ip_address => '".$ip_address."',
-            in_document_extension => '".$extension."',
-            in_document_mime_type => '".$mime_type."',
-            in_created_by_dist_code => ".$benDetails->created_by_dist_code.",
-            in_created_by_local_body_code => ".$benDetails->created_by_local_body_code.",
-            in_doc_type_name => '".$doc_list[0]->doc_name."',
-            in_datetime => '". $c_datetime ."'
+            in_beneficiary_id => " . $ben_id . ",
+            in_scheme_id => " . $scheme_id . ",
+            in_document_type => " . $doc . ",
+            in_attched_document => '" . $base64 . "',
+            in_created_by_level => '" . $mapping_level . "',
+            in_created_by => " . $user_id . ",
+            in_ip_address => '" . $ip_address . "',
+            in_document_extension => '" . $extension . "',
+            in_document_mime_type => '" . $mime_type . "',
+            in_created_by_dist_code => " . $benDetails->created_by_dist_code . ",
+            in_created_by_local_body_code => " . $benDetails->created_by_local_body_code . ",
+            in_doc_type_name => '" . $doc_list[0]->doc_name . "',
+            in_datetime => '" . $c_datetime . "'
             );"
           );
           $is_upload = $fun_call[0]->ben_docs_insert_archive;
@@ -589,8 +622,11 @@ class DuplicateAadharUpdateController extends Controller
                 DB::connection('pgsql')->commit();
                 DB::connection('pgsql_encwrite')->commit();
                 $response = array(
-                  'status' => 1, 'msg' => 'Aadhar Card De-duplicate Successfully',
-                  'type' => 'green', 'icon' => 'fa fa-check', 'title' => 'Success'
+                  'status' => 1,
+                  'msg' => 'Aadhar Card De-duplicate Successfully',
+                  'type' => 'green',
+                  'icon' => 'fa fa-check',
+                  'title' => 'Success'
                 );
               } else {
                 DB::connection('pgsql')->rollback();
@@ -599,20 +635,25 @@ class DuplicateAadharUpdateController extends Controller
                 $return_text = 'Something went wrong, please try another one.';
                 $return_msg = array("" . $return_text);
                 return $response = array(
-                  'status' => $return_status, 'msg' => $return_msg,
-                  'type' => 'red', 'icon' => 'fa fa-warning', 'title' => 'Warning!!'
+                  'status' => $return_status,
+                  'msg' => $return_msg,
+                  'type' => 'red',
+                  'icon' => 'fa fa-warning',
+                  'title' => 'Warning!!'
                 );
               }
-            }
-            else {
+            } else {
               DB::connection('pgsql')->rollback();
               DB::connection('pgsql_encwrite')->rollback();
               $return_status = 0;
               $return_text = 'Something went wrong, please try another one..';
               $return_msg = array("" . $return_text);
               return $response = array(
-                'status' => $return_status, 'msg' => $return_msg,
-                'type' => 'red', 'icon' => 'fa fa-warning', 'title' => 'Warning!!'
+                'status' => $return_status,
+                'msg' => $return_msg,
+                'type' => 'red',
+                'icon' => 'fa fa-warning',
+                'title' => 'Warning!!'
               );
             }
           } else {
@@ -622,8 +663,11 @@ class DuplicateAadharUpdateController extends Controller
             $return_text = 'Something went wrong, please try another one...';
             $return_msg = array("" . $return_text);
             return $response = array(
-              'status' => $return_status, 'msg' => $return_msg,
-              'type' => 'red', 'icon' => 'fa fa-warning', 'title' => 'Warning!!'
+              'status' => $return_status,
+              'msg' => $return_msg,
+              'type' => 'red',
+              'icon' => 'fa fa-warning',
+              'title' => 'Warning!!'
             );
           }
         } catch (\Exception $e) {
@@ -634,16 +678,22 @@ class DuplicateAadharUpdateController extends Controller
           $return_text = 'Error. Please try again';
           $return_msg = array("" . $return_text);
           return $response = array(
-            'status' => $return_status, 'msg' => $return_msg,
-            'type' => 'red', 'icon' => 'fa fa-warning', 'title' => 'Warning!!'
+            'status' => $return_status,
+            'msg' => $return_msg,
+            'type' => 'red',
+            'icon' => 'fa fa-warning',
+            'title' => 'Warning!!'
           );
         }
       } else {
         $return_status = 0;
         $return_msg = $validator->errors()->all();
         $response = array(
-          'status' => $return_status, 'msg' => $return_msg,
-          'type' => 'red', 'icon' => 'fa fa-warning', 'title' => 'Warning!!'
+          'status' => $return_status,
+          'msg' => $return_msg,
+          'type' => 'red',
+          'icon' => 'fa fa-warning',
+          'title' => 'Warning!!'
         );
       }
     } catch (\Exception $e) {
@@ -720,18 +770,29 @@ class DuplicateAadharUpdateController extends Controller
 
       // print($ben_details->ben_fname);die;
       if ($ben_details == null) {
-        return  $response = array(
-          'status' => 1, 'msg' => 'Somethimg went wrong.',
-          'type' => 'red', 'icon' => 'fa fa-warning', 'title' => 'Warning!!'
+        return $response = array(
+          'status' => 1,
+          'msg' => 'Somethimg went wrong.',
+          'type' => 'red',
+          'icon' => 'fa fa-warning',
+          'title' => 'Warning!!'
         );
       } else {
         $ben_arr = array(
-          'ben_name' => trim($ben_details->ben_fname) . ' ' . trim($ben_details->ben_mname) . ' ' . trim($ben_details->ben_lname), 'id' => $ben_details->id, 'scheme_id' => $ben_details->scheme_id,
+          'ben_name' => trim($ben_details->ben_fname) . ' ' . trim($ben_details->ben_mname) . ' ' . trim($ben_details->ben_lname),
+          'id' => $ben_details->id,
+          'scheme_id' => $ben_details->scheme_id,
           'father_name' => trim($ben_details->father_fname) . ' ' . trim($ben_details->father_mname) . ' ' . trim($ben_details->father_lname),
-          'caste' => trim($ben_details->caste), 'gender' => trim($ben_details->gender),
+          'caste' => trim($ben_details->caste),
+          'gender' => trim($ben_details->gender),
           'dob' => date('d-m-Y', strtotime($ben_details->dob)),
-          'bank_code' => trim($ben_details->bank_code), 'bank_ifsc' => trim($ben_details->bank_ifsc),
-          'branch_name' => trim($ben_details->branch_name), 'bank_name' => trim($ben_details->bank_name), 'mobile_no' => trim($ben_details->mobile_no), 'application_id' => $ben_details->created_by_dist_code . str_pad($ben_details->scheme_id, 2, 0, STR_PAD_LEFT) . str_pad($ben_details->id, 15, 0, STR_PAD_LEFT), 'aadhar_no' => trim($ben_details->aadhar_no)
+          'bank_code' => trim($ben_details->bank_code),
+          'bank_ifsc' => trim($ben_details->bank_ifsc),
+          'branch_name' => trim($ben_details->branch_name),
+          'bank_name' => trim($ben_details->bank_name),
+          'mobile_no' => trim($ben_details->mobile_no),
+          'application_id' => $ben_details->created_by_dist_code . str_pad($ben_details->scheme_id, 2, 0, STR_PAD_LEFT) . str_pad($ben_details->id, 15, 0, STR_PAD_LEFT),
+          'aadhar_no' => trim($ben_details->aadhar_no)
         );
         $response = $ben_arr;
       }
@@ -750,7 +811,8 @@ class DuplicateAadharUpdateController extends Controller
   /*
     Update mobile number in the main beneficiary table
   */
-  public function updateDeDuplicateBenMobileNoDetails(Request $request) {
+  public function updateDeDuplicateBenMobileNoDetails(Request $request)
+  {
     $response = [];
     $statusCode = 200;
     if (!$request->ajax()) {
@@ -773,7 +835,7 @@ class DuplicateAadharUpdateController extends Controller
         'digits' => 'Total :digits number requied for :attribute',
         'max' => 'Total :max characters allowed for :attribute'
       ];
-      
+
       $validator = Validator::make($request->all(), $rules, $messages, $attributes);
       if ($validator->passes()) {
         $scheme_id = $request->scheme_id;
@@ -817,24 +879,27 @@ class DuplicateAadharUpdateController extends Controller
         $beneficiary_arc_table = strtolower($scheme_short_code) . '.arc_beneficiary';
 
         // Update Ben Details Log
-        $benDetails = DB::table($beneficiary_table)->where('id',$ben_id)->first();
-        $payment_details = DB::connection('pgsql_paywrite')->table('payment.ben_payment_details')->where('scheme_id',$scheme_id)->where('ben_id', $ben_id)->first();
+        $benDetails = DB::table($beneficiary_table)->where('id', $ben_id)->first();
+        $payment_details = DB::connection('pgsql_paywrite')->table('payment.ben_payment_details')->where('scheme_id', $scheme_id)->where('ben_id', $ben_id)->first();
         $benDuplicateMobile = DB::table($beneficiary_table)
-                                ->where('mobile_no',$new_mobile_no)
-                                ->where('id', '!=', $ben_id)
-                                ->where('is_rejected', 0)
-                                ->where('scheme_id', $scheme_id)
-                                ->count('id');
-                              //  if ($ben_id == 11369699) {
-                              //   dd($benDuplicateMobile);
-                              //  }
-        if ($benDuplicateMobile > 0) { 
+          ->where('mobile_no', $new_mobile_no)
+          ->where('id', '!=', $ben_id)
+          ->where('is_rejected', 0)
+          ->where('scheme_id', $scheme_id)
+          ->count('id');
+        //  if ($ben_id == 11369699) {
+        //   dd($benDuplicateMobile);
+        //  }
+        if ($benDuplicateMobile > 0) {
           // dd('ok');
-         return $response = array(
-            'status' => 1, 'msg' => 'This Mobile number already exists, please try another one.',
-            'type' => 'red', 'icon' => 'fa fa-warning', 'title' => 'Warning!!'
+          return $response = array(
+            'status' => 1,
+            'msg' => 'This Mobile number already exists, please try another one.',
+            'type' => 'red',
+            'icon' => 'fa fa-warning',
+            'title' => 'Warning!!'
           );
-         }                      
+        }
         $old_value = [];
         $input = [];
         $old_value['mobile_no'] = $old_mobile_no;
@@ -859,7 +924,7 @@ class DuplicateAadharUpdateController extends Controller
         DB::connection('pgsql')->beginTransaction();
         DB::connection('pgsql_paywrite')->beginTransaction();
         try {
-          $is_insert=  DB::statement("INSERT INTO ".$beneficiary_arc_table."(id, 
+          $is_insert = DB::statement("INSERT INTO " . $beneficiary_arc_table . "(id, 
              dist_code, ben_fname, ben_mname, ben_lname, gender, dob, ben_age, 
             caste, marital_status, father_fname, father_mname, father_lname, mother_fname, 
             mother_mname, mother_lname, spouse_fname, spouse_mname, spouse_lname, mothly_income, 
@@ -888,13 +953,13 @@ class DuplicateAadharUpdateController extends Controller
             nominate_address, nominate_relationship, receive_pension, social_security_pension, 
             ration_card_cat, rural_urban_id, lot_generated, 
             bank_edited, bank_code, payment_count, last_paid_yymm, 
-            av_status, legacy_import from ".$beneficiary_table." where id=" . $ben_id . ")");
-          
+            av_status, legacy_import from " . $beneficiary_table . " where id=" . $ben_id . ")");
+
           if ($is_insert) {
             // $function_call = DB::select(DB::raw("select ".strtolower($scheme_short_code).".dup_adjustment_update(".$scheme_id.", ".$ben_id.", NULL, NULL, NULL, NULL, NULL, NULL, '".$new_mobile_no."', '".$old_mobile_no."');"));
             $beneficiaryUpdate = array();
             $paymentUpdate = array();
-            $beneficiaryUpdate['mobile_no'] =$new_mobile_no;
+            $beneficiaryUpdate['mobile_no'] = $new_mobile_no;
             $beneficiaryUpdate['dup_mobile_edit_role_id'] = 1;
             if ($remarks != '') {
               $beneficiaryUpdate['dup_mobile_edit_remarks'] = $remarks;
@@ -905,20 +970,22 @@ class DuplicateAadharUpdateController extends Controller
             $UpdateBenDetailsInsert = UpdateBenDetails::insert($updateBenDetailsData);
             // $update = DB::table($beneficiary_table)->where('id', $ben_id)->update();
             if ($UpdateBenDetailsInsert == 1) {
-                $update_ben = DB::table($beneficiary_table)->where('scheme_id', $scheme_id)->where('id', $ben_id)->update($beneficiaryUpdate);
-                if($payment_details && $update_ben){
-                  $update_payment = DB::connection('pgsql_paywrite')->table('payment.ben_payment_details')->where('ben_id', $ben_id)->where('scheme_id',$scheme_id)->update($paymentUpdate);
-                }
-            }
-            else {
+              $update_ben = DB::table($beneficiary_table)->where('scheme_id', $scheme_id)->where('id', $ben_id)->update($beneficiaryUpdate);
+              if ($payment_details && $update_ben) {
+                $update_payment = DB::connection('pgsql_paywrite')->table('payment.ben_payment_details')->where('ben_id', $ben_id)->where('scheme_id', $scheme_id)->update($paymentUpdate);
+              }
+            } else {
               DB::rollback();
               DB::connection('pgsql_paywrite')->rollback();
               $return_status = 0;
               $return_text = 'Error. Please try again';
               $return_msg = array("" . $return_text);
               return $response = array(
-                'status' => $return_status, 'msg' => $return_msg,
-                'type' => 'red', 'icon' => 'fa fa-warning', 'title' => 'Warning!!'
+                'status' => $return_status,
+                'msg' => $return_msg,
+                'type' => 'red',
+                'icon' => 'fa fa-warning',
+                'title' => 'Warning!!'
               );
             }
           }
@@ -926,28 +993,37 @@ class DuplicateAadharUpdateController extends Controller
           DB::commit();
           DB::connection('pgsql_paywrite')->commit();
           $response = array(
-            'status' => 1, 'msg' => 'Mobile Number De-duplicate Successfully',
-            'type' => 'green', 'icon' => 'fa fa-check', 'title' => 'Success'
+            'status' => 1,
+            'msg' => 'Mobile Number De-duplicate Successfully',
+            'type' => 'green',
+            'icon' => 'fa fa-check',
+            'title' => 'Success'
           );
 
         } catch (\Exception $e) {
-            dd($e);
+          dd($e);
           DB::rollback();
           DB::connection('pgsql_paywrite')->rollback();
           $return_status = 0;
           $return_text = 'Error. Please try again';
           $return_msg = array("" . $return_text);
           return $response = array(
-            'status' => $return_status, 'msg' => $return_msg,
-            'type' => 'red', 'icon' => 'fa fa-warning', 'title' => 'Warning!!'
+            'status' => $return_status,
+            'msg' => $return_msg,
+            'type' => 'red',
+            'icon' => 'fa fa-warning',
+            'title' => 'Warning!!'
           );
         }
       } else {
         $return_status = 0;
         $return_msg = $validator->errors()->all();
         $response = array(
-          'status' => $return_status, 'msg' => $return_msg,
-          'type' => 'red', 'icon' => 'fa fa-warning', 'title' => 'Warning!!'
+          'status' => $return_status,
+          'msg' => $return_msg,
+          'type' => 'red',
+          'icon' => 'fa fa-warning',
+          'title' => 'Warning!!'
         );
       }
     } catch (\Exception $e) {
@@ -1009,7 +1085,7 @@ class DuplicateAadharUpdateController extends Controller
     return $inverse[$digitIndex];
   }
 
-  function getNoMobileBenModalView(Request $request) 
+  function getNoMobileBenModalView(Request $request)
   {
     $response = [];
     $statusCode = 200;
@@ -1067,18 +1143,29 @@ class DuplicateAadharUpdateController extends Controller
 
       // print_r($ben_details);die;
       if ($ben_details == null) {
-        return  $response = array(
-          'status' => 1, 'msg' => 'Somethimg went wrong.',
-          'type' => 'red', 'icon' => 'fa fa-warning', 'title' => 'Warning!!'
+        return $response = array(
+          'status' => 1,
+          'msg' => 'Somethimg went wrong.',
+          'type' => 'red',
+          'icon' => 'fa fa-warning',
+          'title' => 'Warning!!'
         );
       } else {
         $ben_arr = array(
-          'ben_name' => trim($ben_details->ben_fname) . ' ' . trim($ben_details->ben_mname) . ' ' . trim($ben_details->ben_lname), 'id' => $ben_details->id, 'scheme_id' => $ben_details->scheme_id,
+          'ben_name' => trim($ben_details->ben_fname) . ' ' . trim($ben_details->ben_mname) . ' ' . trim($ben_details->ben_lname),
+          'id' => $ben_details->id,
+          'scheme_id' => $ben_details->scheme_id,
           'father_name' => trim($ben_details->father_fname) . ' ' . trim($ben_details->father_mname) . ' ' . trim($ben_details->father_lname),
-          'caste' => trim($ben_details->caste), 'gender' => trim($ben_details->gender),
+          'caste' => trim($ben_details->caste),
+          'gender' => trim($ben_details->gender),
           'dob' => date('d-m-Y', strtotime($ben_details->dob)),
-          'bank_code' => trim($ben_details->bank_code), 'bank_ifsc' => trim($ben_details->bank_ifsc),
-          'branch_name' => trim($ben_details->branch_name), 'bank_name' => trim($ben_details->bank_name), 'mobile_no' => trim($ben_details->mobile_no), 'application_id' => $ben_details->created_by_dist_code . str_pad($ben_details->scheme_id, 2, 0, STR_PAD_LEFT) . str_pad($ben_details->id, 15, 0, STR_PAD_LEFT), 'aadhar_no' => trim($ben_details->aadhar_no)
+          'bank_code' => trim($ben_details->bank_code),
+          'bank_ifsc' => trim($ben_details->bank_ifsc),
+          'branch_name' => trim($ben_details->branch_name),
+          'bank_name' => trim($ben_details->bank_name),
+          'mobile_no' => trim($ben_details->mobile_no),
+          'application_id' => $ben_details->created_by_dist_code . str_pad($ben_details->scheme_id, 2, 0, STR_PAD_LEFT) . str_pad($ben_details->id, 15, 0, STR_PAD_LEFT),
+          'aadhar_no' => trim($ben_details->aadhar_no)
         );
         $response = $ben_arr;
         // print_r($response);die;
@@ -1095,7 +1182,7 @@ class DuplicateAadharUpdateController extends Controller
     }
   }
 
-  function updateNoBenMobileDetails(Request $request) 
+  function updateNoBenMobileDetails(Request $request)
   {
     // echo 1;die;
     $response = [];
@@ -1120,7 +1207,7 @@ class DuplicateAadharUpdateController extends Controller
         'digits' => 'Total :digits number requied for :attribute',
         'max' => 'Total :max characters allowed for :attribute'
       ];
-      
+
       $validator = Validator::make($request->all(), $rules, $messages, $attributes);
       // print_r($validator);die;
       if ($validator->passes()) {
@@ -1166,7 +1253,7 @@ class DuplicateAadharUpdateController extends Controller
         $beneficiary_arc_table = strtolower($scheme_short_code) . '.arc_beneficiary';
 
         // Update Ben Details Log
-        $benDetails = DB::table($beneficiary_table)->where('id',$ben_id)->first();
+        $benDetails = DB::table($beneficiary_table)->where('id', $ben_id)->first();
         $old_value = [];
         $input = [];
         $old_value['mobile_no'] = $old_no_mobile_no;
@@ -1188,7 +1275,7 @@ class DuplicateAadharUpdateController extends Controller
 
         DB::connection('pgsql')->beginTransaction();
         try {
-          $is_insert=  DB::statement("INSERT INTO ".$beneficiary_arc_table."(id, 
+          $is_insert = DB::statement("INSERT INTO " . $beneficiary_arc_table . "(id, 
              dist_code, ben_fname, ben_mname, ben_lname, gender, dob, ben_age, 
             caste, marital_status, father_fname, father_mname, father_lname, mother_fname, 
             mother_mname, mother_lname, spouse_fname, spouse_mname, spouse_lname, mothly_income, 
@@ -1219,38 +1306,43 @@ class DuplicateAadharUpdateController extends Controller
             ration_card_cat, rural_urban_id, lot_generated, 
             bank_edited, bank_code, payment_count, last_paid_yymm, 
             av_status, legacy_import, 
-            receiving_pension_other_source_1, receiving_pension_other_source_2 from ".$beneficiary_table." where id=" . $ben_id . ")");
-          
+            receiving_pension_other_source_1, receiving_pension_other_source_2 from " . $beneficiary_table . " where id=" . $ben_id . ")");
+
           if ($is_insert) {
             // $function_call = DB::select(DB::raw("select ".strtolower($scheme_short_code).".dup_adjustment_update(".$scheme_id.", ".$ben_id.", NULL, NULL, NULL, NULL, NULL, NULL, '".$new_mobile_no."', '".$old_mobile_no."');"));
             $beneficiaryUpdate = array();
-            $beneficiaryUpdate['mobile_no'] =$new_no_mobile_no;
+            $beneficiaryUpdate['mobile_no'] = $new_no_mobile_no;
             $beneficiaryUpdate['no_mobile_edit_role_id'] = 1;
             if ($remarks != '') {
               $beneficiaryUpdate['no_mobile_edit_remarks'] = $remarks;
             }
-            
+
             $UpdateBenDetailsInsert = UpdateBenDetails::insert($updateBenDetailsData);
             // $update = DB::table($beneficiary_table)->where('id', $ben_id)->update();
             if ($UpdateBenDetailsInsert == 1) {
-                DB::table($beneficiary_table)->where('scheme_id', $scheme_id)->where('id', $ben_id)->update($beneficiaryUpdate);
-            }
-            else {
+              DB::table($beneficiary_table)->where('scheme_id', $scheme_id)->where('id', $ben_id)->update($beneficiaryUpdate);
+            } else {
               DB::rollback();
               $return_status = 0;
               $return_text = 'This Mobile number already exists, please try another one.';
               $return_msg = array("" . $return_text);
               return $response = array(
-                'status' => $return_status, 'msg' => $return_msg,
-                'type' => 'red', 'icon' => 'fa fa-warning', 'title' => 'Warning!!'
+                'status' => $return_status,
+                'msg' => $return_msg,
+                'type' => 'red',
+                'icon' => 'fa fa-warning',
+                'title' => 'Warning!!'
               );
             }
           }
 
           DB::commit();
           $response = array(
-            'status' => 1, 'msg' => 'Mobile Number Added Successfully',
-            'type' => 'green', 'icon' => 'fa fa-check', 'title' => 'Success'
+            'status' => 1,
+            'msg' => 'Mobile Number Added Successfully',
+            'type' => 'green',
+            'icon' => 'fa fa-check',
+            'title' => 'Success'
           );
 
         } catch (\Exception $e) {
@@ -1260,16 +1352,22 @@ class DuplicateAadharUpdateController extends Controller
           $return_text = 'Error. Please try again';
           $return_msg = array("" . $return_text);
           return $response = array(
-            'status' => $return_status, 'msg' => $return_msg,
-            'type' => 'red', 'icon' => 'fa fa-warning', 'title' => 'Warning!!'
+            'status' => $return_status,
+            'msg' => $return_msg,
+            'type' => 'red',
+            'icon' => 'fa fa-warning',
+            'title' => 'Warning!!'
           );
         }
       } else {
         $return_status = 0;
         $return_msg = $validator->errors()->all();
         $response = array(
-          'status' => $return_status, 'msg' => $return_msg,
-          'type' => 'red', 'icon' => 'fa fa-warning', 'title' => 'Warning!!'
+          'status' => $return_status,
+          'msg' => $return_msg,
+          'type' => 'red',
+          'icon' => 'fa fa-warning',
+          'title' => 'Warning!!'
         );
       }
     } catch (\Exception $e) {
@@ -1282,6 +1380,6 @@ class DuplicateAadharUpdateController extends Controller
       $statusCode = 400;
     } finally {
       return response()->json($response, $statusCode);
-    }  
+    }
   }
 }

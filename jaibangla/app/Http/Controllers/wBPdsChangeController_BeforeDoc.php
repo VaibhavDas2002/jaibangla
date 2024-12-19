@@ -34,6 +34,8 @@ use App\GP;
 use Carbon\Carbon;
 use App\Helpers\Helper;
 use App\AcceptRejectInfo;
+use App\Helpers\AuthChecker;
+
 class wBPdsChangeController extends Controller
 {
 
@@ -73,7 +75,7 @@ class wBPdsChangeController extends Controller
       $this->middleware('auth');
       $designation_id_old = Auth::user()->designation_id_old;
       //dd($designation_id_old);
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
   
       $scheme_id = $request->scheme_id;
       if (!ctype_digit($scheme_id)) {
@@ -378,7 +380,7 @@ class wBPdsChangeController extends Controller
     {
       $this->middleware('auth');
       $designation_id_old = Auth::user()->designation_id_old;
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
   
       $scheme_id = $request->scheme_id;
       if (!ctype_digit($scheme_id)) {
@@ -514,7 +516,7 @@ class wBPdsChangeController extends Controller
       //dd('ok2');
       $doc_type_id = $this->doc_type_id;
       $designation_id_old = Auth::user()->designation_id_old;
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       $id = $request->id;
       //dd($request->id);
       $scheme_id = $request->scheme_id;
@@ -838,7 +840,7 @@ class wBPdsChangeController extends Controller
       if ($designation_id_old!='Approver') {
         return redirect("/")->with('error', 'Not Allowed');
       }
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       $scheme_id = $request->scheme_id;
       $process_type = $request->process_type;
       $action_type = $request->action_type;

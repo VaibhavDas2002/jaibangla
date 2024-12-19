@@ -22,12 +22,13 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Helpers\AuthChecker;
 
 class SocialRegsitryMisReportController extends Controller
 {
     public function srMisReport(Request $request)
     {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $designation_id_old = Auth::user()->designation_id_old;
         if ($designation_id_old == 'Admin') {
             return view('sr_mis_report_index');

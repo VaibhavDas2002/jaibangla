@@ -38,6 +38,8 @@ use App\AcceptRejectInfo;
 use App\MapLavel;
 use App\BenDocs;
 use App\DsPhase;
+use App\Helpers\AuthChecker;
+
 
 class WorkflowControllerSm extends Controller
 {
@@ -53,9 +55,9 @@ class WorkflowControllerSm extends Controller
   public function shemeSelection(Request $request)
   {
     try {
-      $designation_id_old = Auth::user()->designation_id_old;
-      $user_id = Auth::user()->id;
-      if ($designation_id_old == 'Verifier' || $designation_id_old == 'Approver') {
+      // $designation_id_old = Auth::user()->designation_id_old;
+      $user_id = AuthChecker::getUserId();
+      if (AuthChecker::VerifierChecker() || AuthChecker::ApproverChecker()) {
         $schemes = DB::select(DB::raw("select id,scheme_name,display_name,is_active from m_scheme where id IN (10) and   id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . ") order by rank"));
         //dd($schemes);
         return view(
@@ -76,9 +78,11 @@ class WorkflowControllerSm extends Controller
   public function list(Request $request)
   {
     $this->middleware('auth');
-    $designation_id_old = Auth::user()->designation_id_old;
-    //dd($designation_id_old);
-    $user_id = Auth::user()->id;
+    $is_operator = AuthChecker::OperatorChecker();
+    $is_verifier = AuthChecker::VerifierChecker();
+    $is_approver = AuthChecker::ApproverChecker();
+    $is_hod = AuthChecker::HODChecker();
+    $user_id = AuthChecker::getUserId();
 
     $scheme_id = $request->scheme_id;
     if (!ctype_digit($scheme_id)) {
@@ -92,7 +96,7 @@ class WorkflowControllerSm extends Controller
     if (empty($duty_obj)) {
       return redirect("/")->with('danger', 'Not Allowed');
     }
-    if ($designation_id_old != 'Verifier') {
+    if (!AuthChecker::VerifierChecker()) {
       return redirect("/")->with('danger', 'Not Allowed');
     }
     $role_id_approver = MapLavel::where('scheme_id', $scheme_id)->where('role_name', 'Approver')->first();
@@ -153,7 +157,7 @@ class WorkflowControllerSm extends Controller
       //dd($process_type);
       $query = DB::table($schema . '.beneficiaries')
         ->whereNull('is_lb_imported')->where('created_by_dist_code', $district_code)/*->whereraw(" (dup_bank=0 or dup_bank IS NULL) and (dup_aadhar=0 or dup_aadhar IS NULL) and (dup_mobile=0 or dup_mobile IS NULL) and (no_aadhar=0 or no_aadhar IS NULL) and (no_mobile=0 or no_mobile IS NULL)")*/;
-      if ($designation_id_old == 'Verifier') {
+      if (AuthChecker::VerifierChecker()) {
         $query = $query->where('created_by_local_body_code', $created_by_local_body_code);
         if (!empty($application_type)) {
           if ($application_type == 1)
@@ -175,7 +179,7 @@ class WorkflowControllerSm extends Controller
       if (!empty($request->gp_ward_code)) {
         $query = $query->where('gp_ward_code', $request->gp_ward_code);
       }
-      if ($designation_id_old == 'Approver') {
+      if (AuthChecker::ApproverChecker()) {
         if ($application_type != '') {
           if ($application_type == 1)
             $query = $query->whereNotNull('sm_flag')->whereNotNull('sm_mobile_no')->where('next_level_role_id', $next_level_role_id_verifier);
@@ -236,7 +240,7 @@ class WorkflowControllerSm extends Controller
           $action = '<a href="ViewSm?id=' . $data->id  . '&scheme_id=' . $data->scheme_id . '" class="btn btn-xs btn-info"><i class="glyphicon glyphicon-edit"></i> View</a>';
 
 
-          if ($designation_id_old == 'Verifier') {
+          if (AuthChecker::VerifierChecker()) {
             if (is_null($data->sm_flag) && is_null($data->sm_mobile_no) && $data->next_level_role_id == $next_level_role_id_verifier) {
               // echo 1;die;
               if ($data->no_aadhar == 1 || $data->no_mobile == 1 || $data->dup_aadhar == 1 || $data->dup_mobile == 1 || $data->dup_bank == 1) {
@@ -254,7 +258,7 @@ class WorkflowControllerSm extends Controller
            
           }
 
-          if ($designation_id_old == 'Approver') {
+          if (AuthChecker::ApproverChecker()) {
 
             if (!is_null($data->sm_flag) && !is_null($data->sm_mobile_no) && $data->next_level_role_id == $next_level_role_id_verifier) {
               $action = $action . '<button type="button" class="btn btn-xs btn-primary">Approved</button>';
@@ -283,8 +287,8 @@ class WorkflowControllerSm extends Controller
             $status=$status.'<span class="text-primary" style="font-weight: bold;">No Mobile Number.</br></span>';
           }
           return $status;
-        })->addColumn('check', function ($data) use ($designation_id_old) {
-          if ($designation_id_old == 'Approver') {
+        })->addColumn('check', function ($data) use ($is_approver) {
+          if ($is_approver) {
             if ($data->aadhar_edit_role_id == 1) {
               return '<input type="checkbox" name="approvalcheck[]" onClick="controlCheckBox()" value="' . $data->id . '">';
             } else
@@ -348,7 +352,7 @@ class WorkflowControllerSm extends Controller
     try {
       $this->middleware('auth');
       $designation_id_old = Auth::user()->designation_id_old;
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       $id = $request->id;
       // dd($id);
       if (empty($request->id)) {
@@ -385,7 +389,7 @@ class WorkflowControllerSm extends Controller
         return redirect("/")->with('danger', 'Not Allowed');
       }
       //dd($row->aadhar_no);
-      if ($designation_id_old == 'Verifier') {
+      if (AuthChecker::VerifierChecker()) {
         if (!empty($row->aadhar_no) && trim($row->aadhar_no) != '') {
           $old_aadhar = $row->aadhar_no;
           $new_aadhar = '';
@@ -469,7 +473,7 @@ class WorkflowControllerSm extends Controller
     try {
       $this->middleware('auth');
       $designation_id_old = Auth::user()->designation_id_old;
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       if (empty($request->beneficiary_id)) {
         return redirect("/")->with('danger', 'Beneficiary ID Not Found');
       }
@@ -499,7 +503,7 @@ class WorkflowControllerSm extends Controller
       $next_level_role_id_verifier = $role_id_verifier->parent_id;
       $condition = array();
       $condition['id'] = $id;
-      if ($designation_id_old == 'Verifier') {
+      if (AuthChecker::VerifierChecker()) {
         if ($duty_obj->mapping_level == "Subdiv") {
           $created_by_local_body_code = $duty_obj->urban_body_code;
         }
@@ -600,7 +604,7 @@ class WorkflowControllerSm extends Controller
     try {
       $this->middleware('auth');
       $designation_id_old = Auth::user()->designation_id_old;
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       if (empty($request->beneficiary_id)) {
         return redirect("/")->with('danger', 'Beneficiary ID Not Found');
       }
@@ -624,7 +628,7 @@ class WorkflowControllerSm extends Controller
       } else {
         $schema = "pension";
       }
-      if ($designation_id_old == 'Verifier') {
+      if (AuthChecker::VerifierChecker()) {
         if ($duty_obj->mapping_level == "Subdiv") {
           $created_by_local_body_code = $duty_obj->urban_body_code;
         }
@@ -680,7 +684,7 @@ class WorkflowControllerSm extends Controller
     try {
       $this->middleware('auth');
       $designation_id_old = Auth::user()->designation_id_old;
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       if (empty($request->beneficiary_id)) {
         return redirect("/")->with('danger', 'Beneficiary ID Not Found');
       }
@@ -705,7 +709,7 @@ class WorkflowControllerSm extends Controller
       } else {
         $schema = "pension";
       }
-      if ($designation_id_old == 'Verifier') {
+      if (AuthChecker::VerifierChecker()) {
         if ($duty_obj->mapping_level == "Subdiv") {
           $created_by_local_body_code = $duty_obj->urban_body_code;
         }
@@ -761,7 +765,7 @@ class WorkflowControllerSm extends Controller
     $this->middleware('auth');
     $designation_id_old = Auth::user()->designation_id_old;
     //dd($designation_id_old);
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
 
     $scheme_id = $request->scheme_id;
     $type = $request->type;
@@ -793,13 +797,13 @@ class WorkflowControllerSm extends Controller
       return redirect("/")->with('danger', 'Not Allowed');
     }
     if ($type == 1) {
-      if (!in_array($designation_id_old, array( 'Approver','Verifier'))) {
+      if (!AuthChecker::VerifierChecker() || !AuthChecker::ApproverChecker()) {
         return redirect("/")->with('danger', 'Not Allowed');
       }
     }
     //dd($type);
     if ($type == 2 || $type == 3 || $type == 4) {
-      if (!in_array($designation_id_old, array('Operator'))) {
+      if (!AuthChecker::OperatorChecker()) {
         return redirect("/")->with('danger', 'Not Allowed');
       }
       
@@ -880,7 +884,7 @@ class WorkflowControllerSm extends Controller
         $query = DB::table($schema . '.beneficiary')
           ->where('is_rejected', 0);
       }
-      if ($designation_id_old == 'Operator') {
+      if (AuthChecker::OperatorChecker()) {
         // $query = $query->where('created_by_local_body_code', $created_by_local_body_code);
         //$query = $query->whereNull('sm_ds_mark');
         if ($type == 2) {
@@ -896,7 +900,7 @@ class WorkflowControllerSm extends Controller
           $query = $query->where('mobile_no', $dupMobileCheck);
         }
       }
-      if ($designation_id_old == 'Verifier') {
+      if (AuthChecker::VerifierChecker()) {
         $query = $query->where('created_by_local_body_code', $created_by_local_body_code);
         if (!empty($application_type)) {
           if ($application_type == 1)
@@ -914,7 +918,7 @@ class WorkflowControllerSm extends Controller
       if (!empty($request->gp_ward_code)) {
         $query = $query->where('gp_ward_code', $request->gp_ward_code);
       }
-      if ($designation_id_old == 'Approver') {
+      if (AuthChecker::ApproverChecker()) {
         if ($application_type != '') {
 
           if ($application_type == 2)
@@ -1088,7 +1092,7 @@ class WorkflowControllerSm extends Controller
     try {
       $this->middleware('auth');
       $designation_id_old = Auth::user()->designation_id_old;
-      $user_id = Auth::user()->id;
+      $user_id = Authchecker::getUserId();
       $id = $request->id;
       // dd($id);
       if (empty($request->id)) {
@@ -1230,7 +1234,7 @@ class WorkflowControllerSm extends Controller
       return redirect("/")->with('danger', 'Not Allowed');
       $this->middleware('auth');
       $designation_id_old = Auth::user()->designation_id_old;
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       if (empty($request->beneficiary_id)) {
         return redirect("/")->with('danger', 'Beneficiary ID Not Found');
       }
@@ -1305,13 +1309,13 @@ class WorkflowControllerSm extends Controller
       } else {
         $query = DB::table($schema . '.beneficiary')->where('id', $id)->where('is_rejected', 0);
       }
-      if ($designation_id_old == 'Approver') {
+      if (AuthChecker::ApproverChecker()) {
         $query = $query->where('sm_ds_mark', 1);
       }
-      if ($designation_id_old == 'Verifier') {
+      if (AuthChecker::VerifierChecker()) {
         $query = $query->whereNull('sm_ds_mark_viii');
       }
-      if ($designation_id_old == 'Operator') {
+      if (AuthChecker::OperatorChecker()) {
         $query = $query->whereNull('sm_ds_mark_ix');
       }
       $row = $query->first();
@@ -1344,7 +1348,7 @@ class WorkflowControllerSm extends Controller
           DB::commit();
           $errors = array();
 
-          if ($designation_id_old == 'Verifier' || $designation_id_old == 'Operator') {
+          if (AuthChecker::VerifierChecker() || AuthChecker::OperatorChecker()) {
             $return_text = 'Beneficiary with  Id:' . $id . ' has been marked as Duare Sarkar ' . $camp_roman . ' Camps';
           }
           return redirect("/oapsmdsmark?type=" . $type . "&ds_mark_phase=" . $ds_mark_phase . "&scheme_id=" . $scheme_id)->with('success', $return_text);
@@ -1416,11 +1420,11 @@ class WorkflowControllerSm extends Controller
       $condition = array();
       $condition["sm_ds_mark"] = 1;
       $designation_id_old = Auth::user()->designation_id_old;
-      if ($designation_id_old == 'Approver') {
+      if (AuthChecker::ApproverChecker()) {
         //dd(123);
         $condition["created_by_dist_code"] = $district_code;
       }
-      if ($designation_id_old == 'Verifier' || $designation_id_old == 'Operator') {
+      if (AuthChecker::VerifierChecker() || AuthChecker::OperatorChecker()) {
         if ($ds_mark_phase == 7) {
           //dd(333);
           $condition["created_by_dist_code"] = $district_code;
@@ -1543,10 +1547,10 @@ class WorkflowControllerSm extends Controller
       $this->middleware('auth');
       //dd('ok');
       $designation_id_old = Auth::user()->designation_id_old;
-      if ($designation_id_old != 'Approver') {
+      if (!AuthChecker::ApproverChecker()) {
         return redirect("/")->with('error', 'Not Allowed');
       }
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       $scheme_id = $request->scheme_id;
       if (!ctype_digit($scheme_id)) {
         return redirect("/")->with('error', 'Scheme Not Valid');
@@ -1629,9 +1633,9 @@ class WorkflowControllerSm extends Controller
     foreach ($scheme_list as $scheme_item) {
       array_push($scheme_code_in, $scheme_item->id);
     }
-    if ($designation_id_old == 'Admin' || $designation_id_old == 'HOD' || $designation_id_old == 'HOP' || $designation_id_old == 'MisState' ||  $designation_id_old == 'Dashboard') {
+    if (AuthChecker::ReportCheckerCommon()) {
       $district_visible = $is_urban_visible = $block_visible = 1;
-    } else if ($designation_id_old == 'Approver' || $designation_id_old == 'Verifier') {
+    } else if (AuthChecker::ApproverChecker() || AuthChecker::VerifierChecker()) {
       $district_code = NULL;
       $is_urban = NULL;
       $blockCode = NULL;
@@ -1727,9 +1731,9 @@ class WorkflowControllerSm extends Controller
     foreach ($scheme_list as $scheme_item) {
       array_push($scheme_code_in, $scheme_item->id);
     }
-    if ($designation_id_old == 'Admin' || $designation_id_old == 'HOD' || $designation_id_old == 'HOP' || $designation_id_old == 'MisState' ||  $designation_id_old == 'Dashboard') {
+    if (AuthChecker::ReportCheckerCommon()) {
       $district_visible = $is_urban_visible = $block_visible = 1;
-    } else if ($designation_id_old == 'Approver' || $designation_id_old == 'Verifier') {
+    } else if (AuthChecker::ApproverChecker() || AuthChecker::VerifierChecker()) {
       $district_code = NULL;
       $is_urban = NULL;
       $blockCode = NULL;
@@ -2279,9 +2283,9 @@ LEFT JOIN
     foreach ($scheme_list as $scheme_item) {
       array_push($scheme_code_in, $scheme_item->id);
     }
-    if ($designation_id_old == 'Admin' || $designation_id_old == 'HOD' || $designation_id_old == 'HOP' || $designation_id_old == 'MisState' ||  $designation_id_old == 'Dashboard') {
+    if (AuthChecker::ReportCheckerCommon()) {
       $district_visible = $is_urban_visible = $block_visible = 1;
-    } else if ($designation_id_old == 'Approver' || $designation_id_old == 'Verifier') {
+    } else if (AuthChecker::ApproverChecker() || AuthChecker::VerifierChecker()) {
       $district_code = NULL;
       $is_urban = NULL;
       $blockCode = NULL;
@@ -2690,9 +2694,9 @@ LEFT JOIN
     foreach ($scheme_list as $scheme_item) {
       array_push($scheme_code_in, $scheme_item->id);
     }
-    if ($designation_id_old == 'Admin' || $designation_id_old == 'HOD' || $designation_id_old == 'HOP' || $designation_id_old == 'MisState' ||  $designation_id_old == 'Dashboard') {
+    if (AuthChecker::AdminChecker() || AuthChecker::HODChecker() || AuthChecker::HOPChecker() || AuthChecker::MisStateChecker() ||  AuthChecker::DashboardChecker()) {
       $district_visible = $is_urban_visible = $block_visible = 1;
-    } else if ($designation_id_old == 'Approver' || $designation_id_old == 'Verifier') {
+    } else if (AuthChecker::ApproverChecker() || AuthChecker::VerifierChecker()) {
       $district_code = NULL;
       $is_urban = NULL;
       $blockCode = NULL;

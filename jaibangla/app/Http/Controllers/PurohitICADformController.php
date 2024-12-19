@@ -53,6 +53,7 @@ use App\BenDocs;
 use App\AcceptRejectInfo;
 use App\RejectRevertReason;
 use App\MapLavel;
+use App\Helpers\AuthChecker;
 
 class PurohitICADformController extends Controller
 {
@@ -231,7 +232,7 @@ class PurohitICADformController extends Controller
     $housingDocArcTable = $this->pr1ListPurohit['housing']['docarchtable'];
     $housingDocArcTable = "App\\" . $housingDocArcTable;
 
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $users = User::find($user_id);
     //$server_ip =$_SERVER['SERVER_ADDR'];
     $base_url = url('/');
@@ -1430,7 +1431,7 @@ class PurohitICADformController extends Controller
         $i = 0;
         $j = 0;
         $c_time = date('Y-m-d H:i:s');
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         foreach ($doc_list as $doc) {
           if ($request->hasFile('doc_' . $doc)) {
             $doc_file = $request->file('doc_' . $doc);
@@ -2033,7 +2034,7 @@ class PurohitICADformController extends Controller
   /************************REPORT**********************************/
   public function report($scheme, $approved_rejected)
   {
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $duty = Configduty::where('user_id', '=', $user_id)->first();
     // echo "<pre>";print_r($duty);die();
     $district_code = $duty->district_code;
@@ -2064,7 +2065,7 @@ class PurohitICADformController extends Controller
   {
     //DB::enableQueryLog();
     if (request()->ajax()) {
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       $duty = Configduty::where('user_id', '=', $user_id)->first();
       $district_code = $request->level1;
       $district_name = $request->level2;
@@ -2236,7 +2237,7 @@ class PurohitICADformController extends Controller
     if (!is_numeric($request->id)) {
       return redirect("/")->with('danger', 'Applicant ID Not Valid');
     }
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $reject_revert_cause_list = RejectRevertReason::where('status', true)->get();
     $id = $request->id;
     $appPrefix = "App";

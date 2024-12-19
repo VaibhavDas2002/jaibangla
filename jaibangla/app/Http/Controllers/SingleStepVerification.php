@@ -50,6 +50,8 @@ use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Helpers\Helper;
+use App\Helpers\AuthChecker;
+
 
 class SingleStepVerification extends Controller
 {
@@ -85,7 +87,7 @@ class SingleStepVerification extends Controller
           return redirect("/")->with('error', $errorMsgCap);
         }
       }
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       $district_code = $distCode;
       $district_name = District::where('district_code', $district_code)->pluck('district_name')->first();
       $rural_urban_fk = null;
@@ -191,7 +193,7 @@ class SingleStepVerification extends Controller
   {
     //DB::enableQueryLog();
     if (request()->ajax()) {
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       // $duty = Configduty::where('user_id', '=', $user_id)->first();
       $district_code = $request->district_code;
       $serachvalue = $request->search['value'];
@@ -344,7 +346,7 @@ class SingleStepVerification extends Controller
   {
     //DB::enableQueryLog();
     if (request()->ajax()) {
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       $duty = Configduty::where('user_id', '=', $user_id)->first();
       $district_code = $request->level1;
       $district_name = $request->level2;
@@ -592,7 +594,7 @@ class SingleStepVerification extends Controller
     ini_set('max_execution_time', 180);
     $designation_id_old = Auth::user()->designation_id_old;
     if ($designation_id_old == 'Approver') {
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       $return_status = 0;
       $return_msg = '';
       $inputs_json = $request->approvalcheck;
@@ -677,7 +679,7 @@ class SingleStepVerification extends Controller
       $model_name = $this->getModelName($scheme);
 
       $role_id = $request->session()->get('role_id');
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
 
       //$reject_reason = $request->reject_reason;
       DB::beginTransaction();
@@ -746,7 +748,7 @@ class SingleStepVerification extends Controller
 
   public function applicationeditview(Request $request)
   {
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $id = $request->id;
 
     //echo "scheme_id".$scheme_id;die();
@@ -969,7 +971,7 @@ class SingleStepVerification extends Controller
 
   public function report($scheme, $approved_rejected)
   {
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $duty = Configduty::where('user_id', '=', $user_id)->first();
     // echo "<pre>";print_r($duty);die();
     $district_code = $duty->district_code;
@@ -987,7 +989,7 @@ class SingleStepVerification extends Controller
     $district_code = $request->level1;
     $district_name = $request->level2;
     if (request()->ajax()) {
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       $duty = Configduty::where('user_id', '=', $user_id)->first();
 
       $serachvalue = $request->search['value'];

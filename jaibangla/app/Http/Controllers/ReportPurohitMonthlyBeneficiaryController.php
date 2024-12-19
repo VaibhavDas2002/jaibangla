@@ -21,12 +21,12 @@ class ReportPurohitMonthlyBeneficiaryController extends Controller
     }
 
     public function index(){
-    	$user_id = Auth::user()->id;
+    	$user_id = AuthChecker::getUserId();
         $schemes=Configduty::where('user_id','=',$user_id)->first();
         $dist_code = $schemes->district_code;
         if (Auth::user()->designation_id_old == 'Approver') {
         	$block_ulb = DB::select(DB::raw("select distinct block_ulb_code ,p.block_ulb_name|| (case when p.block_ulb_code<10000 then ' Block' else ' Municipality' end) block_ulb_name 
-				from purohit_monthly.beneficiary p where dist_code=".$dist_code.";"));
+				from pension.beneficiaries p where dist_code=".$dist_code.";"));
 	        $result = DB::select(DB::raw("select p.dist_code dist_code,p.block_ulb_code block_ulb_code,d.district_name as district_name,p.block_ulb_name|| (case when p.block_ulb_code<10000 then ' Block' else ' Municipality' end) as block_ulb_name ,p.app_phase as app_phase,
 				count(*) total_ben,
 				sum(case when next_level_role_id is null then 1 else 0 end) pending_verifier,
@@ -66,7 +66,7 @@ class ReportPurohitMonthlyBeneficiaryController extends Controller
     	$dist_code = $request->dist_code;
 
     	$block_ulb_l = DB::select(DB::raw("select distinct block_ulb_code ,p.block_ulb_name|| (case when p.block_ulb_code<10000 then ' Block' else ' Municipality' end) block_ulb_name 
-			from purohit_monthly.beneficiary p where dist_code=".$dist_code.";"));
+			from pension.beneficiaries p where dist_code=".$dist_code.";"));
         $result = DB::select(DB::raw("select p.dist_code dist_code,p.block_ulb_code block_ulb_code,d.district_name as district_name,p.block_ulb_name|| (case when p.block_ulb_code<10000 then ' Block' else ' Municipality' end) as block_ulb_name ,p.app_phase as app_phase,
 			count(*) total_ben,
 			sum(case when next_level_role_id is null then 1 else 0 end) pending_verifier,
@@ -74,7 +74,7 @@ class ReportPurohitMonthlyBeneficiaryController extends Controller
 			sum(case when next_level_role_id =106 then 1 else 0 end) pending_approval,
 			sum(case when next_level_role_id =0 then 1 else 0 end) approved,
 			sum(case when next_level_role_id =-1 then 1 else 0 end) rejected
-			from purohit_monthly.beneficiary p,  m_district d 
+			from pension.beneficiaries p,  m_district d 
 			where d.district_code=p.dist_code and p.dist_code=".$dist_code." and p.block_ulb_code=".$block_ulb."
 			group by d.district_name,p.block_ulb_name,p.block_ulb_code,p.app_phase
 			order by d.district_name,p.block_ulb_name,p.app_phase;"));
@@ -82,7 +82,7 @@ class ReportPurohitMonthlyBeneficiaryController extends Controller
     }
 
     public function generateExcelPurohit($dist_code, $block_ulb_code){
-    	$result = DB::select(DB::raw("select * from purohit_monthly.beneficiary p where p.created_by_dist_code=".$dist_code." and p.created_by_local_body_code=".$block_ulb_code." and p.next_level_role_id = 0;"));
+    	$result = DB::select(DB::raw("select * from pension.beneficiaries p where p.created_by_dist_code=".$dist_code." and p.created_by_local_body_code=".$block_ulb_code." and p.next_level_role_id = 0;"));
     	$distObj = District::where('district_code', $dist_code)->first();
     	if ($block_ulb_code < 10000) {
     		$blockObj = Taluka::where('block_code', $block_ulb_code)->first();
@@ -96,7 +96,7 @@ class ReportPurohitMonthlyBeneficiaryController extends Controller
     	$this->generateExcel($result, $name);
     }
     public function generateExcelPurohitHOD($dist_code){
-    	$result = DB::select(DB::raw("select * from purohit_monthly.beneficiary p where p.created_by_dist_code=".$dist_code." and p.next_level_role_id = 0;"));
+    	$result = DB::select(DB::raw("select * from pension.beneficiaries p where p.created_by_dist_code=".$dist_code." and p.next_level_role_id = 0;"));
     	$distObj = District::where('district_code', $dist_code)->first();
     	$name = $distObj->district_name.' Purohit Monthly Financial Assistance Beneficiary Report';
     	$this->generateExcel($result, $name);

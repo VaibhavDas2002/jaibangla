@@ -38,6 +38,7 @@ use App\AcceptRejectInfo;
 use App\MapLavel;
 use App\BenDocs;
 use App\Assembly;
+use App\Helpers\AuthChecker;
 
 class ICADController extends Controller
 {
@@ -53,7 +54,7 @@ class ICADController extends Controller
     {
       try{
       $designation_id_old = Auth::user()->designation_id_old;
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       if ($designation_id_old == 'Approver') {
         $schemes = DB::select(DB::raw("select id,scheme_name,display_name,is_active from m_scheme where  id IN (8,9,17) and  id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . ") order by rank"));
         //dd($schemes);
@@ -77,7 +78,7 @@ class ICADController extends Controller
       $this->middleware('auth');
       $designation_id_old = Auth::user()->designation_id_old;
       //dd($designation_id_old);
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
   
       $scheme_id = $request->scheme_id;
       if (!ctype_digit($scheme_id)) {
@@ -144,7 +145,7 @@ class ICADController extends Controller
         //dd($process_type);
         $query = DB::table($schema . '.beneficiaries')
           ->where('legacy_import',true)->whereNull('next_level_role_id_edit')->where('created_by_dist_code', $district_code)->where('next_level_role_id',0);
-          if ($designation_id_old == 'Verifier') {
+          if (AuthChecker::VerifierChecker()) {
             $query = $query->where('created_by_local_body_code', $created_by_local_body_code);
             if (!empty($application_type)) {
             }
@@ -158,7 +159,7 @@ class ICADController extends Controller
         if (!empty($request->gp_ward_code)) {
           $query = $query->where('gp_ward_code', $request->gp_ward_code);
         }
-        if ($designation_id_old == 'Approver') {
+        if (AuthChecker::ApproverChecker()) {
           
         
         }
@@ -277,16 +278,14 @@ class ICADController extends Controller
           'scheme_name' => $scheme_obj->scheme_name,
           'gps' => $gps,
           'urban_bodys' => $urban_bodys,
-          'gps' => $gps,
           'district_code' => $district_code,
           'type_des' => $type_des,
-          'scheme_id' => $scheme_id
         ]
       );
     }
     public function editUnlock(Request $request)
     {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $designation_id_old = Auth::user()->designation_id_old;
         if (!in_array($designation_id_old, array('Approver'))) {
             return redirect("/")->with('error', 'Not Allowed');
@@ -343,7 +342,7 @@ class ICADController extends Controller
 
        // $condition["next_level_role_id"] = 0;
         $condition["id"] =  $id;
-        $row =DB::table($schema . '.beneficiary')->where($condition)->whereNull('next_level_role_id_edit')->first();
+        $row =DB::table($schema . '.beneficiaries')->where($condition)->whereNull('next_level_role_id_edit')->first();
         //dd($row);
         if (empty($row)) {
             return redirect("/")->with('error', 'Application Id Valid');
@@ -476,7 +475,7 @@ class ICADController extends Controller
     }
     function editicadPost(Request $request)
     {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $designation_id_old = Auth::user()->designation_id_old;
         if (!in_array($designation_id_old, array('Approver'))) {
             return redirect("/")->with('error', 'Not Allowed');
@@ -1150,8 +1149,8 @@ class ICADController extends Controller
       $application_id=$request->application_id;
         $roleArray = $request->session()->get('role');
         $designation_id_old = Auth::user()->designation_id_old;
-        $user_id = Auth::user()->id;
-    //$user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
+    //$user_id = AuthChecker::getUserId();
     $duty_obj = Configduty::where('user_id', $user_id)->first();
     $district_code = $duty_obj->district_code;
     $getModelFunc = new getModelFunc();
@@ -1255,5 +1254,18 @@ class ICADController extends Controller
           $digitIndex = $dihedral[$digitIndex][$permutation[($i + 1) % 8][$partial[$i]]];
       }
       return $inverse[$digitIndex];
+  }
+
+  public function getGroupName($groupId)
+  {
+      $groupArr = Config::get('constants.document_group');
+      $groupDescription = "NA";
+      foreach ($groupArr as $key => $value) {
+          if ($key == $groupId) {
+              $groupDescription = $value;
+              break;
+          }
+      }
+      return $groupDescription;
   }
 }

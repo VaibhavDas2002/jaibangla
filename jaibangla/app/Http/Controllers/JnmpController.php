@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Helpers\AuthChecker;
 
 class JnmpController extends Controller
 {
@@ -42,9 +43,9 @@ class JnmpController extends Controller
             if (empty($schema_name)) {
                 $schema_name = 'pension';
             }
-            $table_name =  strtolower($schema_name) . '.beneficiary';
+            $table_name =  strtolower($schema_name) . '.beneficiaries';
         } else {
-            $table_name =  'pension.beneficiary';
+            $table_name =  'pension.beneficiaries';
         }
         return $table_name;
     }
@@ -55,7 +56,7 @@ class JnmpController extends Controller
         $roleArray = $request->session()->get('role');
         // echo '<pre>'; print_r($roleArray);die();
         $designation_id_old = Auth::user()->designation_id_old;
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $district_visible = $is_urban_visible = $block_visible = 1;
         $municipality_visible = 0;
         $gp_ward_visible = 0;
@@ -141,7 +142,7 @@ class JnmpController extends Controller
     {
         $roleArray = $request->session()->get('role');
         $designation_id_old = Auth::user()->designation_id_old;
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id', '=', $user_id)->first();
         $schemes = DB::select(DB::raw("select id,scheme_name,pr1_code,entry_url,display_name from m_scheme where id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . ") AND id in(1,2,3,5,6,7,8,9,10,11,13,17,19) order by rank"));
         if ($designation_id_old == 'Admin') {
@@ -409,7 +410,7 @@ class JnmpController extends Controller
             $base64 = base64_encode($img_data);
             $ip_address = request()->ip();
             $c_datetime = date('Y-m-d H:i:s', time());
-            $user_id = Auth::user()->id;
+            $user_id = AuthChecker::getUserId();
             // $file_passport = $doc_file->getClientOriginalName();
             // $file_type = $doc_file->getClientOriginalExtension();
             // echo $file_type;die;
@@ -639,7 +640,7 @@ class JnmpController extends Controller
     {
         $roleArray = $request->session()->get('role');
         $designation_id_old = Auth::user()->designation_id_old;
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id', '=', $user_id)->first();
         $schemes = DB::select(DB::raw("select id,scheme_name,pr1_code,entry_url,display_name from m_scheme where id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . ") AND id in(1,2,3,5,6,7,8,9,10,11,13,17,19) order by rank"));
         if ($designation_id_old == 'Admin') {

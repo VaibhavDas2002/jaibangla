@@ -33,6 +33,8 @@ use App\Ward;
 use App\GP;
 use Carbon\Carbon;
 use App\Helpers\Helper;
+use App\Helpers\AuthChecker;
+
 class CasteWiseReportController extends Controller
 {
     public $source_type;
@@ -438,7 +440,7 @@ class CasteWiseReportController extends Controller
         $roleArray = $request->session()->get('role');
         // echo '<pre>'; print_r($roleArray);die();
         $designation_id_old = Auth::user()->designation_id_old;
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $district_visible = $is_urban_visible = $block_visible = 1;
         $municipality_visible = 0;
         $gp_ward_visible = 0;
@@ -522,7 +524,7 @@ class CasteWiseReportController extends Controller
         // dd($request->all());
         $roleArray = $request->session()->get('role');
         $designation_id_old = Auth::user()->designation_id_old;
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id', '=', $user_id)->first();
         $schemes = DB::select(DB::raw("select id,scheme_name,pr1_code,entry_url,display_name from m_scheme where id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . ")  order by rank"));
         if ($designation_id_old == 'Admin' || $designation_id_old == 'HOD' || $designation_id_old == 'HOP' || $designation_id_old == 'MisState' ||  $designation_id_old == 'Dashboard') {
@@ -587,7 +589,7 @@ class CasteWiseReportController extends Controller
     public function castewiseExportExcel(Request $request){
         $roleArray = $request->session()->get('role');
         $designation_id_old = Auth::user()->designation_id_old;
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $scheme_id = $request->scheme_id;
         if ($designation_id_old == 'Admin' || $designation_id_old == 'HOD' || $designation_id_old == 'HOP' || $designation_id_old == 'MisState' ||  $designation_id_old == 'Dashboard') {
             $district_code = NULL;

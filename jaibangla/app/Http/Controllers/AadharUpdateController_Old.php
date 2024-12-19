@@ -30,6 +30,7 @@ use App\PensionOAPFarmer;
 use App\PensionPurohitMonthlyICAD;
 use App\PensionPurohitHousingICAD;
 use App\PensionOAPST;
+use App\Helpers\AuthChecker;
 
 //Dynamic Doc
 use App\BenDocsSc;
@@ -164,7 +165,7 @@ class AadharUpdateController extends Controller
     //###################  Opeartor ################################
     public function schemeList(Request $request)
     {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $designation_id_old = Auth::user()->designation_id_old;
         $scheme_id = (int) $request->scheme_id;
         if ($designation_id_old != 'Operator') {
@@ -186,7 +187,7 @@ class AadharUpdateController extends Controller
     public function applicationlistAadharUpdate(Request $request)
     {
 
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $designation_id_old = Auth::user()->designation_id_old;
         $scheme_id = (int) $request->scheme_id;
         if (!is_int($scheme_id)) {
@@ -277,7 +278,7 @@ class AadharUpdateController extends Controller
 
     public function applicationeditviewAadharUpdate(Request $request)
     {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $id = $request->id;
         //dd($user_id);
         $scheme_id = (int) $request->scheme_id;
@@ -681,7 +682,7 @@ class AadharUpdateController extends Controller
 
     public function shemeSelectionAadharUpdateVerifier(Request $request)
     {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $designation_id_old = Auth::user()->designation_id_old;
         $scheme_id = (int) $request->scheme_id;
         if ($designation_id_old != 'Verifier') {
@@ -702,7 +703,7 @@ class AadharUpdateController extends Controller
     public function aadharUpdateListVerifer(Request $request)
     {
 
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $designation_id_old = Auth::user()->designation_id_old;
         $scheme_id = (int) $request->scheme_id;
         if (!is_int($scheme_id)) {
@@ -782,7 +783,7 @@ class AadharUpdateController extends Controller
     public function showAadharApplicantDetails(Request $request)
     {
 
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $designation_id_old = Auth::user()->designation_id_old;
         $scheme_id = (int) $request->scheme_id;
         $id = $request->id;
@@ -924,7 +925,7 @@ class AadharUpdateController extends Controller
     {
 
         $scheme_id = $request->scheme_id;
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $id = $request->benId;
 
         if ($scheme_id == 13) {
@@ -988,7 +989,7 @@ class AadharUpdateController extends Controller
         $comments = $request->comments;
 
 
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id', '=', $user_id)->where('scheme_id', $scheme_id)->first();
 
         $role = MapLavel::where('scheme_id', $scheme_id)->where('role_name', Auth::user()->designation_id_old)->where('stack_level', $duty->mapping_level)->first();
@@ -1028,7 +1029,7 @@ class AadharUpdateController extends Controller
 
     public function shemeSelectionAadharUpdateApprover(Request $request)
     {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $designation_id_old = Auth::user()->designation_id_old;
         $scheme_id = (int) $request->scheme_id;
         if ($designation_id_old != 'Approver') {
@@ -1050,7 +1051,7 @@ class AadharUpdateController extends Controller
     public function aadharUpdateListApprover(Request $request)
     {
 
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $designation_id_old = Auth::user()->designation_id_old;
         $scheme_id = (int) $request->scheme_id;
         if (!is_int($scheme_id)) {
@@ -1128,7 +1129,7 @@ class AadharUpdateController extends Controller
     public function showAadharApplicantDetailsApprover(Request $request)
     {
 
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $designation_id_old = Auth::user()->designation_id_old;
         $scheme_id = (int) $request->scheme_id;
         $id = $request->id;
@@ -1269,7 +1270,7 @@ class AadharUpdateController extends Controller
     {
 
         $scheme_id = $request->scheme_id;
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $id = $request->benId;
 
         if ($scheme_id == 13) {
@@ -1334,7 +1335,7 @@ class AadharUpdateController extends Controller
 
         $comments = $request->comments;
 
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id', '=', $user_id)->where('scheme_id', $scheme_id)->first();
 
         //dd($duty);
@@ -1373,7 +1374,7 @@ class AadharUpdateController extends Controller
     }
     public function countListIndex(Request $request)
     {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $designation_id_old = Auth::user()->designation_id_old;
         $scheme_id = (int) $request->scheme_id;
         if ($designation_id_old != 'Approver') {
@@ -1396,7 +1397,7 @@ class AadharUpdateController extends Controller
         $scheme_id = $request->scheme_id;
         $rural_urban = $request->rural_urban;
         // echo $rural_urban;die;
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $distObj = Configduty::where('user_id', $user_id)->first();
         // echo $scheme_id; 
         // echo $user_id; 
@@ -1527,7 +1528,7 @@ class AadharUpdateController extends Controller
     }
     public function countListIndexforHod(Request $request)
     {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $designation_id_old = Auth::user()->designation_id_old;
         $scheme_id = (int) $request->scheme_id;
         $district_name = District::get();
@@ -1550,7 +1551,7 @@ class AadharUpdateController extends Controller
         $scheme_id = $request->scheme_id;
         $district_code = $request->district_code;
         $rural_urban = $request->rural_urban;
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $distObj = Configduty::where('user_id', $user_id)->first();
         // echo $scheme_id; 
         // echo $user_id; 

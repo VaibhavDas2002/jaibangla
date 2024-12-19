@@ -40,6 +40,7 @@ use App\BenDocs;
 use Exception;
 use App\Traits\TraitAadharValidate;
 use App\Helpers\DupCheck;
+use App\Helpers\AuthChecker;
 
 class NoAadharChangeController extends Controller
 {
@@ -56,7 +57,7 @@ class NoAadharChangeController extends Controller
   {
     try {
       $designation_id_old = Auth::user()->designation_id_old;
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       if ($designation_id_old == 'Operator' || $designation_id_old == 'Verifier' || $designation_id_old == 'Approver' || $designation_id_old == 'HOD' || $designation_id_old == 'DASHBOARD') {
         $schemes = DB::select(DB::raw("select id,scheme_name,display_name,is_active from m_scheme where  id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . ") order by rank"));
         //dd($schemes);
@@ -80,7 +81,7 @@ class NoAadharChangeController extends Controller
     $this->middleware('auth');
     $designation_id_old = Auth::user()->designation_id_old;
     //dd($designation_id_old);
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
 
     $scheme_id = $request->scheme_id;
     if (!ctype_digit($scheme_id)) {
@@ -344,7 +345,7 @@ class NoAadharChangeController extends Controller
     try {
       $this->middleware('auth');
       $designation_id_old = Auth::user()->designation_id_old;
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       $id = $request->id;
       // dd($id);
       if (empty($request->id)) {
@@ -525,7 +526,7 @@ class NoAadharChangeController extends Controller
       $this->middleware('auth');
       $doc_type_id = $this->doc_type_id;
       $designation_id_old = Auth::user()->designation_id_old;
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       if (empty($request->id)) {
         return redirect("/")->with('danger', 'Beneficiary ID Not Found');
       }
@@ -849,7 +850,7 @@ class NoAadharChangeController extends Controller
       if ($designation_id_old != 'Approver') {
         return redirect("/")->with('error', 'Not Allowed');
       }
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       $duty_obj = Configduty::where('user_id', $user_id)->first();
       if (empty($duty_obj)) {
         return redirect("/")->with('danger', 'Not Allowed');
@@ -967,8 +968,8 @@ class NoAadharChangeController extends Controller
       $application_id = $request->application_id;
       $roleArray = $request->session()->get('role');
       $designation_id_old = Auth::user()->designation_id_old;
-      $user_id = Auth::user()->id;
-      //$user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
+      //$user_id = AuthChecker::getUserId();
       $duty_obj = Configduty::where('user_id', $user_id)->first();
       $district_code = $duty_obj->district_code;
       $getModelFunc = new getModelFunc();
@@ -1440,7 +1441,7 @@ class NoAadharChangeController extends Controller
   public function generate_excel(Request $request)
   {
     try {
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       $scheme_id = $request->scheme_id;
       if (empty($scheme_id)) {
         return redirect("/")->with('danger', 'Not Allowed');

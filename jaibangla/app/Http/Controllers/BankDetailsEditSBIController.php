@@ -18,6 +18,8 @@ use App\Scheme;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
+use App\Helpers\AuthChecker;
+
 
 class BankDetailsEditSBIController extends Controller
 {
@@ -46,7 +48,7 @@ class BankDetailsEditSBIController extends Controller
      echo $bodyCode;
      echo "</pre>";
      die();*/
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $report = DB::connection('pgsql_mis')->select("select id,scheme_name from m_scheme where id in (select scheme_id from duty_assignement where user_id=" . $user_id . " and is_active=1)");
     if (Auth::user()->designation_id_old == "Approver") {
       return view('scheme-selection-bank-sbi-edit/main', compact('report'));
@@ -60,7 +62,7 @@ class BankDetailsEditSBIController extends Controller
   public function shemeSessionCheck(Request $request)
   {
 
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $scheme_id = 0;
     $ben_table = "";
     if ($request->get('pr1')) {
@@ -170,7 +172,7 @@ class BankDetailsEditSBIController extends Controller
     $urban_body_code = $request->session()->get('bodyCode');
     $taluka_code = $request->session()->get('bodyCode');
     $role_id = $request->session()->get('role_id');
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $schemeObj = DB::table('public.m_scheme')->where('id', $scheme_id)->first();
 
     // New For Reporting server pointing [DATE:- 30-12-2021]
@@ -441,7 +443,7 @@ class BankDetailsEditSBIController extends Controller
     $urban_body_code = $request->session()->get('bodyCode');
     $taluka_code = $request->session()->get('bodyCode');
     $role_id = $request->session()->get('role_id');
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $body_code = $request->session()->get('bodyCode');
     $id = $request->id; //dd($id);
     $appPrefix = "App";
@@ -492,7 +494,7 @@ if(!empty($query_res[0]->description)){
     $urban_body_code = $request->session()->get('bodyCode');
     $taluka_code = $request->session()->get('bodyCode');
     $role_id = $request->session()->get('role_id');
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $body_code = $request->session()->get('bodyCode');
     if ($scheme_id == 1) {
       $pr1 = 'st';
@@ -529,7 +531,7 @@ if(!empty($query_res[0]->description)){
     //$comments=$request->comments;
 
     //$scheme_id = 3;
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $duty = Configduty::where('user_id', '=', $user_id)->where('scheme_id', $scheme_id)->first();
     $role = MapLavel::where('scheme_id', $scheme_id)->where('role_name', Auth::user()->designation_id_old)->where('stack_level', $duty->mapping_level)->first();
 

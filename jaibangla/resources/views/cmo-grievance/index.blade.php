@@ -73,7 +73,7 @@
 <div class="content-wrapper">
     <section class="content-header">
         <h1>
-            Sarasori Mukhyamantri (CMO Grievance) List  - {{$scheme_name}}
+            Sarasori Mukhyamantri (CMO Grievance) List - {{$scheme_name}}
         </h1>
         <ol class="breadcrumb">
             <i class="fa fa-clock-o"></i> Date : <span style="font-size: 12px; font-weight: bold;"><span
@@ -125,11 +125,10 @@
                                             <input type="hidden" name="scheme_type" id="scheme_type"
                                                 value="{{$scheme_id}}" />
                                         </div>
-                                        @if($mapLevel == 'SubdivVerifier')
+                                        @if($mapLevel == 'Subdiv')
                                             <input type="hidden" name="local_body" id="local_body"
                                                 value={{$local_body_code}}>
-                                        @elseif($mapLevel == 'BlockVerifier')
-
+                                        @elseif($mapLevel == 'Block')
                                             <input type="hidden" name="local_body" id="local_body"
                                                 value={{$local_body_code}}>
                                         @elseif($mapLevel == 'District')

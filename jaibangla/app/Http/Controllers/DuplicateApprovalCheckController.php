@@ -25,6 +25,7 @@ use App\Scheme;
 use App\BeneficiaryPensions;
 use App\DupliacteApproveReject;
 use Config;
+use App\Helpers\AuthChecker;
 
 class DuplicateApprovalCheckController extends Controller
 {
@@ -33,7 +34,7 @@ class DuplicateApprovalCheckController extends Controller
     }
     public function index(){
     	// $scheme = Scheme::all();
-	    $user_id = Auth::user()->id;
+	    $user_id = AuthChecker::getUserId();
       //$schemeObj=Configduty::select('scheme_id')->where('user_id','=',$user_id)->where('is_active',1)->get();
       //$scheme = Scheme::whereIn('id',$schemeObj)->where('is_active',1)->get();
       $desig = Auth::user()->designation_id_old;
@@ -49,7 +50,7 @@ class DuplicateApprovalCheckController extends Controller
 
     	$scheme_id = $request->scheme;
     	$filter = $request->filter;
-    	$user_id = Auth::user()->id;
+    	$user_id = AuthChecker::getUserId();
       $dutyObj = Configduty::where('user_id',$user_id)->first();
       //$dist_code = $dutyObj->district_code;
       if (is_null($dutyObj->district_code)) {
@@ -231,7 +232,7 @@ class DuplicateApprovalCheckController extends Controller
             $payment_adjustment_checked=DB::select('SELECT public."payment_adjustment"('.$checked_id.', -1)');                
           }
           //User Id from Users table
-          $user_id = Auth::user()->id;
+          $user_id = AuthChecker::getUserId();
           //All Dupliacte Record Store in to database 
           foreach ($not_check_id as $id) {
             $dupObj = $scheme_model::where('scheme_id',$scheme_id)->where('id',$id)->first();
@@ -287,7 +288,7 @@ class DuplicateApprovalCheckController extends Controller
 
     //Report Duplicate Approval
     public function duplicateApprove(Request $request){
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       //$schemeObj=Configduty::select('scheme_id')->where('user_id','=',$user_id)->where('is_active',1)->get();
       //$scheme = Scheme::whereIn('id',$schemeObj)->where('is_active',1)->get();
 	$scheme = DB::select(DB::raw("select id,scheme_name from m_scheme where id in (select scheme_id from duty_assignement where user_id=" . $user_id . " and is_active=1) and is_active=1 order by scheme_name"));

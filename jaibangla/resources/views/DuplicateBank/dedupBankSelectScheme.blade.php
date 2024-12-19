@@ -198,7 +198,7 @@
                                     </div>
                                 </div>
                             @endif
-                            @if ($designation == 'Verifier')
+                            @if ($is_verifier)
                                 <form method="get" id="myForm" name="myForm" action="{{ url('dedupBankListView') }}"
                                     autocomplete="off" onSubmit="return validate();">
                                 @else

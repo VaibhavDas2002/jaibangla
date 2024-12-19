@@ -30,6 +30,7 @@ use App\AcceptRejectInfo;
 use Illuminate\Support\Facades\Crypt;
 use App\BenDocs;
 
+
 class JBPensionController extends Controller
 {
     public function __construct()
@@ -43,8 +44,8 @@ class JBPensionController extends Controller
         $op_type = 0;
         $encryptedSchemeId = request('scheme_id');
         $type = (int) $request->type;
-        $issue_text =  '';
-        $next_level_status ='';
+        $issue_text = '';
+        $next_level_status = '';
         $scheme_id = Crypt::decrypt($encryptedSchemeId);
         $readonly = [];
         $auth = AuthChecker::OperatorChecker();
@@ -53,7 +54,7 @@ class JBPensionController extends Controller
             if ($entry_type) {
                 $mandatory = [];
                 $already_inserted = [];
-                $user_id = Auth::user()->id;
+                $user_id = AuthChecker::getUserId();
                 $designation_id_old = Auth::user()->designation_id;
                 $districts = District::all();
                 $doc_id_list = SchemeDocMap::select('doc_list_man', 'doc_list_opt')
@@ -198,7 +199,7 @@ class JBPensionController extends Controller
                         $issue_text = $issue_text . ' Mobile Number';
                     }
                 }
-               
+
                 return view('JBformEntry.Entry', [
                     'issue_text' => $issue_text,
                     'next_level_status' => $next_level_status,
@@ -1126,13 +1127,9 @@ class JBPensionController extends Controller
 
     public function list_view(Request $request)
     {
-
-        $user_id = Auth::user()->id;
-        $designation_id = Auth::user()->designation_id_old;
-        if ($designation_id != 'Operator') {
-            return redirect("/")->with('error', 'Not Allowed');
-        }
-        if ($request->get('pr1')) {
+        $auth = AuthChecker::OperatorChecker();
+        if ($auth) {
+            $user_id = AuthChecker::getUserId();
             $scheme_id = $request->id;
             $scheme_row = Scheme::where('is_active', 1)->where('id', $scheme_id)->first();
             if (empty($scheme_row)) {
@@ -1140,52 +1137,53 @@ class JBPensionController extends Controller
             }
             $scheme_name = $scheme_row->scheme_name;
             $scheme_id = $scheme_row->id;
-        } else {
-            return redirect("/")->with('error', 'Parameter not valid');
-        }
-        $roleArray = $request->session()->get('role');
-        // dd($roleArray);
-        foreach ($roleArray as $roleObj) {
-            // if ($roleObj['scheme_id'] == $scheme_id) {
-            $is_active = 1;
-            $level = $roleObj['mapping_level'];
-            $is_urban = $roleObj['is_urban'];
-            $distCode = $roleObj['district_code'];
-            $is_state_login = $roleObj['is_state_login'];
-            if ($roleObj['is_urban'] == 1) {
-                $blockCode = $roleObj['urban_body_code'];
-            } else {
-                $blockCode = $roleObj['taluka_code'];
+
+            $configDuty = Configduty::select('scheme_id', 'district_code', 'urban_body_code', 'taluka_code', 'is_urban', 'mapping_level')
+                ->where('user_id', $user_id)
+                ->where('is_active', 1)
+                ->where('scheme_id', $scheme_id)
+                ->first();
+            if (empty($configDuty)) {
+                return redirect('/')->with('error', 'No Duty Assigned');
             }
-            break;
-            // }
-        }
-        // dd($is_active);
-        if ($is_active == 0) {
-            return redirect("/")->with('error', 'User Disabled');
-        }
-        $report_type_name = 'Application List which are not yet verified or approved';
+            $is_urban = $configDuty->is_urban;
+            $district_code = $configDuty->district_code;
+            $blockUlbCode = null;
+            $urban_bodys = null;
+            $talukas = null;
+            $gps = null;
+            if ($is_urban == 1) {
+                $blockUlbCode = $configDuty->urban_body_code;
+                $urban_bodys = UrbanBody::where('sub_district_code', $blockUlbCode)->select('urban_body_code', 'urban_body_name')->get();
+            } elseif ($is_urban == 2) {
+                $blockUlbCode = $configDuty->taluka_code;
+                $gps = GP::where('block_code', $blockUlbCode)->get();
+            }
 
-        return view(
-            'JBupdate/editlist',
-            [
-                'district_code' => $distCode,
-                'block_code' => $blockCode,
-                'scheme' => $scheme_id,
-                'pr1' => $request->pr1,
-                'scheme_name' => $scheme_name,
-                'report_type_name' => $report_type_name,
-                'is_urban' => $is_urban
+            // dd($is_active);
+            $report_type_name = 'Application List which are not yet verified or approved';
 
-            ]
-        );
+            return view(
+                'JBupdate/editlist',
+                [
+                    'district_code' => $district_code,
+                    'block_code' => $blockUlbCode,
+                    'scheme' => $scheme_id,
+                    'scheme_name' => $scheme_name,
+                    'report_type_name' => $report_type_name,
+                    'is_urban' => $is_urban
+
+                ]
+            );
+
+        }
     }
 
     public function ben_list(Request $request)
     {
         $scheme_id = $request->scheme;
-        $schema_name = $request->pr1;
-        $user_id = Auth::user()->id;
+        $schema_name = Scheme::where('id',$scheme_id)->value('short_code');
+        $user_id = AuthChecker::getUserId();
 
         // Ensure $dutyObj is fetched properly and is not null
         $dutyObj = Configduty::where('user_id', $user_id)->where('scheme_id', $scheme_id)->first();
@@ -1311,7 +1309,7 @@ class JBPensionController extends Controller
                 return $data->village_town_city;
             })
             ->addColumn('action', function ($data) use ($scheme_id) {
-                $val = '<button type="button" class="btn btn-info btn-view" value="' . $data->id . '">View</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+                $val = '<button type="button" class="btn btn-info btn-view" value="' . $data->id . '" data-scheme = '.$scheme_id.'>View</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
 
                 $val = $val . '<button type="button" class="btn btn-warning btn-update" value="' . $data->id . '">Update</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
 
@@ -1333,7 +1331,7 @@ class JBPensionController extends Controller
     }
 
 
-    
+
     public function wcdlist(Request $request, $scheme_id)
     {
         $scheme_id = (int) $scheme_id;

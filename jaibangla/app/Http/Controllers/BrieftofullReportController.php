@@ -314,7 +314,7 @@ class BrieftofullReportController extends Controller
         count(1) filter(where ds_registration_no IS NOT NULL and is_rejected=1) as rejected,
         count(1) filter(where ds_registration_no IS NOT NULL and next_level_role_id=9999) as faulty,
         gp_ward_code
-       from " . $scheme . ".beneficiary as A 
+       from " . $scheme . ".beneficiaries as A 
       " . $whereCon . " 
       group by gp_ward_code
       ) as draft ON main.location_id=draft.gp_ward_code order by main.location_name";
@@ -361,7 +361,7 @@ class BrieftofullReportController extends Controller
         count(1) filter(where ds_registration_no IS NOT NULL and is_rejected=1) as rejected,
         count(1) filter(where ds_registration_no IS NOT NULL and next_level_role_id=9999) as faulty,
        block_ulb_code
-      from " . $scheme . ".beneficiary as A 
+      from " . $scheme . ".beneficiaries as A 
       " . $whereCon . " 
       group by block_ulb_code
       ) as draft ON main.location_id=draft.block_ulb_code  order by main.location_name";
@@ -398,7 +398,7 @@ class BrieftofullReportController extends Controller
         count(1) filter(where legacy_import=TRUE and next_level_role_id_edit>0 and unlock_status=1 and next_level_role_id_edit!=999) as approval_pending,
         count(1) filter(where legacy_import=TRUE and next_level_role_id_edit=0 and unlock_status IS NULL and caste IS NOT NULL) as approved,
        created_by_local_body_code
-      from " . $scheme . ".beneficiary as A 
+      from " . $scheme . ".beneficiaries as A 
         " . $whereCon . "  group by A.created_by_local_body_code
       ) as draft ON main.location_id=draft.created_by_local_body_code
        order by main.location_name";
@@ -434,7 +434,7 @@ class BrieftofullReportController extends Controller
       count(1) filter(where legacy_import=TRUE and next_level_role_id_edit>0 and unlock_status=1 and next_level_role_id_edit!=999) as approval_pending,
       count(1) filter(where legacy_import=TRUE and next_level_role_id_edit=0 and unlock_status IS NULL and caste IS NOT NULL) as approved,
       created_by_local_body_code
-      from " . $scheme . ".beneficiary as A 
+      from " . $scheme . ".beneficiaries as A 
         " . $whereCon . "  group by A.created_by_local_body_code
     ) as draft ON main.location_id=draft.created_by_local_body_code
      order by main.location_name";
@@ -466,7 +466,7 @@ class BrieftofullReportController extends Controller
         count(1) filter(where legacy_import=TRUE and next_level_role_id_edit>0 and unlock_status=1 and next_level_role_id_edit!=999) as approval_pending,
         count(1) filter(where legacy_import=TRUE and next_level_role_id_edit=0 and unlock_status IS NULL and caste IS NOT NULL) as approved,
         created_by_dist_code
-      from " . $scheme . ".beneficiary as A  " . $whereCon . "
+      from " . $scheme . ".beneficiaries as A  " . $whereCon . "
       group by A.created_by_dist_code
       ) as draft ON main.location_id=draft.created_by_dist_code order by main.location_name";
     $result = DB::connection('pgsql_mis')->select($query);

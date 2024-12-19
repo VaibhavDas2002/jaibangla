@@ -24,11 +24,14 @@ use League\Flysystem\Sftp\SftpAdapter;
 use App\Configduty;
 use Auth;
  ///////////03-04-2020 end/////////
+
+ use App\Helpers\AuthChecker;
+
 class LotVerificationController extends Controller
 {   
      ///////////03-04-2020 start/////////
     public function selectYearMonth(){
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $schemes=Configduty::where('user_id','=',$user_id)->where('is_active',1)->get();
         return view('lot-verification/selectYearMonth',['schemes'=>$schemes]);
     }

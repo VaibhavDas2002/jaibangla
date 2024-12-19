@@ -55,6 +55,8 @@ use App\Traits\TraitCasteCertificateValidate;
 use App\Traits\TraitLifeCertificateValidate;
 use App\Traits\TraitAadharValidate;
 use Illuminate\Support\Facades\Session;
+use App\Helpers\AuthChecker;
+
 class OAPWCDformController extends Controller
 {
     use TraitCasteCertificateValidate;
@@ -363,7 +365,7 @@ class OAPWCDformController extends Controller
         // return redirect("/")->with('error', 'Data entry temporary suspended.');
         try{
         $ds_phase = DsPhase::where('is_current', TRUE)->first();
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         //$server_ip =$_SERVER['SERVER_ADDR'];
         $base_url = url('/');
         $uploaded_doc = array();
@@ -1231,14 +1233,14 @@ class OAPWCDformController extends Controller
     public function applicationlist()
     {
         //DB::enableQueryLog();
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $rows = PensionSc::orderBy('id', 'desc')->paginate(500);
         return view('pension_list', ['nhm_employee_details' => $rows]);
     }
     // public function approvedlistReadOnly(Request $request){
     //     //DB::enableQueryLog();
 
-    //     $user_id = Auth::user()->id;
+    //     $user_id = AuthChecker::getUserId();
 
     //     if($request->get('pr1')){
     //         if($request->get('pr1')=="sc"){
@@ -1273,7 +1275,7 @@ class OAPWCDformController extends Controller
     //     public function applicationlistReadOnly(Request $request){
     //     //DB::enableQueryLog();
 
-    //     $user_id = Auth::user()->id;
+    //     $user_id = AuthChecker::getUserId();
     //     $sucess = $request->get('sucess');
     //     $id = $request->get('id');
 
@@ -1419,7 +1421,7 @@ class OAPWCDformController extends Controller
 
     // public function applicationeditview(Request $request)
     // {
-    //     $user_id = Auth::user()->id;
+    //     $user_id = AuthChecker::getUserId();
     //     $id=$request->id; 
 
     //     //echo "scheme_id".$scheme_id;die();
@@ -1636,7 +1638,7 @@ class OAPWCDformController extends Controller
               $urban_code_state = NULL;
           }
           $c_time=date('Y-m-d H:i:s');
-          $user_id = Auth::user()->id;
+          $user_id = AuthChecker::getUserId();
           $input = [
               //'ben_fname' => $request->first_name,
               //'ben_mname' => $request->middle_name,
@@ -2017,7 +2019,7 @@ class OAPWCDformController extends Controller
     {
 
         //$id = Auth::guard('api')->id;$id = Auth::guard('api')->user()->id;
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id', '=', $user_id)->first();
 
         $mappingLevel = $duty->mapping_level;
@@ -2063,7 +2065,7 @@ class OAPWCDformController extends Controller
     public function loadPostingPlace($posting_level)
     {
 
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id', '=', $user_id)->first();
 
 
@@ -2193,7 +2195,7 @@ class OAPWCDformController extends Controller
 
     // public function loadPostingPlacedynamic($posting_level) {
 
-    //      $user_id = Auth::user()->id;
+    //      $user_id = AuthChecker::getUserId();
     //      $duty = Configduty::where('user_id','=',$user_id)->first();
 
 
@@ -2393,7 +2395,7 @@ class OAPWCDformController extends Controller
 
         DB::enableQueryLog();
         $flag = false;
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $dutys = Configduty::where('user_id', '=', $user_id)->get();
         //dd($duty);
 
@@ -2452,7 +2454,7 @@ class OAPWCDformController extends Controller
         //dd($nhm_employee_details); 
         /*********************************************OLD code till 21-01-2020********************/
         //  $flag=false;
-        //  $user_id = Auth::user()->id;
+        //  $user_id = AuthChecker::getUserId();
         //  $duty = Configduty::where('user_id','=',$user_id)->first();
 
         //  if($duty->mapping_level=="State HQ"){
@@ -2793,7 +2795,7 @@ class OAPWCDformController extends Controller
     {
         // dd($request);
         $scheme_id =  $this->scheme_id;
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $designation_id_old = Auth::user()->designation_id_old;
         if (!in_array($designation_id_old, array('Operator'))) {
             return redirect("/")->with('error', 'Not Allowed');
@@ -3041,7 +3043,7 @@ class OAPWCDformController extends Controller
     {
         // dd($request->all());
         $scheme_id =  $this->scheme_id;
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $designation_id_old = Auth::user()->designation_id_old;
         if (!in_array($designation_id_old, array('Operator'))) {
             return redirect("/")->with('error', 'Not Allowed');
@@ -3230,7 +3232,7 @@ class OAPWCDformController extends Controller
     function editOapPost(Request $request)
     {
         $scheme_id =  $this->scheme_id;
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $designation_id_old = Auth::user()->designation_id_old;
         if (!in_array($designation_id_old, array('Operator'))) {
             return redirect("/")->with('error', 'Not Allowed');
@@ -4034,7 +4036,7 @@ class OAPWCDformController extends Controller
           $in_bank_code=''; 
           $in_aadhar_no=''; 
           $in_mobile_no=0;
-          $user_id = Auth::user()->id;
+          $user_id = AuthChecker::getUserId();
 
           $duty = Configduty::where('user_id',$user_id)->where('scheme_id',$scheme_id)->where('is_active', 1)->first();
           $district_code = $duty->district_code;

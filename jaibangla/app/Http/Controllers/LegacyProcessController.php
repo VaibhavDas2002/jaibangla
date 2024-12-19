@@ -24,6 +24,7 @@ use Excel;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Helpers\AuthChecker;
 
 class LegacyProcessController extends Controller
 {
@@ -34,7 +35,7 @@ class LegacyProcessController extends Controller
   public function index(Request $request, $app_type)
   {
     return redirect("/")->with('error', 'Data entry temporary suspended.');
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $duty = Configduty::where('user_id', '=', $user_id)->first();
     $district_code = $duty->district_code;
     $district_name = District::where('district_code', $district_code)->pluck('district_name')->first();
@@ -66,7 +67,7 @@ class LegacyProcessController extends Controller
   {
     //DB::enableQueryLog();
     if (request()->ajax()) {
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
 
       $user_level = '';
       $user_local_body_code = '';
@@ -294,7 +295,7 @@ class LegacyProcessController extends Controller
 
     // DB::transaction(function()
     // {
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
 
     $inputs_json = $request->approvalcheck;
     $inputs = json_decode($inputs_json, true);
@@ -380,7 +381,7 @@ class LegacyProcessController extends Controller
 
   public function getStateReport(Request $request)
   {
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $duty = Configduty::where('user_id', '=', $user_id)->first();
     $districts = District::select('district_code', 'district_name')->get();
     return view('legacy.consolidate_report')->with('districts', $districts);

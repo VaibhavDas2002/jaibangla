@@ -19,6 +19,8 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Config;
 use App\BankDetails;
 use App\Helpers\DupCheck;
+use App\Helpers\AuthChecker;
+
 
 class BenAccNameValidationController extends Controller
 {
@@ -54,7 +56,7 @@ class BenAccNameValidationController extends Controller
         //     'success',
         //     'As per the department instruction validation correction is temporarily suspended'
         // );
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $designation = Auth::user()->designation_id_old;
         $mapObj = DB::connection('pgsql_mis')
             ->table('public.duty_assignement')
@@ -423,7 +425,7 @@ class BenAccNameValidationController extends Controller
             //     $attributes
             // );
             // if ($validator->passes()) {
-                $user_id = Auth::user()->id;
+                $user_id = AuthChecker::getUserId();
                 $mapObj = DB::connection('pgsql_mis')
                 ->table('public.duty_assignement')
                 ->where('user_id', $user_id)
@@ -885,7 +887,7 @@ class BenAccNameValidationController extends Controller
         //     'success',
         //     'As per the department instruction validation correction is temporarily suspended'
         // );
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $dutyObj = Configduty::where('user_id', '=', $user_id)
             ->where('is_active', 1)
             ->first();
@@ -911,7 +913,7 @@ class BenAccNameValidationController extends Controller
     }
     public function getFailedBankListapprove(Request $request){
         //   dd($request->all());
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $dutyObj = Configduty::where('user_id', '=', $user_id)
             ->where('is_active', 1)
             ->first();
@@ -1164,7 +1166,7 @@ class BenAccNameValidationController extends Controller
             $response = ['error' => 'Error occured in form submit.'];
             return response()->json($response, $statusCode);
         }
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $dutyObj = Configduty::where('user_id', '=', $user_id)
             ->where('is_active', 1)
             ->first();
@@ -1184,7 +1186,7 @@ class BenAccNameValidationController extends Controller
             }
             if ($opreation_type == 'A') {
                 try {
-                    $user_id = Auth::user()->id;
+                    $user_id = AuthChecker::getUserId();
                     $ip_address = request()->ip();
                     $table = $this->getSchemaName($scheme_id);
                     $ben_details = DB::connection('pgsql_paywrite')->table(DB::raw($this->failed_table . ' as f'))
@@ -1458,7 +1460,7 @@ class BenAccNameValidationController extends Controller
             } elseif ($opreation_type == 'T') {
                 $return_msg = 'Beneficiaries Reverted successfully';
                 try {
-                    $user_id = Auth::user()->id;
+                    $user_id = AuthChecker::getUserId();
                     $ip_address = request()->ip();
                     $ben_details = DB::connection('pgsql_paywrite')->table(DB::raw($this->failed_table . ' as f'))
                         ->join('payment.ben_payment_details as ben','f.ben_id', '=', 'ben.ben_id')

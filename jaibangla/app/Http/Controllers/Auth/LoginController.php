@@ -98,33 +98,33 @@
                 if($request->get('mobile_no') == $user->mobile_no) {
                     if($request->get('login_otp') == $user->login_otp ){
                         \Auth::login($user);
-                        $designation_id_old = Auth::user()->designation_id_old;
-                    if(!Storage::exists('menu/'.$designation_id_old.".json")) {
+                        $designation_id = Auth::user()->designation_id;
+                    if(!Storage::exists('menu/'.$designation_id.".json")) {
                         $parent_menu=array();
                         $status='1';
                         
                         $menu_contents=[];
                         // For Menu Tree View
-                        $parent_menu_list = Menu_designation_mapping::where('designation_id_old','=',$designation_id_old)->where('m_menu_designation_mapping.is_active',TRUE)
+                        $parent_menu_list = Menu_designation_mapping::where('designation_id','=',$designation_id)->where('m_menu_designation_mapping.is_active',TRUE)
                         ->orderby('m_menu_designation_mapping.rank')
                         ->join('m_menu_item_master', 'm_menu_item_master.id', '=', 'm_menu_designation_mapping.menu_id')
                         ->whereNull('m_menu_item_master.parent_id')
                         ->where('m_menu_item_master.is_active',TRUE)
                         ->orderBy('m_menu_item_master.rank')
-                        ->get(['menu_id','m_menu_item_master.menu_name','designation_id_old','m_menu_item_master.rank as master_rank','m_menu_designation_mapping.rank as map_rank','m_menu_designation_mapping.is_active as map_is_active',
+                        ->get(['menu_id','m_menu_item_master.menu_name','designation_id','m_menu_item_master.rank as master_rank','m_menu_designation_mapping.rank as map_rank','m_menu_designation_mapping.is_active as map_is_active',
                         'm_menu_item_master.is_active as master_is_active','parent_id','menu_name','url_type','link_url','icon','menu_class'])->toArray();
 
                         foreach($parent_menu_list as $parent_menu){
                             $menu_contents_item =[];
 
-                            $child_menu = Menu_designation_mapping::where('designation_id_old','=',$designation_id_old)->where('m_menu_designation_mapping.is_active',TRUE)
+                            $child_menu = Menu_designation_mapping::where('designation_id','=',$designation_id)->where('m_menu_designation_mapping.is_active',TRUE)
                             ->orderby('m_menu_designation_mapping.rank')
                             ->join('m_menu_item_master', 'm_menu_item_master.id', '=', 'm_menu_designation_mapping.menu_id')
                             ->whereNotNull('m_menu_item_master.parent_id')
                             ->where('m_menu_item_master.parent_id',$parent_menu['menu_id'])
                             ->where('m_menu_item_master.is_active',TRUE)
                             ->orderBy('m_menu_item_master.rank')
-                            ->get(['menu_id','m_menu_item_master.menu_name','designation_id_old','m_menu_item_master.rank as master_rank','m_menu_designation_mapping.rank as map_rank','m_menu_designation_mapping.is_active as map_is_active',
+                            ->get(['menu_id','m_menu_item_master.menu_name','designation_id','m_menu_item_master.rank as master_rank','m_menu_designation_mapping.rank as map_rank','m_menu_designation_mapping.is_active as map_is_active',
                             'm_menu_item_master.is_active as master_is_active','parent_id','menu_name','url_type','link_url','icon','menu_class'])->toArray();
 
                             $menu_contents_item['id'] = $parent_menu['menu_id'];
@@ -139,7 +139,7 @@
                         }
 
                         $json_data = json_encode($menu_contents);
-                        Storage::disk('local')->put('menu/'.$designation_id_old.".json", $json_data);
+                        Storage::disk('local')->put('menu/'.$designation_id.".json", $json_data);
                     }
                         return redirect('/');    
                     }else if($request->get('login_otp') == $user->login_otp){

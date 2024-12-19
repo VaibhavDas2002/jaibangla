@@ -48,12 +48,15 @@ use App\OAPBankUnique;
 use App\AcceptRejectInfo;
 use App\BeneficiaryDupBlank;
 use App\BenDocs;
+use App\Helpers\AuthChecker;
 use App\Traits\TraitCasteCertificateValidate;
 use App\Traits\TraitLifeCertificateValidate;
 use App\Traits\TraitAadharValidate;
 use App\MapLavel;
 use App\UpdateBenDetails;
 use Illuminate\Support\Facades\Session;
+
+
 class LifeCertificateCheckController extends Controller
 {
     use TraitLifeCertificateValidate;
@@ -69,21 +72,16 @@ class LifeCertificateCheckController extends Controller
     public function selectSchemeBioAuth(Request $request)
     {
         try{
-            $designation_id_old = Auth::user()->designation_id_old;
-            $user_id = Auth::user()->id;
-            
+            $user_id = AuthChecker::getUserId();
               $schemes = DB::select(DB::raw("select id,scheme_name,display_name,is_active from m_scheme where id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . ") order by rank"));
-              //dd($schemes);
               return view(
                 'BioAuthLifeCertificate/SchemeSelection',
                 [
-        
                   'scheme_list' => $schemes,
                 ]
               );
             
           }catch (\Exception $e) {
-            // dd($e);
             return redirect("/")->with('danger', 'Not Allowed');
           }
     }
@@ -91,7 +89,7 @@ class LifeCertificateCheckController extends Controller
     {
       $this->middleware('auth');
       $designation_id_old = Auth::user()->designation_id_old;
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       $scheme_id = (int)$request->scheme_id;
       $scheme_obj = Scheme::where('id', $scheme_id)->where('is_active', 1)->first();
       if (empty($scheme_obj)) {
@@ -325,7 +323,7 @@ class LifeCertificateCheckController extends Controller
           $return_msg = array("" . $return_text);
           $error_found=1;
       }
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       $beneficiary_id = $request->application_id;
       if (empty($beneficiary_id)) {
         $return_status = 0;
@@ -381,6 +379,9 @@ class LifeCertificateCheckController extends Controller
       $update_arr['life_certificate_checked']=1;
       $update_arr['life_certificate_lastdatetime']=$c_time1;
       $update_arr['life_certificate_pass']=$validation_arr['code'];
+      $update_arr['action_by']=$user_id;
+      $update_arr['action_ip_address']=$request->ip();
+      $update_arr['action_type'] =  class_basename(request()->route()->getAction()['controller']) ;
       if($validation_arr['match_found']==1){
           $is_error=0;
           if(!empty($validation_arr['last_biometric'])){
@@ -392,7 +393,7 @@ class LifeCertificateCheckController extends Controller
           $return_text=$return_text;  
           $return_msg = array("" . $return_text);
       }
-      $update=DB::table($schema . '.beneficiary')->where('id',$beneficiary_id)->update($update_arr);
+      $update=DB::table($schema . '.beneficiaries')->where('id',$beneficiary_id)->update($update_arr);
     }
     else{
       $is_error=1;

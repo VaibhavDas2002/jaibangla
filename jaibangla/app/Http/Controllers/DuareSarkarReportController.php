@@ -17,6 +17,8 @@ use App\Ward;
 use App\GP;
 use Validator;
 use App\DsPhase;
+use App\Helpers\AuthChecker;
+
 class DuareSarkarReportController extends Controller
 {
     public function __construct() 
@@ -25,7 +27,7 @@ class DuareSarkarReportController extends Controller
         set_time_limit(300);
     }
     public function index(){
-    	$user_id = Auth::user()->id;
+    	$user_id = AuthChecker::getUserId();
         $duty = Configduty::select('scheme_id')->where('user_id','=',$user_id)->where('is_active',1)->get();
         $schemeObj = Scheme::whereIn('id',$duty)->get();
 

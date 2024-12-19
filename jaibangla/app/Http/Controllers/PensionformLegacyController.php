@@ -34,6 +34,8 @@ use Auth;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use App\Helpers\AuthChecker;
+
 class PensionformLegacyController extends Controller
 {
     
@@ -112,7 +114,7 @@ class PensionformLegacyController extends Controller
     public function store(Request $request)
     {  
 
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $users = User::find($user_id);
         $server_ip =$_SERVER['SERVER_ADDR'];
         $base_url= url('/');
@@ -315,7 +317,7 @@ class PensionformLegacyController extends Controller
 
     public function applicationlist(){
         //DB::enableQueryLog();
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $rows = PensionLegacy::orderBy('id', 'desc')->paginate(500);     
         return view('legacy/pension_list',['nhm_employee_details' => $rows]);
      
@@ -324,7 +326,7 @@ class PensionformLegacyController extends Controller
     public function approvedlistReadOnly(Request $request){
         //DB::enableQueryLog();
     
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
     
         if($request->get('pr1')){
             if($request->get('pr1')=="sc"){
@@ -359,7 +361,7 @@ class PensionformLegacyController extends Controller
     public function applicationlistReadOnly(Request $request){
     //DB::enableQueryLog();
 
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $sucess = $request->get('sucess');
     $id = $request->get('id');
 
@@ -478,7 +480,7 @@ class PensionformLegacyController extends Controller
 
     public function applicationeditview(Request $request)
     {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $id=$request->id; 
         
         //echo "scheme_id".$scheme_id;die();
@@ -801,7 +803,7 @@ class PensionformLegacyController extends Controller
  public function loadDesignationList($programme_head_id,$service_category,$major_programme_head_id) {
 
         //$id = Auth::guard('api')->id;$id = Auth::guard('api')->user()->id;
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id','=',$user_id)->first();
 
         $mappingLevel=$duty->mapping_level;
@@ -846,7 +848,7 @@ class PensionformLegacyController extends Controller
 
 public function loadPostingPlace($posting_level) {
     
-     $user_id = Auth::user()->id;
+     $user_id = AuthChecker::getUserId();
      $duty = Configduty::where('user_id','=',$user_id)->first();
     
     
@@ -1012,7 +1014,7 @@ public function loadPostingPlace($posting_level) {
 
 // public function loadPostingPlacedynamic($posting_level) {
     
-//      $user_id = Auth::user()->id;
+//      $user_id = AuthChecker::getUserId();
 //      $duty = Configduty::where('user_id','=',$user_id)->first();
     
     
@@ -1213,7 +1215,7 @@ public function loadPostingPlace($posting_level) {
 
     DB::enableQueryLog();
     $flag=false;
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $dutys = Configduty::where('user_id','=',$user_id)->get();
    //dd($duty);
 
@@ -1285,7 +1287,7 @@ public function loadPostingPlace($posting_level) {
 //dd($nhm_employee_details); 
 /*********************************************OLD code till 21-01-2020********************/
    //  $flag=false;
-   //  $user_id = Auth::user()->id;
+   //  $user_id = AuthChecker::getUserId();
    //  $duty = Configduty::where('user_id','=',$user_id)->first();
 
    //  if($duty->mapping_level=="State HQ"){

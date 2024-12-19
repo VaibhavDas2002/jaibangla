@@ -16,12 +16,14 @@ use App\UrbanBody;
 use App\Employee;
 use App\Ward;
 use App\GP;
+use App\Helpers\AuthChecker;
+
 
 class ConfigurableDutyManagementController extends Controller
 {
     public function index(){
         
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id','=',$user_id)->first();
         $is_active = $duty->is_active;
 
@@ -98,7 +100,7 @@ class ConfigurableDutyManagementController extends Controller
      	$flag=0;
      	$schemes=DB::table('m_scheme')->orderby('id')->get();
  		//$districts = District::orderBy('district_name')->get();
-     	$user_id = Auth::user()->id;
+     	$user_id = AuthChecker::getUserId();
      	//dd($user_id);
         $duty = Configduty::where('user_id','=',$user_id)->first();
         $is_active = $duty->is_active;

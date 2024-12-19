@@ -93,6 +93,7 @@ use App\DsPhase;
 use App\PensionManabikWCDBSK;
 use App\BenDocsManabikWCDBSK;
 use App\BenDocsArcManabikWCDBSK;
+use App\Helpers\AuthChecker;
 
 class BSKPensionFormMainEntryController extends Controller
 {
@@ -135,8 +136,7 @@ class BSKPensionFormMainEntryController extends Controller
     */
   public function editListBsk(Request $request)
   {
-    // echo 1;die;
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $designation_id_old = Auth::user()->designation_id_old;
     //dd($designation_id_old);
     if ($designation_id_old != 'Operator') {
@@ -435,7 +435,7 @@ class BSKPensionFormMainEntryController extends Controller
 
   public function applicationeditviewBsk(Request $request)
   {
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $id = $request->id;
     $scheme_id = (int) $request->scheme_id;
     $designation_id_old = Auth::user()->designation_id_old;
@@ -573,7 +573,7 @@ class BSKPensionFormMainEntryController extends Controller
     if (!is_numeric($id)) {
       return redirect("/")->with('error', 'Applicant ID Not Valid');
     }
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $c_datetime = date('Y-m-d H:i:s', time());
     $is_active = 0;
     $mapping_level = NULL;
@@ -1006,7 +1006,7 @@ class BSKPensionFormMainEntryController extends Controller
     */
   public function applicationRejectBsk(Request $request)
   {
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $id = (int) $request->app_id;
     $scheme_id = (int) $request->scheme_id;
     $reamrks = $request->reject_remarks;

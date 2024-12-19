@@ -24,6 +24,8 @@ use Config;
 use Carbon\Carbon;
 use App\DSRejecedApplicationSc;
 use App\DSRejecedApplicationSt;
+use App\Helpers\AuthChecker;
+
 
 class shortEntryformController extends Controller
 {
@@ -347,7 +349,7 @@ class shortEntryformController extends Controller
   }
   public function view(Request $request)
   {
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();serId();
     $id = $request->id;
     $scheme_id = (int) $request->scheme_id;
     // dd($scheme_id);
@@ -682,7 +684,7 @@ class shortEntryformController extends Controller
     $rejection_cause = $request->rejection_cause;
     $scheme_id = (int) $request->scheme;
     $designation_id_old = Auth::user()->designation_id_old;
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     if ($designation_id_old != 'Operator') {
       $return_status = 0;
       $return_text = 'Not Allowed';

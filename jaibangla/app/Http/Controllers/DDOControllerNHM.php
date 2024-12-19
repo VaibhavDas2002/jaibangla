@@ -14,6 +14,7 @@ use App\nhm_posting_level;
 use App\nhm_level_place;
 use App\nhm_health_facility;
 use App\nhm_salary;
+use App\Helpers\AuthChecker;
 
 use Redirect;
 use Auth;
@@ -22,7 +23,7 @@ class DDOControllerNHM extends Controller
 {
    public function index(){
 
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     
      $nhm_employee_details = NHMEmployee::paginate(10);//->get();
      //return view('verify_nhm_employee_details');
@@ -34,7 +35,7 @@ class DDOControllerNHM extends Controller
 
  public function generatePayView(Request $request){
 
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $id=$request->id;
    
        
@@ -48,7 +49,7 @@ class DDOControllerNHM extends Controller
 
 public function SaveSalary(Request $request){
 
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $emp_code=$request->emp_code;
    
 

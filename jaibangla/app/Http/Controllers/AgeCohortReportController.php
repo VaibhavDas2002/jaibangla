@@ -22,6 +22,7 @@ use Carbon\Carbon;
 use App\DataSourceCommon;
 use App\getModelFunc;
 use App\DsPhase;
+use App\Helpers\AuthChecker;
 
 class AgeCohortReportController extends Controller
 {
@@ -32,7 +33,7 @@ class AgeCohortReportController extends Controller
     }
     function index(Request $request)
     {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $scheme_list = DB::select(DB::raw("select id,scheme_name from m_scheme where id in (select scheme_id from duty_assignement where user_id=" . $user_id . " and is_active=1 and scheme_id in(1,3,10))"));
         $c_time = Carbon::now();
         $c_date = $c_time->format("Y-m-d");

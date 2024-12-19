@@ -166,14 +166,14 @@ href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,30
       <input type="hidden" id="scheme_id" name="scheme_id" value="{{ $scheme_id }}">
 
         <input type="hidden" name="dist_code" value="{{ $district_code }}" class="js-district_1">
-         <div class="row" style="">
+         <div class="row">
          
           <div class="form-group col-md-4">
          <label class=" control-label">Application Type</label>
          <select name="application_type" id="application_type" class="form-control full-width" >
                   <option value="">-----All----</option>
                   <option value="1" selected >Pending</option> 
-                  @if($designation_id_old=='Operator'){
+                  @if($is_operator){
                     <option value="3">Edited pending at Verifier</option>  
                   }
                   @endif
@@ -243,7 +243,7 @@ href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,30
             <button type="button" name="reset" id="reset" class="btn btn-default">Reset</button>
           </div>
         </div>
-        @if($designation_id_old=='Verifier')
+        @if($is_verifier)
         <form class="row" method="POST" action="{{ route('bulkApproveLifeCertificate') }}" class="submit-once">
         <input type="hidden" name="_token" id="token" value="{{ csrf_token() }}">
         <input type="hidden" id="scheme_id" name="scheme_id" value="{{ $scheme_id }}">
@@ -270,7 +270,7 @@ href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,30
                 @endif
                 <th width="12%">GP/Ward Name</th>               
                 <th width="17%">Action</th>
-                @if($designation_id_old=='Verifier')
+                @if($is_verifier)
                 <th width="2%">Check</th>
                  @endif
               </tr>
@@ -372,7 +372,7 @@ href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,30
         @endif
         { "data": "gp_ward_name" },
         { "data": "view" },
-        @if($designation_id_old=='Verifier')
+        @if($is_verifier)
         { "data": "check" }
         @endif  
        // { "data": "check" },

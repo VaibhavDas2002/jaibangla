@@ -1,4 +1,5 @@
 /vendor/
 *.logs
 /node_modules/
-
+/storage/app/logs
+jaibangla\storage\logs\

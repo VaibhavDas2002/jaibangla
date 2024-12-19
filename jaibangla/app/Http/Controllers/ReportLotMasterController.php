@@ -8,6 +8,7 @@ use App\User;
 use Auth;
 use App\Configduty;
 use App\Scheme;
+use App\Helpers\AuthChecker;
 
 class ReportLotMasterController extends Controller
 {
@@ -20,7 +21,7 @@ class ReportLotMasterController extends Controller
 
     public function selectYearMonth(){
 	return redirect("/")->with('success', 'Payment Lot creation is temporarily suspended due to financial year end migration.');
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $schemes=DB::select(DB::raw("select id,scheme_name from m_scheme where id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . ")"));
       
         return view('report-lot-master/selectYearMonth',['schemes'=>$schemes]);
@@ -29,7 +30,7 @@ class ReportLotMasterController extends Controller
     public function index(Request $request)
     {
 		//$mobile = Auth::user()->mobile_no;
-//new      $user_id = Auth::user()->id;
+//new      $user_id = AuthChecker::getUserId();
 //new      $schemes=Configduty::where('user_id','=',$user_id)->where('is_active',1)->first();
 //new		$scheme_id = $schemes->scheme_id;
 		$scheme_id = $request->select_scheme;//new

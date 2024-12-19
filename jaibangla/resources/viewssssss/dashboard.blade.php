@@ -172,7 +172,7 @@ href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,30
         $sessionApprovePending=Session::get('sessionApprovePending');
         $sessionDuplicateReject=Session::get('sessionDuplicateReject');
 
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $dist_code = \App\Configduty::where('user_id', $user_id)->value('district_code');
 
         if(empty($sessionBankPending)){

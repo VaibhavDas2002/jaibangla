@@ -55,6 +55,8 @@ use App\Traits\TraitLifeCertificateValidate;
 use App\Traits\TraitAadharValidate;
 use Illuminate\Support\Facades\Session;
 use App\Helpers\DupCheck;
+use App\Helpers\AuthChecker;
+
 class WPWCDformController extends Controller
 {
     use TraitCasteCertificateValidate;
@@ -221,7 +223,7 @@ class WPWCDformController extends Controller
     {
        //return redirect("/")->with('error', 'Data entry temporary suspended.');
         $wq=0;
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         //$server_ip =$_SERVER['SERVER_ADDR'];
         $base_url = url('/');
         $uploaded_doc = array();
@@ -806,14 +808,14 @@ class WPWCDformController extends Controller
     public function applicationlist()
     {
         //DB::enableQueryLog();
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $rows = PensionSc::orderBy('id', 'desc')->paginate(500);
         return view('pension_list', ['nhm_employee_details' => $rows]);
     }
     // public function approvedlistReadOnly(Request $request){
     //     //DB::enableQueryLog();
 
-    //     $user_id = Auth::user()->id;
+    //     $user_id = AuthChecker::getUserId();
 
     //     if($request->get('pr1')){
     //         if($request->get('pr1')=="sc"){
@@ -848,7 +850,7 @@ class WPWCDformController extends Controller
     //     public function applicationlistReadOnly(Request $request){
     //     //DB::enableQueryLog();
 
-    //     $user_id = Auth::user()->id;
+    //     $user_id = AuthChecker::getUserId();
     //     $sucess = $request->get('sucess');
     //     $id = $request->get('id');
 
@@ -994,7 +996,7 @@ class WPWCDformController extends Controller
 
     // public function applicationeditview(Request $request)
     // {
-    //     $user_id = Auth::user()->id;
+    //     $user_id = AuthChecker::getUserId();
     //     $id=$request->id; 
 
     //     //echo "scheme_id".$scheme_id;die();
@@ -1242,7 +1244,7 @@ class WPWCDformController extends Controller
             $urban_code_state = NULL;
         }
         $c_time=date('Y-m-d H:i:s');
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $input = [
             //'name' => $request['name']
             'ben_fname' => $request->first_name,
@@ -1601,7 +1603,7 @@ class WPWCDformController extends Controller
     {
 
         //$id = Auth::guard('api')->id;$id = Auth::guard('api')->user()->id;
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id', '=', $user_id)->first();
 
         $mappingLevel = $duty->mapping_level;
@@ -1647,7 +1649,7 @@ class WPWCDformController extends Controller
     public function loadPostingPlace($posting_level)
     {
 
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id', '=', $user_id)->first();
 
 
@@ -1777,7 +1779,7 @@ class WPWCDformController extends Controller
 
     // public function loadPostingPlacedynamic($posting_level) {
 
-    //      $user_id = Auth::user()->id;
+    //      $user_id = AuthChecker::getUserId();
     //      $duty = Configduty::where('user_id','=',$user_id)->first();
 
 
@@ -1977,7 +1979,7 @@ class WPWCDformController extends Controller
 
         DB::enableQueryLog();
         $flag = false;
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $dutys = Configduty::where('user_id', '=', $user_id)->get();
         //dd($duty);
 
@@ -2036,7 +2038,7 @@ class WPWCDformController extends Controller
         //dd($nhm_employee_details); 
         /*********************************************OLD code till 21-01-2020********************/
         //  $flag=false;
-        //  $user_id = Auth::user()->id;
+        //  $user_id = AuthChecker::getUserId();
         //  $duty = Configduty::where('user_id','=',$user_id)->first();
 
         //  if($duty->mapping_level=="State HQ"){
@@ -2371,7 +2373,7 @@ class WPWCDformController extends Controller
     {
         //dd('ok');
         $scheme_id =  $this->scheme_id;
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $designation_id_old = Auth::user()->designation_id_old;
         if (!in_array($designation_id_old, array('Operator'))) {
             return redirect("/")->with('error', 'Not Allowed');
@@ -2613,7 +2615,7 @@ class WPWCDformController extends Controller
     public function editUnlock(Request $request)
     {
         $scheme_id =  $this->scheme_id;
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $designation_id_old = Auth::user()->designation_id_old;
         if (!in_array($designation_id_old, array('Operator'))) {
             return redirect("/")->with('error', 'Not Allowed');
@@ -2802,7 +2804,7 @@ class WPWCDformController extends Controller
     function editWpPost(Request $request)
     {
         $scheme_id =  $this->scheme_id;
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $designation_id_old = Auth::user()->designation_id_old;
         if (!in_array($designation_id_old, array('Operator'))) {
             return redirect("/")->with('error', 'Not Allowed');

@@ -9,6 +9,7 @@ use Auth;
 use App\Configduty;
 use App\Scheme;
 use App\lot_master;
+use App\Helpers\AuthChecker;
 
 class LargeLotGenerationController extends Controller
 {
@@ -54,7 +55,7 @@ class LargeLotGenerationController extends Controller
 
     public function index()
     { 
-    	$user_id = Auth::user()->id;
+    	$user_id = AuthChecker::getUserId();
         //$duty = Configduty::where('user_id','=',$user_id)->where('is_active',1)       					->get('scheme_id')->toArray();
 
         $duty = Configduty::where('user_id','=',$user_id)->where('is_active',1)->first();
@@ -80,7 +81,7 @@ class LargeLotGenerationController extends Controller
         $in_category = $request->category;
         
 
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id','=',$user_id)
         					->where('is_active',1)
         					->first();

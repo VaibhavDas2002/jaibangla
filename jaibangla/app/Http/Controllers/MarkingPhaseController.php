@@ -38,6 +38,7 @@ use App\AcceptRejectInfo;
 use App\MapLavel;
 use App\BenDocs;
 use App\DsPhase;
+use App\Helpers\AuthChecker;
 
 class MarkingPhaseController extends Controller
 {
@@ -57,7 +58,7 @@ class MarkingPhaseController extends Controller
     $this->middleware('auth');
     $designation_id_old = Auth::user()->designation_id_old;
     //dd($designation_id_old);
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
 
     $scheme_id = $request->scheme_id;
     $type = $request->type;
@@ -291,7 +292,7 @@ class MarkingPhaseController extends Controller
     try {
       $this->middleware('auth');
       $designation_id_old = Auth::user()->designation_id_old;
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       $id = $request->id;
       // dd($id);
       if (empty($request->id)) {
@@ -438,7 +439,7 @@ class MarkingPhaseController extends Controller
       //return redirect("/")->with('danger', 'Not Allowed');
       $this->middleware('auth');
       $designation_id_old = Auth::user()->designation_id_old;
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       if (empty($request->beneficiary_id)) {
         return redirect("/")->with('danger', 'Beneficiary ID Not Found');
       }

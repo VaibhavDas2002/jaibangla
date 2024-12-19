@@ -24,6 +24,8 @@ use App\getModelFunc;
 use App\DsPhase;
 use Illuminate\Support\Facades\Auth;
 use App\Traits\TraitDBTloginValidate;
+use App\Helpers\AuthChecker;
+
 class DBTdataPushedController extends Controller
 {
     use TraitDBTloginValidate;
@@ -34,7 +36,7 @@ class DBTdataPushedController extends Controller
     }
     public function index()
     {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $designation_id_old = Auth::user()->designation_id_old;
         if ($designation_id_old == 'Admin') {
             $schemes = Scheme::where('is_active', 1)->get();

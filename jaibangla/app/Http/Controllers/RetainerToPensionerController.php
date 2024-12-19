@@ -7,6 +7,8 @@ use App\BeneficiaryPensions;
 use Auth;
 use App\Configduty;
 use DB;
+use App\Helpers\AuthChecker;
+
 //use Datatables;
 
 class RetainerToPensionerController extends Controller
@@ -17,7 +19,7 @@ class RetainerToPensionerController extends Controller
     }
 
     public function index(){
-    	// $user_id = Auth::user()->id;
+    	// $user_id = AuthChecker::getUserId();
      //    $dutyObj = Configduty::where('user_id',$user_id)->first();
      //    $dist_code = $dutyObj->district_code;
      //    $data = DB::select(DB::raw("select *,to_char(dob, 'DD-MM-YYYY') as date_of_birth from lokprasar_retainer.beneficiary where scheme_id=8 and dist_code=".$dist_code." and DATE_PART('year', AGE(current_date, dob)) >= 60 and next_level_role_id=0 and lot_generated <> 1  order by dob;"));
@@ -27,7 +29,7 @@ class RetainerToPensionerController extends Controller
 
     public function retainerToPensionerList(Request $request) {
       if ($request->ajax()) {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $dutyObj = Configduty::where('user_id',$user_id)->first();
         $dist_code = $dutyObj->district_code;
         $data = DB::select(DB::raw("select *,to_char(dob, 'DD-MM-YYYY') as date_of_birth from pension.beneficiaries where scheme_id=8 and dist_code=".$dist_code." and DATE_PART('year', AGE(current_date, dob)) >= 60 and next_level_role_id=0 and lot_generated <> 1  order by dob;"));
@@ -97,7 +99,7 @@ class RetainerToPensionerController extends Controller
     }
 
     public function generateReport(){
-    	$user_id = Auth::user()->id;
+    	$user_id = AuthChecker::getUserId();
         $dutyObj = Configduty::where('user_id',$user_id)->first();
         $dist_code = $dutyObj->district_code;
     	if (request()->ajax()){

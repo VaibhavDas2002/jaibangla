@@ -43,6 +43,7 @@ use DateTime;
 use App\Scheme;
 use Config;
 use Carbon\Carbon;
+use App\Helpers\AuthChecker;
 
 class BriefReportController extends Controller
 {
@@ -115,7 +116,7 @@ class BriefReportController extends Controller
             }
             if (request()->ajax()) {
                 $scheme_id = $request->session()->get('scheme_id');
-                $user_id = Auth::user()->id;
+                $user_id = AuthChecker::getUserId();
                 //$duty = Configduty::where('user_id', '=', $user_id)->first();
                 $role_name = $request->session()->get('role_name');
                 $distCode = $request->session()->get('distCode');
@@ -378,7 +379,7 @@ class BriefReportController extends Controller
         $model_name = $request->session()->get('model_name');
 
         $role_id = $request->session()->get('role_id');
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         //$reject_reason = $request->reject_reason;
         $reject_reason = 'Rejected by user: ' . $user_id;
         DB::beginTransaction();
@@ -400,7 +401,7 @@ class BriefReportController extends Controller
         $model_name = $request->session()->get('model_name');
 
         $role_id = $request->session()->get('role_id');
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         //$reject_reason = $request->reject_reason;
         $revert_reason = 'Reverted by user: ' . $user_id;
         DB::beginTransaction();

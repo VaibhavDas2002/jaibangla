@@ -34,6 +34,8 @@ use App\BeneficiaryDupBlank;
 use App\District;
 use App\BenDocsPurohitMonthlyICAD;
 use App\Configduty;
+use App\Helpers\AuthChecker;
+
 class LifeCertificateController extends Controller
 {
 
@@ -51,7 +53,7 @@ class LifeCertificateController extends Controller
     {
         $designation_id_old = Auth::user()->designation_id_old;
         
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $scheme_id = $request->scheme_id;
         
         if (!is_numeric($scheme_id) || $scheme_id !=17) {
@@ -289,7 +291,7 @@ class LifeCertificateController extends Controller
     
     public function editUnlock(Request $request)
     {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $scheme_id = $request->scheme_id;
         if (!ctype_digit($scheme_id)) {
         return redirect("/")->with('error', 'Scheme Not Valid');
@@ -381,7 +383,7 @@ class LifeCertificateController extends Controller
     function editLifeCertificatePost(Request $request)
     {
         $scheme_id =  $request->scheme_id;
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $designation_id_old = Auth::user()->designation_id_old;
         if (!in_array($designation_id_old, array('Operator'))) {
             return redirect("/")->with('error', 'Not Allowed');
@@ -528,7 +530,7 @@ class LifeCertificateController extends Controller
     public function bulkApproveLifeCertificate(Request $request)
     {
       $designation_id_old = Auth::user()->designation_id_old;
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
      
         $scheme_id=$request->scheme_id;
         if (!ctype_digit($scheme_id)) {
@@ -614,7 +616,7 @@ class LifeCertificateController extends Controller
     {
       $designation_id_old = Auth::user()->designation_id_old;
     
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
      
         $scheme_id=$request->scheme_id;
         if (!ctype_digit($scheme_id)) {

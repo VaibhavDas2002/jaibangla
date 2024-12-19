@@ -23,6 +23,8 @@ use App\StatusCode;
 use App\BankResponse;
 use Illuminate\Support\Collection;
 use Excel;
+use App\Helpers\AuthChecker;
+
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -35,7 +37,7 @@ class ParijayiController extends Controller
     }
     public function index($app_type)
     {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id','=',$user_id)->first();
         $district_code=$duty->district_code;
         $district_name=District::where('district_code',$district_code)->pluck('district_name')->first();
@@ -47,7 +49,7 @@ class ParijayiController extends Controller
         //DB::enableQueryLog();
       if(request()->ajax())
       {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $district_code=$request->level1;
         $district_name=$request->level2;
         $lottype = $request->lottype;
@@ -223,7 +225,7 @@ class ParijayiController extends Controller
 
       // DB::transaction(function()
       // {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
 
         $inputs_json = $request->approvalcheck;
         $inputs = json_decode($inputs_json, true);
@@ -263,7 +265,7 @@ class ParijayiController extends Controller
       $district_code = $request->session()->get('distCode');
 
       $role_id=$request->session()->get('role_id');
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
      
       $reject_reason = $request->reject_reason;
       DB::beginTransaction();
@@ -306,7 +308,7 @@ class ParijayiController extends Controller
     //LOT GENERATION
     public function lot_generation()
     {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id','=',$user_id)->first();
 
 
@@ -336,7 +338,7 @@ class ParijayiController extends Controller
 
     public function createNewLot(Request $request)
     {
-      $user_id = Auth::user()->id;  
+      $user_id = AuthChecker::getUserId();  
       $lotCount = ParijayiLot::where('lot_created_by',$user_id)->where('lot_status',3)->get()->count();
       $lottype = $request->lottype;
       if($lotCount<2){ // Maximum open lots 1
@@ -374,7 +376,7 @@ class ParijayiController extends Controller
     {
       set_time_limit(0);
 
-      $user_id = Auth::user()->id;  
+      $user_id = AuthChecker::getUserId();  
       $lot_no = $request->lot_no;
       $benList_json = $request->approvalcheck;
       $benList = array_unique(json_decode($benList_json, true)); 
@@ -435,7 +437,7 @@ class ParijayiController extends Controller
     {
       set_time_limit(0);
 
-      $user_id = Auth::user()->id;  
+      $user_id = AuthChecker::getUserId();  
       $lot_no = $request->lot_no;
       $lot_type = $request->lot_type;
       $status = 4; // For Processed Lot
@@ -613,7 +615,7 @@ class ParijayiController extends Controller
 
     public function processBankResponse(Request $request)
     {
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
 
       $lot_no = $request->lot_no;
       $lot = ParijayiLot::where('lot_no',$lot_no)->first();

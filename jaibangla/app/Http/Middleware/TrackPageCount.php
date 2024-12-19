@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use App\PageHits;
 use Carbon\Carbon;
 use Closure;
+use App\Helpers\AuthChecker;
 
 class TrackPageCount
 {
@@ -18,7 +19,7 @@ class TrackPageCount
         if (empty(Auth::user()->id)) {
             $user_id = NULL;
         } else
-            $user_id = Auth::user()->id;
+            $user_id = AuthChecker::getUserId();
         $PageHits->insert([
             'user_id'   => $user_id,
             'ip'   => request()->ip(),

@@ -17,6 +17,8 @@ use App\UserManual;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
+use App\Helpers\AuthChecker;
+
 
 class DashboardController extends Controller
 {
@@ -37,7 +39,7 @@ class DashboardController extends Controller
    */
   public function index(Request $request)
   {
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $designation_id_old = Auth::user()->designation_id_old;
 
     $role = [];
@@ -260,7 +262,7 @@ class DashboardController extends Controller
     $selectrepeatyear = $request->repeat_year;
     $selectrepeatmonth = $request->repeat_month;
     $arrscheme = array();
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $report = DB::select(DB::raw("select id,scheme_name from m_scheme where id in (select scheme_id from duty_assignement where user_id=" . $user_id . " and is_active=1)  and is_active=1 order by scheme_name"));
     foreach ($report as $report) {
       array_push($arrscheme, $report->id);
@@ -305,7 +307,7 @@ class DashboardController extends Controller
     $scheme = $request->sbi_scheme;
     $month = $request->sbi_month;
     $year = $request->sbi_year;
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $scm = Configduty::select('scheme_id')->distinct()->where('user_id', '=', $user_id)->where('is_active', 1)->get();
     $scheme_arr = [];
     foreach ($scm as $k) {
@@ -361,7 +363,7 @@ class DashboardController extends Controller
     $scheme = $request->ifms_scheme;
     $month = $request->ifms_month;
     $year = $request->ifms_year;
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $scm = Configduty::select('scheme_id')->distinct()->where('user_id', '=', $user_id)->where('is_active', 1)->get();
     $scheme_arr = [];
     foreach ($scm as $k) {
@@ -412,7 +414,7 @@ class DashboardController extends Controller
     // dd($request->all());
     $scheme = $request->ben_scheme;
 
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $year = '"Year"';
     $month = '"Month"';
     $approve = '"Approved"';
@@ -480,7 +482,7 @@ class DashboardController extends Controller
     $scheme = $request->bank_scheme;
     $level = $request->bank_level;
 
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $table_name = Scheme::where('id', $scheme)->value('short_code');
     $dist_code = Configduty::where('scheme_id', $scheme)->where('user_id', $user_id)->value('district_code');
     if ($level == 1) {
@@ -572,7 +574,7 @@ class DashboardController extends Controller
       //  Session::forget('sessionBankPending');
       //   Session::forget('sessionApprovePending');
       //  Session::forget('sessionDuplicateReject');
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       $dist_code = \App\Configduty::where('user_id', $user_id)->value('district_code');
 
 

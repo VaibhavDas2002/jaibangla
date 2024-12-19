@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\Log;
 use Validator;
 use App\BankDetails;
 use DateTime;
+use App\Helpers\AuthChecker;
 
 class SingleStepVerificationFarmer extends Controller
 {
@@ -64,7 +65,7 @@ class SingleStepVerificationFarmer extends Controller
         $this->created_by_local_body_code = $created_by_local_body_code;
         $designation_id_old = Auth::user()->designation_id_old;
         $this->designation_id_old = $designation_id_old;
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $this->user_id = $user_id;
       }
       return $next($request);

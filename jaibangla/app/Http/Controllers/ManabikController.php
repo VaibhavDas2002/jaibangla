@@ -33,6 +33,8 @@ use Auth;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use App\Helpers\AuthChecker;
+
 class ManabikController extends Controller
 {
     
@@ -61,7 +63,7 @@ class ManabikController extends Controller
     {   
 
         /*//$caste = $_GET['pr1']; 
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
 
          $users = User::find($user_id);
 
@@ -157,7 +159,7 @@ class ManabikController extends Controller
     {  
 
 
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $users = User::find($user_id);
         $this->validateInput($request); 
         $body = Assembly::where('ac_no', '=', $request->asmb_cons)->first(); 
@@ -454,7 +456,7 @@ class ManabikController extends Controller
 
     public function applicationlist(){
     //DB::enableQueryLog();
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
   //   $dutys = Configduty::where('user_id','=',$user_id)->get();
 
 
@@ -767,7 +769,7 @@ class ManabikController extends Controller
  public function loadDesignationList($programme_head_id,$service_category,$major_programme_head_id) {
 
         //$id = Auth::guard('api')->id;$id = Auth::guard('api')->user()->id;
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id','=',$user_id)->first();
 
         $mappingLevel=$duty->mapping_level;
@@ -812,7 +814,7 @@ class ManabikController extends Controller
 
 public function loadPostingPlace($posting_level) {
     
-     $user_id = Auth::user()->id;
+     $user_id = AuthChecker::getUserId();
      $duty = Configduty::where('user_id','=',$user_id)->first();
     
     
@@ -978,7 +980,7 @@ public function loadPostingPlace($posting_level) {
 
 // public function loadPostingPlacedynamic($posting_level) {
     
-//      $user_id = Auth::user()->id;
+//      $user_id = AuthChecker::getUserId();
 //      $duty = Configduty::where('user_id','=',$user_id)->first();
     
     
@@ -1179,7 +1181,7 @@ public function loadPostingPlace($posting_level) {
 
     DB::enableQueryLog();
     $flag=false;
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $dutys = Configduty::where('user_id','=',$user_id)->get();
    //dd($duty);
 
@@ -1251,7 +1253,7 @@ public function loadPostingPlace($posting_level) {
 //dd($nhm_employee_details); 
 /*********************************************OLD code till 21-01-2020********************/
    //  $flag=false;
-   //  $user_id = Auth::user()->id;
+   //  $user_id = AuthChecker::getUserId();
    //  $duty = Configduty::where('user_id','=',$user_id)->first();
 
    //  if($duty->mapping_level=="State HQ"){

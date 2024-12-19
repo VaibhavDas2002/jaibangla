@@ -14,6 +14,7 @@ use Redirect;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
+use App\Helpers\AuthChecker;
 
 class IdentityDrillDownReportController extends Controller
 {
@@ -28,7 +29,7 @@ class IdentityDrillDownReportController extends Controller
     $c_time = Carbon::now();
     $year = $c_time->year;
     
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $schemes = DB::select(DB::raw("select id,scheme_name from m_scheme where id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . ")"));
     return view('Identity-Drilldown.identity_report')->with('schemes', $schemes);
   }
@@ -110,7 +111,7 @@ class IdentityDrillDownReportController extends Controller
   public function block_subdiv_identity_report($district_code)
   {
 
-     $user_id = Auth::user()->id;
+     $user_id = AuthChecker::getUserId();
         $district_code = $district_code;
         $district_name = District::where('district_code', $district_code)->pluck('district_name')->first();
         $c_time = Carbon::now();

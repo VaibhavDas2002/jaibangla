@@ -30,6 +30,8 @@ use App\BankDetails;
 use App\UrbanBody;
 use App\Ward;
 use App\GP;
+use App\Helpers\AuthChecker;
+
 
 class DuplicateControllerBankReport extends Controller
 {
@@ -59,7 +61,7 @@ class DuplicateControllerBankReport extends Controller
     {
         $is_active = 0;
         $roleArray = $request->session()->get('role');
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $designation_id_old = Auth::user()->designation_id_old;
         $district_visible = $is_urban_visible = $block_visible = 1;
         $municipality_visible = 0;

@@ -8,6 +8,7 @@ use App\User;
 use App\BeneficiaryPensions;
 use App\District;
 use App\Configduty;
+use App\Helpers\AuthChecker;
 use App\Scheme;
 use App\UrbanBody;
 use App\Taluka;
@@ -15,6 +16,9 @@ use App\UpdateBenDetails;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Config;
+
+
+
 
 class DeactivatedWorkFlowController extends Controller
 {
@@ -33,9 +37,9 @@ class DeactivatedWorkFlowController extends Controller
 		if (empty($schema_name)) {
 		  $schema_name = 'pension';
 		}
-		$table_name =  strtolower($schema_name) . '.beneficiary';
+		$table_name =  strtolower($schema_name) . '.beneficiaries';
 	  } else {
-		$table_name =  'pension.beneficiary';
+		$table_name =  'pension.beneficiaries';
 	  }
 	  return $table_name;
 	}
@@ -46,7 +50,7 @@ class DeactivatedWorkFlowController extends Controller
   public function indexApprove(Request $request)
   {
     $designation_id_old = Auth::user()->designation_id_old;
-    if ($designation_id_old == 'Approver') {
+    if (AuthChecker::ApproverChecker()) {
       $is_active = 1;
     } else {
       $is_active = 0;
@@ -54,10 +58,10 @@ class DeactivatedWorkFlowController extends Controller
     if ($is_active == 0) {
       return redirect("/")->with('error', 'User Disabled. ');
     }
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     $mapObj = DB::table('public.duty_assignement')->where('user_id', $user_id)->where('is_active', 1)->first();
     $scheme = DB::select(DB::raw("select id,scheme_name from m_scheme where  id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . " and scheme_id in(2,10,11) )"));
-    if (Auth::user()->designation_id_old == "Approver") {
+    if (AuthChecker::ApproverChecker()) {
       if (count($scheme) > 0) {
         return view('update-ben-details/approve_index', [
           'schemes' => $scheme,
@@ -98,7 +102,7 @@ class DeactivatedWorkFlowController extends Controller
           'type' => 'red', 'icon' => 'fa fa-warning', 'title' => 'Warning!!'
         );
       }
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       $designation_id_old = Auth::user()->designation_id_old;
       $errormsg = Config::get('constants.errormsg');
       $roleArray = $request->session()->get('role');
@@ -121,7 +125,7 @@ class DeactivatedWorkFlowController extends Controller
           break;
         }
       }
-      if ($designation_id_old == 'Approver') {
+      if (AuthChecker::ApproverChecker()) {
         $is_active = 1;
       } else {
         $is_active = 0;
@@ -268,7 +272,7 @@ class DeactivatedWorkFlowController extends Controller
           break;
         }
       }
-      if ($designation_id_old == 'Approver') {
+      if (AuthChecker::ApproverChecker()) {
         $is_active = 1;
       } else {
         $is_active = 0;
@@ -366,7 +370,7 @@ class DeactivatedWorkFlowController extends Controller
     }
     try {
       $roleArray = $request->session()->get('role');
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       $designation_id_old = Auth::user()->designation_id_old;
       $errormsg = Config::get('constants.errormsg');
       $duty = Configduty::where('user_id', '=', $user_id)->where('is_active', 1)->first();
@@ -377,7 +381,7 @@ class DeactivatedWorkFlowController extends Controller
         );
       }
 
-      if ($designation_id_old == 'Approver') {
+      if (AuthChecker::ApproverChecker()) {
         $is_bulk = $request->is_bulk;
         if ($is_bulk == 1) {
           $fg_is_bulk = 1;

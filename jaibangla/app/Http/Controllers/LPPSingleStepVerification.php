@@ -31,6 +31,7 @@ use Illuminate\Support\Facades\Input;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Helpers\AuthChecker;
 
 class LPPSingleStepVerification extends Controller
 {   
@@ -40,7 +41,7 @@ class LPPSingleStepVerification extends Controller
     }
     public function index($scheme)
     {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id','=',$user_id)->first();
         $district_code=$duty->district_code;
         $district_name=District::where('district_code',$district_code)->pluck('district_name')->first();
@@ -77,7 +78,7 @@ class LPPSingleStepVerification extends Controller
         //DB::enableQueryLog();
       if(request()->ajax())
       {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $district_code=$request->level1;
         $district_name=$request->level2;
         $serachvalue = $request->search['value'];
@@ -211,7 +212,7 @@ class LPPSingleStepVerification extends Controller
       return redirect("/")->with('danger', 'User Disabled');
 	      set_time_limit(0);
 
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
 
         $inputs_json = $request->approvalcheck;
         $scheme = $request->scheme;
@@ -247,7 +248,7 @@ class LPPSingleStepVerification extends Controller
       $model_name = $this->getModelName($scheme);
 
       $role_id=$request->session()->get('role_id');
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
      
       //$reject_reason = $request->reject_reason;
       DB::beginTransaction();
@@ -301,7 +302,7 @@ class LPPSingleStepVerification extends Controller
 
     public function applicationeditview(Request $request)
     {
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $id=$request->id; 
         
         //echo "scheme_id".$scheme_id;die();
@@ -520,7 +521,7 @@ class LPPSingleStepVerification extends Controller
 
   public function report($scheme,$approved_rejected)
   {
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       $duty = Configduty::where('user_id','=',$user_id)->first();
       // echo "<pre>";print_r($duty);die();
       $district_code=$duty->district_code;
@@ -538,7 +539,7 @@ class LPPSingleStepVerification extends Controller
     //DB::enableQueryLog();
     if(request()->ajax())
     {
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
       $duty = Configduty::where('user_id','=',$user_id)->first();
       $district_code=$request->level1;
       $district_name=$request->level2;

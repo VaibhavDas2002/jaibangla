@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 use App\User;
 use Auth;
 use App\Configduty;
+use App\Helpers\AuthChecker;
 
 class ReportLotMasterSbiController extends Controller
 {
@@ -22,7 +23,7 @@ class ReportLotMasterSbiController extends Controller
 	return redirect("/")->with('success', 'Transaction Lot creation is temporarily suspended due to financial year end migration.');
 
         //$mobile = Auth::user()->mobile_no;
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         //$schemes = Configduty::where('user_id', '=', $user_id)->where('is_active', 1)->first();
         //$scheme_id = $schemes->scheme_id;
 

@@ -12,6 +12,8 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use App\Configduty;
 use Auth;
+use App\Helpers\AuthChecker;
+
 
 class PoliceVerificationController extends Controller
 {
@@ -29,7 +31,7 @@ class PoliceVerificationController extends Controller
     public function index()
     {
         $users = User::All();
-	    $user_id = Auth::user()->id;
+	    $user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id','=',$user_id)->first();
         $applictions = applicationModel::where('is_fee_paid','=','Y')->where('current_status', '=', 'ASSIGNEDTOSI')->where('police_station_code', '=', $duty->ps_code)->paginate(10); 
 

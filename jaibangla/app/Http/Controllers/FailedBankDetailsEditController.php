@@ -19,6 +19,8 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Config;
 use App\BankDetails;
 use App\Helpers\DupCheck;
+use App\Helpers\AuthChecker;
+
 class FailedBankDetailsEditController extends Controller
 {
     public function __construct()
@@ -60,7 +62,7 @@ class FailedBankDetailsEditController extends Controller
         return $failed_type_id;
     }
     public function index(){
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $designation = Auth::user()->designation_id_old;
         $mapObj = DB::connection('pgsql_mis')
             ->table('public.duty_assignement')
@@ -422,7 +424,7 @@ class FailedBankDetailsEditController extends Controller
                 $attributes
             );
             if ($validator->passes()) {
-                $user_id = Auth::user()->id;
+                $user_id = AuthChecker::getUserId();
                 $mapObj = DB::connection('pgsql_mis')
                 ->table('public.duty_assignement')
                 ->where('user_id', $user_id)
@@ -983,7 +985,7 @@ class FailedBankDetailsEditController extends Controller
             $return_text = 'Parameter Not Valid3';
             return redirect('/')->with('error', $return_text);
         }
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $encolserData = DB::connection('pgsql_encwrite')
             ->table('jb_doc.ben_attach_documents')
             ->where('document_type', $request->doc_type)
@@ -1042,7 +1044,7 @@ class FailedBankDetailsEditController extends Controller
     }
     public function approvalList(){
         // return redirect("/")->with('success', 'Payment Failed correction is temporarily suspended due to financial year end migration.');
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $dutyObj = Configduty::where('user_id', '=', $user_id)
             ->where('is_active', 1)
             ->first();  
@@ -1067,7 +1069,7 @@ class FailedBankDetailsEditController extends Controller
         }
     }
     public function getFailedBankListapprove(Request $request){
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $dutyObj = Configduty::where('user_id', '=', $user_id)
             ->where('is_active', 1)
             ->first();
@@ -1293,7 +1295,7 @@ class FailedBankDetailsEditController extends Controller
             $response = ['error' => 'Error occured in form submit.'];
             return response()->json($response, $statusCode);
         }
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $dutyObj = Configduty::where('user_id', '=', $user_id)
             ->where('is_active', 1)
             ->first();
@@ -1310,7 +1312,7 @@ class FailedBankDetailsEditController extends Controller
             $failed_type_id = $parts[2];
             if ($opreation_type == 'A') {
                 try {
-                    $user_id = Auth::user()->id;
+                    $user_id = AuthChecker::getUserId();
                     $ip_address = request()->ip();
                     $table = $this->getSchemaName($scheme_id);
                     $ben_details = DB::connection('pgsql_paywrite')->table(DB::raw($this->failed_table . ' as f'))
@@ -1547,7 +1549,7 @@ class FailedBankDetailsEditController extends Controller
                 
                 $return_msg = 'Beneficiaries Reverted successfully';
                 try {
-                    $user_id = Auth::user()->id;
+                    $user_id = AuthChecker::getUserId();
                     $ip_address = request()->ip();
                     $ben_details = DB::connection('pgsql_paywrite')->table(DB::raw($this->failed_table . ' as f'))
                         ->join('payment.ben_payment_details as ben','f.ben_id', '=', 'ben.ben_id')

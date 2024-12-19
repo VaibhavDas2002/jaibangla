@@ -23,6 +23,7 @@ use App\AcceptRejectInfo;
 use App\Scheme;
 use App\DocumentType;
 use Validator;
+use App\Helpers\AuthChecker;
 
 class WorkflowDeptSpecialController extends Controller
 {
@@ -53,7 +54,7 @@ class WorkflowDeptSpecialController extends Controller
     return redirect('/')->with('error', 'Not Allowded');
     $designation_id_old = Auth::user()->designation_id_old;
    // dd($designation_id_old);
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     if ($designation_id_old == 'Verifier' || $designation_id_old == 'Approver') {
       $scheme_id = $request->scheme_id;
       if (!ctype_digit($scheme_id)) {
@@ -172,7 +173,7 @@ class WorkflowDeptSpecialController extends Controller
       $this->middleware('auth');
       $designation_id_old = Auth::user()->designation_id_old;
       //dd($designation_id_old);
-      $user_id = Auth::user()->id;
+      $user_id = AuthChecker::getUserId();
   
       $scheme_id = $request->scheme_id;
       if (!ctype_digit($scheme_id)) {
@@ -426,7 +427,7 @@ class WorkflowDeptSpecialController extends Controller
     return redirect('/')->with('error', 'Not Allowded');
     $designation_id_old = Auth::user()->designation_id_old;
     //dd( $designation_id_old);
-    $user_id = Auth::user()->id;
+    $user_id = AuthChecker::getUserId();
     if ($designation_id_old == 'Verifier' || $designation_id_old == 'Approver') {
       $scheme_id = $request->scheme_id;
       if (!ctype_digit($scheme_id)) {

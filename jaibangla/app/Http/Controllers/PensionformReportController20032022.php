@@ -27,6 +27,7 @@ use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Helpers\AuthChecker;
 
 class PensionformReportController extends Controller
 {
@@ -58,7 +59,7 @@ class PensionformReportController extends Controller
         } else {
             return redirect('/')->with('error', 'Signature Error: Report Type not selected');
         }
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $duty_schemes = Configduty::where('user_id', '=', $user_id)->where('is_active', 1)->get()->pluck('scheme_id')->toArray();
         $scheme_list_constants = Config::get('constants.scheme_code_map');
         $scheme_list = array();
@@ -488,7 +489,7 @@ class PensionformReportController extends Controller
         $role_id = $request->session()->get('role_id');
         $scheme_id = $request->session()->get('scheme_id');
 
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         //$reject_reason = $request->reject_reason;
         $reject_reason = 'Rejected by user: ' . $user_id;
         DB::beginTransaction();
@@ -511,7 +512,7 @@ class PensionformReportController extends Controller
         $role_id = $request->session()->get('role_id');
         $scheme_id = $request->session()->get('scheme_id');
 
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         //$reject_reason = $request->reject_reason;
         $revert_reason = 'Reverted by user: ' . $user_id;
         DB::beginTransaction();
@@ -528,7 +529,7 @@ class PensionformReportController extends Controller
     public function reject_duplicates(Request $request)
     {
         $scheme_code = $request->input('scheme_code');
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id', '=', $user_id)->first();
         $dist_code = $duty->district_code;
 
@@ -549,7 +550,7 @@ class PensionformReportController extends Controller
     public function generate_excel(Request $request)
     {
         $scheme_code =  $request->rej_scheme_code;
-        $user_id = Auth::user()->id;
+        $user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id', '=', $user_id)->first();
         $dist_code = $duty->district_code;
 
