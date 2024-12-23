@@ -501,11 +501,7 @@ class JBProcessApplicationController extends Controller
         ->setFilteredRecords($filterRecords)
         ->skipPaging()
         ->addColumn('view', function ($data) {
-          $action = '&nbsp; &nbsp;<a href="' . route('processApplicationDetailsCommon', ['id' => $data->id, 'scheme_id' => $data->scheme_id]) . '" class="btn btn-xs btn-primary"><i class="glyphicon glyphicon-edit"></i> View</a>';
-
-          if ($data->scheme_id == 17 || $data->scheme_id == 10 || $data->scheme_id == 11 || $data->scheme_id == 2) {
-            // $action = $action . '&nbsp; &nbsp;<a href="application-edit?id=' . $data->id . '&scheme_id=' . $data->scheme_id . '" class="btn btn-xs btn-warning" target="_blank"><i class="glyphicon glyphicon-edit"></i> Edit</a>';
-          }
+          $action = '&nbsp; &nbsp;<a href="' . route('processApplicationDetailsCommon', ['id' => $data->id, 'scheme_id' => $data->scheme_id, 'view_type' => 1]) . '" class="btn btn-xs btn-primary"><i class="glyphicon glyphicon-edit"></i> View</a>';
           if ($data->scheme_id == 10) {
             $action = $action . '&nbsp; &nbsp;<button type="button" id="revertbtn_' . $data->id . '" value="' . $data->id . '" class="btn btn-xs btn-info revert">Revert</button>&nbsp; &nbsp;';
             $action = $action . '&nbsp; &nbsp;<button type="button" id="rejectbtn_' . $data->id . '" value="' . $data->id . '" class="btn btn-xs btn-danger reject">Reject</button>&nbsp; &nbsp;';
@@ -574,6 +570,7 @@ class JBProcessApplicationController extends Controller
       //   ->value('parent_id');
 
       $role_id = Workflow::getID($scheme_id, Auth::user()->designation_id);
+      // dd($role_id);
       // dd($next_level_role_id);
 
       // $role_id = 1;
@@ -754,7 +751,7 @@ class JBProcessApplicationController extends Controller
         ->setFilteredRecords($filterRecords)
         ->skipPaging()
         ->addColumn('view', function ($data) {
-          $action = '<a href="' . route('processApplicationDetailsCommon', ['id' => $data->id, 'scheme_id' => $data->scheme_id]) . '" class="btn btn-xs btn-primary"><i class="glyphicon glyphicon-edit"></i> View</a>';
+          $action = '<a href="' . route('processApplicationDetailsCommon', ['id' => $data->id, 'scheme_id' => $data->scheme_id, 'view_type' => 1 ]) . '" class="btn btn-xs btn-primary"><i class="glyphicon glyphicon-edit"></i> View</a>';
           return $action;
         })
         ->addColumn('check', function ($data) use ($approveBtnvisible) {
@@ -784,6 +781,8 @@ class JBProcessApplicationController extends Controller
 
   public function showApplicantDetailsCommon(Request $request)
   {
+    // dd($request->all());
+    $view_type = $request->view_type ?? null;
     if (empty($request->id)) {
       return redirect("/")->with('danger', 'Applicant ID Not Found');
     }
@@ -985,6 +984,7 @@ class JBProcessApplicationController extends Controller
       'scheme_name' => $scheme_name,
       'is_verifier' => $is_verifier,
       'is_approver' => $is_approver,
+      'view_type' => $view_type,
     ]);
   }
 
@@ -1173,7 +1173,6 @@ class JBProcessApplicationController extends Controller
       $accept_reject_model->user_id = $user_id;
       $accept_reject_model->created_by_dist_code = $created_by_dist_code;
       $accept_reject_model->created_by_local_body_code = $created_by_local_body_code;
-      $accept_reject_model->op_type = class_basename(request()->route()->getAction()['controller']);
       $accept_reject_model->ip_address = request()->ip();
       $next_level_role_id = Workflow::getParentId($scheme_id, Auth::user()->designation_id);
       //  dd($next_level_role_id);
@@ -1203,7 +1202,7 @@ class JBProcessApplicationController extends Controller
         if ($row->no_mobile == 1) {
           return redirect('workflow?pr1=' . $scheme_obj->pr1_code)->with('error', 'Mobile Number Incorrect.');
         }
-        $accept_reject_model->op_type = 'AV';
+        $accept_reject_model->op_type = class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod() . 'AV';
 
 
         $input = [
@@ -1225,14 +1224,14 @@ class JBProcessApplicationController extends Controller
         //dd($is_status_updated);
         if ($is_status_updated && $is_saved_log) {
           DB::commit();
-          return redirect('workflow?pr1=' . $scheme_obj->pr1_code)->withInput()->with('message', 'Beneficiary with ID:' . $id . ' Forwarded Succesfully!');
+          return redirect('ProcessApllicationVerifier?scheme_id=' . $scheme_id)->withInput()->with('message', 'Beneficiary with ID:' . $id . ' Forwarded Succesfully!');
         } else {
           DB::rollback();
-          return redirect('workflow?pr1=' . $scheme_obj->pr1_code)->with('message', 'Error! Please try again.');
+          return redirect('ProcessApllicationVerifier?scheme_id=' . $scheme_id)->with('message', 'Error! Please try again.');
         }
       } else if ($_POST['submit'] == 'Revert') {
 
-        $accept_reject_model->op_type = 'AREVERT';
+        $accept_reject_model->op_type = class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod() . 'AREVERT';
 
 
         $input = [
@@ -1253,15 +1252,15 @@ class JBProcessApplicationController extends Controller
         //dd($is_status_updated);
         if ($is_status_updated && $is_saved_log) {
           DB::commit();
-          return redirect('workflow?pr1=' . $scheme_obj->pr1_code)->withInput()->with('message', 'Beneficiary with ID:' . $id . ' Reverted Succesfully!');
+          return redirect('ProcessApllicationVerifier?scheme_id=' . $scheme_id)->withInput()->with('message', 'Beneficiary with ID:' . $id . ' Reverted Succesfully!');
         } else {
           DB::rollback();
-          return redirect('workflow?pr1=' . $scheme_obj->pr1_code)->with('message', 'Error! Please try again.');
+          return redirect('ProcessApllicationVerifier?scheme_id=' . $scheme_id)->with('message', 'Error! Please try again.');
         }
       } else if ($_POST['submit'] == 'Reject') {
         $is_state_login = 0;
         try {
-          $accept_reject_model->op_type = 'AR';
+          $accept_reject_model->op_type = class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod() . 'AR';
           $input = [
             'verification_rejected' => $Rejected,
             'comments' => $comments,
@@ -1308,13 +1307,14 @@ class JBProcessApplicationController extends Controller
           }
           if ($is_status_updated && $is_saved_log && $free_pending_bank_duplicate_data && $reject_dup_adjustment) {
             DB::commit();
-            return redirect('workflow?pr1=' . $scheme_obj->pr1_code)->withInput()->with('message', 'Beneficiary with ID:' . $id . ' Rejected Succesfully!');
+          
+            return redirect('ProcessApllicationVerifier?scheme_id=' . $scheme_id)->withInput()->with('message', 'Beneficiary with ID:' . $id . ' Rejected Succesfully!');
           } else {
             DB::rollback();
-            return redirect('workflow?pr1=' . $scheme_obj->pr1_code)->with('message', 'Error! Please try again.');
+            return redirect('ProcessApllicationVerifier?scheme_id=' . $scheme_id)->with('message', 'Error! Please try again.');
           }
         } catch (Exception $e) {
-          return redirect('workflow?pr1=' . $scheme_obj->pr1_code)->with('message', 'Error! Please try again.');
+          return redirect('ProcessApllicationVerifier?scheme_id=' . $scheme_id)->with('message', 'Error! Please try again.');
         }
       }
 
@@ -1369,6 +1369,7 @@ class JBProcessApplicationController extends Controller
       $accept_reject_model->comment_message = $comments;
       $accept_reject_model->user_id = $user_id;
       $accept_reject_model->created_by_dist_code = $district_code;
+      $accept_reject_model->op_type = class_basename(request()->route()->getAction()['controller']);
       $accept_reject_model->ip_address = request()->ip();
       $user_id = AuthChecker::getUserId();
       $scheme_obj = Scheme::where('id', $scheme_id)->where('is_active', 1)->first();
@@ -1465,10 +1466,10 @@ class JBProcessApplicationController extends Controller
         $is_saved_log = $accept_reject_model->save();
         if ($is_status_updated && $is_saved_log) {
           DB::commit();
-          return redirect('workflow?pr1=' . $scheme_obj->pr1_code)->withInput()->with('message', 'Beneficiary with ID:' . $id . ' Approved Succesfully!');
+          return redirect('ProcessApllicationApprover?scheme_id=' . $scheme_id)->withInput()->with('message', 'Beneficiary with ID:' . $id . ' Approved Succesfully!');
         } else {
           DB::rollback();
-          return redirect('workflow?pr1=' . $scheme_obj->pr1_code)->with('message', 'Error! Please try again.');
+          return redirect('ProcessApllicationApprover?scheme_id=' . $scheme_id)->with('message', 'Error! Please try again.');
         }
       } else if ($_POST['submit'] == 'Reject') {
         $accept_reject_model->op_type = 'AR';
@@ -1513,10 +1514,10 @@ class JBProcessApplicationController extends Controller
         }
         if ($is_status_updated && $is_saved_log && $free_pending_bank_duplicate_data && $reject_dup_adjustment) {
           DB::commit();
-          return redirect('workflow?pr1=' . $scheme_obj->pr1_code)->withInput()->with('message', 'Beneficiary with ID:' . $id . ' Rejected Succesfully!');
+          return redirect('ProcessApllicationApprover?scheme_id=' . $scheme_id)->withInput()->with('message', 'Beneficiary with ID:' . $id . ' Rejected Succesfully!');
         } else {
           DB::rollback();
-          return redirect('workflow?pr1=' . $scheme_obj->pr1_code)->with('message', 'Error! Please try again.');
+          return redirect('ProcessApllicationApprover?scheme_id=' . $scheme_id)->with('message', 'Error! Please try again.');
         }
       } else if ($_POST['submit'] == 'Revert') {
         $accept_reject_model->op_type = 'AE';
@@ -1537,10 +1538,10 @@ class JBProcessApplicationController extends Controller
         $is_saved_log = $accept_reject_model->save();
         if ($is_status_updated && $is_saved_log) {
           DB::commit();
-          return redirect('workflow?pr1=' . $scheme_obj->pr1_code)->withInput()->with('message', 'Beneficiary with ID:' . $id . ' Reverted Succesfully!');
+          return redirect('ProcessApllicationApprover?scheme_id=' . $scheme_id)->withInput()->with('message', 'Beneficiary with ID:' . $id . ' Reverted Succesfully!');
         } else {
           DB::rollback();
-          return redirect('workflow?pr1=' . $scheme_obj->pr1_code)->with('message', 'Error! Please try again.');
+          return redirect('ProcessApllicationApprover?scheme_id=' . $scheme_id)->with('message', 'Error! Please try again.');
         }
       }
     }

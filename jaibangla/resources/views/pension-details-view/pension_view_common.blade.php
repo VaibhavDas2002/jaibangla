@@ -1,6 +1,6 @@
 <input id="designation_id" type="hidden" value="{{$designation_id}}">
 @extends('pension-details-view.pension_view_details')
-@if ($is_verifier)
+@if ($is_verifier && $view_type == 1)
     @section('form_section')
     @if($row->next_level_role_id == null)
         <form method="post" action="{{ route('jb-forward')}}">
@@ -28,7 +28,7 @@
         </form>
     @endif
     @endsection
-@elseif($is_approver)
+@elseif($is_approver && $view_type == 1)
     @section('form_section')
     <form method="post" action="{{ route('jb-forward-approve') }}">
         {{ csrf_field() }}

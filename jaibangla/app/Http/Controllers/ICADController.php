@@ -11,6 +11,7 @@ use Auth;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Route;
 use DateTime;
 use App\Configduty;
 use Maatwebsite\Excel\Facades\Excel;

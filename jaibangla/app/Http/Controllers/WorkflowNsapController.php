@@ -25,6 +25,7 @@ use App\Scheme;
 use App\DocumentType;
 use Validator;
 use App\Helpers\AuthChecker;
+use App\Workflow;
 
 class WorkflowNsapController extends Controller
 {
@@ -756,7 +757,8 @@ class WorkflowNsapController extends Controller
         }
       } else if ($request->action_type == 'Verify') {
         //dd('ok');
-        $mapArr = MapLavel::where('scheme_id', $duty_obj->scheme_id)->where('role_name', $designation_id_old)->where('stack_level', $duty_obj->mapping_level)->get(['id', 'role_name', 'scheme_id', 'parent_id', 'is_final', 'stack_level', 'is_first', 'role_id'])->first();
+        // $mapArr = MapLavel::where('scheme_id', $duty_obj->scheme_id)->where('role_name', $designation_id_old)->where('stack_level', $duty_obj->mapping_level)->get(['id', 'role_name', 'scheme_id', 'parent_id', 'is_final', 'stack_level', 'is_first', 'role_id'])->first();
+        $next_level_role_id = Workflow::getParentId($duty_obj->scheme_id, Auth::user()->designation_id_old);
         if (empty($mapArr)) {
           return redirect("/")->with('danger', 'Not Allowed');
         }
@@ -772,7 +774,7 @@ class WorkflowNsapController extends Controller
         DB::beginTransaction();
         $accept_reject_model->op_type = 'SV';
         $input = [
-          'verification_date' => $c_time, 'verified_by' => $user_id, 'next_level_role_id' => $mapArr->parent_id, 'process_nsap_flag' => 1, 'nsap_flag' => 2, 'comments' => $comments
+          'verification_date' => $c_time, 'verified_by' => $user_id, 'next_level_role_id' => $next_level_role_id, 'process_nsap_flag' => 1, 'nsap_flag' => 2, 'comments' => $comments
         ];
         if($is_reverted==12){
           $update = DB::table($schema . '.beneficiary')
