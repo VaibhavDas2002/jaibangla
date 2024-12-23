@@ -2134,9 +2134,29 @@ Route::get('jb-update','JBPensionController@update')->name('jb-update');
 Route::resource('scheme-req-field', 'SchemeFieldsRequiredController');
 Route::get('get-scheme-data-required','SchemeFieldsRequiredController@getData')->name('get-scheme-data-required');
 
+// Update Dup & No Bank, Aadhar, Mobile
+// Verifier End
+Route::get('no-dup-beneficiaries-list', 'NoDupWorkflowController@index')->name('no-dup-beneficiaries-list');
+Route::post('getNoDupList', 'NoDupWorkflowController@getNoDupList')->name('getNoDupList');
+Route::any('editApplicantDetails', 'NoDupWorkflowController@editApplicantDetails')->name('editApplicantDetails');
+Route::post('updateApplicantDetails', 'NoDupWorkflowController@updateApplicantDetails')->name('updateApplicantDetails');
+Route::post('aadharDupCheck', 'NoDupWorkflowController@aadharDupCheck')->name('aadharDupCheck');
+Route::post('bankDupCheck', 'NoDupWorkflowController@bankDupCheck')->name('bankDupCheck');
+Route::post('mobileDupCheck', 'NoDupWorkflowController@mobileDupCheck')->name('mobileDupCheck');
+
+// Approver End
+Route::get('no-dup-verified-beneficiaries-list', 'NoDupWorkflowController@approver_linelisting_index')->name('no-dup-verified-beneficiaries-list');
+Route::post('getNoDupVerifiedList', 'NoDupWorkflowController@getNoDupVerifiedList')->name('getNoDupVerifiedList');
+Route::post('NoDupModalView', 'NoDupWorkflowController@NoDupModalView')->name('NoDupModalView');
+Route::post('getDocument', 'NoDupWorkflowController@getDocument')->name('getDocument');
+Route::post('approveNoDupApplicant', 'NoDupWorkflowController@approveNoDupApplicant')->name('approveNoDupApplicant');
+
+
 //WBPDS 
 Route::get('jbwbpdsaadhar', 'JBwbPDSController@schemeSelection')->name('jbwbpdsaadhar');
 Route::get('jbpdsnamemismatchlist', 'JBwbPDSController@namemismatchdlist')->name('jbpdsnamemismatchlist');
+
+
 
 
 //LB 60 Application

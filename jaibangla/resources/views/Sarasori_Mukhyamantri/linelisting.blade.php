@@ -152,14 +152,15 @@ href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,30
         </div> 
       </section>
       <section class="content">
+        
         <input type="hidden" name="action_type" id="action_type" value="1"/>
         <input type="hidden" name="dist_code" id="dist_code" value="{{ $district_code }}" class="js-district_1">
-        <div class="row" style="">
+        <div class="row" >
           <div class="form-group col-md-4">
             <label class="required-field">Application Type</label>
             <select name="application_type" id="application_type" class="form-control"  >
               <option value="1" selected>Verified but Yet not Marked as Sarasori Mukhyamantri</option>
-              @if($designation_id_old=='Verifier')
+              @if($is_verifier)
                 <option value="2">Verified and Marked as Sarasori Mukhyamantri but Yet to Approved</option>
               @endif
               <option value="3">Verified and Marked as Sarasori Mukhyamantri and Approved</option>
@@ -200,7 +201,7 @@ href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,30
             <input type="hidden" name="rural_urban_code"  id="rural_urban_code" value="{{$is_rural}}">
             <input value="{{$created_by_local_body_code}}" type="hidden" name="created_by_local_body_code"  id="created_by_local_body_code">
           @endif
-          @if($designation_id_old=='Approver')
+          @if($is_approver)
             <div class="form-group col-md-3">
               <label class=" control-label" >Urban/Rural</label>
               <select name="rural_urban_code" id="rural_urban_code" class="form-control" >

@@ -524,7 +524,6 @@ class JBDocUploadController extends Controller
           'gp_name' => $gp_name,
           'docs' => $docs,
           'reject_revert_cause_list' => $reject_revert_cause_list,
-          // 'designation_id_old' => $designation_id_old,
           'doc_list' => $doc_list,
           'encloser_list' => $encloser_list,
           'is_verifier' => $is_verifier,

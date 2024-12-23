@@ -9,7 +9,7 @@ use App\Scheme;
 use Redirect;
 use Auth;
 use Illuminate\Support\Facades\Input;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\DB;
 use Validator;
 use DateTime;
@@ -236,7 +236,7 @@ class WorkflowControllerSm extends Controller
       return datatables()->of($data)->setTotalRecords($totalRecords)
         ->setFilteredRecords($filterRecords)
         ->skipPaging()
-        ->addColumn('view', function ($data) use ($scheme_id, $designation_id_old, $next_level_role_id_approver, $next_level_role_id_verifier) {
+        ->addColumn('view', function ($data) use ($scheme_id,  $next_level_role_id_approver, $next_level_role_id_verifier) {
           $action = '<a href="ViewSm?id=' . $data->id  . '&scheme_id=' . $data->scheme_id . '" class="btn btn-xs btn-info"><i class="glyphicon glyphicon-edit"></i> View</a>';
 
 
@@ -269,7 +269,7 @@ class WorkflowControllerSm extends Controller
 
 
           return $action;
-        })->addColumn('status', function ($data) use ($designation_id_old) {
+        })->addColumn('status', function ($data)  {
           $status = '';
           if ($data->dup_mobile ==1) {
             $status=$status.'<span class="text-primary" style="font-weight: bold;">Duplicate Mobile Number.</br></span>';
@@ -331,7 +331,6 @@ class WorkflowControllerSm extends Controller
     return view(
       'Sarasori_Mukhyamantri.linelisting',
       [
-        'designation_id_old' => $designation_id_old,
         'verifier_type' => $verifier_type,
         'created_by_local_body_code' => $created_by_local_body_code,
         'is_rural' => $is_rural,
@@ -339,10 +338,10 @@ class WorkflowControllerSm extends Controller
         'scheme_name' => $scheme_obj->scheme_name,
         'gps' => $gps,
         'urban_bodys' => $urban_bodys,
-        'gps' => $gps,
         'district_code' => $district_code,
         'type_des' => $type_des,
-        'scheme_id' => $scheme_id
+        'is_verifier' => $is_verifier,
+        'is_approver' => $is_approver,
       ]
     );
   }
@@ -740,7 +739,7 @@ class WorkflowControllerSm extends Controller
       $modelNameAcceptReject->user_id = $user_id;
       $modelNameAcceptReject->created_by_dist_code = $district_code;
       $modelNameAcceptReject->created_by_local_body_code = $created_by_local_body_code;
-      $modelNameAcceptReject->op_type = class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod() .$op_typee. ;
+      $modelNameAcceptReject->op_type = class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod() .$op_type ;
 
       $modelNameAcceptReject->ip_address = request()->ip();
       $is_accept_reject = $modelNameAcceptReject->save();

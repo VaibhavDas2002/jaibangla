@@ -140,7 +140,7 @@ $(document).ready(function () {
         $("#epic_voter_id").removeClass("has-error");
       }
     }
-
+    error_identification = 0;
     if (error_identification == 1) {
       error_identification = 0;
       return false;

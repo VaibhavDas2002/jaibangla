@@ -548,8 +548,7 @@ desired effect
         </div>
         <form id="uploadForm" enctype="multipart/form-data">
           <input type="hidden" name="document_type" id="document_type" />
-          <!-- <input type="hidden" name="designation_id_old" id="designation_id_old" value="{{$designation_id_old}}" /> -->
-          <input type="hidden" name="is_verifier" id="is_verifier" value="{{$is_verifer}}" />
+          <input type="hidden" name="is_verifier" id="is_verifier" value="{{$is_verifier}}" />
           <input type="hidden" name="is_approver" id="is_approver" value="{{$is_approver}}" />
           <input type="hidden" name="is_hod" id="is_hod" value="{{$is_hod}}" />
           <input type="hidden" name="id" id="id" value="{{$row->id}}" />
@@ -623,7 +622,6 @@ desired effect
         }
       });
       $('.confirmBtn').click(function () {
-        // var designation_id_old = $("#designation_id_old").val();
         var is_verifer = $("#is_verifer").val();
         var is_approver = $("#is_approve").val();
         var is_hod = $("#is_hod").val();
