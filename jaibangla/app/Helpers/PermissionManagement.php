@@ -16,15 +16,15 @@ class PermissionManagement
      */
     public static function EntryChecker($scheme_id)
     {
-        if (AuthChecker::OperatorChecker()) {
-            $entry = DB::table('m_scheme_gen_setting')
-                ->where('scheme_id', $scheme_id)
-                ->value('allow_entry');
 
-            if ($entry) {
-                return true;
-            }
+        $entry = DB::table('m_scheme_gen_setting')
+            ->where('scheme_id', $scheme_id)
+            ->value('allow_entry');
+
+        if ($entry) {
+            return true;
         }
+
         return false;
     }
 
@@ -66,8 +66,8 @@ class PermissionManagement
     public static function DsEntryCheker($scheme_id)
     {
         $ds_entry = DB::table('m_scheme_gen_setting')
-        ->where('scheme_id', $scheme_id)
-        ->value('allow_ds_entry');
+            ->where('scheme_id', $scheme_id)
+            ->value('allow_ds_entry');
 
         if ($ds_entry) {
             return true;

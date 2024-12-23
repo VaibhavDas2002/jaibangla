@@ -12,6 +12,7 @@ use App\SchemeGenSetting;
 use App\Scheme;
 use App\DsPhase;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
@@ -48,9 +49,10 @@ class JBPensionController extends Controller
         $next_level_status = '';
         $scheme_id = Crypt::decrypt($encryptedSchemeId);
         $readonly = [];
-        $auth = AuthChecker::OperatorChecker();
+        $auth = AuthChecker::OperatorChecker() || AuthChecker::ApproverChecker();
         if ($auth) {
             $entry_type = PermissionManagement::EntryChecker($scheme_id);
+            // dd($entry_type);
             if ($entry_type) {
                 $mandatory = [];
                 $already_inserted = [];
@@ -225,7 +227,9 @@ class JBPensionController extends Controller
                     'readonly' => $readonly,
                 ]);
             }
+            return redirect("/")->with('danger', 'Not Allowed for this Scheme');
         }
+        return redirect("/")->with('danger', 'Not Allowed');
     }
 
     public function store(Request $request)
@@ -733,7 +737,7 @@ class JBPensionController extends Controller
                 $JBPension->ip_address = $request->ip();
                 $JBPension->action_by = $user_id;
                 $JBPension->action_ip_address = $request->ip();
-                $JBPension->action_type = $request->class_basename(request()->route()->getAction()['controller']) . '@' . $type;
+                $JBPension->action_type = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod() . '@' . $type;
                 DB::beginTransaction();
                 DB::connection('pgsql_encwrite')->beginTransaction();
                 try {
@@ -1182,7 +1186,7 @@ class JBPensionController extends Controller
     public function ben_list(Request $request)
     {
         $scheme_id = $request->scheme;
-        $schema_name = Scheme::where('id',$scheme_id)->value('short_code');
+        $schema_name = Scheme::where('id', $scheme_id)->value('short_code');
         $user_id = AuthChecker::getUserId();
 
         // Ensure $dutyObj is fetched properly and is not null
@@ -1309,7 +1313,7 @@ class JBPensionController extends Controller
                 return $data->village_town_city;
             })
             ->addColumn('action', function ($data) use ($scheme_id) {
-                $val = '<button type="button" class="btn btn-info btn-view" value="' . $data->id . '" data-scheme = '.$scheme_id.'>View</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+                $val = '<button type="button" class="btn btn-info btn-view" value="' . $data->id . '" data-scheme = ' . $scheme_id . '>View</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
 
                 $val = $val . '<button type="button" class="btn btn-warning btn-update" value="' . $data->id . '">Update</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
 

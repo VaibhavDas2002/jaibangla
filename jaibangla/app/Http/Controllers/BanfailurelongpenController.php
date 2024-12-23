@@ -6,16 +6,10 @@ use Illuminate\Http\Request;
 use App\User;
 use App\District;
 use App\Scheme;
-use Redirect;
 use Auth;
-use Illuminate\Support\Facades\Input;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Validator;
-use DateTime;
-use Config;
 use App\Configduty;
-use Maatwebsite\Excel\Facades\Excel;
 use App\DataSourceCommon;
 
 use App\getModelFunc;

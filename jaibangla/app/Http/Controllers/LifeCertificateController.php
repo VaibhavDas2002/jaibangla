@@ -19,11 +19,13 @@ use Redirect;
 use Auth;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
-use Config;
+use Illuminate\Support\Facades\Route;
+
 use App\SchemeCapacity;
 use App\Scheme;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
 use App\BankDetails;
 use App\Helpers\Helper;
@@ -39,6 +41,11 @@ use App\Helpers\AuthChecker;
 
 class LifeCertificateController extends Controller
 {
+  private $scheme_id;
+  private $base_dob_chk_date;
+  private $max_dob;
+  private $life_certificate_id;
+  private $state_login_next_level_role_id_arr;
 
   public function __construct()
   {
@@ -54,7 +61,7 @@ class LifeCertificateController extends Controller
   {
 
     // dd($request->all());
-    $designation_id_old = Auth::user()->designation_id_old;
+    // $designation_id_old = Auth::user()->designation_id_old;
     $is_operator = AuthChecker::OperatorChecker();
     $is_verifier = AuthChecker::VerifierChecker();
     $is_approver = AuthChecker::ApproverChecker();
@@ -62,6 +69,7 @@ class LifeCertificateController extends Controller
 
     $user_id = AuthChecker::getUserId();
     $scheme_id = $request->scheme_id;
+    $scheme_obj = Scheme::where('id', $scheme_id)->where('is_active', 1)->first();
 
     if (!is_numeric($scheme_id) || $scheme_id != 17) {
       return redirect("/")->with('error', 'Scheme Not Valid');
@@ -326,7 +334,7 @@ class LifeCertificateController extends Controller
     return view(
       'LifeCertificate.linelisting',
       [
-        'designation_id_old' => $designation_id_old,
+        // 'designation_id_old' => $designation_id_old,
         'verifier_type' => $verifier_type,
         'created_by_local_body_code' => $created_by_local_body_code,
         'is_rural' => $is_rural,
@@ -438,6 +446,7 @@ class LifeCertificateController extends Controller
   function editLifeCertificatePost(Request $request)
   {
     $scheme_id = $request->scheme_id;
+    $scheme_obj = Scheme::where('id', $scheme_id)->where('is_active', 1)->first();
     $user_id = AuthChecker::getUserId();
     // $designation_id_old = Auth::user()->designation_id_old;
     if (!AuthChecker::OperatorChecker()) {
@@ -591,7 +600,7 @@ class LifeCertificateController extends Controller
       $accept_reject_model->ip_address = $ip_address;
       $accept_reject_model->action_by = $user_id;
       $accept_reject_model->action_ip_address = $request->ip();
-      $accept_reject_model->action_type = $request->class_basename(request()->route()->getAction()['controller']) . '@' . 'WL';
+      $accept_reject_model->action_type = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod() . '@' . 'WL';
       $is_saved_log = $accept_reject_model->save();
       if ($is_saved1 && $is_saved2 && $is_saved_log) {
         DB::commit();
@@ -654,7 +663,7 @@ class LifeCertificateController extends Controller
     $accept_reject_model->op_type = 'WG';
     $accept_reject_model->action_by = $user_id;
     $accept_reject_model->action_ip_address = $request->ip();
-    $accept_reject_model->action_type = $request->class_basename(request()->route()->getAction()['controller']) . '@' . 'WG';
+    $accept_reject_model->action_type = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod() . '@' . 'WG';
     $back_url = 'lifeCertificte?scheme_id=' . $scheme_id;
 
     $inputs = request()->input('approvalcheck');
@@ -750,7 +759,7 @@ class LifeCertificateController extends Controller
       $accept_reject_model->application_id = $id;
       $accept_reject_model->action_by = $user_id;
       $accept_reject_model->action_ip_address = $request->ip();
-      $accept_reject_model->action_type = $request->class_basename(request()->route()->getAction()['controller']) . '@' . 'WG';
+      $accept_reject_model->action_type = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod() . '@' . 'WG';
       $input = ['next_level_role_id_edit' => NULL, 'unlock_status' => 1];
       $is_saved_log = $accept_reject_model->save();
       $is_saved1 = DB::table($schema . '.beneficiary')->where('id', $id)->where('created_by_dist_code', $district_code)->update($input);
@@ -771,6 +780,8 @@ class LifeCertificateController extends Controller
       $accept_reject_model->ip_address = request()->ip();
       $accept_reject_model->op_type = 'WG';
       $accept_reject_model->application_id = $id;
+      $accept_reject_model->op_type = class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod() .'@WG';
+
       $input = ['next_level_role_id_edit' => 0, 'unlock_status' => 2];
       $is_saved_log = $accept_reject_model->save();
       $is_saved1 = DB::table($schema . '.beneficiary')->where('id', $id)->where('created_by_dist_code', $district_code)->update($input);

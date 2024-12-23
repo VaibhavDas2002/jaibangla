@@ -992,7 +992,7 @@ class AadharUpdateController extends Controller
         $user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id', '=', $user_id)->where('scheme_id', $scheme_id)->first();
 
-        $role = MapLavel::where('scheme_id', $scheme_id)->where('role_name', Auth::user()->designation_id_old)->where('stack_level', $duty->mapping_level)->first();
+        $role = MapLavel::where(column: 'scheme_id', $scheme_id)->where('role_name', Auth::user()->designation_id_old)->where('stack_level', $duty->mapping_level)->first();
 
         if ($_POST['submit'] == 'Verify') {
             $input = ['aadhar_edit_role_id' => 2, 'aadhar_edit_comments' => $comments];

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Route;
 use App\Configduty;
 use App\MapLavel;
 use App\District;
@@ -27,6 +28,7 @@ use App\Helpers\AuthChecker;
 
 class WorkflowNsapController extends Controller
 {
+  private $base_dob_chk_date;
   public function __construct()
   {
     $this->middleware('auth');
@@ -705,6 +707,8 @@ class WorkflowNsapController extends Controller
       $accept_reject_model->created_by_dist_code = $district_code;
       $accept_reject_model->created_by_local_body_code = $row->created_by_local_body_code;
       $accept_reject_model->ip_address = request()->ip();
+      $accept_reject_model->op_type = class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod();
+
       $back_page = $request->basePage;
 
       $back_url = 'nsap-marked-list?scheme_id=' . $scheme_id;

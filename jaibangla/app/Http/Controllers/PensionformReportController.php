@@ -3,28 +3,14 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-//use App\Http\Controllers\Redirect;
-use App\designationMaster;
 use App\Configduty;
 use App\District;
 use App\UrbanBody;
-use App\SubDistrict;
-
-use App\SchemecodeStatic;
-use App\DocumentType;
-use App\SchemeDocMap;
 use App\Scheme;
-use App\Assembly;
-use App\Taluka;
-use App\Ward;
 use App\GP;
-use App\User;
-use Redirect;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
-
-use Illuminate\Support\Facades\Input;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 use App\AcceptRejectInfo;
@@ -670,6 +656,8 @@ class PensionformReportController extends Controller
         $accept_reject_model->user_id = $user_id;
         $accept_reject_model->ip_address = request()->ip();
         $accept_reject_model->op_type = 'AR';
+        $accept_reject_model->op_type = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod() . '@AR';
+
         $model_name = $request->session()->get('model_name');
         //$reject_reason = $request->reject_reason;
         $revert_reason = 'Rejected by user: ' . $user_id;
@@ -751,6 +739,8 @@ class PensionformReportController extends Controller
         $accept_reject_model->user_id = $user_id;
         $accept_reject_model->ip_address = request()->ip();
         $accept_reject_model->op_type = 'AE';
+        $accept_reject_model->op_type = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod() . '@AE';
+
         $model_name = $request->session()->get('model_name');
         //$reject_reason = $request->reject_reason;
         $revert_reason = 'Reverted by user: ' . $user_id;

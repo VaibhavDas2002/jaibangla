@@ -51,7 +51,7 @@ class AadharBankDupCountComtroller extends Controller
     public function index()
     {
         $user_id = AuthChecker::getUserId();
-        if (Auth::user()->designation_id_old == 'Admin') {
+        if (AuthChecker::AdminChecker()) 
             $schemes = Scheme::where('id','<>',20)->where('is_active', 1)->get();
             // dd($schemes);
             return view('duplicate-check/index', ['schemes' => $schemes]);

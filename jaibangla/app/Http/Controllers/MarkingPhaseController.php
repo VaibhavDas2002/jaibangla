@@ -42,6 +42,11 @@ use App\Helpers\AuthChecker;
 
 class MarkingPhaseController extends Controller
 {
+  private $scheme_id;
+  private $source_type;
+  private $ben_status;
+  private $doc_type_id;
+  
 
   public function __construct()
   {

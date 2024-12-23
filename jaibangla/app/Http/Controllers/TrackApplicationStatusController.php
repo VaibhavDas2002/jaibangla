@@ -23,6 +23,8 @@ use Validator;
 use Elibyy\TCPDF\Facades\TCPDF as PDF;
 use Illuminate\Support\Facades\Config;
 
+use App\Helpers\AuthChecker;
+
 class TrackApplicationStatusController extends Controller
 {
   public function __construct()

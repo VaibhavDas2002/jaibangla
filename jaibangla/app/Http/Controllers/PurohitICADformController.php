@@ -1871,6 +1871,7 @@ class PurohitICADformController extends Controller
           $accept_reject_model->scheme_id =  $request->scheme_id;
           $accept_reject_model->user_id = $user_id;
           $accept_reject_model->op_type = 'APPUPDATE';
+          
           $accept_reject_model->ip_address = $request->ip();
           $is_saved_log = $accept_reject_model->save();
           if ($doc_inserted_arch && $doc_inserted_del && $doc_inserted && $is_saved_log && $update_status1 && $update_status2) {

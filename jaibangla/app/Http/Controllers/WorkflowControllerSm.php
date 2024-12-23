@@ -568,7 +568,7 @@ class WorkflowControllerSm extends Controller
         $modelNameAcceptReject->scheme_id =  $scheme_id;
 
         $modelNameAcceptReject->created_at =  $c_time;
-        $modelNameAcceptReject->op_type =  $op_type;
+        $modelNameAcceptReject->op_type =  class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod() . $op_type;
         $modelNameAcceptReject->application_id = $request->beneficiary_id;
         $modelNameAcceptReject->user_id = $user_id;
         $modelNameAcceptReject->created_by_dist_code = $district_code;
@@ -655,7 +655,7 @@ class WorkflowControllerSm extends Controller
       $op_type = 'SMREJECT';
       $modelNameAcceptReject->scheme_id = $scheme_id;
       $modelNameAcceptReject->created_at =  $c_time;
-      $modelNameAcceptReject->op_type =  $op_type;
+      $modelNameAcceptReject->op_type = class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod().  $op_type;
       $modelNameAcceptReject->application_id = $id;
       $modelNameAcceptReject->user_id = $user_id;
       $modelNameAcceptReject->created_by_dist_code = $district_code;
@@ -740,6 +740,8 @@ class WorkflowControllerSm extends Controller
       $modelNameAcceptReject->user_id = $user_id;
       $modelNameAcceptReject->created_by_dist_code = $district_code;
       $modelNameAcceptReject->created_by_local_body_code = $created_by_local_body_code;
+      $modelNameAcceptReject->op_type = class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod() .$op_typee. ;
+
       $modelNameAcceptReject->ip_address = request()->ip();
       $is_accept_reject = $modelNameAcceptReject->save();
 

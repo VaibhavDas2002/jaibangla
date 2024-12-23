@@ -17,7 +17,9 @@
                                     <option value="">--Select--</option>
                                     @foreach ($scheme_list as  $arr)
                                     @if($arr->is_active==1)
-                                     <option value="lpp?scheme_id={{$arr->id}}">{{$arr->display_name}}</option>
+                                     <!-- <option value="lpp?scheme_id={{$arr->id}}">{{$arr->display_name}}</option> -->
+                                     <option value="jb-pension?scheme_id={{ encrypt($arr->id) }}&type={{ 1 }}">
+                                     {{$arr->display_name}}</option>
                                      @else
                                       <option value="#" disabled >{{$arr->display_name}}</option>
                                      @endif   

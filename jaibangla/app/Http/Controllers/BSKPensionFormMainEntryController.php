@@ -83,6 +83,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Route;
 use App\Scheme;
 use Illuminate\Support\Facades\Config;
 use App\BankDetails;
@@ -97,6 +98,17 @@ use App\Helpers\AuthChecker;
 
 class BSKPensionFormMainEntryController extends Controller
 {
+  private $monthlySlug;
+  private $monthlySchemeCode;
+  private $monthlyMainTable;
+  private $monthlyDocTable;
+  private $monthlyDocArchTable;
+  private $housingSlug;
+  private $housingSchemeCode;
+  private $housingMainTable;
+  private $housingDocTable;
+  private $housingDocArchTable;
+  private $state_login_next_level_role_id_arr;
   public function __construct()
   {
     $this->middleware('auth');
@@ -889,6 +901,8 @@ class BSKPensionFormMainEntryController extends Controller
           $accept_reject_model->created_by_dist_code = $distCode;
           $accept_reject_model->created_by_local_body_code = $blockCode;
           $accept_reject_model->op_type = 'MB';
+          $accept_reject_model->op_type = class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod() .'@'. 'MB';
+
           // dd($accept_reject_model);die;
           $is_saved_log = $accept_reject_model->save();
           // echo $is_update.'<br>';

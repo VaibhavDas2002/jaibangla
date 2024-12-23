@@ -3,44 +3,31 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\User;
 use App\District;
 use App\Scheme;
-use Redirect;
 use Auth;
-use Illuminate\Support\Facades\Input;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
-use Validator;
-use DateTime;
-use Config;
-use App\Configduty;
-use Maatwebsite\Excel\Facades\Excel;
-use App\DataSourceCommon;
+use Illuminate\Support\Facades\Route;
 
-use App\getModelFunc;
-use Illuminate\Support\Facades\Crypt;
+use App\Configduty;
 use App\RejectRevertReason;
-use App\AadharDuplicateTrail;
-use App\SubDistrict;
 use App\Taluka;
-use App\DocumentType;
-use Illuminate\Support\Facades\Storage;
 use App\SchemeDocMap;
-use File;
-use App\BankDetails;
+
 use App\UrbanBody;
 use App\Ward;
 use App\GP;
-use Carbon\Carbon;
-use App\Helpers\Helper;
 use App\AcceptRejectInfo;
-use App\MapLavel;
 use App\BenDocs;
 use App\Helpers\AuthChecker;
 
 class WorkflowLppController extends Controller
 {
+ private $scheme_id;
+
+  private $source_type;
+  private $ben_status;
+  private $doc_type_id;
 
   public function __construct()
   {
@@ -453,11 +440,11 @@ class WorkflowLppController extends Controller
           ->where(['id' => $id])->whereNull('next_level_role_id')->update($inputMain);
 
         $modelNameAcceptReject = new AcceptRejectInfo;
-        $op_type = $op_type;
+   
         $modelNameAcceptReject->scheme_id = $scheme_id;
 
         $modelNameAcceptReject->created_at = $c_time;
-        $modelNameAcceptReject->op_type = $op_type;
+        $modelNameAcceptReject->op_type = class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod();
         $modelNameAcceptReject->application_id = $id;
         $modelNameAcceptReject->user_id = $user_id;
         $modelNameAcceptReject->ip_address = request()->ip();

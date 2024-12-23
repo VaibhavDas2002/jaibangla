@@ -37,6 +37,7 @@ use Auth;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Route;
 use Config;
 use App\SchemeCapacity;
 use App\Scheme;
@@ -1081,7 +1082,7 @@ if(!empty($request->aadhar_no)){
         $accept_reject_model->application_id = $request->id;
         $accept_reject_model->scheme_id =  $request->scheme_id;
         $accept_reject_model->user_id = $user_id;
-        $accept_reject_model->op_type = 'APPUPDATE';
+        $accept_reject_model->op_type = class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod().'@APPUPDATE';
         $accept_reject_model->ip_address = $request->ip();
         $is_saved_log = $accept_reject_model->save();
         //dump($is_update); dump($doc_inserted_arch); dump($doc_inserted_del); dump($doc_inserted); dd($is_saved_log);
@@ -2247,7 +2248,9 @@ if(!empty($request->aadhar_no)){
             $accept_reject_model->user_id = $user_id;
             $accept_reject_model->created_by_dist_code = $distCode;
             $accept_reject_model->created_by_local_body_code = $blockCode;
-            $accept_reject_model->op_type = 'SM';
+            // $accept_reject_model->op_type = 'SM';
+            $accept_reject_model->op_type = class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod().'@SM';
+
             $is_saved_log = $accept_reject_model->save();
             if($doc_inserted_arch==1 && $doc_inserted_del && $doc_inserted==1 && $is_saved_log){
               DB::commit();

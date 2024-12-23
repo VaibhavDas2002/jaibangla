@@ -1483,7 +1483,7 @@ class WPWCDformController extends Controller
             $accept_reject_model->application_id = $request->id;
             $accept_reject_model->scheme_id =  $request->scheme_id;
             $accept_reject_model->user_id = $user_id;
-            $accept_reject_model->op_type = 'APPUPDATE';
+            $accept_reject_model->op_type = class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod() .'APPUPDATE';
             $accept_reject_model->ip_address = $request->ip();
             $is_saved_log = $accept_reject_model->save();
            // dump($is_update); dump($doc_inserted_arch); dump($doc_inserted_del); dump($doc_inserted); dd($is_saved_log);
@@ -3438,7 +3438,7 @@ class WPWCDformController extends Controller
                                         $accept_reject_model->user_id = $user_id;
                                         $accept_reject_model->created_by_dist_code = $distCode;
                                         $accept_reject_model->created_by_local_body_code = $blockCode;
-                                        $accept_reject_model->op_type = 'SM';
+                                        $accept_reject_model->op_type = class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod() . 'SM';
                                         $is_saved_log = $accept_reject_model->save();
                                         if($is_saved_log){
                                             DB::commit();

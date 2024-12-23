@@ -518,7 +518,7 @@ class WorkflowDeptSpecialController extends Controller
           return redirect("/")->with('danger', 'Special Quota Exceed');
         }
         DB::beginTransaction();
-        $accept_reject_model->op_type = 'MV';
+        $accept_reject_model->op_type = class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod() . '@MV';
         $input = [
          'dept_special'=>1, 'verification_date' => $c_time, 'verified_by' => $user_id, 'next_level_role_id' => $mapArr->parent_id, 'comments' => $comments
         ];

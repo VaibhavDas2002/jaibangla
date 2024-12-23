@@ -46,7 +46,7 @@ class FailedBankDetailsEditController extends Controller
             }
             $table_name = strtolower($schema_name) . '.beneficiary';
         } else {
-            $table_name = 'pension.beneficiary';
+            $table_name = 'pension.beneficiaries';
         }
         return $table_name;
     }
@@ -75,7 +75,7 @@ class FailedBankDetailsEditController extends Controller
                 $user_id .
                 ' and is_active=1) order by scheme_name'
         ); 
-        if (Auth::user()->designation_id_old == 'Verifier') {
+        if (AuthChecker::VerifierChecker()) {
             if (count($scheme) > 0) {
                 if ($mapObj->is_urban == 1) {
                     $urban_body_code = $mapObj->urban_body_code;
@@ -111,7 +111,7 @@ class FailedBankDetailsEditController extends Controller
                     'User disabled. No scheme assign to this user'
                 );
             }
-        } elseif (Auth::user()->designation_id_old == 'Approver' ) {
+        } elseif (AuthChecker::ApproverChecker() ) {
             return view('failed-bank-edit/index', [
                 'schemes' => $scheme,
                 'mapLevel' => $mapObj->mapping_level . $designation,

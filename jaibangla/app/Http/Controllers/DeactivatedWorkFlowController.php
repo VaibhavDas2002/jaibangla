@@ -16,6 +16,7 @@ use App\UpdateBenDetails;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Route;
 
 
 
@@ -28,28 +29,27 @@ class DeactivatedWorkFlowController extends Controller
     date_default_timezone_set('Asia/Kolkata');
   }
   private function getSchemaName($scheme_id)
-	{
-	  if (!is_null($scheme_id)) {
-		$sObj =  Scheme::select('id', 'short_code')->where('id', '=', $scheme_id)->first();
-		//$parameter['scheme_id'] = $scheme_id;
-		$schema_name =  $sObj->short_code;
-		//dd($schema_name);
-		if (empty($schema_name)) {
-		  $schema_name = 'pension';
-		}
-		$table_name =  strtolower($schema_name) . '.beneficiaries';
-	  } else {
-		$table_name =  'pension.beneficiaries';
-	  }
-	  return $table_name;
-	}
+  {
+    if (!is_null($scheme_id)) {
+      $sObj = Scheme::select('id', 'short_code')->where('id', '=', $scheme_id)->first();
+      //$parameter['scheme_id'] = $scheme_id;
+      $schema_name = $sObj->short_code;
+      //dd($schema_name);
+      if (empty($schema_name)) {
+        $schema_name = 'pension';
+      }
+      $table_name = strtolower($schema_name) . '.beneficiaries';
+    } else {
+      $table_name = 'pension.beneficiaries';
+    }
+    return $table_name;
+  }
 
   /*
     Fist landing page at approver end
   */
   public function indexApprove(Request $request)
   {
-    $designation_id_old = Auth::user()->designation_id_old;
     if (AuthChecker::ApproverChecker()) {
       $is_active = 1;
     } else {
@@ -91,19 +91,26 @@ class DeactivatedWorkFlowController extends Controller
       if (empty($scheme_id)) {
         // return redirect("/")->with('error', 'Scheme Not Valid');
         return $response = array(
-          'status' => 0, 'msg' => array("Scheme Not Valid."),
-          'type' => 'red', 'icon' => 'fa fa-warning', 'title' => 'Warning!!'
+          'status' => 0,
+          'msg' => array("Scheme Not Valid."),
+          'type' => 'red',
+          'icon' => 'fa fa-warning',
+          'title' => 'Warning!!'
         );
       }
       if (!ctype_digit($scheme_id)) {
         // return redirect("/")->with('error', 'Scheme Not Valid');
         return $response = array(
-          'status' => 0, 'msg' => array("Scheme Not Valid."),
-          'type' => 'red', 'icon' => 'fa fa-warning', 'title' => 'Warning!!'
+          'status' => 0,
+          'msg' => array("Scheme Not Valid."),
+          'type' => 'red',
+          'icon' => 'fa fa-warning',
+          'title' => 'Warning!!'
         );
       }
       $user_id = AuthChecker::getUserId();
-      $designation_id_old = Auth::user()->designation_id_old;
+      $is_approver = AuthChecker::ApproverChecker();
+
       $errormsg = Config::get('constants.errormsg');
       $roleArray = $request->session()->get('role');
       $district_code = NULL;
@@ -131,15 +138,16 @@ class DeactivatedWorkFlowController extends Controller
         $is_active = 0;
       }
       if ($is_active == 0 || (empty($district_code))) {
-        // return redirect("/")->with('error', 'User Disabled. ');
         return $response = array(
-          'status' => 0, 'msg' => array("User Disabled."),
-          'type' => 'red', 'icon' => 'fa fa-warning', 'title' => 'Warning!!'
+          'status' => 0,
+          'msg' => array("User Disabled."),
+          'type' => 'red',
+          'icon' => 'fa fa-warning',
+          'title' => 'Warning!!'
         );
       }
-      
+
       $scheme_row = Scheme::where('id', $scheme_id)->first();
-      // Get Dynamic Schema Name scheme wise
       $table_name = 'pension.beneficiaries';
       $limit = $request->input('length');
       $offset = $request->input('start');
@@ -167,46 +175,37 @@ class DeactivatedWorkFlowController extends Controller
         $totalRecords = count($data);
       } else {
         if (is_numeric($serachvalue)) {
-         // $ben_id = (int) substr($serachvalue, -10);
-          $query = $query->where(function ($query1) use ( $serachvalue) {
+          $query = $query->where(function ($query1) use ($serachvalue) {
             $query1->where('id', $serachvalue);
-              
           });
           $totalRecords = $query->count();
           $data = $query->orderBy('id', 'ASC')->offset($offset)->limit($limit)->get();
         }
         $totalRecords = count($data);
       }
-
-
       $totalRecords = $query->count();
-      
-      
       $filterRecords = count($data);
 
       return datatables()->of($data)
         ->setTotalRecords($totalRecords)
         ->setFilteredRecords($filterRecords)
         ->skipPaging()
-        ->addColumn('view', function ($data) use ($request, $designation_id_old) {
+        ->addColumn('view', function ($data) use ($request, $is_approver) {
           if ($data->next_level_stop_payment == 1) {
-            if ($designation_id_old == 'Approver') {
+            if ($is_approver) {
               $action = '<button class="btn btn-primary btn-xs ben_view_button" value="' . $data->id . '_' . $data->scheme_id . '_' . $request->select_type . '"><i class="glyphicon glyphicon-edit"></i> View</button>';
             }
             return $action;
-          }
-          else if ($data->next_level_stop_payment == 2) {
+          } else if ($data->next_level_stop_payment == 2) {
             return 'Verified and Approved';
-          }
-          else {
+          } else {
             return null;
           }
         })
         ->addColumn('check', function ($data) use ($request) {
           if ($data->next_level_stop_payment == 1) {
             return '<input type="checkbox"  name="chkbx" class="all_checkbox" onclick="controlCheckBox();" value="' . $data->id . '_' . $data->scheme_id . '_' . $request->select_type . '">';
-          }
-          else {
+          } else {
             return null;
           }
         })
@@ -251,7 +250,6 @@ class DeactivatedWorkFlowController extends Controller
     try {
       $id = $request->benid;
       $scheme_id = $request->scheme_id;
-      $designation_id_old = Auth::user()->designation_id_old;
       $roleArray = $request->session()->get('role');
       $district_code = NULL;
       $urban_body_code = NULL;
@@ -278,35 +276,38 @@ class DeactivatedWorkFlowController extends Controller
         $is_active = 0;
       }
       if ($is_active == 0 || (empty($district_code))) {
-        // return redirect("/")->with('error', 'User Disabled. ');
         return $response = array(
-          'status' => 0, 'msg' => array("User Disabled."),
-          'type' => 'red', 'icon' => 'fa fa-warning', 'title' => 'Warning!!'
+          'status' => 0,
+          'msg' => array("User Disabled."),
+          'type' => 'red',
+          'icon' => 'fa fa-warning',
+          'title' => 'Warning!!'
         );
       }
 
       $scheme_row = Scheme::where('id', $scheme_id)->first();
-      // Get Dynamic Schema Name scheme wise
       $table_name = 'pension.beneficiaries';
-      //  $docs = DB::table($scheme_row->short_code.'.ben_docs')->where('ben_id', $id)->where('id','>=', 100)->first();
-      $docs = DB::connection('pgsql_encwrite')->table('jb_doc.ben_attach_documents_arch')->where('beneficiary_id', $id)->where('document_type','>=', 100)->first();
-      $extension=$docs->document_extension;
-      $base64=$docs->attched_document;
-      $imageName=$docs->doc_type_name;
-    
-      
+      $docs = DB::connection('pgsql_encwrite')->table('jb_doc.ben_attach_documents_arch')->where('beneficiary_id', $id)->where('document_type', '>=', 100)->first();
+      $extension = $docs->document_extension;
+      $base64 = $docs->attched_document;
+      $imageName = $docs->doc_type_name;
+
+
       $ben_details = DB::table($table_name)
-      ->where('next_level_stop_payment', 1)->where('next_level_role_id', 0)
-      ->where('scheme_id', $scheme_id)
-      ->where('created_by_dist_code', $district_code)
-      ->where('id', $id)
-      ->first();
-      
+        ->where('next_level_stop_payment', 1)->where('next_level_role_id', 0)
+        ->where('scheme_id', $scheme_id)
+        ->where('created_by_dist_code', $district_code)
+        ->where('id', $id)
+        ->first();
+
       // print_r($ben_details);die;
       if ($ben_details == null) {
-        return  $response = array(
-          'status' => 1, 'msg' => 'Somethimg went wrong.',
-          'type' => 'red', 'icon' => 'fa fa-warning', 'title' => 'Warning!!'
+        return $response = array(
+          'status' => 1,
+          'msg' => 'Somethimg went wrong.',
+          'type' => 'red',
+          'icon' => 'fa fa-warning',
+          'title' => 'Warning!!'
         );
       } else {
         $mask_aadhar = '';
@@ -324,26 +325,31 @@ class DeactivatedWorkFlowController extends Controller
           $mask_mobile = $mobile;
         }
         $ben_arr = array(
-          'ben_name' => trim($ben_details->ben_fname) . ' ' . trim($ben_details->ben_mname) . ' ' . trim($ben_details->ben_lname), 'id' => $ben_details->id, 'scheme_id' => $ben_details->scheme_id,
+          'ben_name' => trim($ben_details->ben_fname) . ' ' . trim($ben_details->ben_mname) . ' ' . trim($ben_details->ben_lname),
+          'id' => $ben_details->id,
+          'scheme_id' => $ben_details->scheme_id,
           'father_name' => trim($ben_details->father_fname) . ' ' . trim($ben_details->father_mname) . ' ' . trim($ben_details->father_lname),
-          'caste' => trim($ben_details->caste), 'gender' => trim($ben_details->gender),
+          'caste' => trim($ben_details->caste),
+          'gender' => trim($ben_details->gender),
           'dob' => date('d-m-Y', strtotime($ben_details->dob)),
-          'bank_code' => trim($ben_details->bank_code), 'bank_ifsc' => trim($ben_details->bank_ifsc),
-          'branch_name' => trim($ben_details->branch_name), 'bank_name' => trim($ben_details->bank_name), 'mobile_no' => trim($ben_details->mobile_no), 'application_id' => $ben_details->created_by_dist_code . str_pad($ben_details->scheme_id, 2, 0, STR_PAD_LEFT) . str_pad($ben_details->id, 15, 0, STR_PAD_LEFT), 'aadhar_no' => trim($ben_details->aadhar_no)
+          'bank_code' => trim($ben_details->bank_code),
+          'bank_ifsc' => trim($ben_details->bank_ifsc),
+          'branch_name' => trim($ben_details->branch_name),
+          'bank_name' => trim($ben_details->bank_name),
+          'mobile_no' => trim($ben_details->mobile_no),
+          'application_id' => $ben_details->created_by_dist_code . str_pad($ben_details->scheme_id, 2, 0, STR_PAD_LEFT) . str_pad($ben_details->id, 15, 0, STR_PAD_LEFT),
+          'aadhar_no' => trim($ben_details->aadhar_no)
         );
-        
+        $response = [
+          'ben_arr' => $ben_arr,
+          'image_name' => $imageName,
+          'extension' => $extension,
+          'base64' => $base64
 
-        $response=[
-          'ben_arr'=>$ben_arr,
-          // 'image_path'=>$file_path,
-           'image_name'=>$imageName,
-          'extension'=>$extension,
-          'base64'=>$base64
-          
         ];
       }
     } catch (\Exception $e) {
-       //dd($e);
+      //dd($e);
       $response = array(
         'exception' => true,
         // 'exception_message' => $e->getMessage(),
@@ -360,7 +366,6 @@ class DeactivatedWorkFlowController extends Controller
   */
   public function approveStopPaymentData(Request $request)
   {
-    // dd($request->all());
     $response = [];
     $statusCode = 200;
     if (!$request->ajax()) {
@@ -376,8 +381,11 @@ class DeactivatedWorkFlowController extends Controller
       $duty = Configduty::where('user_id', '=', $user_id)->where('is_active', 1)->first();
       if ($duty->isEmpty) {
         return $response = array(
-          'status' => 0, 'msg' => array("Unauthorized."),
-          'type' => 'red', 'icon' => 'fa fa-warning', 'title' => 'Warning!!'
+          'status' => 0,
+          'msg' => array("Unauthorized."),
+          'type' => 'red',
+          'icon' => 'fa fa-warning',
+          'title' => 'Warning!!'
         );
       }
 
@@ -390,8 +398,11 @@ class DeactivatedWorkFlowController extends Controller
         }
       } else {
         return $response = array(
-          'status' => 0, 'msg' => array("Unauthorized."),
-          'type' => 'red', 'icon' => 'fa fa-warning', 'title' => 'Warning!!'
+          'status' => 0,
+          'msg' => array("Unauthorized."),
+          'type' => 'red',
+          'icon' => 'fa fa-warning',
+          'title' => 'Warning!!'
         );
       }
       $remarks = trim($request->accept_reject_comments);
@@ -406,11 +417,11 @@ class DeactivatedWorkFlowController extends Controller
       $updateTypeArr = array();
       if ($fg_is_bulk == 1) {
         $bulk_id_arr = explode(',', $bulk_id);
-        
+
         foreach ($bulk_id_arr as $key => $value) {
           $tempArr = explode('_', $value);
           array_push($benIdArr, $tempArr[0]);
-          
+
           array_push($schemeIdArr, $tempArr[1]);
           array_push($updateTypeArr, $tempArr[2]);
         }
@@ -424,7 +435,7 @@ class DeactivatedWorkFlowController extends Controller
 
       $benIdArr = array_unique($benIdArr);
       $schemeIdArr = array_unique($schemeIdArr);
-      $updateTypeArr =  array_unique($updateTypeArr);
+      $updateTypeArr = array_unique($updateTypeArr);
 
       //   if (count($schemeIdArr) != 1) {
       //     return $response = array(
@@ -437,9 +448,9 @@ class DeactivatedWorkFlowController extends Controller
       $table_name = 'pension.beneficiaries';
       $input_json = [];
       $input_json['stop_payment_reason'] = $remarks;
-      $input_json[$table_name.'.next_level_role_id'] = '-99';
+      $input_json[$table_name . '.next_level_role_id'] = '-99';
       $input_json['designation'] = $designation_id_old;
-      
+
 
       $is_active = 0;
       $district_code = NULL;
@@ -453,83 +464,107 @@ class DeactivatedWorkFlowController extends Controller
       if ($is_active == 0 || (empty($district_code))) {
         // return redirect("/")->with('error', 'User Disabled. ');
         return $response = array(
-          'status' => 0, 'msg' => array("User Disabled."),
-          'type' => 'red', 'icon' => 'fa fa-warning', 'title' => 'Warning!!'
+          'status' => 0,
+          'msg' => array("User Disabled."),
+          'type' => 'red',
+          'icon' => 'fa fa-warning',
+          'title' => 'Warning!!'
         );
       }
       if ($operation_type == 'A') {
-        $update_code=30;
-      }
-      else if ($operation_type == 'B') {
-        $update_code=300;
+        $update_code = 30;
+      } else if ($operation_type == 'B') {
+        $update_code = 300;
       }
       $updateLogTable = array();
-      if(count($benIdArr)>0) 
-      {
-        foreach ($benIdArr as $item)
-        {
+      if (count($benIdArr) > 0) {
+        foreach ($benIdArr as $item) {
           $insertData = array(
-            'original_application_id' => $item, 
-            'dist_code' => $district_code, 
-            'scheme_id' => $scheme_id, 
+            'original_application_id' => $item,
+            'dist_code' => $district_code,
+            'scheme_id' => $scheme_id,
             'user_id' => $user_id,
             'created_at' => date('Y-m-d H:i:s'),
             'remarks' => $remarks,
-            'update_code'=>$update_code,
-            'new_data'=>json_encode($input_json)
+            'update_code' => $update_code,
+            'new_data' => json_encode($input_json),
+            'action_by' => $user_id,
+            'action_ip_address' => $request->ip(),
+            'action_type' => class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod()
+
           );
           array_push($updateLogTable, $insertData);
         }
-      } 
+      }
 
       // Update Beneficiary Details
       $msg = 'De-activated Successfully';
       if ($operation_type == 'A') {
         if ($update_type == 1) {
-          $updateBenDetailsData = ['next_level_role_id' => -99, 'next_level_stop_payment' => 2, 'is_approved' => 2, 'is_verified' => 2, 'is_rejected' =>1];
+          $updateBenDetailsData = [
+            'next_level_role_id' => -99,
+            'next_level_stop_payment' => 2,
+            'is_approved' => 2,
+            'is_verified' => 2,
+            'is_rejected' => 1,
+            'action_by' => $user_id,
+            'action_ip_address' => $request->ip(),
+            'action_type' => class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod()
+          ];
           $msg = 'Beneficiary De-activated Successfully';
         }
       }
       if ($operation_type == 'B') {
-        $updateBenDetailsData = ['next_level_stop_payment' => NULL];
+        $updateBenDetailsData = [
+          'next_level_stop_payment' => NULL,
+          'action_by' => $user_id,
+          'action_ip_address' => $request->ip(),
+          'action_type' => class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod()
+        ];
         $msg = 'Beneficiary De-activated Request Successfully Reverted';
       }
       DB::beginTransaction();
       DB::connection('pgsql_encwrite')->beginTransaction();
       DB::connection('pgsql_paywrite')->beginTransaction();
       try {
-        
+
         if ($update_type == 1) {
           $lotTableInsert = UpdateBenDetails::insert($updateLogTable);
           if ($lotTableInsert == 1) {
             DB::table($table_name)->where('scheme_id', $scheme_id)->whereIn('id', $benIdArr)->where('next_level_stop_payment', 1)->where('created_by_dist_code', $district_code)->update($updateBenDetailsData);
-            if($operation_type == 'A'){
-              $ben_details = DB::connection('pgsql_paywrite')->table('payment.ben_payment_details')->whereIN('ben_id', $benIdArr)->where('scheme_id',$scheme_id)->get();
+            if ($operation_type == 'A') {
+              $ben_details = DB::connection('pgsql_paywrite')->table('payment.ben_payment_details')->whereIN('ben_id', $benIdArr)->where('scheme_id', $scheme_id)->get();
               $benIdArr = implode(',', $benIdArr);
               // dd($benIdArr);
-              if($ben_details){
-                $final_update = DB::connection('pgsql_paywrite')->select("Select payment.reject_update_bank(in_ben_id => ARRAY[". $benIdArr."], in_scheme_id => ".$scheme_id.", in_rejected =>12)");
+              if ($ben_details) {
+                $final_update = DB::connection('pgsql_paywrite')->select("Select payment.reject_update_bank(in_ben_id => ARRAY[" . $benIdArr . "], in_scheme_id => " . $scheme_id . ", in_rejected =>12)");
               }
             }
             DB::commit();
             DB::connection('pgsql_encwrite')->commit();
             DB::connection('pgsql_paywrite')->commit();
             $response = array(
-              'status' => 1, 'msg' => $msg,
-              'type' => 'green', 'icon' => 'fa fa-check', 'title' => 'Success'
+              'status' => 1,
+              'msg' => $msg,
+              'type' => 'green',
+              'icon' => 'fa fa-check',
+              'title' => 'Success'
             );
           } else {
             DB::rollback();
             DB::connection('pgsql_encwrite')->rollback();
             DB::connection('pgsql_paywrite')->rollback();
             $response = array(
-              'status' => 0, 'msg' => array("" . "Somethimg went wrong.."),
-              'type' => 'green', 'icon' => 'fa fa-check', 'title' => 'Success'
+              'status' => 0,
+              'msg' => array("" . "Somethimg went wrong.."),
+              'type' => 'green',
+              'icon' => 'fa fa-check',
+              'title' => 'Success'
             );
           }
         }
       } catch (\Exception $e) {
-         dd($e);
+        dd($e);
         DB::rollback();
         DB::connection('pgsql_encwrite')->rollback();
         DB::connection('pgsql_paywrite')->rollback();
@@ -537,8 +572,11 @@ class DeactivatedWorkFlowController extends Controller
         $return_text = 'Error. Please try again';
         $return_msg = array("" . $return_text);
         return $response = array(
-          'status' => $return_status, 'msg' => $return_msg,
-          'type' => 'red', 'icon' => 'fa fa-warning', 'title' => 'Warning!!'
+          'status' => $return_status,
+          'msg' => $return_msg,
+          'type' => 'red',
+          'icon' => 'fa fa-warning',
+          'title' => 'Warning!!'
         );
       }
     } catch (\Exception $e) {

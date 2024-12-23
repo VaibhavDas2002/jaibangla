@@ -1214,7 +1214,7 @@ class WorkflowLb60Controller extends Controller
                         $accept_reject_model->op_type = 'BACKLBV';
                         $accept_reject_model->action_by = $user_id;
                         $accept_reject_model->action_ip_address = $request->ip();
-                        $accept_reject_model->action_type = $request->class_basename(request()->route()->getAction()['controller']) . '@' . 'BACKLBV';
+                        $accept_reject_model->action_type = class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod() . '@' . 'BACKLBV';
                         $is_saved_log = $accept_reject_model->save();
                         if ($back_lb_status && $is_saved_log) {
                           DB::commit();
@@ -1324,7 +1324,7 @@ class WorkflowLb60Controller extends Controller
                   $accept_reject_model->op_type = 'BACKLBA';
                   $accept_reject_model->action_by = $user_id;
                   $accept_reject_model->action_ip_address = $request->ip();
-                  $accept_reject_model->action_type = $request->class_basename(request()->route()->getAction()['controller']) . '@' . 'BACKLBA';
+                  $accept_reject_model->action_type = class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod() . '@' . 'BACKLBA';
                   $is_saved_log = $accept_reject_model->save();
                   if ($lb_update && $is_saved_log) {
                     DB::commit();
@@ -1415,7 +1415,7 @@ class WorkflowLb60Controller extends Controller
               $accept_reject_model->op_type = 'TJOHARV';
               $accept_reject_model->action_by = $user_id;
               $accept_reject_model->action_ip_address = $request->ip();
-              $accept_reject_model->action_type = $request->class_basename(request()->route()->getAction()['controller']) . '@' . 'TJOHARV';
+              $accept_reject_model->action_type = class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod() . '@' . 'TJOHARV';
               $is_saved_log = $accept_reject_model->save();
               //dd($transfer_to_status);
               if ($transfer_to_status == 1 && $is_saved_log) {
@@ -1650,7 +1650,7 @@ class WorkflowLb60Controller extends Controller
               $accept_reject_model->op_type = 'TOAPV';
               $accept_reject_model->action_by = $user_id;
               $accept_reject_model->action_ip_address = $request->ip();
-              $accept_reject_model->action_type = $request->class_basename(request()->route()->getAction()['controller']) . '@' . 'TOAPV';
+              $accept_reject_model->action_type = class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod() . '@' . 'TOAPV';
               $is_saved_log = $accept_reject_model->save();
               //dd($transfer_to_status);
               if ($transfer_to_status == 1 && $is_saved_log) {
@@ -1734,16 +1734,16 @@ class WorkflowLb60Controller extends Controller
           $accept_reject_model->ip_address = request()->ip();
           //dd($designation_id_old);
           if (AuthChecker::ApproverChecker()) {
-            $accept_reject_model->op_type = 'LRA';
+            $accept_reject_model->op_type = class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod().'@LRA';
             $reject_dup_adjustment = 1;
           } else {
-            $accept_reject_model->op_type = 'LRV';
+            $accept_reject_model->op_type = class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod().'@LRV';
             $reject_dup_adjustment = 1;
           }
 
           $accept_reject_model->action_by = $user_id;
           $accept_reject_model->action_ip_address = $request->ip();
-          $accept_reject_model->action_type = $request->class_basename(request()->route()->getAction()['controller']);
+          $accept_reject_model->action_type = class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod();
           $is_saved_log = $accept_reject_model->save();
           $input = [
             'next_level_role_id' => -3,
@@ -1798,7 +1798,7 @@ class WorkflowLb60Controller extends Controller
           $accept_reject_model->created_by_dist_code = $district_code;
           $accept_reject_model->action_by = $user_id;
           $accept_reject_model->action_ip_address = $request->ip();
-          $accept_reject_model->action_type = $request->class_basename(request()->route()->getAction()['controller']) . '@' . 'REVERTLB';
+          $accept_reject_model->action_type = class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod() . '@' . 'REVERTLB';
           $is_saved_log = $accept_reject_model->save();
 
           //dd($is_inserted_status);
@@ -1983,7 +1983,7 @@ class WorkflowLb60Controller extends Controller
         $accept_reject_model->op_type = 'DOCUPLOAD';
         $accept_reject_model->action_by = $user_id;
         $accept_reject_model->action_ip_address = $request->ip();
-        $accept_reject_model->action_type = $request->class_basename(request()->route()->getAction()['controller']) . '@' . 'DOCUPLOAD';
+        $accept_reject_model->action_type = class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod() . '@' . 'DOCUPLOAD';
         $is_saved_log = $accept_reject_model->save();
 
         //          if($request->ben_id==11457428)

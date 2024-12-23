@@ -16,8 +16,8 @@ use App\GP;
 use App\User;
 use Redirect;
 use Auth;
-use Config;
 use Illuminate\Support\Facades\Input;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use App\SchemeCapacity;
@@ -33,9 +33,14 @@ use App\AcceptRejectInfo;
 use App\BeneficiaryDupBlank;
 use App\BenDocs;
 use App\Helpers\AuthChecker;
+use Illuminate\Support\Facades\Config;
 
 class ManabikWCDformNewController extends Controller
+
 {
+    private $state_login_next_level_role_id_arr;
+    private $scheme_id;
+    private $base_dob_chk_date;
 
     public function __construct()
     {
@@ -677,8 +682,6 @@ class ManabikWCDformNewController extends Controller
 
         $scheme_id = (int) $request->scheme_id;
 
-        $designation_id_old = Auth::user()->designation_id_old;
-
         if (!is_int($scheme_id)) {
             return redirect("/")->with('danger', 'Scheme Code Not Valid');
         }
@@ -724,13 +727,13 @@ class ManabikWCDformNewController extends Controller
         } else {
             $query = PensionManabikWCD::where(['id' => $id, 'created_by_dist_code' => $distCode, 'scheme_id' => $scheme_id]);
         }
-        if ($designation_id_old == 'Verifier') {
+        if (AuthChecker::VerifierChecker()) {
             if ($is_state_login) {
                 $query = $query->where('next_level_role_id', $this->state_login_next_level_role_id_arr['entry']);
             } else {
                 $query = $query->whereNull('next_level_role_id');
             }
-        } else if ($designation_id_old == 'Approver') {
+        } else if (AuthChecker::ApproverChecker()) {
             if ($is_state_login) {
                 $query = $query->where('next_level_role_id', $this->state_login_next_level_role_id_arr['verified']);
             } else {
@@ -1109,7 +1112,9 @@ class ManabikWCDformNewController extends Controller
             $accept_reject_model->application_id = $request->id;
             $accept_reject_model->scheme_id =  $request->scheme_id;
             $accept_reject_model->user_id = $user_id;
-            $accept_reject_model->op_type = 'APPUPDATE';
+
+            $accept_reject_model->op_type = class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod() .'@APPUPDATE';
+
             $accept_reject_model->ip_address = $request->ip();
             $is_saved_log = $accept_reject_model->save();
            // dump($is_update); dump($doc_inserted_arch); dump($doc_inserted_del); dump($doc_inserted); dd($is_saved_log);

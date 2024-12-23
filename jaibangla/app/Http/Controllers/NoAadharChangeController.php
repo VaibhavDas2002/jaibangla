@@ -41,10 +41,16 @@ use Exception;
 use App\Traits\TraitAadharValidate;
 use App\Helpers\DupCheck;
 use App\Helpers\AuthChecker;
+use Illuminate\Support\Facades\Route;
 
 class NoAadharChangeController extends Controller
 {
   use TraitAadharValidate;
+  private $scheme_id;
+  private $source_type;
+  private $ben_status;
+  private $doc_type_id;
+
   public function __construct()
   {
 
@@ -106,7 +112,7 @@ class NoAadharChangeController extends Controller
     $district_list_obj = collect([]);
     if (!empty($scheme_obj->short_code)) {
       $schema = $scheme_obj->short_code;
-      $scheme_length =  $scheme_obj->scheme_length;
+      $scheme_length = $scheme_obj->scheme_length;
       $id_length = $scheme_obj->id_length;
     } else {
       $schema = "pension";
@@ -195,9 +201,26 @@ class NoAadharChangeController extends Controller
       if (empty($serachvalue)) {
         $totalRecords = $query->count();
         $data = $query->orderBy('id', 'ASC')->offset($offset)->limit($limit)->get([
-          'id', 'created_by_dist_code', 'dob', 'assembly_name',
-          'bank_code', 'ben_fname', 'ben_lname', 'ben_mname', 'gender', 'ben_age', 'block_ulb_name', 'gp_ward_name', 'bank_ifsc', 'village_town_city',
-          'scheme_id', 'lot_generated', 'payment_count', 'next_level_role_id', 'aadhar_edit_role_id','payment_suspended'
+          'id',
+          'created_by_dist_code',
+          'dob',
+          'assembly_name',
+          'bank_code',
+          'ben_fname',
+          'ben_lname',
+          'ben_mname',
+          'gender',
+          'ben_age',
+          'block_ulb_name',
+          'gp_ward_name',
+          'bank_ifsc',
+          'village_town_city',
+          'scheme_id',
+          'lot_generated',
+          'payment_count',
+          'next_level_role_id',
+          'aadhar_edit_role_id',
+          'payment_suspended'
         ]);
 
         $filterRecords = count($data);
@@ -211,9 +234,26 @@ class NoAadharChangeController extends Controller
           $totalRecords = $query->count();
           $data = $query->orderBy('id', 'ASC')->offset($offset)->limit($limit)->get(
             [
-              'id', 'created_by_dist_code', 'dob', 'assembly_name',
-              'bank_code', 'ben_fname', 'ben_lname', 'ben_mname', 'gender', 'ben_age', 'block_ulb_name', 'gp_ward_name', 'bank_ifsc', 'village_town_city',
-              'scheme_id', 'lot_generated', 'payment_count', 'next_level_role_id', 'aadhar_edit_role_id','payment_suspended'
+              'id',
+              'created_by_dist_code',
+              'dob',
+              'assembly_name',
+              'bank_code',
+              'ben_fname',
+              'ben_lname',
+              'ben_mname',
+              'gender',
+              'ben_age',
+              'block_ulb_name',
+              'gp_ward_name',
+              'bank_ifsc',
+              'village_town_city',
+              'scheme_id',
+              'lot_generated',
+              'payment_count',
+              'next_level_role_id',
+              'aadhar_edit_role_id',
+              'payment_suspended'
             ]
           );
         } else {
@@ -226,9 +266,26 @@ class NoAadharChangeController extends Controller
           $totalRecords = $query->count();
           $data = $query->orderBy('id', 'ASC')->offset($offset)->limit($limit)->get(
             [
-              'id', 'created_by_dist_code', 'dob', 'assembly_name',
-              'bank_code', 'ben_fname', 'ben_lname', 'ben_mname', 'gender', 'ben_age', 'block_ulb_name', 'gp_ward_name', 'bank_ifsc', 'village_town_city',
-              'scheme_id', 'lot_generated', 'payment_count', 'next_level_role_id', 'aadhar_edit_role_id','payment_suspended'
+              'id',
+              'created_by_dist_code',
+              'dob',
+              'assembly_name',
+              'bank_code',
+              'ben_fname',
+              'ben_lname',
+              'ben_mname',
+              'gender',
+              'ben_age',
+              'block_ulb_name',
+              'gp_ward_name',
+              'bank_ifsc',
+              'village_town_city',
+              'scheme_id',
+              'lot_generated',
+              'payment_count',
+              'next_level_role_id',
+              'aadhar_edit_role_id',
+              'payment_suspended'
             ]
           );
         }
@@ -248,7 +305,7 @@ class NoAadharChangeController extends Controller
 
             $action = '';
             if (is_null($data->aadhar_edit_role_id)) {
-                $action = '<a href="Viewnoaadhar?id=' . $data->id  . '&scheme_id=' . $data->scheme_id . '" class="btn btn-xs btn-primary"><i class="glyphicon glyphicon-edit"></i> View</a>';
+              $action = '<a href="Viewnoaadhar?id=' . $data->id . '&scheme_id=' . $data->scheme_id . '" class="btn btn-xs btn-primary"><i class="glyphicon glyphicon-edit"></i> View</a>';
             } else if ($data->aadhar_edit_role_id == 2) {
               $action = 'Approved';
             }
@@ -256,10 +313,10 @@ class NoAadharChangeController extends Controller
           if ($designation_id_old == 'Verifier') {
             $action = '';
             if (is_null($data->aadhar_edit_role_id)) {
-              if($data->payment_suspended == 1){
+              if ($data->payment_suspended == 1) {
                 $action = '<b>Mark due to JNMP</b>';
-              }else{
-                $action = '<a href="Viewnoaadhar?id=' . $data->id  . '&scheme_id=' . $data->scheme_id . '" class="btn btn-xs btn-primary"><i class="glyphicon glyphicon-edit"></i> View</a>';
+              } else {
+                $action = '<a href="Viewnoaadhar?id=' . $data->id . '&scheme_id=' . $data->scheme_id . '" class="btn btn-xs btn-primary"><i class="glyphicon glyphicon-edit"></i> View</a>';
               }
             } else if ($data->aadhar_edit_role_id == 1) {
               $action = 'Approval Pending';
@@ -273,7 +330,7 @@ class NoAadharChangeController extends Controller
             $action = '';
 
             if ($data->aadhar_edit_role_id == 1) {
-              $action = '<a href="Viewnoaadhar?id=' . $data->id  . '&scheme_id=' . $data->scheme_id . '" class="btn btn-xs btn-primary"><i class="glyphicon glyphicon-edit"></i> View</a>';
+              $action = '<a href="Viewnoaadhar?id=' . $data->id . '&scheme_id=' . $data->scheme_id . '" class="btn btn-xs btn-primary"><i class="glyphicon glyphicon-edit"></i> View</a>';
             } else if ($data->aadhar_edit_role_id == 2) {
               $action = 'Approved';
             }
@@ -373,9 +430,9 @@ class NoAadharChangeController extends Controller
       $query = DB::table($schema . '.beneficiaries')
         ->where('no_aadhar', 1)->where('created_by_dist_code', $district_code)->where('id', $id)->where('next_level_role_id', 0);
       $row = $query->first();
-      if($row->payment_suspended == 1){
+      if ($row->payment_suspended == 1) {
         // return redirect("/Viewnoaadhar?id=" . $request->id . "&scheme_id=" . $scheme_id)->with('errors', $errorMsg);
-       
+
         $errorMsg = 'Mark due to JNMP';
         return redirect("/")->with('danger', $errorMsg);
       }
@@ -449,12 +506,12 @@ class NoAadharChangeController extends Controller
         if ($row->rural_urban_id == 1) {
           $gp_ward = Ward::where('urban_body_ward_code', '=', $row->gp_ward_code)->first();
           if (!empty($gp_ward)) {
-            $gp_name =  $gp_ward->urban_body_ward_name;
+            $gp_name = $gp_ward->urban_body_ward_name;
           }
         } else {
           $gp = GP::where('gram_panchyat_code', '=', $row->gp_ward_code)->get(['gram_panchyat_code', 'gram_panchyat_name'])->first();
           if (!empty($gp)) {
-            $gp_name =  $gp->gram_panchyat_name;
+            $gp_name = $gp->gram_panchyat_name;
           }
         }
       }
@@ -531,17 +588,17 @@ class NoAadharChangeController extends Controller
         return redirect("/")->with('danger', 'Beneficiary ID Not Found');
       }
 
-     
+
       $scheme_id = $request->scheme_id;
       $id = $request->id;
 
-     
+
 
       $scheme_obj = Scheme::where('id', $scheme_id)->where('is_active', 1)->first();
       if (empty($scheme_obj)) {
         return redirect("/")->with('danger', 'Scheme Not Found');
       }
-      $duty_obj = Configduty::where('user_id', $user_id)->where('scheme_id',$scheme_id)->first();
+      $duty_obj = Configduty::where('user_id', $user_id)->where('scheme_id', $scheme_id)->first();
 
       if (empty($duty_obj)) {
         return redirect("/")->with('danger', 'Not Allowed');
@@ -609,7 +666,7 @@ class NoAadharChangeController extends Controller
         $mime_type = $image_file->getMimeType();
         $image_size = $image_file->getSize();
         $image_size = $image_size / 1024; // Get file size in KB
-        if ($image_size >  $doc_man->doc_size_kb) {
+        if ($image_size > $doc_man->doc_size_kb) {
           $errors = array();
           $errorMsg = 'File Size must be.' . $doc_man->doc_size_kb . ' KB';
           array_push($errors, $errorMsg);
@@ -636,7 +693,7 @@ class NoAadharChangeController extends Controller
           $c_time = date('Y-m-d H:i:s', time());
           $pension_details_encloser2 = new BenDocs();
           $check_condition_str = Helper::getCheckNextLevelRoleIdCon($scheme_id);
-          $count =  DB::table($schema . '.beneficiary')->where('aadhar_no', trim($request->aadhaar_no))->where('id', '!=', $id)->whereRaw("(" . $check_condition_str . ")")->count('id');
+          $count = DB::table($schema . '.beneficiary')->where('aadhar_no', trim($request->aadhaar_no))->where('id', '!=', $id)->whereRaw("(" . $check_condition_str . ")")->count('id');
 
           if ($count > 0) {
             $errors = array();
@@ -644,43 +701,43 @@ class NoAadharChangeController extends Controller
             array_push($errors, $errorMsg);
             return redirect("/Viewnoaadhar?id=" . $request->id . "&scheme_id=" . $scheme_id)->with('errors', $errors);
           }
-          if($scheme_id == 10 || $scheme_id == 11 ||$scheme_id == 1 ||$scheme_id == 3){
-            if($scheme_id == 10){
-              $aadharDupCheckWP = DupCheck::getDupCheckAadhar(11,$request->aadhaar_no);
-              if(!empty($aadharDupCheckWP)){
+          if ($scheme_id == 10 || $scheme_id == 11 || $scheme_id == 1 || $scheme_id == 3) {
+            if ($scheme_id == 10) {
+              $aadharDupCheckWP = DupCheck::getDupCheckAadhar(11, $request->aadhaar_no);
+              if (!empty($aadharDupCheckWP)) {
                 $errors = array();
                 $errorMsg = "Duplicate Aadhaar Number present in Widow Pension Scheme with Beneficiary ID- $aadharDupCheckWP";
                 array_push($errors, $errorMsg);
                 return redirect("/Viewnoaadhar?id=" . $request->id . "&scheme_id=" . $scheme_id)->with('errors', $errors);
               }
 
-              $aadharDupCheckLB = DupCheck::getDupCheckAadhar(20,$request->aadhaar_no);
-              if(!empty($aadharDupCheckLB)){
+              $aadharDupCheckLB = DupCheck::getDupCheckAadhar(20, $request->aadhaar_no);
+              if (!empty($aadharDupCheckLB)) {
                 $errors = array();
                 $errorMsg = "Duplicate Aadhaar Number present in Lakshmir Bhandar Scheme with Application ID- $aadharDupCheckLB";
                 array_push($errors, $errorMsg);
                 return redirect("/Viewnoaadhar?id=" . $request->id . "&scheme_id=" . $scheme_id)->with('errors', $errors);
               }
             }
-            if($scheme_id == 11){
-              $aadharDupCheckOAP = DupCheck::getDupCheckAadhar(10,$request->aadhaar_no);
-              if(!empty($aadharDupCheckOAP)){
+            if ($scheme_id == 11) {
+              $aadharDupCheckOAP = DupCheck::getDupCheckAadhar(10, $request->aadhaar_no);
+              if (!empty($aadharDupCheckOAP)) {
                 $errors = array();
                 $errorMsg = "Duplicate Aadhaar Number present in Old Age Pension Scheme with Beneficiary ID- $aadharDupCheckOAP";
                 array_push($errors, $errorMsg);
                 return redirect("/Viewnoaadhar?id=" . $request->id . "&scheme_id=" . $scheme_id)->with('errors', $errors);
               }
             }
-            if($scheme_id == 1 || $scheme_id == 3){
-              $aadharDupCheckLB = DupCheck::getDupCheckAadhar(20,$request->aadhaar_no);
-              if(!empty($aadharDupCheckLB)){
+            if ($scheme_id == 1 || $scheme_id == 3) {
+              $aadharDupCheckLB = DupCheck::getDupCheckAadhar(20, $request->aadhaar_no);
+              if (!empty($aadharDupCheckLB)) {
                 $errors = array();
                 $errorMsg = "Duplicate Aadhaar Number present in Lakshmir Bhandar Scheme with Application ID- $aadharDupCheckLB";
                 array_push($errors, $errorMsg);
                 return redirect("/Viewnoaadhar?id=" . $request->id . "&scheme_id=" . $scheme_id)->with('errors', $errors);
               }
-              $aadharDupCheckOAP = DupCheck::getDupCheckAadhar(10,$request->aadhaar_no);
-              if(!empty($aadharDupCheckOAP)){
+              $aadharDupCheckOAP = DupCheck::getDupCheckAadhar(10, $request->aadhaar_no);
+              if (!empty($aadharDupCheckOAP)) {
                 $errors = array();
                 $errorMsg = "Duplicate Aadhaar Number present in Old Age Pension Scheme with Beneficiary ID- $aadharDupCheckOAP";
                 array_push($errors, $errorMsg);
@@ -690,7 +747,7 @@ class NoAadharChangeController extends Controller
           }
           DB::beginTransaction();
           DB::connection('pgsql_encwrite')->beginTransaction();
-          
+
           if ($pre_aadhar == 1) {
 
             $is_inserted_arch = DB::connection('pgsql_encwrite')->statement("INSERT INTO jb_doc.ben_attach_documents_arch(
@@ -720,8 +777,8 @@ class NoAadharChangeController extends Controller
 
             $is_inserted_arch = 1;
             $enc_details = array();
-            $enc_details['scheme_id'] =  $scheme_id;
-            $enc_details['beneficiary_id'] =  $request->id;
+            $enc_details['scheme_id'] = $scheme_id;
+            $enc_details['beneficiary_id'] = $request->id;
             $enc_details['created_at'] = $c_time;
             $enc_details['document_type'] = $doc_type_id;
             $enc_details['attched_document'] = $base64;
@@ -758,7 +815,8 @@ class NoAadharChangeController extends Controller
 
             $upadated_main = DB::table($schema . '.beneficiary')
               ->where([
-                'id' => $request->id, 'created_by_local_body_code' => $created_by_local_body_code,
+                'id' => $request->id,
+                'created_by_local_body_code' => $created_by_local_body_code,
                 'created_by_dist_code' => $district_code
               ])->where('next_level_role_id', 0)->update($inputMain);
           } catch (\Exception $e) {
@@ -771,10 +829,10 @@ class NoAadharChangeController extends Controller
 
           $modelNameAcceptReject = new AcceptRejectInfo;
           $op_type = 'NOAADHARUPDATE';
-          $modelNameAcceptReject->scheme_id =  $scheme_id;
+          $modelNameAcceptReject->scheme_id = $scheme_id;
 
-          $modelNameAcceptReject->created_at =  $c_time;
-          $modelNameAcceptReject->op_type =  $op_type;
+          $modelNameAcceptReject->created_at = $c_time;
+          $modelNameAcceptReject->op_type = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod() . $op_type;
           $modelNameAcceptReject->application_id = $request->id;
           $modelNameAcceptReject->user_id = $user_id;
           $modelNameAcceptReject->created_by_dist_code = $district_code;
@@ -785,7 +843,7 @@ class NoAadharChangeController extends Controller
 
           // if($request->id==440945)
           // {
-    
+
           // dump($upadated_main);dump($is_accept_reject);dump($enc_status);dd($is_inserted_arch);
 
           // die;
@@ -799,10 +857,11 @@ class NoAadharChangeController extends Controller
             } catch (\Exception $e) {
               $inputMain['aadhaar_no_checked'] = -1;
               $upadated_main = DB::table($schema . '.beneficiary')
-              ->where([
-                'id' => $request->id, 'created_by_local_body_code' => $created_by_local_body_code,
-                'created_by_dist_code' => $district_code
-              ])->update($inputMain);
+                ->where([
+                  'id' => $request->id,
+                  'created_by_local_body_code' => $created_by_local_body_code,
+                  'created_by_dist_code' => $district_code
+                ])->update($inputMain);
             }
             $ben_details = DB::table($schema . '.beneficiary')->where('id', $request->id)->first();
 
@@ -880,13 +939,12 @@ class NoAadharChangeController extends Controller
       $comments = NULL;
       $i = 0;
       $modelNameAcceptReject = new AcceptRejectInfo;
-      $modelBackToVerifier = new AcceptRejectInfo;
       DB::beginTransaction();
-      if($action_type == 1){
+      if ($action_type == 1) {
         foreach ($applicationid_arr as $application_item) {
           $op_type = 'NOAADHARAPPROVE';
-          $modelNameAcceptReject->created_at =  $c_time;
-          $modelNameAcceptReject->op_type =  $op_type;
+          $modelNameAcceptReject->created_at = $c_time;
+          $modelNameAcceptReject->op_type = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod() . $op_type;
           $modelNameAcceptReject->application_id = $application_item;
           $modelNameAcceptReject->user_id = $user_id;
           $modelNameAcceptReject->created_by_dist_code = $district_code;
@@ -903,23 +961,23 @@ class NoAadharChangeController extends Controller
         }
         $inputMain['aadhar_edit_role_id'] = 2;
         $inputMain['no_aadhar'] = 0;
-  
+
         $upadated_main = DB::table($schema . '.beneficiary')->whereIn('id', $applicationid_arr)
           ->where('created_by_dist_code', $district_code)->where('no_aadhar', 1)->where('aadhar_edit_role_id', 1)->update($inputMain);
-          if ($upadated_main && $is_accept_reject) {
-            DB::commit();
-            return redirect($back_url)->with('message', 'Applications Aadhaar information change request has been Approved Succesfully!');
-          } else {
-            DB::rollback();
-            return redirect($back_url)->with('error', 'Error! Please try again..');
-          }
+        if ($upadated_main && $is_accept_reject) {
+          DB::commit();
+          return redirect($back_url)->with('message', 'Applications Aadhaar information change request has been Approved Succesfully!');
+        } else {
+          DB::rollback();
+          return redirect($back_url)->with('error', 'Error! Please try again..');
+        }
       }
 
-      if($action_type == 9){
+      if ($action_type == 9) {
         foreach ($applicationid_arr as $application_item) {
           $op_type = 'BACKTOVERIFIER';
-          $modelNameAcceptReject->created_at =  $c_time;
-          $modelNameAcceptReject->op_type =  $op_type;
+          $modelNameAcceptReject->created_at = $c_time;
+          $modelNameAcceptReject->op_type = $op_type;
           $modelNameAcceptReject->application_id = $application_item;
           $modelNameAcceptReject->user_id = $user_id;
           $modelNameAcceptReject->created_by_dist_code = $district_code;
@@ -933,24 +991,23 @@ class NoAadharChangeController extends Controller
           $is_accept_reject = 1;
         } else {
           $is_accept_reject = 0;
-        }  
-          // die($is_accept_reject_back_to_verifier);
+        }
+        // die($is_accept_reject_back_to_verifier);
         $inputBackToVerifier['aadhar_edit_role_id'] = null;
         $inputBackToVerifier['no_aadhar'] = 1;
-         
-            $updated_back_to_verifier = DB::table($schema . '.beneficiary')->where('id', $applicationid_arr)
-        ->where('created_by_dist_code', $district_code)->where('aadhar_edit_role_id', 1)->where('no_aadhar', 1)->update($inputBackToVerifier);        
-          // dd($updated_back_to_verifier);
+
+        $updated_back_to_verifier = DB::table($schema . '.beneficiary')->where('id', $applicationid_arr)
+          ->where('created_by_dist_code', $district_code)->where('aadhar_edit_role_id', 1)->where('no_aadhar', 1)->update($inputBackToVerifier);
+        // dd($updated_back_to_verifier);
         if ($updated_back_to_verifier && $is_accept_reject) {
           DB::commit();
           return redirect($back_url)->with('message', 'Applications Aadhaar information change request has been Back to Verifier Succesfully!');
-        }
-        else {
+        } else {
           DB::rollback();
           return redirect($back_url)->with('error', 'Error! Please try again.');
         }
       }
-      
+
     } catch (\Exception $e) {
       dd($e);
       DB::rollback();
@@ -990,7 +1047,7 @@ class NoAadharChangeController extends Controller
 
 
         $return_text = 'Parameter Not Valid';
-        return redirect("/")->with('error',  $return_text);
+        return redirect("/")->with('error', $return_text);
       }
 
 
@@ -1016,11 +1073,11 @@ class NoAadharChangeController extends Controller
         }
       } catch (\Exception $e) {
         $return_text = 'Some error. please try again.';
-        return redirect("/")->with('error',  $return_text);
+        return redirect("/")->with('error', $return_text);
       }
     } catch (\Exception $e) {
       $return_text = 'Some error. please try again.';
-      return redirect("/")->with('error',  $return_text);
+      return redirect("/")->with('error', $return_text);
     }
   }
   public function isAadharValid($num)
@@ -1067,7 +1124,7 @@ class NoAadharChangeController extends Controller
   }
   function misReport(Request $request)
   {
-    $base_date  = '2020-01-01';
+    $base_date = '2020-01-01';
     $c_time = Carbon::now();
     $c_date = $c_time->format("Y-m-d");
     $is_active = 0;
@@ -1084,7 +1141,7 @@ class NoAadharChangeController extends Controller
     foreach ($scheme_list as $scheme_item) {
       array_push($scheme_code_in, $scheme_item->id);
     }
-    if ($designation_id_old == 'Admin' || $designation_id_old == 'HOD' || $designation_id_old == 'HOP' || $designation_id_old == 'MisState' ||  $designation_id_old == 'Dashboard') {
+    if ($designation_id_old == 'Admin' || $designation_id_old == 'HOD' || $designation_id_old == 'HOP' || $designation_id_old == 'MisState' || $designation_id_old == 'Dashboard') {
       $district_visible = $is_urban_visible = $block_visible = 1;
     } else if ($designation_id_old == 'Approver' || $designation_id_old == 'Verifier') {
       $district_code = NULL;
@@ -1171,7 +1228,7 @@ class NoAadharChangeController extends Controller
     $muncid = $request->muncid;
     $gp_ward = $request->gp_ward;
     // dd($gp_ward);
-    $base_date  = '2020-08-16';
+    $base_date = '2020-08-16';
     $c_time = Carbon::now();
     $c_date = $c_time->format("Y-m-d");
     $heading_msg = '';
@@ -1214,8 +1271,8 @@ class NoAadharChangeController extends Controller
       'block' => 'nullable|integer',
       'muncid' => 'nullable|integer',
       'gp_ward' => 'nullable|integer',
-      'from_date'    => 'nullable|date|after_or_equal:' . $base_date . '|before_or_equal:' . $c_date,
-      'to_date'      => 'nullable|date|after_or_equal:from_date|before_or_equal:' . $c_date,
+      'from_date' => 'nullable|date|after_or_equal:' . $base_date . '|before_or_equal:' . $c_date,
+      'to_date' => 'nullable|date|after_or_equal:from_date|before_or_equal:' . $c_date,
     ];
     $data = array();
     $column = "";
@@ -1248,11 +1305,11 @@ class NoAadharChangeController extends Controller
       if (!empty($gp_ward)) {
         if ($urban_code == 1) {
           $column = "Ward";
-          $heading_msg =  $user_msg . ' of the Ward ' . $gp_ward_name;
+          $heading_msg = $user_msg . ' of the Ward ' . $gp_ward_name;
           $data = $this->getWardWise($scheme_id, $district, $block, $muncid, $gp_ward, $from_date, $to_date, $caste, $ds_phase);
         } else {
           $column = "GP";
-          $heading_msg =  $user_msg . ' of the GP ' . $gp_ward_name;
+          $heading_msg = $user_msg . ' of the GP ' . $gp_ward_name;
           $data = $this->getGpWise($scheme_id, $district, $block, NULL, $gp_ward, $from_date, $to_date, $caste, $ds_phase);
         }
       } else if (!empty($muncid)) {
@@ -1354,7 +1411,7 @@ class NoAadharChangeController extends Controller
               count(1) filter(where aadhar_edit_role_id=2 and is_rejected=0 and next_level_role_id=0) as approved,
               count(1) filter(where is_rejected=1) as rejected,
               created_by_local_body_code
-              from " . $schema . ". beneficiaries where  pre_no_aadhar=1 and  created_by_dist_code= " . $district_code . " AND scheme_id = ".$scheme_id."
+              from " . $schema . ". beneficiaries where  pre_no_aadhar=1 and  created_by_dist_code= " . $district_code . " AND scheme_id = " . $scheme_id . "
               group by created_by_local_body_code
          )  
         as bp_main ON main.location_id=bp_main.created_by_local_body_code
@@ -1391,7 +1448,7 @@ class NoAadharChangeController extends Controller
               count(1) filter(where aadhar_edit_role_id=2 and is_rejected=0 and next_level_role_id=0) as approved,
               count(1) filter(where is_rejected=1) as rejected,
               created_by_local_body_code
-              from " . $schema . ". beneficiaries where   pre_no_aadhar=1 and  created_by_dist_code= " . $district_code . " AND scheme_id =".$scheme_id."
+              from " . $schema . ". beneficiaries where   pre_no_aadhar=1 and  created_by_dist_code= " . $district_code . " AND scheme_id =" . $scheme_id . "
               group by created_by_local_body_code
          )  
         as bp_main ON main.location_id=bp_main.created_by_local_body_code
@@ -1427,7 +1484,7 @@ class NoAadharChangeController extends Controller
               count(1) filter(where aadhar_edit_role_id=2 and is_rejected=0 and next_level_role_id=0) as approved,
               count(1) filter(where is_rejected=1) as rejected,
               created_by_dist_code
-              from " . $schema . ". beneficiaries where pre_no_aadhar=1 AND scheme_id =".$scheme_id."
+              from " . $schema . ". beneficiaries where pre_no_aadhar=1 AND scheme_id =" . $scheme_id . "
               group by created_by_dist_code
          )  
         as bp_main ON main.location_id=bp_main.created_by_dist_code
@@ -1476,13 +1533,13 @@ class NoAadharChangeController extends Controller
       select id,is_rejected,ben_fname,ben_mname,ben_lname,dob,father_fname,father_mname,father_lname,mother_fname,mother_mname,mother_lname,
       mobile_no,
       gp_ward_name,block_ulb_name,house_premise_no,village_town_city,aadhar_edit_role_id,no_aadhar from " . $schema . ".beneficiaries  
-      where " . $condition . " and pre_no_aadhar=1   and scheme_id = ".$scheme_id."  
+      where " . $condition . " and pre_no_aadhar=1   and scheme_id = " . $scheme_id . "  
         ) as P order by gp_ward_name,block_ulb_name,ben_fname";
       $result = DB::connection('pgsql_mis')->select($query);
       //dd($result);
       $filename = 'NoAadhaar Beneficiary List_' . $district_code;
       if ($designation_id_old == 'Verifier') {
-        $filename =  $filename . '_' . $created_by_local_body_code;
+        $filename = $filename . '_' . $created_by_local_body_code;
       }
       $filename = $filename . "-" . date('d/m/Y') . '-' . time() . ".xls";
       header("Content-Type: application/xls");

@@ -61,7 +61,6 @@ class LotReportController extends Controller
     public function index_validation_lot(Request $request)
     {
         $user_id = AuthChecker::getUserId();
-        $designation_id_old = Auth::user()->designation_id_old;
         $scheme = DB::select(DB::raw("select id,scheme_name from public.m_scheme where id in (select scheme_id from public.duty_assignement where user_id=" . $user_id . " and is_active=1)"));
         if (count($scheme) > 0) {
             return view('lot_report/index_report_validation_lot', [
@@ -120,7 +119,6 @@ class LotReportController extends Controller
     public function index_payment_lot(Request $request)
     {
         $user_id = AuthChecker::getUserId();
-        $designation_id_old = Auth::user()->designation_id_old;
         $scheme = DB::select(DB::raw("select id,scheme_name from public.m_scheme where id in (select scheme_id from public.duty_assignement where user_id=" . $user_id . " and is_active=1)"));
         if (count($scheme) > 0) {
             return view('lot_report/index_report_payment_lot', [
@@ -214,7 +212,6 @@ class LotReportController extends Controller
 
     public function index_pending_payment_lot(Request $request) {
         $user_id = AuthChecker::getUserId();
-        $designation_id_old = Auth::user()->designation_id_old;
         $scheme = DB::select(DB::raw("select id,scheme_name from public.m_scheme where id in (select scheme_id from public.duty_assignement where user_id=" . $user_id . " and is_active=1)"));
         if (count($scheme) > 0) {
             return view('lot_report/index_payment_lot_create_pending', [
@@ -274,10 +271,9 @@ class LotReportController extends Controller
 
     public function index_pending_lot_report(Request $request) {
         $user_id = AuthChecker::getUserId();
-        $designation_id_old = Auth::user()->designation_id_old;
         $scheme = DB::select(DB::raw("select id,scheme_name from public.m_scheme where id in (select scheme_id from public.duty_assignement where user_id=" . $user_id . " and is_active=1)"));
         if (count($scheme) > 0) {
-            if ($designation_id_old == 'DDO' || $designation_id_old == 'Corp' || $designation_id_old == 'Admin') {
+            if (AuthChecker::DDOChecker() || AuthChecker::CorpChecker() || AuthChecker::AdminChecker()) {
                 return view('lot_report/index_pending_lot_report', [
                     'schemes' => $scheme,
                 ]);
@@ -345,10 +341,9 @@ class LotReportController extends Controller
 
     public function index_monthly_disbursement(Request $request) {
         $user_id = AuthChecker::getUserId();
-        $designation_id_old = Auth::user()->designation_id_old;
         $scheme = DB::select(DB::raw("select id,scheme_name from public.m_scheme where id in (select scheme_id from public.duty_assignement where user_id=" . $user_id . " and is_active=1)"));
         if (count($scheme) > 0) {
-            if ($designation_id_old == 'DDO' || $designation_id_old == 'Corp' || $designation_id_old == 'Admin') {
+            if (AuthChecker::DDOChecker() || AuthChecker::CorpChecker() || AuthChecker::AdminChecker()) {
                 return view('lot_report/index_monthly_disbursement', [
                     'schemes' => $scheme,
                 ]);
@@ -429,10 +424,9 @@ class LotReportController extends Controller
 
     public function index_date_wise_lot_report(Request $request) {
         $user_id = AuthChecker::getUserId();
-        $designation_id_old = Auth::user()->designation_id_old;
         $scheme = DB::select(DB::raw("select id,scheme_name from public.m_scheme where id in (select scheme_id from public.duty_assignement where user_id=" . $user_id . " and is_active=1)"));
         if (count($scheme) > 0) {
-            if ($designation_id_old == 'DDO' || $designation_id_old == 'Corp' || $designation_id_old == 'Admin') {
+            if (AuthChecker::DDOChecker() || AuthChecker::CorpChecker() || AuthChecker::AdminChecker()) {
                 return view('lot_report/index_date_wise_lot_report', [
                     'schemes' => $scheme,
                 ]);

@@ -3,25 +3,17 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
-
 use App\Configduty;
 use App\MapLavel;
-
 use App\District;
 use App\Taluka;
 use App\Ward;
 use App\UrbanBody;
 use App\GP;
 use Auth;
-use DB;
 use App\DocumentType;
-use App\SchemecodeStatic;
-use App\Helpers\Helper;
-use App\SubDistrict;
-use Carbon\Carbon;
-use Config;
-use App\BlkUrbanlEntryMapping;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\DB;
 use App\RejectRevertReason;
 use App\AcceptRejectInfo;
 use App\Scheme;
@@ -38,7 +30,7 @@ class WorkflowControllerWcdEdit extends Controller
  
   public function applicationdetails(Request $request)
   {
-    $designation_id_old = Auth::user()->designation_id_old;
+   
     $user_id = AuthChecker::getUserId();
   
       $scheme_id=$request->scheme_id;
@@ -490,7 +482,6 @@ class WorkflowControllerWcdEdit extends Controller
   }
   public function showApplicantDetails(Request $request)
   {
-    $designation_id_old = Auth::user()->designation_id_old;
     $user_id = AuthChecker::getUserId();
     
       $scheme_id=$request->scheme_id;
@@ -524,10 +515,10 @@ class WorkflowControllerWcdEdit extends Controller
       $query = DB::table($schema . '.beneficiaries')
           ->where('created_by_dist_code', $district_code)
           ->where('id',$request->id);
-      if ($designation_id_old == 'Verifier') {
+      if (AuthChecker::VerifierChecker()) {
         $query =$query->where('next_level_role_id_edit',999);
       }
-      if ($designation_id_old == 'Approver') {
+      if (AuthChecker::ApproverChecker()) {
         $mapArr = MapLavel::where('scheme_id', $duty_obj->scheme_id)->where('role_name', $designation_id_old)->where('stack_level', $duty_obj->mapping_level)->get(['id', 'role_name', 'scheme_id', 'parent_id', 'is_final', 'stack_level', 'is_first', 'role_id'])->first();
         $next_level_role_id_cond=$mapArr->id;
         
@@ -608,7 +599,6 @@ class WorkflowControllerWcdEdit extends Controller
   }
   public function verifydata(Request $request)
   {
-    $designation_id_old = Auth::user()->designation_id_old;
     $user_id = AuthChecker::getUserId();
    
       $scheme_id=$request->scheme_id;
@@ -643,10 +633,10 @@ class WorkflowControllerWcdEdit extends Controller
       $query = DB::table($schema . '.beneficiaries')
           ->where('created_by_dist_code', $district_code)
           ->where('id',$request->id);
-      if ($designation_id_old == "Verifier") {
+      if (AuthChecker::VerifierChecker()) {
         $query =$query->where('next_level_role_id_edit',999);
       }
-      if ($designation_id_old == "Approver") {
+      if (AuthChecker::ApproverChecker()) {
         $query =$query->where('next_level_role_id_edit','>',0);
       }
       $row =$query->first();
@@ -672,7 +662,8 @@ class WorkflowControllerWcdEdit extends Controller
           return redirect("/")->with('danger', 'Not Allowed');
         }
         DB::beginTransaction();
-        $accept_reject_model->op_type = 'SV';
+        $accept_reject_model->op_type =class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod(). '@SV';
+        
         $input = [
           'next_level_role_id_edit' => $mapArr->parent_id, 'comments' => $comments
         ];
@@ -732,7 +723,6 @@ class WorkflowControllerWcdEdit extends Controller
   }
   public function MassEmployeeApproval(Request $request)
   {
-    $designation_id_old = Auth::user()->designation_id_old;
     $user_id = AuthChecker::getUserId();
    
       $scheme_id=$request->scheme_id;
@@ -749,7 +739,7 @@ class WorkflowControllerWcdEdit extends Controller
       if(empty($duty_obj)){
         return redirect("/")->with('danger', 'Not Allowed');
       }
-      if($designation_id_old!='Approver'){
+      if(!AuthChecker::ApproverChecker()){
         return redirect("/")->with('danger', 'Not Allowed');
       }
       $district_code=$duty_obj->district_code;

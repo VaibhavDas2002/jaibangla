@@ -22,19 +22,17 @@ use App\District;
 use App\BenDocs;
 use Illuminate\Support\Facades\View;
 use TCPDF;
-use App\MapLavel;
-use Mpdf\Pdf\Protection;
-use Barryvdh\DomPDF\Facade\Pdf;
 use App\AcceptRejectInfo;
-use App\DsPhase;
-use PSpell\Config;
+use Illuminate\Support\Facades\Config;
 use App\Helpers\AuthChecker;
 use App\Helpers\PermissionManagement;
 use App\Workflow;
 use App\Helpers;
+use App\Helpers\Helper;
 use App\SchemeGenSetting;
+use Illuminate\Support\Facades\Route;
 
-
+use Illuminate\Support;
 
 
 
@@ -575,13 +573,9 @@ class JBProcessApplicationController extends Controller
       //   ->where('role_name', 'Approver')
       //   ->value('parent_id');
 
-      $workflow = Workflow::where('scheme_id', $scheme_id)->where('role_name', 'Verifier')->first();
-      $workflow_id = $workflow->workflow_step_id;
-      $parent = DB::table('public.m_scheme_step_rank')
-        ->where('id', $workflow_id)
-        ->select('parent_id')
-        ->first();
-      $role_id = $parent ? $parent->parent_id : null;
+      $role_id = Workflow::getID($scheme_id, Auth::user()->designation_id);
+      // dd($next_level_role_id);
+
       // $role_id = 1;
       // dd($role_id);
       // dd($role_id);
@@ -1181,13 +1175,8 @@ class JBProcessApplicationController extends Controller
       $accept_reject_model->created_by_local_body_code = $created_by_local_body_code;
       $accept_reject_model->op_type = class_basename(request()->route()->getAction()['controller']);
       $accept_reject_model->ip_address = request()->ip();
-      $workflow = Workflow::where('scheme_id', $scheme_id)->where('designation_id', Auth::user()->designation_id)->first();
-      $workflow_id = $workflow->workflow_step_id;
-      $parent = DB::table('public.m_scheme_step_rank')
-        ->where('id', $workflow_id)
-        ->select('parent_id')
-        ->first();
-      $next_level_role_id = $parent ? $parent->parent_id : null;
+      $next_level_role_id = Workflow::getParentId($scheme_id, Auth::user()->designation_id);
+      //  dd($next_level_role_id);
 
       if ($_POST['submit'] == 'Verify') {
         if ($scheme_id == 10 || $scheme_id == 11 || $scheme_id == 2) {
@@ -1222,7 +1211,10 @@ class JBProcessApplicationController extends Controller
           'next_level_role_id' => $next_level_role_id,
           'comments' => $comments,
           'verification_date' => $c_time,
-          'verified_by' => $user_id
+          'verified_by' => $user_id,
+          'action_by' => $user_id,
+          'action_ip_address' => $request->ip(),
+          'action_type' => class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod()
         ];
 
         DB::beginTransaction();
@@ -1243,7 +1235,15 @@ class JBProcessApplicationController extends Controller
         $accept_reject_model->op_type = 'AREVERT';
 
 
-        $input = ['next_level_role_id' => NULL, 'is_verified' => 0, 'is_approved' => 0, 'is_reverted' => 1];
+        $input = [
+          'next_level_role_id' => NULL,
+          'is_verified' => 0,
+          'is_approved' => 0,
+          'is_reverted' => 1,
+          'action_by' => $user_id,
+          'action_ip_address' => $request->ip(),
+          'action_type' => class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod()
+        ];
 
         DB::beginTransaction();
 
@@ -1271,7 +1271,10 @@ class JBProcessApplicationController extends Controller
             'is_rejected' => 1,
             'rejected_date' => $c_time,
             'rejected_by' => $user_id,
-            'is_clean' => 10
+            'is_clean' => 10,
+            'action_by' => $user_id,
+            'action_ip_address' => $request->ip(),
+            'action_type' => class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod()
           ];
           $appPrefix = "App";
           // $modelName = $appPrefix . "\\" . $ben_table;
@@ -1310,7 +1313,7 @@ class JBProcessApplicationController extends Controller
             DB::rollback();
             return redirect('workflow?pr1=' . $scheme_obj->pr1_code)->with('message', 'Error! Please try again.');
           }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
           return redirect('workflow?pr1=' . $scheme_obj->pr1_code)->with('message', 'Error! Please try again.');
         }
       }
@@ -1379,18 +1382,11 @@ class JBProcessApplicationController extends Controller
         $id_length = NULL;
       }
 
-      $workflow = Workflow::where('scheme_id', $scheme_id)
-        ->where('designation_id', Auth::user()->designation_id)
-        ->first();
-      $workflow_id = $workflow->workflow_step_id;
-      $parent = DB::table('public.m_scheme_step_rank')->where('id', $workflow_id)->select('parent_id')->first();
 
-      $next_level_role_id = $parent ? $parent->parent_id : null;
 
-      $w_id = DB::select("SELECT id FROM public.m_scheme_step_rank WHERE id = $workflow_id");
-      $w_id = $w_id ? $w_id[0]->id : null;
+      $next_level_role_id = Workflow::getID($scheme_id, Auth::user()->designation_id);
 
-      $row = DB::table($table_name)->where('id', '=', $id)->where('next_level_role_id', '=', $w_id)->first();
+      $row = DB::table($table_name)->where('id', '=', $id)->where('next_level_role_id', '=', $next_level_role_id)->first();
 
 
       if (empty($row)) {
@@ -1400,9 +1396,6 @@ class JBProcessApplicationController extends Controller
       if ($_POST['submit'] == 'Approve') {
 
         $accept_reject_model->op_type = 'AA';
-        if ($scheme_id == 2 || $scheme_id == 10 || $scheme_id == 11) {
-          return redirect("/")->with('error', 'Approval temporary suspended.');
-        }
         if ($scheme_id == 10 || $scheme_id == 11 || $scheme_id == 2) {
 
           $allowded_arr = BlkUrbanlEntryMapping::where('scheme_id', $scheme_id)->where('block_ulb_code', $row->created_by_local_body_code)->where('district_code', $district_code)->first();
@@ -1436,9 +1429,30 @@ class JBProcessApplicationController extends Controller
 
         }
         if ($scheme_id == 11) {
-          $input = ['is_approved' => 1, 'next_level_role_id' => $next_level_role_id, 'comments' => $comments, 'payment_start_date' => $payment_start_date, 'approval_date' => $c_time, 'approved_by' => $user_id, 'wp_phase' => 2];
+          $input = [
+            'is_approved' => 1,
+            'next_level_role_id' => $next_level_role_id,
+            'comments' => $comments,
+            'payment_start_date' => $payment_start_date,
+            'approval_date' => $c_time,
+            'approved_by' => $user_id,
+            'wp_phase' => 2,
+            'action_by' => $user_id,
+            'action_ip_address' => $request->ip(),
+            'action_type' => class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod()
+          ];
         } else
-          $input = ['is_approved' => 1, 'next_level_role_id' => $next_level_role_id, 'comments' => $comments, 'payment_start_date' => $payment_start_date, 'approval_date' => $c_time, 'approved_by' => $user_id];
+          $input = [
+            'is_approved' => 1,
+            'next_level_role_id' => $next_level_role_id,
+            'comments' => $comments,
+            'payment_start_date' => $payment_start_date,
+            'approval_date' => $c_time,
+            'approved_by' => $user_id,
+            'action_by' => $user_id,
+            'action_ip_address' => $request->ip(),
+            'action_type' => class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod()
+          ];
         $appPrefix = "App";
 
         DB::beginTransaction();
@@ -1467,7 +1481,10 @@ class JBProcessApplicationController extends Controller
           'is_rejected' => 1,
           'rejected_date' => $c_time,
           'rejected_by' => $user_id,
-          'is_clean' => 10
+          'is_clean' => 10,
+          'action_by' => $user_id,
+          'action_ip_address' => $request->ip(),
+          'action_type' => class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod()
         ];
         $appPrefix = "App";
         DB::beginTransaction();
@@ -1509,7 +1526,10 @@ class JBProcessApplicationController extends Controller
           'next_level_role_id' => NULL,
           'is_verified' => 0,
           'is_approved' => 0,
-          'is_reverted' => 1
+          'is_reverted' => 1,
+          'action_by' => $user_id,
+          'action_ip_address' => $request->ip(),
+          'action_type' => class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod()
         ];
         $appPrefix = "App";
         DB::beginTransaction();

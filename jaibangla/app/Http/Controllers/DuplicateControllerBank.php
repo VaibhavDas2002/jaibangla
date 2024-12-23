@@ -2509,7 +2509,7 @@ class DuplicateControllerBank extends Controller
                             'ip_address' => $ip_address,
                             'action_by' => $user_id,
                             'action_ip_address' => $request->ip(),
-                            'action_type' => $request->class_basename(request()->route()->getAction()['controller'])
+                            'action_type' => class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod()
                         ];
                         $updateDupTable = [];
                         $updateDupTable['revert_remarks'] = $accept_reject_comments;
@@ -2661,7 +2661,7 @@ class DuplicateControllerBank extends Controller
                                 'ip_address' => $ip_address,
                                 'action_by' => $user_id,
                                 'action_ip_address' => $request->ip(),
-                                'action_type' => $request->class_basename(request()->route()->getAction()['controller'])
+                                'action_type' => class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod()
                             ];
                             $updateBenDetailsData = array_merge($updateBenDetailsData, $updateBenDetailsData1);
                             $ben_main = DB::table($table_name)->where('id', $id)->first();
@@ -2788,7 +2788,7 @@ class DuplicateControllerBank extends Controller
                                 'ip_address' => $ip_address,
                                 'action_by' => $user_id,
                                 'action_ip_address' => $request->ip(),
-                                'action_type' => $request->class_basename(request()->route()->getAction()['controller'])
+                                'action_type' => class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod()
                             ];
 
                             $updateDupTable = [];

@@ -40,6 +40,7 @@ use App\BenDocs;
 use Exception;
 use App\Traits\TraitAadharValidate;
 use App\Helpers\AuthChecker;
+use App\Workflow;
 
 class CmoGrivanceReportController extends Controller
 {
@@ -62,7 +63,7 @@ class CmoGrivanceReportController extends Controller
       $gp_ward_visible = 0;
       $muncList = collect([]);
       $gpList = collect([]);
-      $userId = Auth::user()->id;
+      $userId = AuthChecker::getUserId();
       $scheme_code_in=array();
       $scheme_list = DB::select(DB::raw("select id,scheme_name from m_scheme where  id in (select scheme_id from duty_assignement where user_id=" . $userId . " and is_active=1) and is_active=1 and id = 10 order by scheme_name"));
       foreach($scheme_list as $scheme_item){
@@ -1026,10 +1027,10 @@ class CmoGrivanceReportController extends Controller
         return redirect("/")->with('danger', 'Not Allowed');
       }
       
-      $role_id_approver = MapLavel::where('scheme_id', $scheme_id)->where('role_name', 'Approver')->first();
-      $role_id_verifier = MapLavel::where('scheme_id', $scheme_id)->where('role_name', 'Verifier')->first();
-      $next_level_role_id_approver = $role_id_approver->parent_id;
-      $next_level_role_id_verifier = $role_id_verifier->parent_id;
+      // $role_id_approver = MapLavel::where('scheme_id', $scheme_id)->where('role_name', 'Approver')->first();
+      // $role_id_verifier = MapLavel::where('scheme_id', $scheme_id)->where('role_name', 'Verifier')->first();
+      $next_level_role_id_approver = Workflow::getParentId($scheme_id,15);
+      $next_level_role_id_verifier = Workflow::getParentId($scheme_id,14);
       // dd($next_level_role_id_verifier);
       $type_des = 'Sarasori Mukhyamantri';
   

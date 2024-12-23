@@ -54,16 +54,16 @@ class CasteWiseReportController extends Controller
         $c_date = $c_time->format("Y-m-d");
         $is_active = 0;
         $roleArray = $request->session()->get('role');
-        $designation_id_old = Auth::user()->designation_id_old;
-        $userId = Auth::user()->id;
+        // $designation_id_old = Auth::user()->designation_id_old;
+        $userId = AuthChecker::getUserId();
         $district_visible = $is_urban_visible = $block_visible = 1;
         $municipality_visible = 0;
         $gp_ward_visible = 0;
         $muncList = collect([]);
         $gpList = collect([]);
-        if ($designation_id_old == 'Admin' || $designation_id_old == 'HOD' || $designation_id_old == 'HOP' ||  $designation_id_old == 'Dashboard' || $designation_id_old == 'MisState' || $designation_id_old == 'DDO') {
+        if (AuthChecker::AdminChecker() || AuthChecker::HODChecker() || AuthChecker::HODChecker() ||  AuthChecker::DashboardChecker() || AuthChecker::MisStateChecker() || AuthChecker::DDOChecker()) {
             $district_visible = $is_urban_visible = $block_visible = 1;
-        } else if ($designation_id_old == 'Approver' || $designation_id_old == 'Verifier') {
+        } else if (AuthChecker::ApproverChecker() || AuthChecker::VerifierChecker()) {
             $district_code = NULL;
             $is_urban = NULL;
             $blockCode = NULL;
@@ -127,7 +127,6 @@ class CasteWiseReportController extends Controller
                 'block_munc_corp_code_fk' => $block_munc_corp_code_fk,
                 'municipality_visible' => $municipality_visible,
                 'gp_ward_visible' => $gp_ward_visible,
-                'is_urban_visible' => $is_urban_visible,
                 'base_date' => $base_date,
                 'c_date' => $c_date,
                 'gpList' => $gpList,
@@ -275,11 +274,11 @@ class CasteWiseReportController extends Controller
             }
          
             if (!empty($from_date)) {
-                $form_date_formatted = \Carbon\Carbon::parse($from_date)->format('d-m-Y');
+                $form_date_formatted = Carbon::parse($from_date)->format('d-m-Y');
                 $heading_msg = $heading_msg . " from " . $form_date_formatted;
             }
             if (!empty($to_date)) {
-                $to_date_formatted = \Carbon\Carbon::parse($to_date)->format('d-m-Y');
+                $to_date_formatted = Carbon::parse($to_date)->format('d-m-Y');
                 $heading_msg = $heading_msg . " to  " . $to_date_formatted;
             }
         } else {
@@ -439,7 +438,6 @@ class CasteWiseReportController extends Controller
         $is_active = 0;
         $roleArray = $request->session()->get('role');
         // echo '<pre>'; print_r($roleArray);die();
-        $designation_id_old = Auth::user()->designation_id_old;
         $user_id = AuthChecker::getUserId();
         $district_visible = $is_urban_visible = $block_visible = 1;
         $municipality_visible = 0;
@@ -449,9 +447,9 @@ class CasteWiseReportController extends Controller
         $duty = Configduty::where('user_id', '=', $user_id)->first();
         $schemes = DB::select(DB::raw("select id,scheme_name,pr1_code,entry_url,display_name from m_scheme where id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . ") and id in(2,10,11) order by rank"));
         // echo '<pre>';print_r($schemes);die();
-        if ($designation_id_old == 'Admin' || $designation_id_old == 'HOD' || $designation_id_old == 'HOP' || $designation_id_old == 'MisState' ||  $designation_id_old == 'Dashboard') {
+        if (AuthChecker::AdminChecker() || AuthChecker::HODChecker() || AuthChecker::HOPChecker() || AuthChecker::MisStateChecker() ||  AuthChecker::DashboardChecker()) {
             $district_visible = $is_urban_visible = $block_visible = 1;
-        } else if ($designation_id_old == 'Approver' || $designation_id_old == 'Verifier') {
+        } else if (AuthChecker::ApproverChecker() || AuthChecker::VerifierChecker()) {
             // echo 1;die();
             $district_code = NULL;
             $is_urban = NULL;
@@ -523,15 +521,14 @@ class CasteWiseReportController extends Controller
     public function benList(Request $request){
         // dd($request->all());
         $roleArray = $request->session()->get('role');
-        $designation_id_old = Auth::user()->designation_id_old;
         $user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id', '=', $user_id)->first();
         $schemes = DB::select(DB::raw("select id,scheme_name,pr1_code,entry_url,display_name from m_scheme where id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . ")  order by rank"));
-        if ($designation_id_old == 'Admin' || $designation_id_old == 'HOD' || $designation_id_old == 'HOP' || $designation_id_old == 'MisState' ||  $designation_id_old == 'Dashboard') {
+        if (AuthChecker::AdminChecker() || AuthChecker::HODChecker() || AuthChecker::HOPChecker() || AuthChecker::MisStateChecker() ||  AuthChecker::DashboardChecker()) {
             $district_code = NULL;
             $is_urban = NULL;
             $blockCode = NULL;
-        } else if ($designation_id_old == 'Approver' || $designation_id_old == 'Verifier') {
+        } else if (AuthChecker::ApproverChecker() || AuthChecker::VerifierChecker()) {
             $district_code = NULL;
             $is_urban = NULL;
             $blockCode = NULL;
@@ -588,14 +585,13 @@ class CasteWiseReportController extends Controller
     }
     public function castewiseExportExcel(Request $request){
         $roleArray = $request->session()->get('role');
-        $designation_id_old = Auth::user()->designation_id_old;
         $user_id = AuthChecker::getUserId();
         $scheme_id = $request->scheme_id;
-        if ($designation_id_old == 'Admin' || $designation_id_old == 'HOD' || $designation_id_old == 'HOP' || $designation_id_old == 'MisState' ||  $designation_id_old == 'Dashboard') {
+        if (AuthChecker::AdminChecker() || AuthChecker::HODChecker() || AuthChecker::HODChecker() || AuthChecker::MisStateChecker() ||  AuthChecker::MisStateChecker()) {
             $district_code = NULL;
             $is_urban = NULL;
             $blockCode = NULL;
-        } else if ($designation_id_old == 'Approver' || $designation_id_old == 'Verifier') {
+        } else if (AuthChecker::ApproverChecker() || AuthChecker::VerifierChecker()) {
             $district_code = NULL;
             $is_urban = NULL;
             $blockCode = NULL;

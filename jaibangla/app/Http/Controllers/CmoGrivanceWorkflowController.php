@@ -32,7 +32,7 @@ use App\RejectRevertReason;
 use App\AcceptRejectInfo;
 use App\Helpers\PermissionManagement;
 use App\Helpers\AuthChecker;
-
+use App\Workflow;
 
 class CmoGrivanceWorkflowController extends Controller
 {
@@ -520,8 +520,8 @@ class CmoGrivanceWorkflowController extends Controller
                 $scheme_id = $request->scheme_id;
                 $designation = Auth::user()->designation_id_old;
                 $duty_obj = Configduty::where('user_id', $user_id)->where('scheme_id', $scheme_id)->first();
-                $role = MapLavel::where('scheme_id', $scheme_id)->where('role_name', Auth::user()->designation_id_old)->where('stack_level', $duty_obj->mapping_level)->first();
-                $next_level_role_id = $role->parent_id;
+               
+                $next_level_role_id = Workflow::getParentId($scheme_id , Auth::user()->designation_id_old);
                 $ben_id = $request->ben_id;
                 $grievance_id = $request->grievance_id;
                 $grievance_mobile_no = $request->grievance_mobile_no;

@@ -3,24 +3,18 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-//use App\Http\Controllers\Redirect;
 use App\programmeHeadMaster;
 use App\majorProgammeHeadMaster;
 use App\nhm_employee_details;
 use App\designationMaster;
-use App\nhm_service_category;
 use App\NHMEmployee;
 use App\Configduty;
 use App\District;
-use App\nhm_posting_level;
-use App\nhm_level_place;
 use App\nhm_health_facility;
 use App\UrbanBody;
 use App\SubDistrict;
 use App\PensionMSME;
 //Dynamic Doc
-use App\BenDocsMSME;
-use App\BenDocsArcMSME;
 use App\DocumentType;
 use App\SchemeDocMap;
 //Dynamic Doc End
@@ -29,14 +23,11 @@ use App\Taluka;
 use App\Ward;
 use App\GP;
 use App\User;
-use Redirect;
 use Auth;
 use Illuminate\Support\Facades\Input;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use App\Scheme;
 use Validator;
-use Carbon\Carbon;
 use App\BankDetails;
 use App\Helpers\Helper;
 use App\BenDocs;
