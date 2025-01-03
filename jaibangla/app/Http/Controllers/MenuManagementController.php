@@ -11,7 +11,7 @@ use App\Menu_designation_mapping;
 use Carbon;
 use Illuminate\Support\Facades\Storage;
 use Session;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 
 class MenuManagementController extends Controller
 {
@@ -111,12 +111,12 @@ class MenuManagementController extends Controller
             Storage::disk('local')->put('menu/' . $role . ".json", $json_data);
         }
         if ($type == 1) {
-            $roles = Menu_designation_mapping::where('menu_id', $menuid)->get(['designation_id_old']);
+            $roles = Menu_designation_mapping::where('menu_id', $menuid)->get(['designation_id']);
 
             foreach ($roles as $role) {
-                $menu_contents = $this->updatejson($role->designation_id_old);
+                $menu_contents = $this->updatejson($role->designation_id);
                 $json_data = json_encode($menu_contents);
-                Storage::disk('local')->put('menu/' . $role->designation_id_old . ".json", $json_data);
+                Storage::disk('local')->put('menu/' . $role->designation_id . ".json", $json_data);
             }
         }
         return "success";
@@ -127,7 +127,7 @@ class MenuManagementController extends Controller
         $menu_id_arr = [];
 
         // For Menu List Add remove    
-        $menu_list = Menu_designation_mapping::where('designation_id_old', '=', $role)->where('m_menu_designation_mapping.is_active', TRUE)
+        $menu_list = Menu_designation_mapping::where('designation_id', '=', $role)->where('m_menu_designation_mapping.is_active', TRUE)
             ->orderby('m_menu_designation_mapping.rank')
             ->join('m_menu_item_master', 'm_menu_item_master.id', '=', 'm_menu_designation_mapping.menu_id')
             ->where('m_menu_item_master.is_active', TRUE)
@@ -146,26 +146,26 @@ class MenuManagementController extends Controller
 
         // For Menu Tree View
         $menu_contents = $this->updatejson($role);
-        // $parent_menu_list = Menu_designation_mapping::where('designation_id_old','=',$role)->where('m_menu_designation_mapping.is_active',TRUE)
+        // $parent_menu_list = Menu_designation_mapping::where('designation_id','=',$role)->where('m_menu_designation_mapping.is_active',TRUE)
         //         ->orderby('m_menu_designation_mapping.rank')
         //         ->join('m_menu_item_master', 'm_menu_item_master.id', '=', 'm_menu_designation_mapping.menu_id')
         //         ->whereNull('m_menu_item_master.parent_id')
         //         ->where('m_menu_item_master.is_active',TRUE)
         //         ->orderBy('m_menu_item_master.rank')
-        //         ->get(['menu_id','m_menu_item_master.menu_name','designation_id_old','m_menu_item_master.rank as master_rank','m_menu_designation_mapping.rank as map_rank','m_menu_designation_mapping.is_active as map_is_active',
+        //         ->get(['menu_id','m_menu_item_master.menu_name','designation_id','m_menu_item_master.rank as master_rank','m_menu_designation_mapping.rank as map_rank','m_menu_designation_mapping.is_active as map_is_active',
         //         'm_menu_item_master.is_active as master_is_active','parent_id','menu_name','url_type','link_url','icon','menu_class'])->toArray();
 
         // foreach($parent_menu_list as $parent_menu){
         //     $menu_contents_item =[];
 
-        //     $child_menu = Menu_designation_mapping::where('designation_id_old','=',$role)->where('m_menu_designation_mapping.is_active',TRUE)
+        //     $child_menu = Menu_designation_mapping::where('designation_id','=',$role)->where('m_menu_designation_mapping.is_active',TRUE)
         //     ->orderby('m_menu_designation_mapping.rank')
         //     ->join('m_menu_item_master', 'm_menu_item_master.id', '=', 'm_menu_designation_mapping.menu_id')
         //     ->whereNotNull('m_menu_item_master.parent_id')
         //     ->where('m_menu_item_master.parent_id',$parent_menu['menu_id'])
         //     ->where('m_menu_item_master.is_active',TRUE)
         //     ->orderBy('m_menu_item_master.rank')
-        //     ->get(['menu_id','m_menu_item_master.menu_name','designation_id_old','m_menu_item_master.rank as master_rank','m_menu_designation_mapping.rank as map_rank','m_menu_designation_mapping.is_active as map_is_active',
+        //     ->get(['menu_id','m_menu_item_master.menu_name','designation_id','m_menu_item_master.rank as master_rank','m_menu_designation_mapping.rank as map_rank','m_menu_designation_mapping.is_active as map_is_active',
         //     'm_menu_item_master.is_active as master_is_active','parent_id','menu_name','url_type','link_url','icon','menu_class'])->toArray();
 
         //     $menu_contents_item['id'] = $parent_menu['menu_id'];
@@ -244,17 +244,17 @@ class MenuManagementController extends Controller
         $mytime = Carbon\Carbon::now();
 
         if ($request_type == 'add') {
-            $menu_role_map = Menu_designation_mapping::whereIn('menu_id', $menuId)->where('designation_id_old', $userRole)->first();
+            $menu_role_map = Menu_designation_mapping::whereIn('menu_id', $menuId)->where('designation_id', $userRole)->first();
             if ($menu_role_map != null) {
                 if ($menu_role_map->is_active == FALSE) {
-                    Menu_designation_mapping::whereIn('menu_id', $menuId)->where('designation_id_old', $userRole)
+                    Menu_designation_mapping::whereIn('menu_id', $menuId)->where('designation_id', $userRole)
                         ->update(['is_active' => TRUE, 'active_deactive_at' => $mytime]);
                 }
             } else {
                 for ($i = 0; $i < count($menuId); $i++) {
                     $insertarrmap = array(
                         'menu_id' => $menuId[$i],
-                        'designation_id_old' => $userRole,
+                        'designation_id' => $userRole,
                         'is_active' => TRUE,
                         'created_at' => $mytime
                     );
@@ -263,13 +263,13 @@ class MenuManagementController extends Controller
             }
         }
         if ($request_type == 'remove') {
-            Menu_designation_mapping::whereIn('menu_id', $menuId)->where('designation_id_old', $userRole)
+            Menu_designation_mapping::whereIn('menu_id', $menuId)->where('designation_id', $userRole)
                 ->update(['is_active' => FALSE, 'active_deactive_at' => $mytime]);
         }
 
         // $menu_id_arr=[];  
 
-        // $assign_menu_list = Menu_designation_mapping::where('designation_id_old','=',$userRole)->where('is_active', TRUE)->get(['menu_id'])->toArray();
+        // $assign_menu_list = Menu_designation_mapping::where('designation_id','=',$userRole)->where('is_active', TRUE)->get(['menu_id'])->toArray();
         // if(count($assign_menu_list)>0){
         //     foreach ($assign_menu_list as $menuArr){
         //         array_push($menu_id_arr,$menuArr['menu_id']);
@@ -312,8 +312,8 @@ class MenuManagementController extends Controller
     public function search(Request $request)
     {
         $designationarr = Designation::get()->toArray();
-        $designation_id_old = $request[trim('designation_id_old')];
-        $assign_menu_list = Menu_designation_mapping::where('designation_id_old', '=', $designation_id_old)->get(['menu_id'])->toArray();
+        $designation_id = $request[trim('designation_id')];
+        $assign_menu_list = Menu_designation_mapping::where('designation_id', '=', $designation_id)->get(['menu_id'])->toArray();
         if (count($assign_menu_list) > 0) {
             $menu_id_arr = [];
             foreach ($assign_menu_list as $menuArr) {
@@ -345,13 +345,13 @@ class MenuManagementController extends Controller
             }
             $i++;
         }
-        return view('menu-mgmt/index', ['menus' => $menu_list, 'select_designation' => $designation_id_old, 'designations' => $designationarr]);
+        return view('menu-mgmt/index', ['menus' => $menu_list, 'select_designation' => $designation_id, 'designations' => $designationarr]);
     }
 
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'designation_id_old' => 'required',
+            'designation_id' => 'required',
             'menu_name' => 'required|max:50',
             'parent_id' => 'nullable | integer',
             'menu_icon' => 'required|max:50',
@@ -372,25 +372,25 @@ class MenuManagementController extends Controller
             } else
                 $rank = $request['rank'];
             $id = $request['id'];
-            $designation_id_old = $request['designation_id_old'];
+            $designation_id = $request['designation_id'];
             $pre_designation_list = array();
             if ($id) {
                 $mymsg = "updated";
-                $menu_details_app = Menu_designation_mapping::where('menu_id', $id)->where('is_active', TRUE)->get(['id', 'designation_id_old'])->toArray();
+                $menu_details_app = Menu_designation_mapping::where('menu_id', $id)->where('is_active', TRUE)->get(['id', 'designation_id'])->toArray();
                 foreach ($menu_details_app as $map) {
-                    array_push($pre_designation_list, $map['designation_id_old']);
+                    array_push($pre_designation_list, $map['designation_id']);
                 }
-                if ($pre_designation_list == $designation_id_old) {
-                    $combine_arr = $designation_id_old;
+                if ($pre_designation_list == $designation_id) {
+                    $combine_arr = $designation_id;
                     $same_mapping = 1;
                     $return_msg = "same";
                 } else {
-                    $combine_arr = array_unique(array_merge($pre_designation_list, $designation_id_old));
+                    $combine_arr = array_unique(array_merge($pre_designation_list, $designation_id));
                     $same_mapping = 0;
                     $return_msg = "diff";
                 }
             } else {
-                $combine_arr = $designation_id_old;
+                $combine_arr = $designation_id;
                 $same_mapping = 0;
                 $mymsg = "added";
             }
@@ -433,12 +433,12 @@ class MenuManagementController extends Controller
                 $update_status = 1;
             }
             if ($same_mapping == 0) {
-                if (count($designation_id_old) > 0) {
+                if (count($designation_id) > 0) {
                     $i = 0;
-                    foreach ($designation_id_old as $designation) {
+                    foreach ($designation_id as $designation) {
                         $insertarrmap = array(
                             'menu_id' => $insert_status_main,
-                            'designation_id_old' => $designation,
+                            'designation_id' => $designation,
                             'rank' => $rank,
                             'is_active' => TRUE,
                             'created_at' => $mytime
@@ -448,7 +448,7 @@ class MenuManagementController extends Controller
                             $i++;
                         }
                     }
-                    if (count($designation_id_old) == $i)
+                    if (count($designation_id) == $i)
                         $insert_staus_map = 1;
                     else
                         $insert_staus_map = 0;
@@ -491,16 +491,16 @@ class MenuManagementController extends Controller
     {
         $id = $request['id'];
         if ($id != '' && ctype_digit($id)) {
-            $menu_details = Menu_designation_mapping::where('menu_id', $id)->where('is_active', TRUE)->get(['id', 'designation_id_old'])->toArray();
+            $menu_details = Menu_designation_mapping::where('menu_id', $id)->where('is_active', TRUE)->get(['id', 'designation_id'])->toArray();
             if (count($menu_details) > 0) {
                 DB::beginTransaction();
                 try {
                     Menu_designation_mapping::where('menu_id', $id)->delete();
                     Menu_item_master::where('id', $id)->delete();
                     DB::commit();
-                    $menu_contents = $this->updatejson($menu_details[0]['designation_id_old']);
+                    $menu_contents = $this->updatejson($menu_details[0]['designation_id']);
                     $json_data = json_encode($menu_contents);
-                    Storage::disk('local')->put('menu/' . $menu_details[0]['designation_id_old'] . ".json", $json_data);
+                    Storage::disk('local')->put('menu/' . $menu_details[0]['designation_id'] . ".json", $json_data);
 
                     $success = true;
                 } catch (\Exception $e) {
@@ -531,7 +531,7 @@ class MenuManagementController extends Controller
 
     public function getdesignationListfromMenu($menu_id)
     {
-        $assign_designation_list = Menu_designation_mapping::where('menu_id', '=', $menu_id)->get(['designation_id_old'])->toArray();
+        $assign_designation_list = Menu_designation_mapping::where('menu_id', '=', $menu_id)->get(['designation_id'])->toArray();
         return response()->json($assign_designation_list);
     }
     public function loadMenuItemFormMaster()
@@ -574,7 +574,7 @@ class MenuManagementController extends Controller
         }
 
         $menu_details = Menu_item_master::where('id', $id)->get(['id', 'menu_name', 'parent_id', 'icon', 'link_url', 'url_type', 'menu_class', 'menu_slug', 'rank'])->toArray();
-        $menu_details_app = Menu_designation_mapping::where('menu_id', $id)->where('is_active', TRUE)->get(['id', 'designation_id_old'])->toArray();
+        $menu_details_app = Menu_designation_mapping::where('menu_id', $id)->where('is_active', TRUE)->get(['id', 'designation_id'])->toArray();
         $json_arr[0] = $menu_details[0];
         $json_arr[1] = $menu_details_app;
         $json_arr[2] = $designationmenu;
@@ -587,21 +587,21 @@ class MenuManagementController extends Controller
         $menu_contents = [];
 
         // For Menu Tree View
-        $parent_menu_list = Menu_designation_mapping::where('designation_id_old', '=', $role)->where('m_menu_designation_mapping.is_active', TRUE)
+        $parent_menu_list = Menu_designation_mapping::where('designation_id', '=', $role)->where('m_menu_designation_mapping.is_active', TRUE)
             ->orderby('m_menu_designation_mapping.rank')
             ->join('m_menu_item_master', 'm_menu_item_master.id', '=', 'm_menu_designation_mapping.menu_id')
             ->whereNull('m_menu_item_master.parent_id')
             ->where('m_menu_item_master.is_active', TRUE)
             ->orderBy('m_menu_item_master.rank')
             ->get([
-                'menu_id', 'm_menu_item_master.menu_name', 'designation_id_old', 'm_menu_item_master.rank as master_rank', 'm_menu_designation_mapping.rank as map_rank', 'm_menu_designation_mapping.is_active as map_is_active',
+                'menu_id', 'm_menu_item_master.menu_name', 'designation_id', 'm_menu_item_master.rank as master_rank', 'm_menu_designation_mapping.rank as map_rank', 'm_menu_designation_mapping.is_active as map_is_active',
                 'm_menu_item_master.is_active as master_is_active', 'parent_id', 'menu_name', 'url_type', 'link_url', 'icon', 'menu_class'
             ])->toArray();
 
         foreach ($parent_menu_list as $parent_menu) {
             $menu_contents_item = [];
 
-            $child_menu = Menu_designation_mapping::where('designation_id_old', '=', $role)->where('m_menu_designation_mapping.is_active', TRUE)
+            $child_menu = Menu_designation_mapping::where('designation_id', '=', $role)->where('m_menu_designation_mapping.is_active', TRUE)
                 ->orderby('m_menu_designation_mapping.rank')
                 ->join('m_menu_item_master', 'm_menu_item_master.id', '=', 'm_menu_designation_mapping.menu_id')
                 ->whereNotNull('m_menu_item_master.parent_id')
@@ -609,7 +609,7 @@ class MenuManagementController extends Controller
                 ->where('m_menu_item_master.is_active', TRUE)
                 ->orderBy('m_menu_item_master.rank')
                 ->get([
-                    'menu_id', 'm_menu_item_master.menu_name', 'designation_id_old', 'm_menu_item_master.rank as master_rank', 'm_menu_designation_mapping.rank as map_rank', 'm_menu_designation_mapping.is_active as map_is_active',
+                    'menu_id', 'm_menu_item_master.menu_name', 'designation_id', 'm_menu_item_master.rank as master_rank', 'm_menu_designation_mapping.rank as map_rank', 'm_menu_designation_mapping.is_active as map_is_active',
                     'm_menu_item_master.is_active as master_is_active', 'parent_id', 'menu_name', 'url_type', 'link_url', 'icon', 'menu_class'
                 ])->toArray();
 
@@ -631,7 +631,7 @@ class MenuManagementController extends Controller
     private function validateInput($request)
     {
         $this->validate($request, [
-            'designation_id_old' => 'required',
+            'designation_id' => 'required',
             'menu_name' => 'required|max:50',
             'parent_id' => 'nullable | integer',
             'menu_icon' => 'required|max:50',
@@ -647,7 +647,7 @@ class MenuManagementController extends Controller
         $role = $request['role'];
 
 
-        $data = Menu_designation_mapping::where('designation_id_old', '=', $role)
+        $data = Menu_designation_mapping::where('designation_id', '=', $role)
             ->orderby('m_menu_designation_mapping.rank')
             ->join('m_menu_item_master', 'm_menu_item_master.id', '=', 'm_menu_designation_mapping.menu_id')
             ->where('m_menu_item_master.is_active', TRUE)

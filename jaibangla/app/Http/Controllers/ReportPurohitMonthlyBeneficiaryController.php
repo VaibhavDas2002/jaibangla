@@ -3,10 +3,10 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use DB;
-use Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use App\Configduty;
-use Excel;
+use Maatwebsite\Excel\Facades\Excel;
 use App\District;
 use App\UrbanBody;
 use App\Taluka;
@@ -24,7 +24,7 @@ class ReportPurohitMonthlyBeneficiaryController extends Controller
     	$user_id = AuthChecker::getUserId();
         $schemes=Configduty::where('user_id','=',$user_id)->first();
         $dist_code = $schemes->district_code;
-        if (Auth::user()->designation_id_old == 'Approver') {
+        if (Auth::user()->designation_id == 'Approver') {
         	$block_ulb = DB::select(DB::raw("select distinct block_ulb_code ,p.block_ulb_name|| (case when p.block_ulb_code<10000 then ' Block' else ' Municipality' end) block_ulb_name 
 				from pension.beneficiaries p where dist_code=".$dist_code.";"));
 	        $result = DB::select(DB::raw("select p.dist_code dist_code,p.block_ulb_code block_ulb_code,d.district_name as district_name,p.block_ulb_name|| (case when p.block_ulb_code<10000 then ' Block' else ' Municipality' end) as block_ulb_name ,p.app_phase as app_phase,
@@ -41,7 +41,7 @@ class ReportPurohitMonthlyBeneficiaryController extends Controller
 				order by d.district_name,dist_code,p.block_ulb_name,p.app_phase;"));
 	    	return view('purohit_monthly_report', ['block_ulb_list'=>$block_ulb, 'report'=>$result, 'district_code' => $dist_code]);
         }
-        elseif (Auth::user()->designation_id_old == 'HOD') {
+        elseif (Auth::user()->designation_id == 'HOD') {
         	$result = DB::select(DB::raw("select p.dist_code dist_code,d.district_name as district_name, p.app_phase as app_phase,count(*) total_ben,
 				sum(case when next_level_role_id is null then 1 else 0 end) pending_verifier,
 				sum(case when next_level_role_id =107 then 1 else 0 end) pending_recommendation,

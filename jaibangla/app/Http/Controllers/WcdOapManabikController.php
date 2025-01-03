@@ -34,11 +34,11 @@ use App\GP;
 use App\BankDetails;
 use App\User;
 use Redirect;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 use DateTime;
 use App\Scheme;
 
@@ -113,7 +113,7 @@ class WcdOapManabikController extends Controller
         }
 
         $is_active = 0;
-        $roleArray = $request->session()->get('role');
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
 
         foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == $scheme_id) {
@@ -327,8 +327,8 @@ class WcdOapManabikController extends Controller
                 $pension_details = 'App\\PensionWPWCD';
             }
             $is_active = 0;
-            $roleArray = $request->session()->get('role');
-            //dump($roleArray);
+            $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                        //dump($roleArray);
             //dump($request->urban_code);
             foreach ($roleArray as $roleObj) {
                 if ($roleObj['scheme_id'] == $scheme_id) {
@@ -398,8 +398,8 @@ class WcdOapManabikController extends Controller
         }
         $is_active = 0;
         $blockCode = NULL;
-        $roleArray = $request->session()->get('role');
-        foreach ($roleArray as $roleObj) {
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == 10 || $roleObj['scheme_id'] == 11) {
                 $district_code = $roleObj['district_code'];
                 $is_active = 1;
@@ -618,17 +618,17 @@ class WcdOapManabikController extends Controller
         $consolidate = $request->consolidate;
         //dd($consolidate);
         $is_active = 0;
-        $roleArray = $request->session()->get('role');
-        $designation_id_old = Auth::user()->designation_id_old;
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                $designation_id = Auth::user()->designation_id;
         $district_visible = $is_urban_visible = $block_visible = 1;
         $scheme_arr = array();
-        if ($designation_id_old == 'Admin' || $designation_id_old == 'HOD') {
+        if ($designation_id == 'Admin' || $designation_id == 'HOD') {
             $district_visible = $is_urban_visible = $block_visible = 1;
             if ($consolidate == 1)
                 $scheme_arr = array(10, 11, 2);
             else
                 $scheme_arr = array(10, 11);
-        } else if ($designation_id_old == 'Approver' || $designation_id_old == 'Verifier') {
+        } else if ($designation_id == 'Approver' || $designation_id == 'Verifier') {
             $district_code = NULL;
             $is_urban = NULL;
             $blockCode = NULL;

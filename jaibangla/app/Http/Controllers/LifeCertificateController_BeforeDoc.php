@@ -16,7 +16,7 @@ use App\Ward;
 use App\GP;
 use App\User;
 use Redirect;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Log;
@@ -357,12 +357,12 @@ class LifeCertificateController extends Controller
     if (empty($scheme_obj)) {
       return redirect("/")->with('danger', 'Scheme Not Found');
     }
-    // $designation_id_old = Auth::user()->designation_id_old;
+    // $designation_id = Auth::user()->designation_id;
     if (!AuthChecker::OperatorChecker() || !AuthChecker::VerifierChecker()) {
       return redirect("/")->with('error', 'Not Allowed');
     }
     $is_active = 0;
-    $roleArray = $request->session()->get('role');
+    $roleArray = Configduty::where('user_id', $user_id)->where('is_active', 1)->get()->toArray();;
     foreach ($roleArray as $roleObj) {
       if ($roleObj['scheme_id'] == $scheme_id) {
         $is_active = 1;
@@ -443,7 +443,7 @@ class LifeCertificateController extends Controller
       return redirect("/")->with('error', 'Not Allowed');
     }
     $is_active = 0;
-    $roleArray = $request->session()->get('role');
+    $roleArray = Configduty::where('user_id', $user_id)->where('is_active', 1)->get()->toArray();;
     foreach ($roleArray as $roleObj) {
       if ($roleObj['scheme_id'] == $scheme_id) {
         $is_active = 1;

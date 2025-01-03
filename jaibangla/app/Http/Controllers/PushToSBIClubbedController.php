@@ -23,7 +23,7 @@ use App\ClubbedSBITransactionLotDetails;
 use Storage;
 use Illuminate\Support\Facades\DB;
 
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use App\Configduty;
 use App\BankAccount;
 use App\SBITransactionPayLoad;

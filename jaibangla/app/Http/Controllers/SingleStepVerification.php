@@ -8,7 +8,7 @@ use Exception;
 use App\District;
 
 use App\BeneficiaryPensions;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use App\Configduty;
 use App\Scheme;
 
@@ -17,7 +17,7 @@ use App\ApplicationStatus;
 use App\StatusCode;
 use App\BankResponse;
 use Illuminate\Support\Collection;
-use Excel;
+use Maatwebsite\Excel\Facades\Excel;
 
 use App\UrbanBody;
 use App\SubDistrict;
@@ -39,7 +39,7 @@ use App\Assembly;
 use App\Taluka;
 use App\Ward;
 use App\GP;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 use DateTime;
 use App\BankDetails;
 use App\User;
@@ -64,7 +64,7 @@ class SingleStepVerification extends Controller
     $is_active = 0;
 
     $districts = District::all();
-    $roleArray = $request->session()->get('role');
+    $roleArray = Configduty::where('user_id', $user_id)->where('is_active', 1)->get()->toArray();;
     foreach ($roleArray as $roleObj) {
       if ($roleObj['scheme_id'] == $scheme) {
         $is_active = 1;
@@ -73,8 +73,8 @@ class SingleStepVerification extends Controller
       }
     }
     $scheme_name = $this->getSchemeName($scheme);
-    $designation_id_old = Auth::user()->designation_id_old;
-    if ($designation_id_old != 'Approver') {
+    $designation_id = Auth::user()->designation_id;
+    if ($designation_id != 'Approver') {
       $is_active = 0;
     }
     if ($is_active == 1) {
@@ -114,7 +114,7 @@ class SingleStepVerification extends Controller
   public function indexDistrict(Request $request, $scheme)
   {
     $is_active = 1;
-    $roleArray = $request->session()->get('role');
+    $roleArray = Configduty::where('user_id', $user_id)->where('is_active', 1)->get()->toArray();;
     foreach ($roleArray as $roleObj) {
       if ($roleObj['scheme_id'] == $scheme) {
         $is_active = 1;
@@ -258,7 +258,8 @@ class SingleStepVerification extends Controller
           $query->whereraw("((is_verified=1 and is_approved=0 and is_rejected=0) or next_level_role_id IS NULL)");
         })->count();
         $filterRecords = count($data);
-      } else {
+        })}
+         else {
         $data = array();
         if (is_numeric($serachvalue)) {
           $ben_id = substr($serachvalue, -7);
@@ -532,8 +533,8 @@ class SingleStepVerification extends Controller
     $attributes['addr_lin1'] = 'Address Line 1';
     $validator = Validator::make($request->all(), $rules, $messages, $attributes);
     if ($validator->passes()) {
-      $designation_id_old = Auth::user()->designation_id_old;
-      if ($designation_id_old == 'Approver') {
+      $designation_id = Auth::user()->designation_id;
+      if ($designation_id == 'Approver') {
         $scheme_capacity_arr = array();
         $distCode = $request->session()->get('distCode');
         $scheme_capacity_arr = Helper::getCapacity($request->scheme, $distCode);
@@ -592,8 +593,8 @@ class SingleStepVerification extends Controller
   public function bulkApprove(Request $request)
   {
     ini_set('max_execution_time', 180);
-    $designation_id_old = Auth::user()->designation_id_old;
-    if ($designation_id_old == 'Approver') {
+    $designation_id = Auth::user()->designation_id;
+    if ($designation_id == 'Approver') {
       $user_id = AuthChecker::getUserId();
       $return_status = 0;
       $return_msg = '';
@@ -664,10 +665,10 @@ class SingleStepVerification extends Controller
 
   public function rejectApplication(Request $request)
   {
-    $designation_id_old = Auth::user()->designation_id_old;
+    $designation_id = Auth::user()->designation_id;
     $return_status = 0;
     $return_msg = '';
-    if ($designation_id_old == 'Approver') {
+    if ($designation_id == 'Approver') {
       $ben_id = $request->ben_id;
       $district_code = $request->session()->get('distCode');
 
@@ -1226,8 +1227,8 @@ class SingleStepVerification extends Controller
         $bank_branch = $bank_details->branch;
 
         $is_active = 0;
-        $roleArray = $request->session()->get('role');
-        //dump($roleArray);
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                //dump($roleArray);
         //dump($request->urban_code);
         foreach ($roleArray as $roleObj) {
           if ($roleObj['scheme_id'] == $scheme_id) {

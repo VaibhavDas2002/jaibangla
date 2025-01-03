@@ -30,7 +30,7 @@
                         <div align="center" style="border: 1px solid #000;padding: 5px;border-radius: 5px; background-color: #fffaeb;"><b>Acc No: {{ $result->bank_code }}</b></div>
                     </td>
                     <td>
-                        <!-- @if(Auth::user()->designation_id_old == 'Verifier') -->
+                        <!-- @if(Auth::user()->designation_id == 'Verifier') -->
                         <form method="POST" action="{{ url('view-status/'.$result->id) }}" onsubmit="return confirm('Are you sure?');" name="myForm">
                             {{ csrf_field() }}
                             <button class="btn btn-warning">

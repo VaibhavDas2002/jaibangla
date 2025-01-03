@@ -197,11 +197,11 @@ scratch. This page gets rid of all links and provides the needed markup only.
             <div class="box-header with-border">
               <span style="font-size: 18px; font-weight: bold;">Mark Cmo Grivance Applications</span>
               <span style="float: right;">
-                @if($designation_id_old=='Verifier')
+                @if($designation_id=='Verifier')
                 <a href="mark-sm-cmo?scheme_id={{$scheme_id}}"> 
                   <img width="50px;" style="pull-right" src="{{ asset("images/back.png") }}" alt="Back" /></a>
                   @endif
-                  @if($designation_id_old=='Operator')
+                  @if($designation_id=='Operator')
                   <a href="oap-wcd?pr1=wcd&wcd_type={{$scheme_id}}&cmo_id={{$cmo_id}}"> 
                     <img width="50px;" style="pull-right" src="{{ asset("images/back.png") }}" alt="Back" /></a>
                   @endif
@@ -241,7 +241,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
                         <div class="row">
                         <div class="form-group col-md-3">
                           <label class="">Search By</label>
-                          <select name="search_by_key" id="search_by_key" class="form-control" tabindex="6"  @if($designation_id_old=='Operator') readonly @endif>
+                          <select name="search_by_key" id="search_by_key" class="form-control" tabindex="6"  @if($designation_id=='Operator') readonly @endif>
                            <option value="1" @if($search_by_key==1) selected @endif>Cmo Grievance Mobile Number</option>
                            <option value="2" @if($search_by_key==2) selected @endif>Applicant Mobile Number</option>
                            <option value="3" @if($search_by_key==3) selected @endif>Applicant Beneficiary Id</option>
@@ -254,12 +254,12 @@ scratch. This page gets rid of all links and provides the needed markup only.
                          </div>
                          <div class="form-group col-md-3">
                                        <label class="required-field" id="searh_key_label">{{$search_by_key_label}}</label>
-                              <input type="text" name="search_by_value" id="search_by_value" class="form-control"  @if($designation_id_old=='Operator') readonly @endif
+                              <input type="text" name="search_by_value" id="search_by_value" class="form-control"  @if($designation_id=='Operator') readonly @endif
                                value="{{$search_by_value}}"  maxlength='20' @if($search_by_key==1) disabled @endif;/>
                               <span id="error_search_by_value" class="text-danger"></span>
                              
                          </div>
-                         @if($designation_id_old=='Verifier')
+                         @if($designation_id=='Verifier')
                          <div class="form-group col-md-3">
                           <button type="submit"  class="btn btn-info danger" id="filter_searh" style="margin-top:20px;">Search</button>
                           <button type="button" id="searching_loader" value="Submit" class="btn btn-danger btn-lg"

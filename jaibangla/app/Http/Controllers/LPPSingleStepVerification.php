@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use Exception;
 Use App\District;
 use App\BeneficiaryPensions;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use App\Configduty;
 use App\Scheme;
 
@@ -14,7 +14,7 @@ use App\ApplicationStatus;
 use App\StatusCode;
 use App\BankResponse;
 use Illuminate\Support\Collection;
-use Excel;
+use Maatwebsite\Excel\Facades\Excel;
 
 use App\UrbanBody;
 use App\SubDistrict;
@@ -32,6 +32,7 @@ use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Helpers\AuthChecker;
+use App\PensionSc;
 
 class LPPSingleStepVerification extends Controller
 {   

@@ -49,7 +49,7 @@ class JBPensionController extends Controller
         $next_level_status = '';
         $scheme_id = Crypt::decrypt($encryptedSchemeId);
         $readonly = [];
-        $auth = AuthChecker::OperatorChecker() || AuthChecker::ApproverChecker();
+        $auth = AuthChecker::MakerPermission(); ;
         if ($auth) {
             $entry_type = PermissionManagement::EntryChecker($scheme_id);
             // dd($entry_type);
@@ -57,7 +57,7 @@ class JBPensionController extends Controller
                 $mandatory = [];
                 $already_inserted = [];
                 $user_id = AuthChecker::getUserId();
-                $designation_id_old = Auth::user()->designation_id;
+                $designation_id = Auth::user()->designation_id;
                 $districts = District::all();
                 $doc_id_list = SchemeDocMap::select('doc_list_man', 'doc_list_opt')
                     ->where('scheme_code', $scheme_id)->get();
@@ -127,8 +127,7 @@ class JBPensionController extends Controller
 
                     $id = $request->app_id;
                     $model_name = 'App\\BenEntry';
-                    $roleArray = $request->session()->get('role');
-                    $op_type = $type;
+                    $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();                    $op_type = $type;
 
                     $duty_obj = Configduty::where('user_id', $user_id)->where('scheme_id', $scheme_id)->first();
                     $distCode = $duty_obj->district_code;
@@ -140,9 +139,9 @@ class JBPensionController extends Controller
                         'scheme_id' => $scheme_id
                     ]);
 
-                    if ($designation_id_old == 'Verifier') {
+                    if ($designation_id == 'Verifier') {
                         $query = $query->whereNull('next_level_role_id');
-                    } elseif ($designation_id_old == 'Approver') {
+                    } elseif ($designation_id == 'Approver') {
                         $query = $query->where('is_verified', 1)
                             ->where('is_approved', 0)
                             ->where('is_rejected', 0);
@@ -265,13 +264,13 @@ class JBPensionController extends Controller
                 if ($isValidarr['is_valid'] == false) {
                     if ($type == 1) {
                         return redirect('jb-pension?scheme_id=' . encrypt($scheme_id) . '&type=' . $type . '&app_id=' . $id)
-                            ->with('errors', $isValidarr['errors'])
-                            ->withInput($request->all());
+                        ->with('errors', $isValidarr['errors'])
+                        ->withInput($request->all());
                     } else {
-
+                        
                         return redirect('jb-pension?scheme_id=' . encrypt($scheme_id) . '&type=' . $type . '&app_id=' . $id)
-                            ->with('errors', $isValidarr['errors']);
-
+                        ->with('errors', $isValidarr['errors']);
+                        
                     }
                 }
                 if (!empty($request->aadhar_no)) {
@@ -282,7 +281,7 @@ class JBPensionController extends Controller
                         return back()->with('errors', $errors)->withInput();
                     }
                 }
-
+                
                 if (!preg_match('/^[0-9]{10}+$/', $request->mobile_no)) {
                     $errors = array();
                     $errorMsg = "Mobile Number Invalid";
@@ -313,13 +312,13 @@ class JBPensionController extends Controller
                 $bank_account_number = trim($request->bank_account_number);
                 $bank_branch = trim($request->bank_branch);
                 $name_of_bank = trim($request->name_of_bank);
-
-
+                
+                
                 $scheme_obj = Scheme::where('id', $scheme_id)->where('is_active', 1)->first();
                 if (empty($scheme_obj)) {
                     return redirect("/")->with('danger', 'Scheme Not Found');
                 }
-
+                
                 if (!empty($scheme_obj->short_code)) {
                     $schema = $scheme_obj->short_code;
                     $scheme_length = $scheme_obj->scheme_length;
@@ -328,7 +327,7 @@ class JBPensionController extends Controller
                 } else {
                     $schema = "pension";
                 }
-
+                
                 $BankCheck = DupCheck::dupBankCheckSame($scheme_id, $bank_account_number, $id);
                 if ($BankCheck) {
                     $errors[] = "Bank account is Duplicate ";
@@ -361,9 +360,12 @@ class JBPensionController extends Controller
                 if ($CasteCheckCross) {
                     $errors[] = "Caste Certificate is Duplicate with Cross Scheme ";
                 }
-
+                
+                // dd($errors);   
                 if (!empty($errors)) {
-                    return back()->with('errors', $errors)->withInput();
+                    return redirect('jb-pension?scheme_id=' . encrypt($scheme_id) . '&type=' . $type . '&app_id=' . $id)
+                    ->with('errors', $errors)
+                    ->withInput();
                 }
 
                 // dd($id);
@@ -812,7 +814,7 @@ class JBPensionController extends Controller
                             $accept_reject_model->user_id = $user_id;
                             $accept_reject_model->created_by_dist_code = $district_code;
                             $accept_reject_model->created_by_local_body_code = $created_by_local_body_code;
-                            $accept_reject_model->op_type = class_basename(request()->route()->getAction()['controller']) . '@' . $type;
+                            $accept_reject_model->op_type = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod() . '@' . $type;
                             $accept_reject_model->ip_address = $request->ip();
                             $accept_reject_model->save();
 

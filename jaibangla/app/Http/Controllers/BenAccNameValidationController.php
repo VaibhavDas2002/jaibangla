@@ -24,6 +24,10 @@ use App\Helpers\AuthChecker;
 
 class BenAccNameValidationController extends Controller
 {
+    protected $ben_status;
+    private $failed_table;
+    private $payment_table;
+    
     public function __construct()
     {
         set_time_limit(120);
@@ -57,7 +61,7 @@ class BenAccNameValidationController extends Controller
         //     'As per the department instruction validation correction is temporarily suspended'
         // );
         $user_id = AuthChecker::getUserId();
-        $designation = Auth::user()->designation_id_old;
+        $designation = Auth::user()->designation_id;
         $mapObj = DB::connection('pgsql_mis')
             ->table('public.duty_assignement')
             ->where('user_id', $user_id)
@@ -69,7 +73,7 @@ class BenAccNameValidationController extends Controller
                 $user_id .
                 ' and is_active=1) order by scheme_name'
         );
-        if (Auth::user()->designation_id_old == 'Verifier') {
+        if (Auth::user()->designation_id == 'Verifier') {
             if (count($scheme) > 0) {
                 if ($mapObj->is_urban == 1) {
                     $urban_body_code = $mapObj->urban_body_code;
@@ -105,7 +109,7 @@ class BenAccNameValidationController extends Controller
                     'User disabled. No scheme assign to this user'
                 );
             }
-        } elseif (Auth::user()->designation_id_old == 'Approver' ) {
+        } elseif (Auth::user()->designation_id == 'Approver' ) {
             return view('benNameAccValidation/index', [
                 'schemes' => $scheme,
                 'mapLevel' => $mapObj->mapping_level . $designation,
@@ -897,7 +901,7 @@ class BenAccNameValidationController extends Controller
                     $user_id .
                     ' and is_active=1) order by scheme_name'
         );
-        if (Auth::user()->designation_id_old == 'Approver') {
+        if (Auth::user()->designation_id == 'Approver') {
             $levels = [
                 2 => 'Rural',
                 1 => 'Urban',
@@ -930,7 +934,7 @@ class BenAccNameValidationController extends Controller
                 $name_validation_type = NULL;
             }
             $table_name = $this->getSchemaName($scheme_id);
-            if (Auth::user()->designation_id_old == 'Approver' && !empty($scheme_id) && !empty($failed_type)) {
+            if (Auth::user()->designation_id == 'Approver' && !empty($scheme_id) && !empty($failed_type)) {
                 if (!empty($rural_urban) && empty($local_body_code)) {
                 $query ="select * from
                 (select T.* from

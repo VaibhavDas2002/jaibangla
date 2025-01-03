@@ -36,12 +36,14 @@ use App\Helpers\AuthChecker;
 use Carbon\Carbon;
 use App\Helpers\Helper;
 use App\Helpers\DupCheck;
+use Illuminate\Support\Facades\Route;
 
 
 class DuplicateControllerBank extends Controller
 {
     public $source_type;
     public $ben_status;
+    public $scheme_id;
 
     public function __construct()
     {
@@ -89,7 +91,7 @@ class DuplicateControllerBank extends Controller
         $this->middleware('auth');
         $is_verifier = AuthChecker::VerifierChecker();
         $is_approver = AuthChecker::ApproverChecker();
-        // $designation_id_old = Auth::user()->designation_id_old;
+        // $designation_id = Auth::user()->designation_id;
         $userId = AuthChecker::getUserId();
         if (AuthChecker::ApproverChecker() || AuthChecker::VerifierChecker()) {
             $is_active = 1;
@@ -126,9 +128,9 @@ class DuplicateControllerBank extends Controller
         $urban_body_code = NULL;
         $district_code = NULL;
         $user_id = AuthChecker::getUserId();
-        $designation_id_old = Auth::user()->designation_id_old;
+        $designation_id = Auth::user()->designation_id;
         $errormsg = Config::get('constants.errormsg');
-        $roleArray = $request->session()->get('role');
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
         foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == $scheme_id) {
                 $is_active = 1;
@@ -196,10 +198,10 @@ class DuplicateControllerBank extends Controller
         }
         // dd($scheme_id);
         $scheme_row = Scheme::where('id', $scheme_id)->first();
-        $designation_id_old = Auth::user()->designation_id_old;
+        $designation_id = Auth::user()->designation_id;
         $urban_body_code = NULL;
         $district_code = NULL;
-        $roleArray = $request->session()->get('role');
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
         foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == $scheme_id) {
                 $is_active = 1;
@@ -315,7 +317,7 @@ class DuplicateControllerBank extends Controller
                 'bank_code' => $request->bank_code,
                 'scheme_id' => $scheme_id,
                 'scheme_name' => $scheme_row->scheme_name,
-                'designation_id_old' => $designation_id_old,
+                'designation_id' => $designation_id,
                 'sessiontimeoutmessage' => $errormsg['sessiontimeOut']
             ]
         );
@@ -332,11 +334,11 @@ class DuplicateControllerBank extends Controller
             return redirect("/dedupBankSelectScheme")->with('error', 'Scheme Not Valid');
         }
         $user_id = AuthChecker::getUserId();
-        $designation_id_old = Auth::user()->designation_id_old;
+        $designation_id = Auth::user()->designation_id;
         $urban_body_code = NULL;
         $district_code = NULL;
         $errormsg = Config::get('constants.errormsg');
-        $roleArray = $request->session()->get('role');
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
         foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == $scheme_id) {
                 $is_active = 1;
@@ -535,10 +537,10 @@ class DuplicateControllerBank extends Controller
                 return redirect("/dedupBankSelectScheme")->with('error', 'Scheme Not Valid');
             }
             $is_active = 0;
-            $designation_id_old = Auth::user()->designation_id_old;
+            $designation_id = Auth::user()->designation_id;
             $urban_body_code = NULL;
             $district_code = NULL;
-            $roleArray = $request->session()->get('role');
+            $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
             foreach ($roleArray as $roleObj) {
                 if ($roleObj['scheme_id'] == $scheme_id) {
                     $is_active = 1;
@@ -664,8 +666,8 @@ class DuplicateControllerBank extends Controller
     {
         $this->middleware('auth');
         $scheme_id = $this->scheme_id;
-        $designation_id_old = Auth::user()->designation_id_old;
-        if ($designation_id_old != 'HOD') {
+        $designation_id = Auth::user()->designation_id;
+        if ($designation_id != 'HOD') {
             return redirect("/")->with('error', 'User Disabled. ');
         }
         $districts = District::get();
@@ -681,7 +683,7 @@ class DuplicateControllerBank extends Controller
     {
         $this->middleware('auth');
         $scheme_id = $this->scheme_id;
-        // $designation_id_old = Auth::user()->designation_id_old;
+        // $designation_id = Auth::user()->designation_id;
         if (!AuthChecker::HODChecker()) {
             return redirect("/")->with('error', 'User Disabled. ');
         }
@@ -782,9 +784,9 @@ class DuplicateControllerBank extends Controller
             return redirect("/dedupBankSelectScheme")->with('error', 'Scheme Not Valid');
         }
         $user_id = AuthChecker::getUserId();
-        $designation_id_old = Auth::user()->designation_id_old;
+        $designation_id = Auth::user()->designation_id;
         $errormsg = Config::get('constants.errormsg');
-        $roleArray = $request->session()->get('role');
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
         foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == $scheme_id) {
                 $is_active = 1;
@@ -974,12 +976,12 @@ class DuplicateControllerBank extends Controller
             return redirect("/dedupBankSelectScheme")->with('error', 'Scheme Not Valid');
         }
         $user_id = AuthChecker::getUserId();
-        $designation_id_old = Auth::user()->designation_id_old;
+        $designation_id = Auth::user()->designation_id;
         $urban_body_code = NULL;
         $district_code = NULL;
         $mapping_level = NULL;
         $errormsg = Config::get('constants.errormsg');
-        $roleArray = $request->session()->get('role');
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
         foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == $scheme_id) {
                 $is_active = 1;
@@ -1436,10 +1438,10 @@ class DuplicateControllerBank extends Controller
             $return_msg = 'Scheme Not Valid';
             return response()->json(['return_status' => $return_status, 'return_msg' => $return_msg]);
         }
-        // $designation_id_old = Auth::user()->designation_id_old;
+        // $designation_id = Auth::user()->designation_id;
         $distCode = NULL;
         $user_id = AuthChecker::getUserId();
-        $roleArray = $request->session()->get('role');
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
         foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == $scheme_id) {
                 $is_active = 1;
@@ -1562,11 +1564,11 @@ class DuplicateControllerBank extends Controller
             return redirect("/dedupBankSelectScheme")->with('error', 'Scheme Not Valid');
         }
         $user_id = AuthChecker::getUserId();
-        // $designation_id_old = Auth::user()->designation_id_old;
+        // $designation_id = Auth::user()->designation_id;
         $urban_body_code = NULL;
         $district_code = NULL;
         $errormsg = Config::get('constants.errormsg');
-        $roleArray = $request->session()->get('role');
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
         foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == $scheme_id) {
                 $is_active = 1;
@@ -1746,8 +1748,8 @@ class DuplicateControllerBank extends Controller
         $c_time = Carbon::now();
         $c_date = $c_time->format("Y-m-d");
         $is_active = 0;
-        $roleArray = $request->session()->get('role');
-        // $designation_id_old = Auth::user()->designation_id_old;
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+        // $designation_id = Auth::user()->designation_id;
         $userId = AuthChecker::getUserId();
         $district_visible = $is_urban_visible = $block_visible = 1;
         $municipality_visible = 0;
@@ -2095,7 +2097,7 @@ class DuplicateControllerBank extends Controller
             $user_id .
             ' and is_active=1) order by scheme_name'
         );
-        if (Auth::user()->designation_id_old == 'Approver') {
+        if (Auth::user()->designation_id == 'Approver') {
             $levels = [
                 2 => 'Rural',
                 1 => 'Urban'
@@ -2122,7 +2124,7 @@ class DuplicateControllerBank extends Controller
             } else {
                 $schema = "pension";
             }
-            if (Auth::user()->designation_id_old == 'Approver' && !empty($scheme_id)) {
+            if (Auth::user()->designation_id == 'Approver' && !empty($scheme_id)) {
                 // $data = DB::connection('pgsql')->table($table_name)
                 //     ->where('next_level_role_id', 0)
                 //     ->where('lot_generated', $lot_generated)
@@ -2249,6 +2251,7 @@ class DuplicateControllerBank extends Controller
     }
     public function updateDeduplicateBankApprove(Request $request)
     {
+        $user_id = AuthChecker::getUserId();
 
         $response = [];
         $statusCode = 200;
@@ -2509,7 +2512,7 @@ class DuplicateControllerBank extends Controller
                             'ip_address' => $ip_address,
                             'action_by' => $user_id,
                             'action_ip_address' => $request->ip(),
-                            'action_type' => class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod()
+                            'action_type' => class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod()
                         ];
                         $updateDupTable = [];
                         $updateDupTable['revert_remarks'] = $accept_reject_comments;
@@ -2661,7 +2664,7 @@ class DuplicateControllerBank extends Controller
                                 'ip_address' => $ip_address,
                                 'action_by' => $user_id,
                                 'action_ip_address' => $request->ip(),
-                                'action_type' => class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod()
+                                'action_type' => class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod()
                             ];
                             $updateBenDetailsData = array_merge($updateBenDetailsData, $updateBenDetailsData1);
                             $ben_main = DB::table($table_name)->where('id', $id)->first();
@@ -2788,7 +2791,7 @@ class DuplicateControllerBank extends Controller
                                 'ip_address' => $ip_address,
                                 'action_by' => $user_id,
                                 'action_ip_address' => $request->ip(),
-                                'action_type' => class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod()
+                                'action_type' => class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod()
                             ];
 
                             $updateDupTable = [];

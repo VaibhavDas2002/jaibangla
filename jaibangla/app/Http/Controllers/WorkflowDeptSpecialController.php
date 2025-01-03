@@ -11,18 +11,18 @@ use App\Taluka;
 use App\Ward;
 use App\UrbanBody;
 use App\GP;
-use Auth;
-use DB;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use App\Helpers\Helper;
 use App\SubDistrict;
 use Carbon\Carbon;
-use Config;
+use Illuminate\Support\Facades\Config;
 use App\BlkUrbanlEntryMapping;
 use App\RejectRevertReason;
 use App\AcceptRejectInfo;
 use App\Scheme;
 use App\DocumentType;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 use App\Helpers\AuthChecker;
 
 class WorkflowDeptSpecialController extends Controller
@@ -36,8 +36,8 @@ class WorkflowDeptSpecialController extends Controller
   public function shemeSelection(Request $request)
   {
          $this->middleware('auth');
-        $roleArray = $request->session()->get('role');
-        $designation_id_old = Auth::user()->designation_id_old;
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                $designation_id = Auth::user()->designation_id;
         $userId = Auth::user()->id;       
         $scheme_list = DB::select(DB::raw("select id,scheme_name from m_scheme where id IN (10) and  id in (select scheme_id from duty_assignement where user_id=" . $userId . " and is_active=1) and is_active=1 order by scheme_name"));
         //dd($scheme_list);
@@ -45,17 +45,17 @@ class WorkflowDeptSpecialController extends Controller
             'DeptSpecial.selectSchemeOp',
             [
                 'scheme_list' => $scheme_list,
-                'designation_id_old' => $designation_id_old,
+                'designation_id' => $designation_id,
             ]
         );
   }
   public function showApplicantDetails(Request $request)
   {
     return redirect('/')->with('error', 'Not Allowded');
-    $designation_id_old = Auth::user()->designation_id_old;
-   // dd($designation_id_old);
+    $designation_id = Auth::user()->designation_id;
+   // dd($designation_id);
     $user_id = AuthChecker::getUserId();
-    if ($designation_id_old == 'Verifier' || $designation_id_old == 'Approver') {
+    if ($designation_id == 'Verifier' || $designation_id == 'Approver') {
       $scheme_id = $request->scheme_id;
       if (!ctype_digit($scheme_id)) {
         return redirect("/scheme-selection-nsap-marked")->with('error', 'Scheme Not Valid');
@@ -89,9 +89,9 @@ class WorkflowDeptSpecialController extends Controller
       $query = DB::table($schema . '.beneficiary')
         ->where('created_by_dist_code', $district_code)
         ->where('id', $request->id);
-      if ($designation_id_old == 'Verifier') {
+      if ($designation_id == 'Verifier') {
         $query = $query->whereNull('next_level_role_id');
-      } else if ($designation_id_old == 'Approver') {
+      } else if ($designation_id == 'Approver') {
         $query = $query->where('next_level_role_id', $next_level_role_id);
       }
       $row = $query->first();
@@ -159,7 +159,7 @@ class WorkflowDeptSpecialController extends Controller
           'docs' => $docs,
           'image_id' => $doc_profile_image_id,
           'reject_revert_cause_list' => $reject_revert_cause_list,
-          'designation_id_old' => $designation_id_old,
+          'designation_id' => $designation_id,
           'next_level_role_id' => $next_level_role_id
         ]
       );
@@ -171,8 +171,8 @@ class WorkflowDeptSpecialController extends Controller
   {
     return redirect('/')->with('error', 'Not Allowded');
       $this->middleware('auth');
-      $designation_id_old = Auth::user()->designation_id_old;
-      //dd($designation_id_old);
+      $designation_id = Auth::user()->designation_id;
+      //dd($designation_id);
       $user_id = AuthChecker::getUserId();
   
       $scheme_id = $request->scheme_id;
@@ -254,7 +254,7 @@ class WorkflowDeptSpecialController extends Controller
         //dd($process_type);
         $query = DB::table($schema . '.beneficiary')
           ->where('created_by_dist_code', $district_code)->where('dept_mark',1);
-          if ($designation_id_old == 'Verifier') {
+          if ($designation_id == 'Verifier') {
             $query = $query->where('created_by_local_body_code', $created_by_local_body_code);
             if (!empty($application_type)) {
               if($application_type==1)
@@ -275,7 +275,7 @@ class WorkflowDeptSpecialController extends Controller
         if (!empty($request->gp_ward_code)) {
           $query = $query->where('gp_ward_code', $request->gp_ward_code);
         }
-        if ($designation_id_old == 'Approver') {
+        if ($designation_id == 'Approver') {
          // dd($next_level_role_id);
           if ($application_type!='') {
             if($application_type==1)
@@ -336,9 +336,9 @@ class WorkflowDeptSpecialController extends Controller
             $app_id = $data->created_by_dist_code . substr('0' . $data->scheme_id, -$scheme_length) . substr('0000000' . $data->id, -$id_length);
   
             return $app_id;
-          })->addColumn('view', function ($data) use ($scheme_id, $designation_id_old,$next_level_role_id) {
+          })->addColumn('view', function ($data) use ($scheme_id, $designation_id,$next_level_role_id) {
            
-            if ($designation_id_old == 'Verifier') {
+            if ($designation_id == 'Verifier') {
               if(is_null($data->next_level_role_id)){
                 $action = '<a href="' . route('showapplicantdeptspecial', ['id' => $data->id, 'scheme_id' => $data->scheme_id]) . '" class="btn btn-xs btn-primary"><i class="glyphicon glyphicon-edit"></i> View</a>&nbsp; &nbsp;';
                } else if($data->next_level_role_id==$next_level_role_id){
@@ -352,7 +352,7 @@ class WorkflowDeptSpecialController extends Controller
                 }
               
             }
-            if ($designation_id_old == 'Approver') {
+            if ($designation_id == 'Approver') {
               if($data->next_level_role_id==0){
                 $action ='Approved';
                }
@@ -408,7 +408,7 @@ class WorkflowDeptSpecialController extends Controller
       return view(
         'DeptSpecial.linelisting',
         [
-          'designation_id_old' => $designation_id_old,
+          'designation_id' => $designation_id,
           'verifier_type' => $verifier_type,
           'created_by_local_body_code' => $created_by_local_body_code,
           'is_rural' => $is_rural,
@@ -425,10 +425,10 @@ class WorkflowDeptSpecialController extends Controller
   public function verifydata(Request $request)
   {
     return redirect('/')->with('error', 'Not Allowded');
-    $designation_id_old = Auth::user()->designation_id_old;
-    //dd( $designation_id_old);
+    $designation_id = Auth::user()->designation_id;
+    //dd( $designation_id);
     $user_id = AuthChecker::getUserId();
-    if ($designation_id_old == 'Verifier' || $designation_id_old == 'Approver') {
+    if ($designation_id == 'Verifier' || $designation_id == 'Approver') {
       $scheme_id = $request->scheme_id;
       if (!ctype_digit($scheme_id)) {
         return redirect("/scheme-selection-dept-special")->with('error', 'Scheme Not Valid');
@@ -465,9 +465,9 @@ class WorkflowDeptSpecialController extends Controller
       //dd($next_level_role_id);
       $query = DB::table($schema . '.beneficiary')
         ->where('created_by_dist_code', $district_code)->where('id', $request->id)->where('dept_mark',1);
-      if ($designation_id_old == 'Verifier') {
+      if ($designation_id == 'Verifier') {
         $query =  $query->whereNull('next_level_role_id');
-      } else if ($designation_id_old == 'Approver') {
+      } else if ($designation_id == 'Approver') {
         $query = $query->where('next_level_role_id', $next_level_role_id);
       }
       $row = $query->first();
@@ -492,7 +492,7 @@ class WorkflowDeptSpecialController extends Controller
 
       if ($request->action_type == 'Verify') {
        // dd('ok');
-        $mapArr = MapLavel::where('scheme_id', $duty_obj->scheme_id)->where('role_name', $designation_id_old)->where('stack_level', $duty_obj->mapping_level)->get(['id', 'role_name', 'scheme_id', 'parent_id', 'is_final', 'stack_level', 'is_first', 'role_id'])->first();
+        $mapArr = MapLavel::where('scheme_id', $duty_obj->scheme_id)->where('role_name', $designation_id)->where('stack_level', $duty_obj->mapping_level)->get(['id', 'role_name', 'scheme_id', 'parent_id', 'is_final', 'stack_level', 'is_first', 'role_id'])->first();
         if (empty($mapArr)) {
           return redirect("/")->with('danger', 'Not Allowed');
         }
@@ -537,7 +537,7 @@ class WorkflowDeptSpecialController extends Controller
         }
       } else if ($request->action_type == 'Approve') {
         //dd('ok');
-        $mapArr = MapLavel::where('scheme_id', $duty_obj->scheme_id)->where('role_name', $designation_id_old)->where('stack_level', $duty_obj->mapping_level)->get(['id', 'role_name', 'scheme_id', 'parent_id', 'is_final', 'stack_level', 'is_first', 'role_id'])->first();
+        $mapArr = MapLavel::where('scheme_id', $duty_obj->scheme_id)->where('role_name', $designation_id)->where('stack_level', $duty_obj->mapping_level)->get(['id', 'role_name', 'scheme_id', 'parent_id', 'is_final', 'stack_level', 'is_first', 'role_id'])->first();
         if (empty($mapArr)) {
           return redirect("/")->with('danger', 'Not Allowed');
         }

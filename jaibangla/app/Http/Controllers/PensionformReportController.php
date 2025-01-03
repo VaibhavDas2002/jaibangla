@@ -91,7 +91,7 @@ class PensionformReportController extends Controller
         $ben_table = "";
 
         $pr1 = $request->get('pr1');
-
+        $user_id = AuthChecker::getUserId();
         $scheme_code_map = Config::get('constants.scheme_code_map');
         $scheme_details = '';
         if (array_key_exists($pr1, $scheme_code_map)) {
@@ -103,9 +103,9 @@ class PensionformReportController extends Controller
 
             $is_active = 0;
             $roleArray = $request->session()->get('role');
-            $designation_id_old = Auth::user()->designation_id_old;
-            // dd($designation_id_old);
-            if ($designation_id_old == 'HOD' || $designation_id_old == 'SpecialStatusCheck' || $designation_id_old == 'AuditOfficer' || $designation_id_old == 'Special LAO') {
+            $designation_id = Auth::user()->designation_id;
+            // dd($designation_id);
+            if ($designation_id == 'HOD' || $designation_id == 'SpecialStatusCheck' || $designation_id == 'AuditOfficer' || $designation_id == 'Special LAO') {
                 if ($scheme_id == 2 || $scheme_id == 1 || $scheme_id == 11 || $scheme_id == 13 || $scheme_id == 17 || $scheme_id == 18 || $scheme_id == 8 || $scheme_id == 9 || $scheme_id == 5 || $scheme_id == 10) {
                     $request->session()->put('scheme_id', $scheme_id);
                     $request->session()->put('scheme_name', $scheme_row['scheme_name']);
@@ -147,7 +147,7 @@ class PensionformReportController extends Controller
     {
         //  dd($request->all());
         $phase_list = DsPhase::orderBy('id')->get();
-        $designation_id_old = Auth::user()->designation_id_old;
+        $designation_id = Auth::user()->designation_id;
         if (!$request->has('pr1')) {
             return redirect('/')->with('error', 'Signature Error: Scheme Type not selected');
         }
@@ -633,7 +633,7 @@ class PensionformReportController extends Controller
                     ->with('muncList', $muncList)
                     ->with('gpwardList', $gpwardList)
                     ->with('mappingLevel', $mappingLevel)
-                    ->with('designation_id_old', $designation_id_old)
+                    ->with('designation_id', $designation_id)
                     ->with('download_excel', $download_excel);
             }
         } else {

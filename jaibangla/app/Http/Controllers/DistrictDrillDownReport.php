@@ -284,7 +284,7 @@ class DistrictDrillDownReport extends Controller
 
   public function showSingleEmployeeReport($id, $s_id)
   {
-    //if(Auth::user()->designation_id_old == 'Dashboardviewer'){
+    //if(Auth::user()->designation_id == 'Dashboardviewer'){
     if ($s_id == 3) {
       $ben_table = "PensionSc";
     } else if ($s_id == 1) {
@@ -315,17 +315,17 @@ class DistrictDrillDownReport extends Controller
     $c_time = Carbon::now();
     $c_date = $c_time->format("Y-m-d");
     $is_active = 0;
-    $roleArray = $request->session()->get('role');
+    $roleArray = Configduty::where('user_id', $user_id)->where('is_active', 1)->get()->toArray();;
 
-    $designation_id_old = Auth::user()->designation_id_old;
+    $designation_id = Auth::user()->designation_id;
     $district_visible = $is_urban_visible = $block_visible = 1;
     $municipality_visible = 0;
     $gp_ward_visible = 0;
     $muncList = collect([]);
     $gpList = collect([]);
-    if ($designation_id_old == 'Admin' || $designation_id_old == 'HOD' ||  $designation_id_old == 'Dashboard') {
+    if ($designation_id == 'Admin' || $designation_id == 'HOD' ||  $designation_id == 'Dashboard') {
       $district_visible = $is_urban_visible = $block_visible = 1;
-    } else if ($designation_id_old == 'Approver' || $designation_id_old == 'Verifier' || $designation_id_old == 'StatusCheckerDistrict' || $designation_id_old == 'StatusCheckerField') {
+    } else if ($designation_id == 'Approver' || $designation_id == 'Verifier' || $designation_id == 'StatusCheckerDistrict' || $designation_id == 'StatusCheckerField') {
       $district_code = NULL;
       $is_urban = NULL;
       $blockCode = NULL;

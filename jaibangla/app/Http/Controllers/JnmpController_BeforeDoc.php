@@ -53,9 +53,9 @@ class JnmpController extends Controller
     public function index(Request $request)
     {
         $is_active = 0;
-        $roleArray = $request->session()->get('role');
-        // echo '<pre>'; print_r($roleArray);die();
-        $designation_id_old = Auth::user()->designation_id_old;
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                // echo '<pre>'; print_r($roleArray);die();
+        $designation_id = Auth::user()->designation_id;
         $user_id = AuthChecker::getUserId();
         $district_visible = $is_urban_visible = $block_visible = 1;
         $municipality_visible = 0;
@@ -65,15 +65,15 @@ class JnmpController extends Controller
         $duty = Configduty::where('user_id', '=', $user_id)->first();
         $schemes = DB::select(DB::raw("select id,scheme_name,pr1_code,entry_url,display_name from m_scheme where id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . ") AND id in (2,10,11,13) order by rank"));
         // echo '<pre>';print_r($schemes);die();
-        if ($designation_id_old == 'Admin') {
+        if ($designation_id == 'Admin') {
             $district_visible = $is_urban_visible = $block_visible = 1;
-        } else if ($designation_id_old == 'Approver') {
+        } else if ($designation_id == 'Approver') {
             // echo 1;die();
             $district_code = NULL;
             $is_urban = NULL;
             $blockCode = NULL;
             foreach ($roleArray as $roleObj) {
-                // echo $designation_id_old;die();
+                // echo $designation_id;die();
                 if ($roleObj['scheme_id'] == 11 || $roleObj['scheme_id'] == 13) {
                     $is_urban = $roleObj['is_urban'];
                     $district_code = $roleObj['district_code'];
@@ -139,16 +139,16 @@ class JnmpController extends Controller
 
     public function jnmpMarkedData(Request $request)
     {
-        $roleArray = $request->session()->get('role');
-        $designation_id_old = Auth::user()->designation_id_old;
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                $designation_id = Auth::user()->designation_id;
         $user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id', '=', $user_id)->first();
         $schemes = DB::select(DB::raw("select id,scheme_name,pr1_code,entry_url,display_name from m_scheme where id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . ") AND id in(2,10,11,13) order by rank"));
-        if ($designation_id_old == 'Admin') {
+        if ($designation_id == 'Admin') {
             $district_code = NULL;
             $is_urban = NULL;
             $blockCode = NULL;
-        } else if ($designation_id_old == 'Approver') {
+        } else if ($designation_id == 'Approver') {
             $district_code = NULL;
             $is_urban = NULL;
             $blockCode = NULL;
@@ -297,9 +297,9 @@ class JnmpController extends Controller
             $ben_id = $request->id;
             $remarks = $request->remarks;
             // echo $remarks;die;
-            $designation_id_old = Auth::user()->designation_id_old;
-            $roleArray = $request->session()->get('role');
-            $district_code = NULL;
+            $designation_id = Auth::user()->designation_id;
+            $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                        $district_code = NULL;
             $urban_body_code = NULL;
             $mapping_level = NULL;
             $role_id = NULL;
@@ -318,7 +318,7 @@ class JnmpController extends Controller
                     break;
                 }
             }
-            if ($designation_id_old == 'Approver') {
+            if ($designation_id == 'Approver') {
             $is_active = 1;
             } else {
             $is_active = 0;
@@ -548,16 +548,16 @@ class JnmpController extends Controller
 
     public function generateExcel(Request $request)
     {
-        $roleArray = $request->session()->get('role');
-        $designation_id_old = Auth::user()->designation_id_old;
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                $designation_id = Auth::user()->designation_id;
         $user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id', '=', $user_id)->first();
         $schemes = DB::select(DB::raw("select id,scheme_name,pr1_code,entry_url,display_name from m_scheme where id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . ") AND id in(2,10,11,13) order by rank"));
-        if ($designation_id_old == 'Admin') {
+        if ($designation_id == 'Admin') {
             $district_code = NULL;
             $is_urban = NULL;
             $blockCode = NULL;
-        } else if ($designation_id_old == 'Approver') {
+        } else if ($designation_id == 'Approver') {
             $district_code = NULL;
             $is_urban = NULL;
             $blockCode = NULL;

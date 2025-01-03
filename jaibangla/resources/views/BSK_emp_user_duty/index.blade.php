@@ -153,7 +153,7 @@
                     <tr>
                       <th>Role: <span class="text-danger">*</span></th>
                       <td>
-                        <select class="form-control" name="designation_id_old" id="designation_id_old" required style="width: 100%;">
+                        <select class="form-control" name="designation_id" id="designation_id" required style="width: 100%;">
                             <!-- <option value="">--Select Role--</option> -->
                             @foreach ($designations as $designation)
                               <option selected value="{{$designation->id}}">{{$designation->name}}</option>
@@ -449,17 +449,17 @@
      $('#email').removeClass('has-error');
     }
 
-    if($.trim($('#designation_id_old').val()).length == 0)
+    if($.trim($('#designation_id').val()).length == 0)
     {
      error_designation = 'Role is required';
      $('#error_designation').text(error_designation);
-     $('#designation_id_old').addClass('has-error');
+     $('#designation_id').addClass('has-error');
     }
     else
     {
      error_designation = '';
      $('#error_designation').text(error_designation);
-     $('#designation_id_old').removeClass('has-error');
+     $('#designation_id').removeClass('has-error');
     }
 
     if($.trim($('#urban_code').val()).length == 0)
@@ -513,7 +513,7 @@
               var mobileNo = $('#mobile_no').val();
               var userName = $('#username').val();
               var email = $('#email').val();
-              var role = $('#designation_id_old').val();
+              var role = $('#designation_id').val();
               var scheme = $('#scheme').val();
               var district_code = $('#dist_code').val();
               var urbanCode = $('#urban_code').val();
@@ -529,7 +529,7 @@
                   mobile_no: mobileNo,
                   username: userName,
                   email: email,
-                  designation_id_old: role,
+                  designation_id: role,
                   schemelist: scheme,
                   urban_code : urbanCode,
                   body_code: bodyCode,

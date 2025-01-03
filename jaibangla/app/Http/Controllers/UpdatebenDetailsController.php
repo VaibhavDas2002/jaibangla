@@ -12,7 +12,7 @@ use App\Scheme;
 use App\UrbanBody;
 use App\Taluka;
 use App\UpdateBenDetails;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use App\Helpers\AuthChecker;
 
 
@@ -35,7 +35,7 @@ class UpdatebenDetailsController extends Controller
     
     public function searchByBenName(Request $request){
         $user_id = AuthChecker::getUserId();
-        $designation = Auth::user()->designation_id_old;
+        $designation = Auth::user()->designation_id;
         $mapObj = Configduty::where('user_id',$user_id)->where('is_active',1)->first();
         $dist_code = $mapObj->district_code;
         if ($mapObj->is_urban == 1) {
@@ -571,7 +571,7 @@ class UpdatebenDetailsController extends Controller
         $scheme_id = Configduty::select('scheme_id')->distinct()->where('user_id','=',$user_id)->where('is_active',1)->get();
         if(request()->ajax())
         {
-            $designation = Auth::user()->designation_id_old;
+            $designation = Auth::user()->designation_id;
             // IF ALL SCHEME SELECT
             $scheme_arr=[];
             foreach ($scheme_id as $k) {

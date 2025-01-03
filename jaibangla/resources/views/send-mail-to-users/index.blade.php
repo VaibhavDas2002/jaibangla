@@ -71,7 +71,7 @@
                         <select class="form-control select2" name="designation" id='designation' required>
                           <option value="">--Select Designation--</option>
                           @foreach ($designations as $designation)
-                          <option value="{{$designation->designation_id_old}}">{{$designation->designation_id_old}}</option>
+                          <option value="{{$designation->designation_id}}">{{$designation->designation_id}}</option>
                           @endforeach
                         </select>
                         <span class="text-danger" id="error_desig"></span>

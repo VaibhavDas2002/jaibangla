@@ -31,12 +31,12 @@ use App\Ward;
 use App\GP;
 use App\User;
 use Redirect;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use App\Scheme;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
 use App\BankDetails;
 use App\Helpers\Helper;
@@ -72,8 +72,8 @@ class FishermanformController extends Controller
         // $base_url=url('/');
         // echo $base_url.'/images/';exit;        
 
-        $roleArray = $request->session()->get('role');
-        // dd($roleArray);
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                // dd($roleArray);
         foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == $scheme_id) {
                 $is_active = 1;
@@ -744,7 +744,7 @@ class FishermanformController extends Controller
         $id = $request->id;
         $scheme_id = (int) $request->scheme_id;
         // dd($scheme_id);
-        $designation_id_old = Auth::user()->designation_id_old;
+        $designation_id = Auth::user()->designation_id;
 
         if (!is_int($scheme_id)) {
             return redirect("/")->with('error', 'Scheme Code Not Valid');
@@ -755,8 +755,7 @@ class FishermanformController extends Controller
         $created_by = Auth::user()->id;
         $is_active = 0;
         $mapping_level = NULL;
-        $roleArray = $request->session()->get('role');
-        foreach ($roleArray as $roleObj) {
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray()        foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == $scheme_id) {
                 $is_active = 1;
                 $mapping_level = $roleObj['mapping_level'];
@@ -774,9 +773,9 @@ class FishermanformController extends Controller
             return redirect("/")->with('error', 'User Disabled');
         }
         $query = PensionFisherman::where(['id' => $id, 'created_by_dist_code' => $distCode, 'scheme_id' => $scheme_id]);
-        if ($designation_id_old == 'Verifier') {
+        if ($designation_id == 'Verifier') {
             $query = $query->whereNull('next_level_role_id');
-        } else if ($designation_id_old == 'Approver') {
+        } else if ($designation_id == 'Approver') {
             $query = $query->where('is_verified',1)->where('is_approved',0)->where('is_rejected',0);
         } else {
             $query = $query->whereNull('next_level_role_id');
@@ -1106,7 +1105,7 @@ class FishermanformController extends Controller
                 DB::commit();
                 DB::connection('pgsql_encwrite')->commit();
                 DB::connection('pgsql6')->commit();
-                if ($designation_id_old == 'Operator')
+                if ($designation_id == 'Operator')
                    return redirect("application-list-read-only-edit?pr1=" . $scheme_schema)->with('success', 'Application Updated Successfully')
                 ->with('id',   $id);
               else {
@@ -1117,7 +1116,7 @@ class FishermanformController extends Controller
                 DB::connection('pgsql6')->rollback();
                 DB::rollback();
                 DB::connection('pgsql_encwrite')->rollback();
-                if ($designation_id_old == 'Operator')
+                if ($designation_id == 'Operator')
                  return redirect("/application-edit?id=" . $request->id . "&scheme_id=" . $request->scheme_id)->with('errors', array('Some error.Please try again'));
                 else {
                   return redirect('/')->with('danger', 'Some error.Please try again');
@@ -1129,7 +1128,7 @@ class FishermanformController extends Controller
             DB::rollback();
             DB::connection('pgsql_encwrite')->rollback();
             DB::connection('pgsql6')->rollback();
-            if ($designation_id_old == 'Operator') {
+            if ($designation_id == 'Operator') {
                 return redirect("application-list-read-only-edit?pr1=" . $scheme_schema)->with('error', 'Some error.Please try again')
                     ->with('id',  $row->getBenidAttribute());
             } else {

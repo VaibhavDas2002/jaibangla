@@ -367,7 +367,7 @@ margin: 10px 0px 10px 0px !important;
                        <!-- <center> 
                        <button type="button" id="submit" value="Submit"
                           class="btn btn-success success btn-lg modal-submit">
-                          @if($designation_id_old=='Verifier' && $row->next_level_role_id==1) Import & Verify @endif @if($designation_id_old=='Approver' && $row->next_level_role_id==2) Approve @endif</button>
+                          @if($designation_id=='Verifier' && $row->next_level_role_id==1) Import & Verify @endif @if($designation_id=='Approver' && $row->next_level_role_id==2) Approve @endif</button>
                        
                           &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <button type="button" id="reject" value="reject"
                           class="btn btn-danger btn-lg modal-submit">
@@ -419,7 +419,7 @@ margin: 10px 0px 10px 0px !important;
 <div id="modalReject" class="modal fade">
   <form method="POST" action="{{url('lbapplicationVerify')}}"  name="verifyReject" id="verifyReject">
   <input type="hidden" name="_token" value="{{ csrf_token() }}">
-  <input type="hidden" name="designation_id_old" id="designation_id_old" value="{{$designation_id_old}}"/>
+  <input type="hidden" name="designation_id" id="designation_id" value="{{$designation_id}}"/>
   <input type="hidden" name="action_type" id="action_type" />
   <input type="hidden" name="scheme_id" id="scheme_id" value="{{$row->scheme_id}}"/>
   <input type="hidden" name="id" id="id" value="{{$row->lb_application_id}}"/>
@@ -454,13 +454,13 @@ $(document).ready(function(){
   $("#submittingapprove").hide();
   $('#submit').click(function(){
       
-      var designation_id_old=$("#designation_id_old").val();
+      var designation_id=$("#designation_id").val();
       $("#action_type").val('');
-      if(designation_id_old=='Verifier'){
+      if(designation_id=='Verifier'){
         $("#action_type").val(2);
         $('.verify_reject').text('Import & Verify');
       }
-      if(designation_id_old=='Approver'){
+      if(designation_id=='Approver'){
         $("#action_type").val(3);
         $('.verify_reject').text('Approve');
       }

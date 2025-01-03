@@ -16,7 +16,7 @@ class DatabaseInstanceController extends Controller
     }
     public function index()
     {
-        $designation = Auth::user()->designation_id_old;
+        $designation = Auth::user()->designation_id;
         if ($designation == 'Admin') {
             return view('database_instance.db_ins');
         } else {

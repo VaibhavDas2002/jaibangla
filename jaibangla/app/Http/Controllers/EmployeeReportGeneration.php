@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 use App\nhm_employee_details;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use App\Configduty;
 use App\Helpers\AuthChecker;
 
@@ -21,7 +21,7 @@ class EmployeeReportGeneration extends Controller
     public function index()
     {
 
-         if(Auth::user()->designation_id_old == 'Admin'){
+         if(Auth::user()->designation_id == 'Admin'){
         
         $report = DB::table('nhm_employee_details')->paginate(5);
         
@@ -44,15 +44,15 @@ class EmployeeReportGeneration extends Controller
                         $body_code = $duty->taluka_code;
                     }   
                 } 
-            if(Auth::user()->designation_id_old == 'Operator')
+            if(Auth::user()->designation_id == 'Operator')
             {
              $report = nhm_employee_details::where('body_code','=',$body_code)->paginate(10);//->get();
             }
-            if(Auth::user()->designation_id_old == 'Verifier')
+            if(Auth::user()->designation_id == 'Verifier')
             {
              $report = nhm_employee_details::where('body_code','=',$body_code)->paginate(10);//->get();
             }
-            if(Auth::user()->designation_id_old == 'Approver')
+            if(Auth::user()->designation_id == 'Approver')
             {
              $report = nhm_employee_details::where('body_code','=',$body_code)->where('verification_status','=','Verified')->paginate(10);//->get();
             }

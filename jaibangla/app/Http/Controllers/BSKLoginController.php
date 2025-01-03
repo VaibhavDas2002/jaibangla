@@ -41,7 +41,7 @@ class BSKLoginController extends Controller
         $duty = Configduty::where('user_id', '=', $user_id)->where('is_active', 1)->where('scheme_id',2)->get();
         // print_r($duty);die;
         foreach ($duty as $dutyObj) {
-          $mapArr = MapLavel::where('scheme_id', $dutyObj->scheme_id)->where('role_name', $userObj->designation_id_old)->where('stack_level', $dutyObj->mapping_level)->get(['id', 'role_name', 'scheme_id', 'parent_id', 'is_final', 'stack_level', 'is_first', 'role_id'])->toArray();
+          $mapArr = MapLavel::where('scheme_id', $dutyObj->scheme_id)->where('role_name', $userObj->designation_id)->where('stack_level', $dutyObj->mapping_level)->get(['id', 'role_name', 'scheme_id', 'parent_id', 'is_final', 'stack_level', 'is_first', 'role_id'])->toArray();
 
           // print_r($mapArr);die();
           if (count($mapArr) > 0) {

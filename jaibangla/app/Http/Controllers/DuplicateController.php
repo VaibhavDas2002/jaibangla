@@ -7,14 +7,15 @@ use App\User;
 use App\District;
 use App\Scheme;
 use Redirect;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 use DateTime;
-use Config;
+use Illuminate\Support\Facades\Config;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Configduty;
 
 class DuplicateController extends Controller
 {
@@ -29,8 +30,8 @@ class DuplicateController extends Controller
         $scheme_code = $request->scheme_code;
         if ($scheme_code == 10 || $scheme_code == 11) {
             $district_code = NULL;
-            $roleArray = $request->session()->get('role');
-            foreach ($roleArray as $roleObj) {
+            $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                        foreach ($roleArray as $roleObj) {
                 if ($roleObj['scheme_id'] == 10) {
                     $district_code = $roleObj['district_code'];
                     break;

@@ -188,7 +188,7 @@ desired effect
             <form method="post" id="register_form"   class="submit-once" >
               {{ csrf_field() }}
         
-            <input type="hidden" name="desgisnation_id" id="desgisnation_id" value="{{$designation_id_old}}"/>
+            <input type="hidden" name="desgisnation_id" id="desgisnation_id" value="{{$designation_id}}"/>
 
 
             <div class="tab-content" style="margin-top:16px;">
@@ -319,7 +319,7 @@ $(document).ready(function(){
   $('.sidebar-menu #lk-main').addClass("active"); 
   $('.sidebar-menu #dupBankmis').addClass("active"); 
   $('.modal-search').on('click',function(){
-  var designation_id_old=$("#desgisnation_id").val();
+  var designation_id=$("#desgisnation_id").val();
   var scheme_id=$("#scheme_id").val();
   if($.trim($('#scheme_id').val()).length == 0)
   {

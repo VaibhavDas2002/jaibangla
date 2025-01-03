@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\BenEntry;
-use App\Http\Controllers\PurohitICADformController;
 use Illuminate\Http\Request;
 //use App\Http\Controllers\Redirect;
 use App\programmeHeadMaster;
@@ -39,13 +38,13 @@ use App\Ward;
 use App\GP;
 use App\User;
 use Redirect;
-use Auth;
-use Config;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use App\Scheme;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
 use App\BankDetails;
 use App\Helpers\Helper;
@@ -57,6 +56,7 @@ use App\Helpers\AuthChecker;
 
 class PurohitICADformController extends Controller
 {
+  protected $pr1ListPurohit;
 
   public function __construct()
   {
@@ -102,7 +102,7 @@ class PurohitICADformController extends Controller
     }
     if ($valid) {
       if ($code != '') {
-        $roleArray = $request->session()->get('role');
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
         foreach ($roleArray as $roleObj) {
           if ($roleObj['scheme_id'] == $scheme_id) {
             $is_active = 1;
@@ -186,9 +186,12 @@ class PurohitICADformController extends Controller
         return view('PurohitICAD/addForm', [
           'monthlySlug' => $monthlySlug,
           'housingSlug' => $housingSlug,
-          'code' => $code, 'scheme_id' => $scheme_id,
-          'districts' => $districts, 'document_msg' => $document_msg,
-          'doc_list_man' => $doc_list_man, 'doc_list_opt' => $doc_list_opt,
+          'code' => $code,
+          'scheme_id' => $scheme_id,
+          'districts' => $districts,
+          'document_msg' => $document_msg,
+          'doc_list_man' => $doc_list_man,
+          'doc_list_opt' => $doc_list_opt,
           'profile_img' => $doc_profile_image_id
         ]);
       } else {
@@ -460,12 +463,12 @@ class PurohitICADformController extends Controller
       $assembly_name = null;
     }
 
-    $this->validateInput($request,  $scheme_id);
+    $this->validateInput($request, $scheme_id);
     if (!empty($request->aadhar_no)) {
       if ($this->isAadharValid(trim($request->aadhar_no)) == false) {
         $errors = array();
         $errorMsg = "Aadhaar Number Invalid";
-        
+
         array_push($errors, $errorMsg);
         //dd($errors);
         return back()->withErrors($errors)->withInput();
@@ -474,7 +477,7 @@ class PurohitICADformController extends Controller
     if (!preg_match('/^[0-9]{10}+$/', $request->mobile_no)) {
       $errors = array();
       $errorMsg = "Mobile Number Invalid";
-      
+
       array_push($errors, $errorMsg);
       //dd($errors);
       return back()->withErrors($errors)->withInput();
@@ -482,7 +485,7 @@ class PurohitICADformController extends Controller
     if ($request->mobile_no < 1000000000) {
       $errors = array();
       $errorMsg = "Mobile Number Invalid";
-      
+
       array_push($errors, $errorMsg);
       //dd($errors);
       return back()->withErrors($errors)->withInput();
@@ -490,15 +493,15 @@ class PurohitICADformController extends Controller
     $check_condition_str = Helper::getCheckNextLevelRoleIdCon($scheme_id);
     //dd($this->pr1ListPurohit['monthly']['slug']);
     $count1 = DB::table('pension.beneficiaries')
-    ->where('aadhar_no', trim($request->aadhar_no))
-    ->where('scheme_id', $scheme_id)
-    ->whereRaw("(" . $check_condition_str . ")")
-    ->whereIn('is_clean', [1, 2])
-    ->count('id');
+      ->where('aadhar_no', trim($request->aadhar_no))
+      ->where('scheme_id', $scheme_id)
+      ->whereRaw("(" . $check_condition_str . ")")
+      ->whereIn('is_clean', [1, 2])
+      ->count('id');
 
     if ($count1 > 0) {
       $errors = array();
-      
+
       $errorMsg = "Aadhaar Number Already Exist! Please try different.";
       array_push($errors, $errorMsg);
       //dd($errors);
@@ -507,20 +510,20 @@ class PurohitICADformController extends Controller
     //--------- Duplicate bank A/C check---------- //
     $bankCount = BenEntry::whereRaw("trim(bank_code)=trim(" . "'" . $request->bank_account_number . "'" . ")")
       ->whereRaw("(" . $check_condition_str . ")")
-      ->where('scheme_id',$scheme_id)
+      ->where('scheme_id', $scheme_id)
       ->count('id');
     if ($bankCount > 0) {
       $errors = array();
-      
+
       $errorMsg = "Bank A/C Already Exist!";
       array_push($errors, $errorMsg);
       //dd($errors);
       return back()->withErrors($errors)->withInput();
     }
-    $count_mobile = DB::table('pension.beneficiaries')->where('scheme_id',$scheme_id)->where('mobile_no', $request->mobile_no)->whereIn('is_clean', [1, 2])->whereRaw("(" . $check_condition_str . ")")->count('id');
+    $count_mobile = DB::table('pension.beneficiaries')->where('scheme_id', $scheme_id)->where('mobile_no', $request->mobile_no)->whereIn('is_clean', [1, 2])->whereRaw("(" . $check_condition_str . ")")->count('id');
     if ($count_mobile > 0) {
       $errors = array();
-      
+
       $errorMsg = "Mobile Number Already Exist! Please try different.";
       array_push($errors, $errorMsg);
       //dd($errors);
@@ -538,7 +541,7 @@ class PurohitICADformController extends Controller
     if ($row_count_bank == 0) {
       $errors = array();
       $errorMsg = "Bank IFSC and Bank Name Not Match!";
-      
+
       array_push($errors, $errorMsg);
       //return back()->withErrors($errors)->withInput();
       //dd($errors);
@@ -556,7 +559,7 @@ class PurohitICADformController extends Controller
       $doc_list_opt = json_decode($doc_id_list[0]['doc_list_opt']);
     else
       $doc_list_opt = array();
-    if (($doc_id_list[0]['doc_list_man_group']) != '' &&  ($doc_id_list[0]['doc_list_man_group'] != 'null') && ($doc_id_list[0]['doc_list_man_group']) != null) {
+    if (($doc_id_list[0]['doc_list_man_group']) != '' && ($doc_id_list[0]['doc_list_man_group'] != 'null') && ($doc_id_list[0]['doc_list_man_group']) != null) {
 
       $doc_list_man_group_db = json_decode($doc_id_list[0]['doc_list_man_group']);
     } else {
@@ -585,21 +588,20 @@ class PurohitICADformController extends Controller
         $doc_file = $request->file('doc_' . $doc);
         $img_data = file_get_contents($doc_file);
         $u_extension = $doc_file->getClientOriginalExtension();
-        $u_extension=strtolower($u_extension);
+        $u_extension = strtolower($u_extension);
         $mime_type = $doc_file->getMimeType();
         $doc_type_name = $doc_master->where('id', $doc)->first();
-        if(strtolower($mime_type)=='image/jpeg'){
-          if($u_extension=='jpg' || $u_extension=='jpeg'){
-              $extension=$u_extension;
+        if (strtolower($mime_type) == 'image/jpeg') {
+          if ($u_extension == 'jpg' || $u_extension == 'jpeg') {
+            $extension = $u_extension;
+          } else {
+            $errors = array();
+            $errorMsg = "You are trying to upload an incorrect file for " . $doc_type_name->doc_name;
+            array_push($errors, $errorMsg);
+            //dd($errors);
+            return back()->with('errors', $errors)->withInput(Input::all());
           }
-          else{
-          $errors = array();
-          $errorMsg = "You are trying to upload an incorrect file for ".$doc_type_name->doc_name;
-          array_push($errors, $errorMsg);
-          //dd($errors);
-          return back()->with('errors', $errors)->withInput(Input::all());  
-          }
-      } else if (strtolower($mime_type) == 'image/png') {
+        } else if (strtolower($mime_type) == 'image/png') {
           $extension = 'png';
         } else if (strtolower($mime_type) == 'image/gif') {
           $extension = 'gif';
@@ -607,7 +609,7 @@ class PurohitICADformController extends Controller
           $extension = 'pdf';
         } else {
           $errors = array();
-          
+
           $errorMsg = "You are trying to upload an incorrect file for " . $doc_type_name->doc_name;
           array_push($errors, $errorMsg);
           //dd($errors);
@@ -616,7 +618,7 @@ class PurohitICADformController extends Controller
         if ($u_extension != $extension) {
           $errors = array();
           $errorMsg = "You are trying to upload an incorrect file for " . $doc_type_name->doc_name;
-          
+
           array_push($errors, $errorMsg);
           //dd($errors);
           return back()->with('errors', $errors)->withInput(Input::all());
@@ -656,7 +658,7 @@ class PurohitICADformController extends Controller
         }
       }
       if (count($errors) > 0)
-      //dd($errors);
+        //dd($errors);
         return back()->withErrors($errors)->withInput();
     }
     $c_time = date('Y-m-d H:i:s');
@@ -703,12 +705,12 @@ class PurohitICADformController extends Controller
         if (!empty($ration_card_cat))
           $pension_details1->ration_card_cat = $ration_card_cat;
         if (!empty($ration_card_no))
-          $pension_details1->ration_card_no  = $ration_card_no;
+          $pension_details1->ration_card_no = $ration_card_no;
         if (!empty($aadhar_no))
-          $pension_details1->aadhar_no  = $aadhar_no;
+          $pension_details1->aadhar_no = $aadhar_no;
         if (!empty($epic_voter_id))
-          $pension_details1->epic_voter_id  = $epic_voter_id;
-        $pension_details1->pan_no  = $pan_no;
+          $pension_details1->epic_voter_id = $epic_voter_id;
+        $pension_details1->pan_no = $pan_no;
 
         $pension_details1->dist_code = $district;
         $pension_details1->rural_urban_id = $urban_code;
@@ -716,13 +718,13 @@ class PurohitICADformController extends Controller
           $pension_details1->assembly_code = $asmb_cons;
           $pension_details1->assembly_name = $assembly_name;
         }
-        $pension_details1->police_station  = $police_station;
-        $pension_details1->block_ulb_code  = $block;
+        $pension_details1->police_station = $police_station;
+        $pension_details1->block_ulb_code = $block;
         $pension_details1->gp_ward_code = $gp_ward;
-        $pension_details1->village_town_city  = $village;
+        $pension_details1->village_town_city = $village;
         if (!empty($house))
-          $pension_details1->house_premise_no  = $house;
-        $pension_details1->post_office  = $post_office;
+          $pension_details1->house_premise_no = $house;
+        $pension_details1->post_office = $post_office;
         $pension_details1->pincode = $pin_code;
         if (!empty($cur_per_same))
           $pension_details1->cur_per_address_is_equal = $cur_per_same;
@@ -758,59 +760,59 @@ class PurohitICADformController extends Controller
 
         if (!empty($residency_period))
           $pension_details1->residency_period = $residency_period;
-        $pension_details1->mobile_no  = $mobile_no;
+        $pension_details1->mobile_no = $mobile_no;
         $pension_details1->email = $email;
         if (!empty($mouza_name))
-          $pension_details1->mouza_name  = $mouza_name;
+          $pension_details1->mouza_name = $mouza_name;
         if (!empty($land_jlno))
-          $pension_details1->land_jlno    = $land_jlno;
+          $pension_details1->land_jlno = $land_jlno;
         if (!empty($khatian_no))
-          $pension_details1->khatian_no    = $khatian_no;
+          $pension_details1->khatian_no = $khatian_no;
         if (!empty($plot_no))
-          $pension_details1->plot_no   = $plot_no;
+          $pension_details1->plot_no = $plot_no;
         if (!empty($land_area))
-          $pension_details1->land_area   = $land_area;
+          $pension_details1->land_area = $land_area;
         if (!empty($land_holdername))
-          $pension_details1->land_holdername   = $land_holdername;
+          $pension_details1->land_holdername = $land_holdername;
 
 
-        $pension_details1->bank_name  = $name_of_bank;
-        $pension_details1->branch_name    = $bank_branch;
-        $pension_details1->bank_code    = $bank_account_number;
-        $pension_details1->bank_ifsc   = $bank_ifsc_code;
-        $pension_details1->npci_bank_code   = $new_bank_code;
+        $pension_details1->bank_name = $name_of_bank;
+        $pension_details1->branch_name = $bank_branch;
+        $pension_details1->bank_code = $bank_account_number;
+        $pension_details1->bank_ifsc = $bank_ifsc_code;
+        $pension_details1->npci_bank_code = $new_bank_code;
         if (!empty($ssp_y_n))
-          $pension_details1->ssp_y_n =  $ssp_y_n;
+          $pension_details1->ssp_y_n = $ssp_y_n;
         if (!empty($pucca_house_y_n))
-          $pension_details1->pucca_house_y_n =  $pucca_house_y_n;
+          $pension_details1->pucca_house_y_n = $pucca_house_y_n;
         if (!empty($nominate_name))
-          $pension_details1->nominate_name    = $nominate_name;
+          $pension_details1->nominate_name = $nominate_name;
         if (!empty($nominate_address))
-          $pension_details1->nominate_address    = $nominate_address;
+          $pension_details1->nominate_address = $nominate_address;
         if (!empty($nominate_relationship))
-          $pension_details1->nominate_relationship   = $nominate_relationship;
+          $pension_details1->nominate_relationship = $nominate_relationship;
         if (!empty($av_status))
-          $pension_details1->av_status =  $av_status;
+          $pension_details1->av_status = $av_status;
         if (!empty($receive_pension))
-          $pension_details1->receive_pension =  $receive_pension;
+          $pension_details1->receive_pension = $receive_pension;
         if (!empty($receiving_pension_other_source_1))
-          $pension_details1->receiving_pension_other_source_1 =  $receiving_pension_other_source_1;
+          $pension_details1->receiving_pension_other_source_1 = $receiving_pension_other_source_1;
         if (!empty($receiving_pension_other_source_2))
-          $pension_details1->receiving_pension_other_source_2 =  $receiving_pension_other_source_2;
+          $pension_details1->receiving_pension_other_source_2 = $receiving_pension_other_source_2;
 
         $pension_details1->created_by = Auth::user()->id;
         $pension_details1->created_by_level = $request->session()->get('level');
         $pension_details1->created_by_dist_code = $request->session()->get('distCode');
         $pension_details1->created_by_local_body_code = $request->session()->get('blockCode');
-        $pension_details1->scheme_id =  $scheme_id;
+        $pension_details1->scheme_id = $scheme_id;
 
         if ($urban_code == 1) {
           $pension_details1->block_ulb_name = $block_ulb_db->urban_body_name;
-          $pension_details1->gp_ward_name   = $gp_ward_db->urban_body_ward_name;
+          $pension_details1->gp_ward_name = $gp_ward_db->urban_body_ward_name;
         } else {
 
           $pension_details1->block_ulb_name = $block_ulb_db->block_name;
-          $pension_details1->gp_ward_name   = $gp_ward_db->gram_panchyat_name;
+          $pension_details1->gp_ward_name = $gp_ward_db->gram_panchyat_name;
         }
         $pension_details1->assembly_name = $assembly_name;
         $is_saved = $pension_details1->save();
@@ -861,12 +863,12 @@ class PurohitICADformController extends Controller
         if (!empty($ration_card_cat))
           $pension_details2->ration_card_cat = $ration_card_cat;
         if (!empty($ration_card_no))
-          $pension_details2->ration_card_no  = $ration_card_no;
+          $pension_details2->ration_card_no = $ration_card_no;
         if (!empty($aadhar_no))
-          $pension_details2->aadhar_no  = $aadhar_no;
+          $pension_details2->aadhar_no = $aadhar_no;
         if (!empty($epic_voter_id))
-          $pension_details2->epic_voter_id  = $epic_voter_id;
-        $pension_details2->pan_no  = $pan_no;
+          $pension_details2->epic_voter_id = $epic_voter_id;
+        $pension_details2->pan_no = $pan_no;
 
         $pension_details2->dist_code = $district;
         $pension_details2->rural_urban_id = $urban_code;
@@ -874,13 +876,13 @@ class PurohitICADformController extends Controller
           $pension_details2->assembly_code = $asmb_cons;
           $pension_details2->assembly_name = $assembly_name;
         }
-        $pension_details2->police_station  = $police_station;
-        $pension_details2->block_ulb_code  = $block;
+        $pension_details2->police_station = $police_station;
+        $pension_details2->block_ulb_code = $block;
         $pension_details2->gp_ward_code = $gp_ward;
-        $pension_details2->village_town_city  = $village;
+        $pension_details2->village_town_city = $village;
         if (!empty($house))
-          $pension_details2->house_premise_no  = $house;
-        $pension_details2->post_office  = $post_office;
+          $pension_details2->house_premise_no = $house;
+        $pension_details2->post_office = $post_office;
         $pension_details2->pincode = $pin_code;
         if (!empty($cur_per_same))
           $pension_details2->cur_per_address_is_equal = $cur_per_same;
@@ -916,59 +918,59 @@ class PurohitICADformController extends Controller
 
         if (!empty($residency_period))
           $pension_details2->residency_period = $residency_period;
-        $pension_details2->mobile_no  = $mobile_no;
+        $pension_details2->mobile_no = $mobile_no;
         $pension_details2->email = $email;
         if (!empty($mouza_name))
-          $pension_details2->mouza_name  = $mouza_name;
+          $pension_details2->mouza_name = $mouza_name;
         if (!empty($land_jlno))
-          $pension_details2->land_jlno    = $land_jlno;
+          $pension_details2->land_jlno = $land_jlno;
         if (!empty($khatian_no))
-          $pension_details2->khatian_no    = $khatian_no;
+          $pension_details2->khatian_no = $khatian_no;
         if (!empty($plot_no))
-          $pension_details2->plot_no   = $plot_no;
+          $pension_details2->plot_no = $plot_no;
         if (!empty($land_area))
-          $pension_details2->land_area   = $land_area;
+          $pension_details2->land_area = $land_area;
         if (!empty($land_holdername))
-          $pension_details2->land_holdername   = $land_holdername;
+          $pension_details2->land_holdername = $land_holdername;
 
 
-        $pension_details2->bank_name  = $name_of_bank;
-        $pension_details2->branch_name    = $bank_branch;
-        $pension_details2->bank_code    = $bank_account_number;
-        $pension_details2->bank_ifsc   = $bank_ifsc_code;
-        $pension_details2->npci_bank_code   = $new_bank_code;
+        $pension_details2->bank_name = $name_of_bank;
+        $pension_details2->branch_name = $bank_branch;
+        $pension_details2->bank_code = $bank_account_number;
+        $pension_details2->bank_ifsc = $bank_ifsc_code;
+        $pension_details2->npci_bank_code = $new_bank_code;
         if (!empty($ssp_y_n))
-          $pension_details2->ssp_y_n =  $ssp_y_n;
+          $pension_details2->ssp_y_n = $ssp_y_n;
         if (!empty($pucca_house_y_n))
-          $pension_details2->pucca_house_y_n =  $pucca_house_y_n;
+          $pension_details2->pucca_house_y_n = $pucca_house_y_n;
         if (!empty($nominate_name))
-          $pension_details2->nominate_name    = $nominate_name;
+          $pension_details2->nominate_name = $nominate_name;
         if (!empty($nominate_address))
-          $pension_details2->nominate_address    = $nominate_address;
+          $pension_details2->nominate_address = $nominate_address;
         if (!empty($nominate_relationship))
-          $pension_details2->nominate_relationship   = $nominate_relationship;
+          $pension_details2->nominate_relationship = $nominate_relationship;
         if (!empty($av_status))
-          $pension_details2->av_status =  $av_status;
+          $pension_details2->av_status = $av_status;
         if (!empty($receive_pension))
-          $pension_details2->receive_pension =  $receive_pension;
+          $pension_details2->receive_pension = $receive_pension;
         if (!empty($receiving_pension_other_source_1))
-          $pension_details2->receiving_pension_other_source_1 =  $receiving_pension_other_source_1;
+          $pension_details2->receiving_pension_other_source_1 = $receiving_pension_other_source_1;
         if (!empty($receiving_pension_other_source_2))
-          $pension_details2->receiving_pension_other_source_2 =  $receiving_pension_other_source_2;
+          $pension_details2->receiving_pension_other_source_2 = $receiving_pension_other_source_2;
 
 
         $pension_details2->created_by = Auth::user()->id;
         $pension_details2->created_by_level = $request->session()->get('level');
         $pension_details2->created_by_dist_code = $request->session()->get('distCode');
         $pension_details2->created_by_local_body_code = $request->session()->get('blockCode');
-        $pension_details2->scheme_id =  $scheme_id;
+        $pension_details2->scheme_id = $scheme_id;
 
         if ($urban_code == 1) {
           $pension_details2->block_ulb_name = $block_ulb_db->urban_body_name;
-          $pension_details2->gp_ward_name   = $gp_ward_db->urban_body_ward_name;
+          $pension_details2->gp_ward_name = $gp_ward_db->urban_body_ward_name;
         } else {
           $pension_details2->block_ulb_name = $block_ulb_db->block_name;
-          $pension_details2->gp_ward_name   = $gp_ward_db->gram_panchyat_name;
+          $pension_details2->gp_ward_name = $gp_ward_db->gram_panchyat_name;
         }
 
         $pension_details2->assembly_name = $assembly_name;
@@ -998,8 +1000,8 @@ class PurohitICADformController extends Controller
           $id = 0;
           $return_status = 'error';
           $errors = array();
-          $errorMsg = "Insertion Failed..Please try again.".$housing_insertion_status." - ".$monthly_insertion_status." - ".$doc_inserted;
-          
+          $errorMsg = "Insertion Failed..Please try again." . $housing_insertion_status . " - " . $monthly_insertion_status . " - " . $doc_inserted;
+
           array_push($errors, $errorMsg);
           //dd($errors);
           return back()->withErrors($errors)->withInput();
@@ -1008,7 +1010,7 @@ class PurohitICADformController extends Controller
         $id = 0;
         $return_status = 'error';
         $errors = array();
-        
+
         $errorMsg = "Insertion Failed..Please try again.";
         array_push($errors, $errorMsg);
         //dd($errors);
@@ -1025,7 +1027,7 @@ class PurohitICADformController extends Controller
       }
       return redirect("purohit?code=$code")->with($return_status, $msg);
     } catch (\Exception $e) {
-       dd($e);
+      dd($e);
       $return_status = 'error';
       return redirect("purohit?code=$code")->with($return_status, $e->getMessage());
     }
@@ -1072,7 +1074,7 @@ class PurohitICADformController extends Controller
     $base_url = url('/');
     $id = $request->id;
     $scheme_id = $request->scheme_id;
-    $designation_id_old = Auth::user()->designation_id_old;
+    $designation_id = Auth::user()->designation_id;
     $created_by = Auth::user()->id;
 
     // echo $id;die;
@@ -1083,7 +1085,7 @@ class PurohitICADformController extends Controller
     if ($valid) {
       $is_active = 0;
       $mapping_level = NULL;
-      $roleArray = $request->session()->get('role');
+      $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
       foreach ($roleArray as $roleObj) {
         if (($roleObj['scheme_id'] == $monthlySchemeCode) || ($roleObj['scheme_id'] == $housingSchemeCode)) {
           $is_active = 1;
@@ -1114,7 +1116,7 @@ class PurohitICADformController extends Controller
       $housing_id = 0;
 
       if ($scheme_id == $monthlySchemeCode) {
-        $row =  $monthlyMainTable::find($id);
+        $row = $monthlyMainTable::find($id);
         $pension_details = $row;
         $pension_id = $id;
 
@@ -1126,7 +1128,7 @@ class PurohitICADformController extends Controller
         $pri = $monthlySlug;
       }
       if ($scheme_id == $housingSchemeCode) {
-        $row =  $housingMainTable::find($id);
+        $row = $housingMainTable::find($id);
         $housing_details = $row;
         $housing_id = $id;
 
@@ -1379,7 +1381,7 @@ class PurohitICADformController extends Controller
             $errors = array();
             $errorMsg = "Mobile Number Already Exist! Please try different.";
             array_push($errors, $errorMsg);
-            return redirect("/application-edit?id=" . $request->id . "&scheme_id=" . $request->scheme_id)->with('errors',  $errors);
+            return redirect("/application-edit?id=" . $request->id . "&scheme_id=" . $request->scheme_id)->with('errors', $errors);
           }
         }
         //--------- Duplicate bank A/C check---------- //
@@ -1391,7 +1393,7 @@ class PurohitICADformController extends Controller
           $errors = array();
           $errorMsg = "Bank A/C Already Exist!";
           array_push($errors, $errorMsg);
-          return redirect("/application-edit?id=" . $request->id . "&scheme_id=" . $request->scheme_id)->with('errors',  $errors);
+          return redirect("/application-edit?id=" . $request->id . "&scheme_id=" . $request->scheme_id)->with('errors', $errors);
         }
         $count = BenEntry::where('aadhar_no', trim($request->aadhar_no))->where('id', '!=', $id)->whereRaw("(" . $check_condition_str . ")")->count('id');
         if ($count > 0) {
@@ -1399,7 +1401,7 @@ class PurohitICADformController extends Controller
           $errors = array();
           $errorMsg = "Aadhaar Number Already Exist! Please try different.";
           array_push($errors, $errorMsg);
-          return redirect("/application-edit?id=" . $request->id . "&scheme_id=" . $request->scheme_id)->with('dupAadhaar', 1)->with('errors',  $errors);
+          return redirect("/application-edit?id=" . $request->id . "&scheme_id=" . $request->scheme_id)->with('dupAadhaar', 1)->with('errors', $errors);
         }
 
         if (count($errors) > 0) {
@@ -1541,12 +1543,12 @@ class PurohitICADformController extends Controller
           if (!empty($ration_card_cat))
             $housing_details->ration_card_cat = $ration_card_cat;
           if (!empty($ration_card_no))
-            $housing_details->ration_card_no  = $ration_card_no;
+            $housing_details->ration_card_no = $ration_card_no;
           if (!empty($aadhar_no))
-            $housing_details->aadhar_no  = $aadhar_no;
+            $housing_details->aadhar_no = $aadhar_no;
           if (!empty($epic_voter_id))
-            $housing_details->epic_voter_id  = $epic_voter_id;
-          $housing_details->pan_no  = $pan_no;
+            $housing_details->epic_voter_id = $epic_voter_id;
+          $housing_details->pan_no = $pan_no;
 
           $housing_details->dist_code = $district;
           $housing_details->rural_urban_id = $urban_code;
@@ -1554,13 +1556,13 @@ class PurohitICADformController extends Controller
             $housing_details->assembly_code = $asmb_cons;
             $housing_details->assembly_name = $assembly_name;
           }
-          $housing_details->police_station  = $police_station;
-          $housing_details->block_ulb_code  = $block;
+          $housing_details->police_station = $police_station;
+          $housing_details->block_ulb_code = $block;
           $housing_details->gp_ward_code = $gp_ward;
-          $housing_details->village_town_city  = $village;
+          $housing_details->village_town_city = $village;
           if (!empty($house))
-            $housing_details->house_premise_no  = $house;
-          $housing_details->post_office  = $post_office;
+            $housing_details->house_premise_no = $house;
+          $housing_details->post_office = $post_office;
           $housing_details->pincode = $pin_code;
           if (!empty($cur_per_same))
             $housing_details->cur_per_address_is_equal = $cur_per_same;
@@ -1596,60 +1598,60 @@ class PurohitICADformController extends Controller
 
           if (!empty($residency_period))
             $housing_details->residency_period = $residency_period;
-          $housing_details->mobile_no  = $mobile_no;
+          $housing_details->mobile_no = $mobile_no;
           $housing_details->email = $email;
           if (!empty($mouza_name))
-            $housing_details->mouza_name  = $mouza_name;
+            $housing_details->mouza_name = $mouza_name;
           if (!empty($land_jlno))
-            $housing_details->land_jlno    = $land_jlno;
+            $housing_details->land_jlno = $land_jlno;
           if (!empty($khatian_no))
-            $housing_details->khatian_no    = $khatian_no;
+            $housing_details->khatian_no = $khatian_no;
           if (!empty($plot_no))
-            $housing_details->plot_no   = $plot_no;
+            $housing_details->plot_no = $plot_no;
           if (!empty($land_area))
-            $housing_details->land_area   = $land_area;
+            $housing_details->land_area = $land_area;
           if (!empty($land_holdername))
-            $housing_details->land_holdername   = $land_holdername;
+            $housing_details->land_holdername = $land_holdername;
 
 
 
-          $housing_details->bank_name  = $name_of_bank;
-          $housing_details->branch_name    = $bank_branch;
-          $housing_details->bank_code    = $bank_account_number;
-          $housing_details->bank_ifsc   = $bank_ifsc_code;
-          $housing_details->npci_bank_code   = $new_bank_code;
+          $housing_details->bank_name = $name_of_bank;
+          $housing_details->branch_name = $bank_branch;
+          $housing_details->bank_code = $bank_account_number;
+          $housing_details->bank_ifsc = $bank_ifsc_code;
+          $housing_details->npci_bank_code = $new_bank_code;
           if (!empty($ssp_y_n))
-            $housing_details->ssp_y_n =  $ssp_y_n;
+            $housing_details->ssp_y_n = $ssp_y_n;
           if (!empty($pucca_house_y_n))
-            $housing_details->pucca_house_y_n =  $pucca_house_y_n;
+            $housing_details->pucca_house_y_n = $pucca_house_y_n;
           if (!empty($nominate_name))
-            $housing_details->nominate_name    = $nominate_name;
+            $housing_details->nominate_name = $nominate_name;
           if (!empty($nominate_address))
-            $housing_details->nominate_address    = $nominate_address;
+            $housing_details->nominate_address = $nominate_address;
           if (!empty($nominate_relationship))
-            $housing_details->nominate_relationship   = $nominate_relationship;
+            $housing_details->nominate_relationship = $nominate_relationship;
           if (!empty($av_status))
-            $housing_details->av_status =  $av_status;
+            $housing_details->av_status = $av_status;
           if (!empty($receive_pension))
-            $housing_details->receive_pension =  $receive_pension;
+            $housing_details->receive_pension = $receive_pension;
           if (!empty($receiving_pension_other_source_1))
-            $housing_details->receiving_pension_other_source_1 =  $receiving_pension_other_source_1;
+            $housing_details->receiving_pension_other_source_1 = $receiving_pension_other_source_1;
           if (!empty($receiving_pension_other_source_2))
-            $housing_details->receiving_pension_other_source_2 =  $receiving_pension_other_source_2;
+            $housing_details->receiving_pension_other_source_2 = $receiving_pension_other_source_2;
 
           // $housing_details->created_by = Auth::user()->id;
           // $housing_details->created_by_level = $request->session()->get('level');
           // $housing_details->created_by_dist_code = $request->session()->get('distCode');
           // $housing_details->created_by_local_body_code = $request->session()->get('blockCode');
 
-          $housing_details->scheme_id =  $housingSchemeCode;
+          $housing_details->scheme_id = $housingSchemeCode;
 
           if ($urban_code == 1) {
             $housing_details->block_ulb_name = $block_ulb_db->urban_body_name;
-            $housing_details->gp_ward_name   = $gp_ward_db->urban_body_ward_name;
+            $housing_details->gp_ward_name = $gp_ward_db->urban_body_ward_name;
           } else {
             $housing_details->block_ulb_name = $block_ulb_db->block_name;
-            $housing_details->gp_ward_name   = $gp_ward_db->gram_panchyat_name;
+            $housing_details->gp_ward_name = $gp_ward_db->gram_panchyat_name;
           }
           $housing_details->assembly_name = $assembly_name;
         }
@@ -1689,12 +1691,12 @@ class PurohitICADformController extends Controller
         if (!empty($ration_card_cat))
           $pension_details->ration_card_cat = $ration_card_cat;
         if (!empty($ration_card_no))
-          $pension_details->ration_card_no  = $ration_card_no;
+          $pension_details->ration_card_no = $ration_card_no;
         if (!empty($aadhar_no))
-          $pension_details->aadhar_no  = $aadhar_no;
+          $pension_details->aadhar_no = $aadhar_no;
         if (!empty($epic_voter_id))
-          $pension_details->epic_voter_id  = $epic_voter_id;
-        $pension_details->pan_no  = $pan_no;
+          $pension_details->epic_voter_id = $epic_voter_id;
+        $pension_details->pan_no = $pan_no;
 
         $pension_details->dist_code = $district;
         $pension_details->rural_urban_id = $urban_code;
@@ -1702,13 +1704,13 @@ class PurohitICADformController extends Controller
           $pension_details->assembly_code = $asmb_cons;
           $pension_details->assembly_name = $assembly_name;
         }
-        $pension_details->police_station  = $police_station;
-        $pension_details->block_ulb_code  = $block;
+        $pension_details->police_station = $police_station;
+        $pension_details->block_ulb_code = $block;
         $pension_details->gp_ward_code = $gp_ward;
-        $pension_details->village_town_city  = $village;
+        $pension_details->village_town_city = $village;
         if (!empty($house))
-          $pension_details->house_premise_no  = $house;
-        $pension_details->post_office  = $post_office;
+          $pension_details->house_premise_no = $house;
+        $pension_details->post_office = $post_office;
         $pension_details->pincode = $pin_code;
         if (!empty($cur_per_same))
           $pension_details->cur_per_address_is_equal = $cur_per_same;
@@ -1744,61 +1746,61 @@ class PurohitICADformController extends Controller
 
         if (!empty($residency_period))
           $pension_details->residency_period = $residency_period;
-        $pension_details->mobile_no  = $mobile_no;
+        $pension_details->mobile_no = $mobile_no;
         $pension_details->email = $email;
         if (!empty($mouza_name))
-          $pension_details->mouza_name  = $mouza_name;
+          $pension_details->mouza_name = $mouza_name;
         if (!empty($land_jlno))
-          $pension_details->land_jlno    = $land_jlno;
+          $pension_details->land_jlno = $land_jlno;
         if (!empty($khatian_no))
-          $pension_details->khatian_no    = $khatian_no;
+          $pension_details->khatian_no = $khatian_no;
         if (!empty($plot_no))
-          $pension_details->plot_no   = $plot_no;
+          $pension_details->plot_no = $plot_no;
         if (!empty($land_area))
-          $pension_details->land_area   = $land_area;
+          $pension_details->land_area = $land_area;
         if (!empty($land_holdername))
-          $pension_details->land_holdername   = $land_holdername;
+          $pension_details->land_holdername = $land_holdername;
 
 
 
-        $pension_details->bank_name  = $name_of_bank;
-        $pension_details->branch_name    = $bank_branch;
-        $pension_details->bank_code    = $bank_account_number;
-        $pension_details->bank_ifsc   = $bank_ifsc_code;
-        $pension_details->npci_bank_code   = $new_bank_code;
+        $pension_details->bank_name = $name_of_bank;
+        $pension_details->branch_name = $bank_branch;
+        $pension_details->bank_code = $bank_account_number;
+        $pension_details->bank_ifsc = $bank_ifsc_code;
+        $pension_details->npci_bank_code = $new_bank_code;
         if (!empty($ssp_y_n))
-          $pension_details->ssp_y_n =  $ssp_y_n;
+          $pension_details->ssp_y_n = $ssp_y_n;
         if (!empty($pucca_house_y_n))
-          $pension_details->pucca_house_y_n =  $pucca_house_y_n;
+          $pension_details->pucca_house_y_n = $pucca_house_y_n;
         if (!empty($nominate_name))
-          $pension_details->nominate_name    = $nominate_name;
+          $pension_details->nominate_name = $nominate_name;
         if (!empty($nominate_address))
-          $pension_details->nominate_address    = $nominate_address;
+          $pension_details->nominate_address = $nominate_address;
         if (!empty($nominate_relationship))
-          $pension_details->nominate_relationship   = $nominate_relationship;
+          $pension_details->nominate_relationship = $nominate_relationship;
         if (!empty($av_status))
-          $pension_details->av_status =  $av_status;
+          $pension_details->av_status = $av_status;
         if (!empty($receive_pension))
-          $pension_details->receive_pension =  $receive_pension;
+          $pension_details->receive_pension = $receive_pension;
         if (!empty($receiving_pension_other_source_1))
-          $pension_details->receiving_pension_other_source_1 =  $receiving_pension_other_source_1;
+          $pension_details->receiving_pension_other_source_1 = $receiving_pension_other_source_1;
         if (!empty($receiving_pension_other_source_2))
-          $pension_details->receiving_pension_other_source_2 =  $receiving_pension_other_source_2;
+          $pension_details->receiving_pension_other_source_2 = $receiving_pension_other_source_2;
 
         // $pension_details->created_by = Auth::user()->id;
         // $pension_details->created_by_level = $request->session()->get('level');
         // $pension_details->created_by_dist_code = $request->session()->get('distCode');
         // $pension_details->created_by_local_body_code = $request->session()->get('blockCode');
         // //$pension_details->scheme_id =  $scheme_id;
-        $pension_details->scheme_id =  $monthlySchemeCode;
+        $pension_details->scheme_id = $monthlySchemeCode;
 
         if ($urban_code == 1) {
           $pension_details->block_ulb_name = $block_ulb_db->urban_body_name;
-          $pension_details->gp_ward_name   = $gp_ward_db->urban_body_ward_name;
+          $pension_details->gp_ward_name = $gp_ward_db->urban_body_ward_name;
         } else {
 
           $pension_details->block_ulb_name = $block_ulb_db->block_name;
-          $pension_details->gp_ward_name   = $gp_ward_db->gram_panchyat_name;
+          $pension_details->gp_ward_name = $gp_ward_db->gram_panchyat_name;
         }
         $pension_details->assembly_name = $assembly_name;
         $pension_details->dup_bank = 0;
@@ -1868,10 +1870,10 @@ class PurohitICADformController extends Controller
           $accept_reject_model = new AcceptRejectInfo;
           $accept_reject_model->created_at = $c_time;
           $accept_reject_model->application_id = $pension_id;
-          $accept_reject_model->scheme_id =  $request->scheme_id;
+          $accept_reject_model->scheme_id = $request->scheme_id;
           $accept_reject_model->user_id = $user_id;
           $accept_reject_model->op_type = 'APPUPDATE';
-          
+
           $accept_reject_model->ip_address = $request->ip();
           $is_saved_log = $accept_reject_model->save();
           if ($doc_inserted_arch && $doc_inserted_del && $doc_inserted && $is_saved_log && $update_status1 && $update_status2) {
@@ -1888,16 +1890,16 @@ class PurohitICADformController extends Controller
             $return_status = 'error';
             $msg = "Updation Failed..Please try again.";
           }
-          if ($designation_id_old == 'Operator') {
-            return redirect("application-list-read-only-edit?pr1=" .  $scheme_row->short_code)->with($return_status,  $msg)
-              ->with('id',  $row->getBenidAttribute());
+          if ($designation_id == 'Operator') {
+            return redirect("application-list-read-only-edit?pr1=" . $scheme_row->short_code)->with($return_status, $msg)
+              ->with('id', $row->getBenidAttribute());
           } else {
             return redirect('/')->with('success', 'Application Updated Successfully');
           }
         } else {
-          if ($designation_id_old == 'Operator') {
-            return redirect("application-list-read-only-edit?pr1=" .  $scheme_row->short_code)->with('error', 'Data Submission Failure.Please try again.')
-              ->with('id',  $row->getBenidAttribute());
+          if ($designation_id == 'Operator') {
+            return redirect("application-list-read-only-edit?pr1=" . $scheme_row->short_code)->with('error', 'Data Submission Failure.Please try again.')
+              ->with('id', $row->getBenidAttribute());
           } else {
             return redirect('/')->with('error', 'Some error.Please try again');
           }
@@ -1942,7 +1944,7 @@ class PurohitICADformController extends Controller
       $customMessage = array();
       foreach ($doc_list as $key => $value) {
 
-        if (in_array($value->id,  $in_array)) {
+        if (in_array($value->id, $in_array)) {
           $required = 'required';
         } else {
           $required = 'nullable';
@@ -2123,7 +2125,7 @@ class PurohitICADformController extends Controller
       $id_length = NULL;
       $scheme_row = Scheme::where('id', $scheme_id)->first();
       $scheme_schema = $scheme_row->short_code;
-      $scheme_length =  $scheme_row->scheme_length;
+      $scheme_length = $scheme_row->scheme_length;
       $id_length = $scheme_row->id_length;
       if (empty($scheme_schema)) {
         $scheme_schema = 'pension';
@@ -2133,9 +2135,25 @@ class PurohitICADformController extends Controller
       if (empty($serachvalue)) {
         $totalRecords = $query->count('id');
         $data = $query->orderBy('id', 'ASC')->offset($offset)->limit($limit)->get([
-          'id', 'created_by_dist_code',
-          'bank_code', 'ben_fname', 'ben_lname', 'ben_mname', 'gender', 'ben_age', 'block_ulb_name', 'gp_ward_name', 'bank_ifsc', 'village_town_city',
-          'scheme_id', 'lot_generated', 'payment_count', 'next_level_role_id', 'is_state', 'app_phase', 'temple_type'
+          'id',
+          'created_by_dist_code',
+          'bank_code',
+          'ben_fname',
+          'ben_lname',
+          'ben_mname',
+          'gender',
+          'ben_age',
+          'block_ulb_name',
+          'gp_ward_name',
+          'bank_ifsc',
+          'village_town_city',
+          'scheme_id',
+          'lot_generated',
+          'payment_count',
+          'next_level_role_id',
+          'is_state',
+          'app_phase',
+          'temple_type'
         ]);
       } else {
         if (is_numeric($serachvalue)) {
@@ -2147,7 +2165,8 @@ class PurohitICADformController extends Controller
           $totalRecords = $query->count('id');
           $data = $query->orderBy('id', 'ASC')->offset($offset)->limit($limit)->get(
             [
-              'id', 'created_by_dist_code',
+              'id',
+              'created_by_dist_code',
               'bank_code',
               'ben_fname',
               'block_ulb_name',
@@ -2158,7 +2177,13 @@ class PurohitICADformController extends Controller
               'lot_generated',
               'payment_count',
               'next_level_role_id',
-              'ben_lname', 'gender', 'ben_age', 'ben_mname', 'is_state', 'app_phase', 'temple_type'
+              'ben_lname',
+              'gender',
+              'ben_age',
+              'ben_mname',
+              'is_state',
+              'app_phase',
+              'temple_type'
             ]
           );
         } else {
@@ -2171,7 +2196,8 @@ class PurohitICADformController extends Controller
           $totalRecords = $query->count('id');
           $data = $query->orderBy('id', 'ASC')->offset($offset)->limit($limit)->get(
             [
-              'id', 'created_by_dist_code',
+              'id',
+              'created_by_dist_code',
               'bank_code',
               'ben_fname',
               'block_ulb_name',
@@ -2182,7 +2208,13 @@ class PurohitICADformController extends Controller
               'lot_generated',
               'payment_count',
               'next_level_role_id',
-              'ben_lname', 'gender', 'ben_age', 'ben_mname', 'is_state', 'app_phase', 'temple_type'
+              'ben_lname',
+              'gender',
+              'ben_age',
+              'ben_mname',
+              'is_state',
+              'app_phase',
+              'temple_type'
             ]
           );
         }
@@ -2318,12 +2350,12 @@ class PurohitICADformController extends Controller
       if ($row->rural_urban_id == 1) {
         $gp_ward = Ward::where('urban_body_ward_code', '=', $row->gp_ward_code)->first();
         if (!empty($gp_ward)) {
-          $gp_name =  $gp_ward->urban_body_ward_name;
+          $gp_name = $gp_ward->urban_body_ward_name;
         }
       } else {
         $gp = GP::where('gram_panchyat_code', '=', $row->gp_ward_code)->get(['gram_panchyat_code', 'gram_panchyat_name'])->first();
         if (!empty($gp)) {
-          $gp_name =  $gp->gram_panchyat_name;
+          $gp_name = $gp->gram_panchyat_name;
         }
       }
     }
@@ -2340,7 +2372,7 @@ class PurohitICADformController extends Controller
       $approveBtnvisible = 1;
     }
     if ($scheme_id == 17) {
-      $role = MapLavel::where('scheme_id', $scheme_id)->where('role_name', Auth::user()->designation_id_old)->where('stack_level', $duty_obj->mapping_level)->first();
+      $role = MapLavel::where('scheme_id', $scheme_id)->where('role_name', Auth::user()->designation_id)->where('stack_level', $duty_obj->mapping_level)->first();
       return view('PurohitICAD/pension_view_details', [
         'district_state_name' => $district_state_name,
         'block_subdiv_state_name' => $block_subdiv_state_name,
@@ -2349,8 +2381,12 @@ class PurohitICADformController extends Controller
         'parent_id' => $role->parent_id,
         'scheme_id' => $scheme_id,
         'housingrecord' => $housingrecord,
-        'row' => $row, 'district_name' => $district_name, 'block_name' => $block_name, 'gp_name' => $gp_name,
-        'docs' => $docs, 'image_id' => $doc_profile_image_id,
+        'row' => $row,
+        'district_name' => $district_name,
+        'block_name' => $block_name,
+        'gp_name' => $gp_name,
+        'docs' => $docs,
+        'image_id' => $doc_profile_image_id,
         'reject_revert_cause_list' => $reject_revert_cause_list
       ]);
     }

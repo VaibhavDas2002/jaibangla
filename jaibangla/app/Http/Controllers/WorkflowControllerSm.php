@@ -7,13 +7,13 @@ use App\User;
 use App\District;
 use App\Scheme;
 use Redirect;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\DB;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 use DateTime;
-use Config;
+use Illuminate\Support\Facades\Config;
 use App\Configduty;
 use Maatwebsite\Excel\Facades\Excel;
 use App\DataSourceCommon;
@@ -55,7 +55,7 @@ class WorkflowControllerSm extends Controller
   public function shemeSelection(Request $request)
   {
     try {
-      // $designation_id_old = Auth::user()->designation_id_old;
+      // $designation_id = Auth::user()->designation_id;
       $user_id = AuthChecker::getUserId();
       if (AuthChecker::VerifierChecker() || AuthChecker::ApproverChecker()) {
         $schemes = DB::select(DB::raw("select id,scheme_name,display_name,is_active from m_scheme where id IN (10) and   id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . ") order by rank"));
@@ -350,7 +350,7 @@ class WorkflowControllerSm extends Controller
     //dd('ok');
     try {
       $this->middleware('auth');
-      $designation_id_old = Auth::user()->designation_id_old;
+      $designation_id = Auth::user()->designation_id;
       $user_id = AuthChecker::getUserId();
       $id = $request->id;
       // dd($id);
@@ -451,7 +451,7 @@ class WorkflowControllerSm extends Controller
       return view(
         'Sarasori_Mukhyamantri.ViewBeneficiary',
         [
-          'designation_id_old' => $designation_id_old,
+          'designation_id' => $designation_id,
           'row' => $row,
           'id' => $id,
           'district_name' => $district_name,
@@ -471,7 +471,7 @@ class WorkflowControllerSm extends Controller
   {
     try {
       $this->middleware('auth');
-      $designation_id_old = Auth::user()->designation_id_old;
+      $designation_id = Auth::user()->designation_id;
       $user_id = AuthChecker::getUserId();
       if (empty($request->beneficiary_id)) {
         return redirect("/")->with('danger', 'Beneficiary ID Not Found');
@@ -602,7 +602,7 @@ class WorkflowControllerSm extends Controller
   {
     try {
       $this->middleware('auth');
-      $designation_id_old = Auth::user()->designation_id_old;
+      $designation_id = Auth::user()->designation_id;
       $user_id = AuthChecker::getUserId();
       if (empty($request->beneficiary_id)) {
         return redirect("/")->with('danger', 'Beneficiary ID Not Found');
@@ -682,7 +682,7 @@ class WorkflowControllerSm extends Controller
   {
     try {
       $this->middleware('auth');
-      $designation_id_old = Auth::user()->designation_id_old;
+      $designation_id = Auth::user()->designation_id;
       $user_id = AuthChecker::getUserId();
       if (empty($request->beneficiary_id)) {
         return redirect("/")->with('danger', 'Beneficiary ID Not Found');
@@ -764,8 +764,8 @@ class WorkflowControllerSm extends Controller
   {
     return redirect("/")->with('danger', 'Not Allowed');
     $this->middleware('auth');
-    $designation_id_old = Auth::user()->designation_id_old;
-    //dd($designation_id_old);
+    $designation_id = Auth::user()->designation_id;
+    //dd($designation_id);
     $user_id = AuthChecker::getUserId();
 
     $scheme_id = $request->scheme_id;
@@ -1000,10 +1000,10 @@ class WorkflowControllerSm extends Controller
         ->setTotalRecords($totalRecords)
         ->setFilteredRecords($filterRecords)
         ->skipPaging()
-        ->addColumn('view', function ($data) use ($ds_mark_phase, $camp_roman, $type, $scheme_id, $designation_id_old, $next_level_role_id_approver, $next_level_role_id_verifier) {
+        ->addColumn('view', function ($data) use ($ds_mark_phase, $camp_roman, $type, $scheme_id, $designation_id, $next_level_role_id_approver, $next_level_role_id_verifier) {
           $action = '<a href="ViewOapsmdsmark?ds_mark_phase=' . $ds_mark_phase . '&type=' . $type . '&id=' . $data->id  . '&scheme_id=' . $data->scheme_id . '" class="btn btn-xs btn-info"><i class="glyphicon glyphicon-edit"></i> View</a>';
 
-          if ($designation_id_old == 'Operator') {
+          if ($designation_id == 'Operator') {
             if (is_null($data->sm_ds_mark_ix)) {
               // echo 1;die;
 
@@ -1012,7 +1012,7 @@ class WorkflowControllerSm extends Controller
               $action = $action . '&nbsp;&nbsp;&nbsp;&nbsp;Already Marked as JS-SS';
             }
           }
-          if ($designation_id_old == 'Verifier') {
+          if ($designation_id == 'Verifier') {
             if (is_null($data->sm_ds_mark_vii)) {
               $action = $action . '&nbsp;&nbsp;&nbsp;&nbsp;<button type="button" class="btn btn-xs btn-primary btn-sm" id="btn-sm-' . $data->id . '" value="' . $data->id . '">Mark as ' . $camp_roman . ' Camps</button>';
             } else if ($data->sm_ds_mark_vii = 1) {
@@ -1024,7 +1024,7 @@ class WorkflowControllerSm extends Controller
 
 
           return $action;
-        })->addColumn('check', function ($data) use ($designation_id_old) {
+        })->addColumn('check', function ($data) use ($designation_id) {
           return '';
         })
         ->addColumn('id', function ($data) {
@@ -1068,7 +1068,7 @@ class WorkflowControllerSm extends Controller
     return view(
       'Sarasori_Mukhyamantri.oapsmdsmarklist',
       [
-        'designation_id_old' => $designation_id_old,
+        'designation_id' => $designation_id,
         'verifier_type' => $verifier_type,
         'created_by_local_body_code' => $created_by_local_body_code,
         'is_rural' => $is_rural,
@@ -1092,7 +1092,7 @@ class WorkflowControllerSm extends Controller
     return redirect("/")->with('danger', 'Not Allowed');
     try {
       $this->middleware('auth');
-      $designation_id_old = Auth::user()->designation_id_old;
+      $designation_id = Auth::user()->designation_id;
       $user_id = Authchecker::getUserId();
       $id = $request->id;
       // dd($id);
@@ -1209,7 +1209,7 @@ class WorkflowControllerSm extends Controller
       return view(
         'Sarasori_Mukhyamantri.ViewOapsmdsmark',
         [
-          'designation_id_old' => $designation_id_old,
+          'designation_id' => $designation_id,
           'row' => $row,
           'id' => $id,
           'district_name' => $district_name,
@@ -1234,7 +1234,7 @@ class WorkflowControllerSm extends Controller
     try {
       return redirect("/")->with('danger', 'Not Allowed');
       $this->middleware('auth');
-      $designation_id_old = Auth::user()->designation_id_old;
+      $designation_id = Auth::user()->designation_id;
       $user_id = AuthChecker::getUserId();
       if (empty($request->beneficiary_id)) {
         return redirect("/")->with('danger', 'Beneficiary ID Not Found');
@@ -1397,8 +1397,7 @@ class WorkflowControllerSm extends Controller
 
       $scheme_id = $request->scheme_id;
       $is_active = 0;
-      $roleArray = $request->session()->get('role');
-      foreach ($roleArray as $roleObj) {
+      $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();      foreach ($roleArray as $roleObj) {
         if ($roleObj['scheme_id'] == $scheme_id) {
           $is_active = 1;
           $mapping_level = $roleObj['mapping_level'];
@@ -1420,7 +1419,7 @@ class WorkflowControllerSm extends Controller
       $next_level_role_id_verifier = $role_id_verifier->parent_id;
       $condition = array();
       $condition["sm_ds_mark"] = 1;
-      $designation_id_old = Auth::user()->designation_id_old;
+      $designation_id = Auth::user()->designation_id;
       if (AuthChecker::ApproverChecker()) {
         //dd(123);
         $condition["created_by_dist_code"] = $district_code;
@@ -1547,7 +1546,7 @@ class WorkflowControllerSm extends Controller
       return redirect("/")->with('error', 'Not Allowed');
       $this->middleware('auth');
       //dd('ok');
-      $designation_id_old = Auth::user()->designation_id_old;
+      $designation_id = Auth::user()->designation_id;
       if (!AuthChecker::ApproverChecker()) {
         return redirect("/")->with('error', 'Not Allowed');
       }
@@ -1621,8 +1620,8 @@ class WorkflowControllerSm extends Controller
     $c_time = Carbon::now();
     $c_date = $c_time->format("Y-m-d");
     $is_active = 0;
-    $roleArray = $request->session()->get('role');
-    $designation_id_old = Auth::user()->designation_id_old;
+    $roleArray = Configduty::where('user_id', $user_id)->where('is_active', 1)->get()->toArray();;
+    $designation_id = Auth::user()->designation_id;
     $district_visible = $is_urban_visible = $block_visible = 1;
     $municipality_visible = 0;
     $gp_ward_visible = 0;
@@ -1709,7 +1708,7 @@ class WorkflowControllerSm extends Controller
         'c_date' => $c_date,
         'gpList' => $gpList,
         'muncList' => $muncList,
-        'designation_id_old' => $designation_id_old,
+        'designation_id' => $designation_id,
       ]
     );
   }
@@ -1719,8 +1718,8 @@ class WorkflowControllerSm extends Controller
     $c_time = Carbon::now();
     $c_date = $c_time->format("Y-m-d");
     $is_active = 0;
-    $roleArray = $request->session()->get('role');
-    $designation_id_old = Auth::user()->designation_id_old;
+    $roleArray = Configduty::where('user_id', $user_id)->where('is_active', 1)->get()->toArray();
+    $designation_id = Auth::user()->designation_id;
     $district_visible = $is_urban_visible = $block_visible = 1;
     $municipality_visible = 0;
     $gp_ward_visible = 0;
@@ -1807,7 +1806,7 @@ class WorkflowControllerSm extends Controller
         'c_date' => $c_date,
         'gpList' => $gpList,
         'muncList' => $muncList,
-        'designation_id_old' => $designation_id_old,
+        'designation_id' => $designation_id,
       ]
     );
   }
@@ -2271,8 +2270,8 @@ LEFT JOIN
     $c_time = Carbon::now();
     $c_date = $c_time->format("Y-m-d");
     $is_active = 0;
-    $roleArray = $request->session()->get('role');
-    $designation_id_old = Auth::user()->designation_id_old;
+    $roleArray = Configduty::where('user_id', $user_id)->where('is_active', 1)->get()->toArray();;
+    $designation_id = Auth::user()->designation_id;
     $district_visible = $is_urban_visible = $block_visible = 1;
     $municipality_visible = 0;
     $gp_ward_visible = 0;
@@ -2359,7 +2358,7 @@ LEFT JOIN
         'c_date' => $c_date,
         'gpList' => $gpList,
         'muncList' => $muncList,
-        'designation_id_old' => $designation_id_old,
+        'designation_id' => $designation_id,
       ]
     );
   }
@@ -2682,8 +2681,8 @@ LEFT JOIN
     $c_time = Carbon::now();
     $c_date = $c_time->format("Y-m-d");
     $is_active = 0;
-    $roleArray = $request->session()->get('role');
-    $designation_id_old = Auth::user()->designation_id_old;
+    $roleArray = Configduty::where('user_id', $user_id)->where('is_active', 1)->get()->toArray();;
+    $designation_id = Auth::user()->designation_id;
     $district_visible = $is_urban_visible = $block_visible = 1;
     $municipality_visible = 0;
     $gp_ward_visible = 0;
@@ -2770,7 +2769,7 @@ LEFT JOIN
         'c_date' => $c_date,
         'gpList' => $gpList,
         'muncList' => $muncList,
-        'designation_id_old' => $designation_id_old,
+        'designation_id' => $designation_id,
       ]
     );
   }

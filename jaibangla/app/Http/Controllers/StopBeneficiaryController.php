@@ -22,7 +22,7 @@ use App\BankDetails;
 use App\DataSourceCommon;
 use Maatwebsite\Excel\Facades\Excel;
 use App\DocumentType;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 use App\Helpers\Helper;
 use Carbon\Carbon;
 use App\District;
@@ -45,8 +45,7 @@ class StopBeneficiaryController  extends Controller
     function selectscheme(Request $request)
     {
         $this->middleware('auth');
-        $roleArray = $request->session()->get('role');
-        $designation_id_old = Auth::user()->designation_id_old;
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray()        $designation_id = Auth::user()->designation_id;
         $userId = Auth::user()->id;      
         $scheme_list = DB::select(DB::raw("select id,scheme_name from m_scheme where  id in (select scheme_id from duty_assignement where user_id=" . $userId . " and is_active=1) and is_active=1 order by scheme_name"));
         //dd($scheme_list);
@@ -54,15 +53,14 @@ class StopBeneficiaryController  extends Controller
             'stop-beneficiary.selectScheme',
             [
                 'scheme_list' => $scheme_list,
-                'designation_id_old' => $designation_id_old,
+                'designation_id' => $designation_id,
             ]
         );
     }
     function selectschemehod(Request $request)
     {
         $this->middleware('auth');
-        $roleArray = $request->session()->get('role');
-        $designation_id_old = Auth::user()->designation_id_old;
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray()        $designation_id = Auth::user()->designation_id;
         $userId = Auth::user()->id;      
         $scheme_list = DB::select(DB::raw("select id,scheme_name from m_scheme where  id in (select scheme_id from duty_assignement where user_id=" . $userId . " and is_active=1) and is_active=1 order by scheme_name"));
         //dd($scheme_list);
@@ -70,14 +68,14 @@ class StopBeneficiaryController  extends Controller
             'stop-beneficiary.selectschemehod',
             [
                 'scheme_list' => $scheme_list,
-                'designation_id_old' => $designation_id_old,
+                'designation_id' => $designation_id,
             ]
         );
     }
     public function listReport(Request $request)
     {
      
-      $designation_id_old = Auth::user()->designation_id_old;
+      $designation_id = Auth::user()->designation_id;
       $user_id = AuthChecker::getUserId();
   
       $scheme_id = $request->scheme_id;
@@ -323,7 +321,7 @@ class StopBeneficiaryController  extends Controller
       return view(
         'stop-beneficiary.linelisting',
         [
-          'designation_id_old' => $designation_id_old,
+          'designation_id' => $designation_id,
           'verifier_type' => $verifier_type,
           'created_by_local_body_code' => $created_by_local_body_code,
           'is_rural' => $is_rural,
@@ -371,7 +369,7 @@ class StopBeneficiaryController  extends Controller
           $scheme_length = NULL;
           $id_length = NULL;
         }
-        $role_name = Auth::user()->designation_id_old;
+        $role_name = Auth::user()->designation_id;
         $scheme_name_row = Scheme::where('id', $scheme_id)->first();
         $scheme_name = $scheme_name_row->scheme_name;
         $report_type = $request->report_type;
@@ -530,7 +528,7 @@ class StopBeneficiaryController  extends Controller
   function mishod(Request $request)
   {
    
-      $role_name = Auth::user()->designation_id_old;
+      $role_name = Auth::user()->designation_id;
       //dd( $role_name);
       if ($role_name != 'HOD') {
         return redirect('/')->with('error', 'User not Authorized');

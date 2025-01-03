@@ -105,7 +105,7 @@
                       </select>
                       <span class="text-danger" id="error_scheme_type"></span>
                     </div>
-                    @if($mapLevel=='SubdivOperator')
+                    @if($mapLevel=='Subdiv')
                     <div class="col-md-3">
                       <label class=" control-label">Municipality</label>
                       <select name="filter_1" id="filter_1" class="form-control select2 full-width js-municipality">
@@ -122,7 +122,7 @@
                       </select>
                     </div>
 
-                    @elseif($mapLevel=='BlockOperator')
+                    @elseif($mapLevel=='Block')
                     <div class="col-md-3">
                       <label class=" control-label">Gram Panchayat</label>
                       <select name="filter_1" id="filter_1" class="form-control select2 full-width">

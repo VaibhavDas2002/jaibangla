@@ -12,7 +12,7 @@ use App\PensionSc;
 use App\lot_no_seeder;
 use App\lot_master;
 use App\Scheme;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use App\Configduty;
 use App\BeneficiaryPensions;
 use App\Helpers\AuthChecker;

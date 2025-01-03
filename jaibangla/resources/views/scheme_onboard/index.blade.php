@@ -748,6 +748,7 @@
         scheme_id: id
       },
       success: function (data) {
+      alert(data);
         $('#workflowdiv').html(data);
       },
       error: function (ex) {

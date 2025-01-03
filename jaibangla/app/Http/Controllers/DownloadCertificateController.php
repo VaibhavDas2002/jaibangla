@@ -19,7 +19,7 @@ class DownloadCertificateController extends Controller
         
     }
 
-    public function downloadImage($user_id, $slug){
+    public function downloadImage($user_id, $slug, $request){
          $mobile = $request->session()->get('session_mobile');
          $objAppliaction = applicationModel::where('mobile_no', $mobile)->where('current_status','READY')->orderBy('created_at', 'DESC')->first();
          $storagePath = storage_path('app/keep/'. $objAppliaction->application_id . '/' . $objAppliaction->signed_certificate);

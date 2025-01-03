@@ -359,7 +359,7 @@ margin: 10px 0px 10px 0px !important;
                             @endif        
                           {{-- @endforeach --}}
                         </div>
-                        @if($designation_id_old=='Operator' && is_null($row->next_level_role_id_edit))
+                        @if($designation_id=='Operator' && is_null($row->next_level_role_id_edit))
                         <form method="post" id="register_form" action="{{url('editLifeCertificatePost')}}" enctype="multipart/form-data"
                     class="submit-once" onsubmit="return client_validation()">
                     <input type="hidden" name="scheme_id" id="scheme_id" value="{{$row->scheme_id}}"/>
@@ -397,7 +397,7 @@ margin: 10px 0px 10px 0px !important;
                       </div>
                     </form>
                     @endif
-                    @if($designation_id_old=='Verifier' && $row->next_level_role_id_edit==1)
+                    @if($designation_id=='Verifier' && $row->next_level_role_id_edit==1)
                        
                     
                    

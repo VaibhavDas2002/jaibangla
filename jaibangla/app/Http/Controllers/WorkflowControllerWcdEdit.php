@@ -10,7 +10,7 @@ use App\Taluka;
 use App\Ward;
 use App\UrbanBody;
 use App\GP;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use App\DocumentType;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\DB;
@@ -335,7 +335,7 @@ class WorkflowControllerWcdEdit extends Controller
        );
       }
       if ($duty_obj->mapping_level == "District") {
-        $mapArr = MapLavel::where('scheme_id', $duty_obj->scheme_id)->where('role_name', $designation_id_old)->where('stack_level', $duty_obj->mapping_level)->get(['id', 'role_name', 'scheme_id', 'parent_id', 'is_final', 'stack_level', 'is_first', 'role_id'])->first();
+        $mapArr = MapLavel::where('scheme_id', $duty_obj->scheme_id)->where('role_name', $designation_id)->where('stack_level', $duty_obj->mapping_level)->get(['id', 'role_name', 'scheme_id', 'parent_id', 'is_final', 'stack_level', 'is_first', 'role_id'])->first();
         $next_level_role_id_cond=$mapArr->id;
         if (request()->ajax()) {
           $limit = $request->input('length');
@@ -519,7 +519,7 @@ class WorkflowControllerWcdEdit extends Controller
         $query =$query->where('next_level_role_id_edit',999);
       }
       if (AuthChecker::ApproverChecker()) {
-        $mapArr = MapLavel::where('scheme_id', $duty_obj->scheme_id)->where('role_name', $designation_id_old)->where('stack_level', $duty_obj->mapping_level)->get(['id', 'role_name', 'scheme_id', 'parent_id', 'is_final', 'stack_level', 'is_first', 'role_id'])->first();
+        $mapArr = MapLavel::where('scheme_id', $duty_obj->scheme_id)->where('role_name', $designation_id)->where('stack_level', $duty_obj->mapping_level)->get(['id', 'role_name', 'scheme_id', 'parent_id', 'is_final', 'stack_level', 'is_first', 'role_id'])->first();
         $next_level_role_id_cond=$mapArr->id;
         
         
@@ -657,7 +657,7 @@ class WorkflowControllerWcdEdit extends Controller
       $back_url='workflowwcdEdit?scheme_id='.$scheme_id;
       if ($_POST['submit'] == 'Verify') {
         //dd('ok');
-        $mapArr = MapLavel::where('scheme_id', $duty_obj->scheme_id)->where('role_name', $designation_id_old)->where('stack_level', $duty_obj->mapping_level)->get(['id', 'role_name', 'scheme_id', 'parent_id', 'is_final', 'stack_level', 'is_first', 'role_id'])->first();
+        $mapArr = MapLavel::where('scheme_id', $duty_obj->scheme_id)->where('role_name', $designation_id)->where('stack_level', $duty_obj->mapping_level)->get(['id', 'role_name', 'scheme_id', 'parent_id', 'is_final', 'stack_level', 'is_first', 'role_id'])->first();
         if(empty($mapArr)){
           return redirect("/")->with('danger', 'Not Allowed');
         }
@@ -683,7 +683,7 @@ class WorkflowControllerWcdEdit extends Controller
       }
       if ($_POST['submit'] == 'Approve') {
         //dd('ok');
-        $mapArr = MapLavel::where('scheme_id', $duty_obj->scheme_id)->where('role_name', $designation_id_old)->where('stack_level', $duty_obj->mapping_level)->get(['id', 'role_name', 'scheme_id', 'parent_id', 'is_final', 'stack_level', 'is_first', 'role_id'])->first();
+        $mapArr = MapLavel::where('scheme_id', $duty_obj->scheme_id)->where('role_name', $designation_id)->where('stack_level', $duty_obj->mapping_level)->get(['id', 'role_name', 'scheme_id', 'parent_id', 'is_final', 'stack_level', 'is_first', 'role_id'])->first();
         if(empty($mapArr)){
           return redirect("/")->with('danger', 'Not Allowed');
         }
@@ -753,7 +753,7 @@ class WorkflowControllerWcdEdit extends Controller
         $id_length = NULL;
       }
       
-      $mapArr = MapLavel::where('scheme_id', $duty_obj->scheme_id)->where('role_name', $designation_id_old)->where('stack_level', $duty_obj->mapping_level)->get(['id', 'role_name', 'scheme_id', 'parent_id', 'is_final', 'stack_level', 'is_first', 'role_id'])->first();
+      $mapArr = MapLavel::where('scheme_id', $duty_obj->scheme_id)->where('role_name', $designation_id)->where('stack_level', $duty_obj->mapping_level)->get(['id', 'role_name', 'scheme_id', 'parent_id', 'is_final', 'stack_level', 'is_first', 'role_id'])->first();
       if(empty($mapArr)){
         return redirect("/")->with('danger', 'Not Allowed');
       }

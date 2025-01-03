@@ -31,7 +31,7 @@ class SchemeCapacityController extends Controller
 		$user_id = AuthChecker::getUserId();
 		$schemeObj = Configduty::select('scheme_id')->where('user_id', '=', $user_id)->get();
 		$scheme = Scheme::whereIn('id', $schemeObj)->get();
-		if (Auth::user()->designation_id_old == 'HOD' || Auth::user()->designation_id_old == 'Admin') {
+		if (Auth::user()->designation_id == 'HOD' || Auth::user()->designation_id == 'Admin') {
 			$district = District::all();
 			//$scheme = Scheme::get();
 			return view('scheme-capacity/index', ['schemes' => $scheme, 'districts' => $district]);

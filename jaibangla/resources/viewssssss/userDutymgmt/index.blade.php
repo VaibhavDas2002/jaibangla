@@ -103,7 +103,7 @@
 
                   
                 
-                   @if($designation_id_old=='Admin' || $designation_id_old=='HOD' || $designation_id_old=='Verifier' || $designation_id_old=='Approver' )
+                   @if($designation_id=='Admin' || $designation_id=='HOD' || $designation_id=='Verifier' || $designation_id=='Approver' )
                   <a class="btn btn-primary" href="{{ route('adduser') }}">Add User and Assign Role</a>
                    @endif
                  
@@ -136,21 +136,21 @@
               <input type="hidden" name="stake_level_home" id="stake_level_home" value="{{$stake_level_home}}"/>
               @endif
               @if($role_visible)
-                    <div class="form-group col-md-3" id="designation_id_old_home_div">
+                    <div class="form-group col-md-3" id="designation_id_home_div">
                             <label class="control-label">Role </label>
                             
-                                <select class="form-control" name="designation_id_old_home" id="designation_id_old_home" >
+                                <select class="form-control" name="designation_id_home" id="designation_id_home" >
                                 <option value="">--ALL--</option>
                                 @foreach($roles as $role)
                                    <option value="{{$role->name}}" >{{$role->name}}</option>
                                    @endforeach     
                                 </select>
-                                <div id="designation_id_old_home_ajax"></div>
+                                <div id="designation_id_home_ajax"></div>
                            
                  
                   </div>
                   @else
-              <input type="hidden" name="designation_id_old_home" id="designation_id_old_home" value="{{$designation_id_old_home}}"/>
+              <input type="hidden" name="designation_id_home" id="designation_id_home" value="{{$designation_id_home}}"/>
               @endif 
               <div class="form-group col-sm-3">
                   <label for="l_scheme_duty" class="">Scheme</label>
@@ -523,7 +523,7 @@ $(document).ready(function(){
   $(".btnMap1").hide();
   if(table!=null && table != ''){
     $('#example').DataTable().destroy();
-    //alert(service_designation_id_old);
+    //alert(service_designation_id);
   }
   $("#excel-btn").hide();
    $.ajaxSetup({
@@ -549,7 +549,7 @@ $(document).ready(function(){
         type: "GET",
          data   : function( d ) {
           d.mapping_level= $('#stake_level_home').val();
-          d.designation_id_old= $('#designation_id_old_home').val();
+          d.designation_id= $('#designation_id_home').val();
           d.scheme_id= $('#scheme_home').val();
           d.district_code= $('#district_code_home').val();
           d.is_urban= $('#is_urban_home').val();
@@ -568,7 +568,7 @@ $(document).ready(function(){
         { "data": "is_active_db","defaultContent":"" },
         { "data": "CanUpdate","defaultContent":"" },
         { "data": "username","defaultContent":"" },
-        { "data": "designation_id_old"},
+        { "data": "designation_id"},
         { "data": "mobile_no"},
         { "data": "email"},
         { "data": "location"},
@@ -736,7 +736,7 @@ $(document).ready(function(){
 $("#btnSearch").click(function(){
    
   table.ajax.reload()
-    //fill_datatable(department_id,service_designation_id_old,stake_level,district_code,subdiv_code,block_munc_corp_code);
+    //fill_datatable(department_id,service_designation_id,stake_level,district_code,subdiv_code,block_munc_corp_code);
 });
 $('.glyphicon').on('click',function(){
    alert('ok');
@@ -971,7 +971,7 @@ function UpdateUserForm(id){
           $("#email").val(data.userarr.email); 
           $("#mobile_no").val(data.userarr.mobile_no); 
           $("#department_id_adduser").val(data.userarr.department_id); 
-          $("#designation_id_old_adduser").val(data.userarr.designation_id_old);
+          $("#designation_id_adduser").val(data.userarr.designation_id);
           $("#user_id").val(data.userarr.id); 
           $(".forAddUserOnly").hide();
           $(".submit_loader").hide(); 

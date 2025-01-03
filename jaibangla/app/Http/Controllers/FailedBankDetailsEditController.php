@@ -23,6 +23,10 @@ use App\Helpers\AuthChecker;
 
 class FailedBankDetailsEditController extends Controller
 {
+    protected $ben_status;
+    private $failed_table;
+    private $payment_table;
+    
     public function __construct()
     {
         set_time_limit(120);
@@ -63,7 +67,7 @@ class FailedBankDetailsEditController extends Controller
     }
     public function index(){
         $user_id = AuthChecker::getUserId();
-        $designation = Auth::user()->designation_id_old;
+        $designation = Auth::user()->designation_id;
         $mapObj = DB::connection('pgsql_mis')
             ->table('public.duty_assignement')
             ->where('user_id', $user_id)
@@ -947,8 +951,8 @@ class FailedBankDetailsEditController extends Controller
     {
         // dd($request->all());
         $scheme_id = $request->scheme_id;
-        $roleArray = $request->session()->get('role');
-        foreach ($roleArray as $roleObj) {
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == $scheme_id) {
                 $is_active = 1;
                 $mapping_level = $roleObj['mapping_level'];
@@ -1054,7 +1058,7 @@ class FailedBankDetailsEditController extends Controller
                 $user_id .
                 ' and is_active=1) order by scheme_name'
         );
-        if (Auth::user()->designation_id_old == 'Approver') {
+        if (Auth::user()->designation_id == 'Approver') {
             $levels = [
                 2 => 'Rural',
                 1 => 'Urban',
@@ -1084,7 +1088,7 @@ class FailedBankDetailsEditController extends Controller
             $scheme_id = $request->scheme_type;
             $failed_type = $request->failed_type;
             $table_name = $this->getSchemaName($scheme_id);
-            if (Auth::user()->designation_id_old == 'Approver' && !empty($scheme_id) && !empty($failed_type)) {
+            if (Auth::user()->designation_id == 'Approver' && !empty($scheme_id) && !empty($failed_type)) {
                 $failed_type_id = $this->getLotGenerated($failed_type);
                 if($failed_type_id == 3)
                 {

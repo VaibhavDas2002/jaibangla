@@ -8,11 +8,11 @@ use App\applicationModel;
 use App\Policestation;
 use App\PicUpload;
 use App\User;
-use DB;
+use Illuminate\Support\Facades\DB;
 use PDF;
 use TCPDF;
 //use CUSTOMPDF;
-use URL;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Log;
 use TCPDF2DBarcode;
 

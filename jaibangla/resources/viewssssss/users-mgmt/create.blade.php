@@ -99,16 +99,16 @@
                             <label for="password-confirm" class="col-md-4 control-label">Designation</label>
 
                             <div class="col-md-6">
-                                <select id="designation_id_old" type="password" class="form-control" name="designation_id_old" required>
+                                <select id="designation_id" type="password" class="form-control" name="designation_id" required>
                                     <option value="">Choose Designation</option>
                                      @foreach($designations as $designation)
                                       <option value="{{$designation->name}}">{{$designation->name}}</option>
                                      @endforeach
                                 </select>
 
-                                 @if ($errors->has('designation_id_old'))
+                                 @if ($errors->has('designation_id'))
                                     <span class="help-block">
-                                        <strong>{{ $errors->first('designation_id_old') }}</strong>
+                                        <strong>{{ $errors->first('designation_id') }}</strong>
                                     </span>
                                  @endif
                                 

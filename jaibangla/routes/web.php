@@ -2134,22 +2134,6 @@ Route::get('jb-update','JBPensionController@update')->name('jb-update');
 Route::resource('scheme-req-field', 'SchemeFieldsRequiredController');
 Route::get('get-scheme-data-required','SchemeFieldsRequiredController@getData')->name('get-scheme-data-required');
 
-// Update Dup & No Bank, Aadhar, Mobile
-// Verifier End
-Route::get('no-dup-beneficiaries-list', 'NoDupWorkflowController@index')->name('no-dup-beneficiaries-list');
-Route::post('getNoDupList', 'NoDupWorkflowController@getNoDupList')->name('getNoDupList');
-Route::any('editApplicantDetails', 'NoDupWorkflowController@editApplicantDetails')->name('editApplicantDetails');
-Route::post('updateApplicantDetails', 'NoDupWorkflowController@updateApplicantDetails')->name('updateApplicantDetails');
-Route::post('aadharDupCheck', 'NoDupWorkflowController@aadharDupCheck')->name('aadharDupCheck');
-Route::post('bankDupCheck', 'NoDupWorkflowController@bankDupCheck')->name('bankDupCheck');
-Route::post('mobileDupCheck', 'NoDupWorkflowController@mobileDupCheck')->name('mobileDupCheck');
-
-// Approver End
-Route::get('no-dup-verified-beneficiaries-list', 'NoDupWorkflowController@approver_linelisting_index')->name('no-dup-verified-beneficiaries-list');
-Route::post('getNoDupVerifiedList', 'NoDupWorkflowController@getNoDupVerifiedList')->name('getNoDupVerifiedList');
-Route::post('NoDupModalView', 'NoDupWorkflowController@NoDupModalView')->name('NoDupModalView');
-Route::post('getDocument', 'NoDupWorkflowController@getDocument')->name('getDocument');
-Route::post('approveNoDupApplicant', 'NoDupWorkflowController@approveNoDupApplicant')->name('approveNoDupApplicant');
 
 
 //WBPDS 
@@ -2168,3 +2152,31 @@ Route::get('jb-View60lbapplication', 'JBProcessApplicationLB60Controller@View60l
 
 Route::get('download-applicant-details' , 'JBProcessApplicationController@applicant_details')->name('download-applicant-details');
 Route::get('download-applicant-details_multi','JBProcessApplicationController@applicant_details_multiple')->name('download-applicant-details');
+// Update Dup & No Bank, Aadhar, Mobile
+// Verifier End
+Route::get('no-dup-beneficiaries-list', 'NoDupWorkflowController@index')->name('no-dup-beneficiaries-list');
+Route::post('getNoDupList', 'NoDupWorkflowController@getNoDupList')->name('getNoDupList');
+Route::any('editApplicantDetails', 'NoDupWorkflowController@editApplicantDetails')->name('editApplicantDetails');
+Route::post('updateApplicantDetails', 'NoDupWorkflowController@updateApplicantDetails')->name('updateApplicantDetails');
+Route::post('aadharDupCheck', 'NoDupWorkflowController@aadharDupCheck')->name('aadharDupCheck');
+Route::post('bankDupCheck', 'NoDupWorkflowController@bankDupCheck')->name('bankDupCheck');
+Route::post('mobileDupCheck', 'NoDupWorkflowController@mobileDupCheck')->name('mobileDupCheck');
+Route::post('getNoDupListExcel', 'NoDupWorkflowController@getNoDupListExcel')->name('getNoDupListExcel');
+
+// Approver End
+Route::get('no-dup-verified-beneficiaries-list', 'NoDupWorkflowController@approver_linelisting_index')->name('no-dup-verified-beneficiaries-list');
+Route::post('getNoDupVerifiedList', 'NoDupWorkflowController@getNoDupVerifiedList')->name('getNoDupVerifiedList');
+Route::post('NoDupModalView', 'NoDupWorkflowController@NoDupModalView')->name('NoDupModalView');
+Route::post('getDocument', 'NoDupWorkflowController@getDocument')->name('getDocument');
+Route::post('approveNoDupApplicant', 'NoDupWorkflowController@approveNoDupApplicant')->name('approveNoDupApplicant');
+
+Route::post('TotalCountExcel', 'NoDupWorkflowController@TotalCountExcel')->name('TotalCountExcel');
+
+Route::get('blk_ulb_mis_report', 'NoDupWorkflowController@blkUlbMisReport')->name('blk_ulb_mis_report');
+Route::post('blkUlb_mis_report_post', 'NoDupWorkflowController@blkUlbMisReportPost')->name('blkUlb_mis_report_post');
+Route::post('blkUlb_mis_report_excel', 'NoDupWorkflowController@blkUlbMisReportExcel')->name('blkUlb_mis_report_excel');
+Route::get('scheme_mis_report', 'NoDupWorkflowController@schemeMisReport')->name('scheme_mis_report');
+Route::post('scheme_mis_report_post', 'NoDupWorkflowController@schemeMisReportPost')->name('scheme_mis_report_post');
+Route::post('scheme_mis_report_excel', 'NoDupWorkflowController@schemeMisReportExcel')->name('scheme_mis_report_excel');
+
+Route::get('mahestala', 'MahestalaController@mahestala')->name('mahestala');

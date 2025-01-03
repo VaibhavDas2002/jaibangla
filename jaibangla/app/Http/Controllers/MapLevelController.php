@@ -9,7 +9,7 @@ use App\Designation;
 use App\Schemetype;
 use App\Scheme;
 use App\MapLavel;
-use DB;
+use Illuminate\Support\Facades\DB;
 
 class MapLevelController extends Controller
 {
@@ -52,10 +52,10 @@ class MapLevelController extends Controller
          if($request['final_level_approval']==0){
             $is_final=true;
          }
-         $designation = Designation::find($request['designation_id_old']);
+         $designation = Designation::find($request['designation_id']);
          MapLavel::create([
             'scheme_id' =>$request['scheme_id'],
-            'role_id' => $request['designation_id_old'],
+            'role_id' => $request['designation_id'],
             'role_name' => $designation->name ,
             'parent_id' => $request['final_level_approval'],
             'stack_level' => $request['level'],
@@ -102,7 +102,7 @@ class MapLevelController extends Controller
         $mapLavel = MapLavel::findOrFail($id);
         $input = [
             'scheme_id' =>$request['scheme_id'],
-            'designation_id_old' => $request['designation_id_old'],
+            'designation_id' => $request['designation_id'],
             'final_level_approval' => $request['final_level_approval'],
             'level_gp_district_mc_subd' => $request['level']
         ];

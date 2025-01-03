@@ -31,14 +31,14 @@ use App\Ward;
 use App\GP;
 use App\User;
 use Redirect;
-use Auth;
-use Config;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use App\SchemeCapacity;
 use App\Scheme;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
 use App\BankDetails;
 use App\Helpers\Helper;
@@ -57,11 +57,17 @@ use Illuminate\Support\Facades\Session;
 use App\Helpers\DupCheck;
 use App\Helpers\AuthChecker;
 
+
 class WPWCDformController extends Controller
 {
     use TraitCasteCertificateValidate;
     use TraitLifeCertificateValidate;
     use TraitAadharValidate;
+    protected $scheme_id;
+    protected $entry_allowded_district_arr;
+    protected $state_login_next_level_role_id_arr;
+
+
     public function __construct()
     {
         $this->middleware('auth');
@@ -84,7 +90,7 @@ class WPWCDformController extends Controller
         // $base_url=url('/');
         // echo $base_url.'/images/';exit;        
 
-        $roleArray = $request->session()->get('role');
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
         foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == $scheme_id) {
                 $is_active = 1;
@@ -102,7 +108,7 @@ class WPWCDformController extends Controller
                 break;
             }
         }
-        $allowded_arr = BlkUrbanlEntryMapping::where('scheme_id', $scheme_id)->where('district_code',  $district_code)->where('block_ulb_code',  $block_ulb_code)->first();
+        $allowded_arr = BlkUrbanlEntryMapping::where('scheme_id', $scheme_id)->where('district_code', $district_code)->where('block_ulb_code', $block_ulb_code)->first();
         $main_entry_allowded = intval($allowded_arr->main_entry);
         if ($main_entry_allowded == 0) {
             return redirect("/")->with('danger', 'Data entry temporarily suspended.');
@@ -178,16 +184,15 @@ class WPWCDformController extends Controller
             $scheme_name = $scheme_row->scheme_name;
             $allow_ds_entry = intval($scheme_row->allow_ds_entry);
             $allow_normal_entry = intval($scheme_row->allow_normal_entry);
-            if($allow_ds_entry==0 &&  $allow_normal_entry==0){
-                return redirect("/")->with('danger', ' Data entry temporarily suspended.');  
+            if ($allow_ds_entry == 0 && $allow_normal_entry == 0) {
+                return redirect("/")->with('danger', ' Data entry temporarily suspended.');
             }
             $cur_ds_phase_arr = DsPhase::where('is_current', TRUE)->first();
-            $ds_phase_text='';
-            if($cur_ds_phase_arr->is_samadhan==TRUE){
-                $ds_phase_text='Samasyaa Samadhan Jan Sanjog';
-            }
-            else{
-                $ds_phase_text='Duare Sarkar';
+            $ds_phase_text = '';
+            if ($cur_ds_phase_arr->is_samadhan == TRUE) {
+                $ds_phase_text = 'Samasyaa Samadhan Jan Sanjog';
+            } else {
+                $ds_phase_text = 'Duare Sarkar';
             }
             return view('WPWCD/pension_details', [
                 'districts' => $districts,
@@ -221,15 +226,15 @@ class WPWCDformController extends Controller
      */
     public function store(Request $request)
     {
-       //return redirect("/")->with('error', 'Data entry temporary suspended.');
-        $wq=0;
+        //return redirect("/")->with('error', 'Data entry temporary suspended.');
+        $wq = 0;
         $user_id = AuthChecker::getUserId();
         //$server_ip =$_SERVER['SERVER_ADDR'];
         $base_url = url('/');
         $uploaded_doc = array();
         $destinationPath = storage_path('app/keep_wp/');
         $scheme_id = $request->scheme_id;
-        $roleArray = $request->session()->get('role');
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
         $is_active = 0;
         foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == $scheme_id) {
@@ -256,7 +261,7 @@ class WPWCDformController extends Controller
                 return redirect("/")->with('danger', 'User Disabled');
             }
         }
-        $allowded_arr = BlkUrbanlEntryMapping::where('scheme_id', $scheme_id)->where('district_code',  $distCode)->where('block_ulb_code',  $blockCode)->first();
+        $allowded_arr = BlkUrbanlEntryMapping::where('scheme_id', $scheme_id)->where('district_code', $distCode)->where('block_ulb_code', $blockCode)->first();
         $main_entry_allowded = intval($allowded_arr->main_entry);
         if ($main_entry_allowded == 0) {
             return redirect("/")->with('danger', 'Data entry temporarily suspended.');
@@ -270,7 +275,7 @@ class WPWCDformController extends Controller
         $doc_list_opt = json_decode($doc_id_list[0]['doc_list_opt']);
         $doc_list = array_merge($doc_list_man, $doc_list_opt);
 
-        $isValidarr = $this->validateInput($request,  $scheme_id, 1);
+        $isValidarr = $this->validateInput($request, $scheme_id, 1);
         if ($isValidarr['is_valid'] == false) {
             return back()->with('errors', $isValidarr['errors'])->withInput(Input::all());
         }
@@ -281,7 +286,7 @@ class WPWCDformController extends Controller
 
         $doc_list_man_group_upload = array();
         $doc_list_man_group_db = array();
-        if (($doc_id_list[0]['doc_list_man_group']) != '' &&  ($doc_id_list[0]['doc_list_man_group'] != 'null') && ($doc_id_list[0]['doc_list_man_group']) != null) {
+        if (($doc_id_list[0]['doc_list_man_group']) != '' && ($doc_id_list[0]['doc_list_man_group'] != 'null') && ($doc_id_list[0]['doc_list_man_group']) != null) {
             $doc_list_man_group_db = json_decode($doc_id_list[0]['doc_list_man_group']);
         }
         foreach ($doc_list as $doc) {
@@ -324,27 +329,27 @@ class WPWCDformController extends Controller
                 return back()->with('errors', $errors)->withInput(Input::all());
             }
         }
-        if(!preg_match('/^[0-9]{10}+$/',$request->mobile_no)) {
+        if (!preg_match('/^[0-9]{10}+$/', $request->mobile_no)) {
             $errors = array();
             $errorMsg = "Mobile Number Invalid";
             array_push($errors, $errorMsg);
             return back()->with('errors', $errors)->withInput(Input::all());
-         }
-         if($request->mobile_no<1000000000) {
+        }
+        if ($request->mobile_no < 1000000000) {
             $errors = array();
             $errorMsg = "Mobile Number Invalid";
             array_push($errors, $errorMsg);
             return back()->with('errors', $errors)->withInput(Input::all());
-         }
+        }
         $check_condition_str = Helper::getCheckNextLevelRoleIdCon($scheme_id);
-       
+
         $ifsc = trim($request->bank_ifsc_code);
         $bank_branch = trim($request->bank_branch);
         $name_of_bank = trim($request->name_of_bank);
-        $row_count_bank = BankDetails::whereraw("trim(branch)='$bank_branch'")->whereraw("trim(ifsc)='$ifsc'")->where('is_active',1)->whereraw("trim(bank)='$name_of_bank'")->count();
+        $row_count_bank = BankDetails::whereraw("trim(branch)='$bank_branch'")->whereraw("trim(ifsc)='$ifsc'")->where('is_active', 1)->whereraw("trim(bank)='$name_of_bank'")->count();
         //$bank_details = BankDetails::whereraw("trim(ifsc)='$ifsc'")->where('is_active',1)->get(['bank', 'branch','bank_code'])->first();
-        $bank_details = BankDetails::where('ifsc', trim($ifsc))->where('is_active',1)->get(['bank', 'branch','bank_code'])->first();
-        $new_bank_code=$bank_details->bank_code;
+        $bank_details = BankDetails::where('ifsc', trim($ifsc))->where('is_active', 1)->get(['bank', 'branch', 'bank_code'])->first();
+        $new_bank_code = $bank_details->bank_code;
         if ($row_count_bank == 0) {
             $errors = array();
             $errorMsg = "Bank IFSC and Bank Name Not Match!";
@@ -381,129 +386,125 @@ class WPWCDformController extends Controller
         $scheme_obj = Scheme::where('id', $scheme_id)->where('is_active', 1)->first();
         if (!empty($scheme_obj->short_code)) {
             $schema = $scheme_obj->short_code;
-          } else {
-            $schema = "pension"; 
-          }
+        } else {
+            $schema = "pension";
+        }
         $allow_ds_entry = intval($scheme_obj->allow_ds_entry);
         $allow_normal_entry = intval($scheme_obj->allow_normal_entry);
-        if($allow_ds_entry==0 &&  $allow_normal_entry==0){
-                return redirect("/")->with('danger', ' Data entry temporarily suspended.');  
+        if ($allow_ds_entry == 0 && $allow_normal_entry == 0) {
+            return redirect("/")->with('danger', ' Data entry temporarily suspended.');
         }
-          $errormsg=array();
-          if(!empty($bank_account_number) && !empty($ifsc)){
-           $bank_count = DB::table($schema . '.beneficiaries')->where('scheme_id',$scheme_id)->whereIn('is_clean', [1, 2])->where('bank_code',$bank_account_number)->count('bank_code');
-           if($bank_count>0){  
-            $is_error=1;  
-            array_push($errormsg,'Bank A/C Already Exist in the scheme !');
-           } 
-        }   
-        if(!empty($bank_account_number)){
-            $aadharDupChecBankOAP = DupCheck::getDupCheckBank(10,$bank_account_number);
-            if(!empty($aadharDupChecBankOAP)){  
-                $is_error=1;  
+        $errormsg = array();
+        if (!empty($bank_account_number) && !empty($ifsc)) {
+            $bank_count = DB::table($schema . '.beneficiaries')->where('scheme_id', $scheme_id)->whereIn('is_clean', [1, 2])->where('bank_code', $bank_account_number)->count('bank_code');
+            if ($bank_count > 0) {
+                $is_error = 1;
+                array_push($errormsg, 'Bank A/C Already Exist in the scheme !');
+            }
+        }
+        if (!empty($bank_account_number)) {
+            $aadharDupChecBankOAP = DupCheck::getDupCheckBank(10, $bank_account_number);
+            if (!empty($aadharDupChecBankOAP)) {
+                $is_error = 1;
                 $errorMsg = "Duplicate Bank Account Number present in Old Age Pension Scheme with Beneficiary ID- $aadharDupChecBankOAP";
-                array_push($errormsg,$errorMsg);     
-            } 
-        }       
-        if(!empty($request->aadhar_no)){
-            $aadhar_count = DB::table($schema . '.beneficiaries')->where('scheme_id',$scheme_id)->whereIn('is_clean', [1, 2])->where('aadhar_no',trim($request->aadhar_no))->count('aadhar_no');
-            if($aadhar_count>0){  
-             $is_error=1;  
-             array_push($errormsg,'Aadhaar Number Already Exist! Please try different.');     
-            } 
-         }
-         if(!empty($request->aadhar_no)){
-            $aadharDupCheckOAP = DupCheck::getDupCheckAadhar(10,$request->aadhar_no);
-            if(!empty($aadharDupCheckOAP)){
-                $is_error=1;  
+                array_push($errormsg, $errorMsg);
+            }
+        }
+        if (!empty($request->aadhar_no)) {
+            $aadhar_count = DB::table($schema . '.beneficiaries')->where('scheme_id', $scheme_id)->whereIn('is_clean', [1, 2])->where('aadhar_no', trim($request->aadhar_no))->count('aadhar_no');
+            if ($aadhar_count > 0) {
+                $is_error = 1;
+                array_push($errormsg, 'Aadhaar Number Already Exist! Please try different.');
+            }
+        }
+        if (!empty($request->aadhar_no)) {
+            $aadharDupCheckOAP = DupCheck::getDupCheckAadhar(10, $request->aadhar_no);
+            if (!empty($aadharDupCheckOAP)) {
+                $is_error = 1;
                 $errorMsg = "Duplicate Aadhaar Number present in Old Age Pension Scheme with Beneficiary ID- $aadharDupCheckOAP";
                 array_push($errors, $errorMsg);
-            } 
-         }
-         if(!empty($request->mobile_no)){
-            $mobile_count = DB::table($schema . '.beneficiaries')->where('scheme_id',$scheme_id)->whereIn('is_clean', [1, 2])->where('mobile_no',$request->mobile_no)->count('mobile_no');
-            if($mobile_count>0){  
-             $is_error=1;  
-             array_push($errormsg,'Mobile Number Already Exist! Please try different.');    
-            } 
-         } 
-         if(count($errormsg)>0){
-            if($wq==1){
-                return redirect("wp-wcd?wq=1")->withInput(Input::all())->with('errors',$errormsg);
             }
-            else{
-            return redirect("wp-wcd")->withInput(Input::all())->with('errors',$errormsg);
+        }
+        if (!empty($request->mobile_no)) {
+            $mobile_count = DB::table($schema . '.beneficiaries')->where('scheme_id', $scheme_id)->whereIn('is_clean', [1, 2])->where('mobile_no', $request->mobile_no)->count('mobile_no');
+            if ($mobile_count > 0) {
+                $is_error = 1;
+                array_push($errormsg, 'Mobile Number Already Exist! Please try different.');
             }
-           
+        }
+        if (count($errormsg) > 0) {
+            if ($wq == 1) {
+                return redirect("wp-wcd?wq=1")->withInput(Input::all())->with('errors', $errormsg);
+            } else {
+                return redirect("wp-wcd")->withInput(Input::all())->with('errors', $errormsg);
+            }
+
         }
         //------------End -------------------------//
-        $c_time=date('Y-m-d H:i:s');
+        $c_time = date('Y-m-d H:i:s');
         $ds_phase = DsPhase::where('is_current', TRUE)->first();
         $pension_details = new BenEntry();
 
         $pension_details->entry_datetime = $c_time;
-        $pension_details->ip_address=$request->ip();
+        $pension_details->ip_address = $request->ip();
         //Document Dynamic
-        $upload_file=array();
-        $i=0;
-        $doc_master=DocumentType::get();
-       // dd($request->file);
+        $upload_file = array();
+        $i = 0;
+        $doc_master = DocumentType::get();
+        // dd($request->file);
         foreach ($doc_list as $doc) {
             if ($request->hasFile('doc_' . $doc)) {
-            $doc_file = $request->file('doc_' . $doc);
-            $img_data = file_get_contents($doc_file);
-            $u_extension_file = $doc_file->getClientOriginalExtension();
-            $u_extension=strtolower($u_extension_file);
-            $mime_type = $doc_file->getMimeType();
-            $doc_type_name =$doc_master->where('id', $doc)->first() ;
-            if(strtolower($mime_type)=='image/jpeg'){
-                if($u_extension=='jpg' || $u_extension=='jpeg'){
-                    $extension=$u_extension;
+                $doc_file = $request->file('doc_' . $doc);
+                $img_data = file_get_contents($doc_file);
+                $u_extension_file = $doc_file->getClientOriginalExtension();
+                $u_extension = strtolower($u_extension_file);
+                $mime_type = $doc_file->getMimeType();
+                $doc_type_name = $doc_master->where('id', $doc)->first();
+                if (strtolower($mime_type) == 'image/jpeg') {
+                    if ($u_extension == 'jpg' || $u_extension == 'jpeg') {
+                        $extension = $u_extension;
+                    } else {
+                        $errors = array();
+                        $errorMsg = "You are trying to upload an incorrect file for " . $doc_type_name->doc_name;
+                        array_push($errors, $errorMsg);
+                        return back()->with('errors', $errors)->withInput(Input::all());
+                    }
+                } else if (strtolower($mime_type) == 'image/png') {
+                    $extension = 'png';
+                } else if (strtolower($mime_type) == 'image/gif') {
+                    $extension = 'gif';
+                } else if (strtolower($mime_type) == 'application/pdf') {
+                    $extension = 'pdf';
+                } else {
+                    $errors = array();
+                    $errorMsg = "You are trying to upload an incorrect file for " . $doc_type_name->doc_name;
+                    array_push($errors, $errorMsg);
+                    return back()->with('errors', $errors)->withInput(Input::all());
                 }
-                else{
-                $errors = array();
-                $errorMsg = "You are trying to upload an incorrect file for ".$doc_type_name->doc_name;
-                array_push($errors, $errorMsg);
-                return back()->with('errors', $errors)->withInput(Input::all());  
+                if ($u_extension != $extension) {
+                    $errors = array();
+                    $errorMsg = "You are trying to upload an incorrect file for " . $doc_type_name->doc_name;
+                    array_push($errors, $errorMsg);
+                    return back()->with('errors', $errors)->withInput(Input::all());
                 }
+                $doc_type_name = $doc_master->where('id', $doc)->first();
+                $base64 = base64_encode($img_data);
+                $upload_file[$i]['created_by_dist_code'] = $distCode;
+                $upload_file[$i]['created_by_local_body_code'] = $blockCode;
+                $upload_file[$i]['document_type'] = $doc;
+                $upload_file[$i]['scheme_id'] = $scheme_id;
+                $upload_file[$i]['created_by_level'] = $level;
+                $upload_file[$i]['created_at'] = $c_time;
+                $upload_file[$i]['created_by'] = $user_id;
+                $upload_file[$i]['ip_address'] = $request->ip();
+                $upload_file[$i]['attched_document'] = $base64;
+                $upload_file[$i]['document_mime_type'] = $mime_type;
+                $upload_file[$i]['document_extension'] = $extension;
+                if (!empty($doc_type_name)) {
+                    $upload_file[$i]['doc_type_name'] = $doc_type_name->doc_name;
+                }
+                $i++;
             }
-            else if(strtolower($mime_type)=='image/png'){
-                $extension='png';
-            }else if(strtolower($mime_type)=='image/gif'){
-                $extension='gif';
-            }else if(strtolower($mime_type)=='application/pdf'){
-                $extension='pdf';
-            }
-            else{
-                $errors = array();
-                $errorMsg = "You are trying to upload an incorrect file for ".$doc_type_name->doc_name;
-                array_push($errors, $errorMsg);
-                return back()->with('errors', $errors)->withInput(Input::all());  
-            }
-            if($u_extension!=$extension){
-                $errors = array();
-                $errorMsg = "You are trying to upload an incorrect file for ".$doc_type_name->doc_name;
-                array_push($errors, $errorMsg);
-                return back()->with('errors', $errors)->withInput(Input::all());  
-            }
-            $doc_type_name =$doc_master->where('id', $doc)->first() ;
-            $base64 = base64_encode($img_data);
-            $upload_file[$i]['created_by_dist_code']=$distCode;
-            $upload_file[$i]['created_by_local_body_code']=$blockCode;
-            $upload_file[$i]['document_type']=$doc;
-            $upload_file[$i]['scheme_id']=$scheme_id;
-            $upload_file[$i]['created_by_level']=$level;
-            $upload_file[$i]['created_at']=$c_time;
-            $upload_file[$i]['created_by']=$user_id;
-            $upload_file[$i]['ip_address']=$request->ip();
-            $upload_file[$i]['attched_document']=$base64;
-            $upload_file[$i]['document_mime_type']=$mime_type;
-            $upload_file[$i]['document_extension']=$extension;
-            if(!empty($doc_type_name)){
-             $upload_file[$i]['doc_type_name'] = $doc_type_name->doc_name;
-            }
-            $i++;
-           }
         }
         //Document Dynamic End
 
@@ -512,13 +513,13 @@ class WPWCDformController extends Controller
             $gp_ward = Ward::where('urban_body_ward_code', '=', $request->gp_ward)->first();
 
             $pension_details->block_ulb_name = $block_ulb->urban_body_name;
-            $pension_details->gp_ward_name   = $gp_ward->urban_body_ward_name;
+            $pension_details->gp_ward_name = $gp_ward->urban_body_ward_name;
         } else {
             $block_ulb = Taluka::where('block_code', '=', $request->block)->first();
             $gp_ward = GP::where('gram_panchyat_code', '=', $request->gp_ward)->first();
 
             $pension_details->block_ulb_name = $block_ulb->block_name;
-            $pension_details->gp_ward_name   = $gp_ward->gram_panchyat_name;
+            $pension_details->gp_ward_name = $gp_ward->gram_panchyat_name;
         }
 
         $assembly = Assembly::where('ac_no', '=', $request->asmb_cons)->first();
@@ -526,39 +527,38 @@ class WPWCDformController extends Controller
 
         if ($request->receive_pension != "") {
             $receive_pension = implode(',', $request->receive_pension);
-            $pension_details->receive_pension    = $receive_pension;
+            $pension_details->receive_pension = $receive_pension;
         }
 
         if ($request->social_security_pension != "") {
             $social_security_pension = implode(',', $request->social_security_pension);
-            $pension_details->social_security_pension   = $social_security_pension;
+            $pension_details->social_security_pension = $social_security_pension;
         }
         $pension_details->entry_type = $request->entry_type;
         if ($request->entry_type == 'Form through Duare Sarkar camp') {
-            if($scheme_obj->allow_ds_entry==0){
+            if ($scheme_obj->allow_ds_entry == 0) {
                 $errors = array();
                 $errorMsg = "Form through Duare Sarkar camp temporary suspended";
                 array_push($errors, $errorMsg);
                 return back()->with('errors', $errors)->withInput(Input::all());
-             }
-                $pension_details->ds_registration_no = trim($request->ds_registration_no);
-                $pension_details->ds_date = trim($request->ds_date);
-                if (!empty($ds_phase)) {
-                    $pension_details->ds_phase   = $ds_phase->phase_code;
-                    if($ds_phase->is_samadhan==TRUE){
-                        $pension_details->is_samadhan   = TRUE;
-                    }
-                    else{
-                            $pension_details->is_samadhan   = FALSE;
-                    }
+            }
+            $pension_details->ds_registration_no = trim($request->ds_registration_no);
+            $pension_details->ds_date = trim($request->ds_date);
+            if (!empty($ds_phase)) {
+                $pension_details->ds_phase = $ds_phase->phase_code;
+                if ($ds_phase->is_samadhan == TRUE) {
+                    $pension_details->is_samadhan = TRUE;
+                } else {
+                    $pension_details->is_samadhan = FALSE;
                 }
-        }else if ($request->entry_type == 'Normal Form') {
-            if($scheme_obj->allow_normal_entry==0){
+            }
+        } else if ($request->entry_type == 'Normal Form') {
+            if ($scheme_obj->allow_normal_entry == 0) {
                 $errors = array();
                 $errorMsg = "Normal form Entry temporary suspended";
                 array_push($errors, $errorMsg);
                 return back()->with('errors', $errors)->withInput(Input::all());
-             }
+            }
         }
         $pension_details->ben_fname = $request->first_name;
         $pension_details->ben_mname = $request->middle_name;
@@ -580,10 +580,10 @@ class WPWCDformController extends Controller
         $pension_details->mother_lname = $request->mother_last_name;
         $pension_details->caste = $request->caste_category;
         //  $pension_details->fisherman_comm=$request->fisherman_comm;
-        if(!empty(trim($request->caste_certificate_no))){
+        if (!empty(trim($request->caste_certificate_no))) {
             $pension_details->caste_certificate_no = $request->caste_certificate_no;
         }
-        if(!empty(trim($request->ds_registration_no))){
+        if (!empty(trim($request->ds_registration_no))) {
             $pension_details->ds_registration_no = $request->ds_registration_no;
         }
         $pension_details->marital_status = $request->marital_status;
@@ -594,206 +594,203 @@ class WPWCDformController extends Controller
         $pension_details->spouse_lname = $request->spouse_last_name;
 
         $pension_details->ration_card_cat = $request->ration_card_cat;
-        $pension_details->ration_card_no  = $request->ration_card_no;
-        $pension_details->ahl_tin  = $request->ahl_tin;
-        $pension_details->aadhar_no  = $request->aadhar_no;
-        $pension_details->epic_voter_id  = $request->epic_voter_id;
-        $pension_details->pan_no  = $request->pan_no;
+        $pension_details->ration_card_no = $request->ration_card_no;
+        $pension_details->ahl_tin = $request->ahl_tin;
+        $pension_details->aadhar_no = $request->aadhar_no;
+        $pension_details->epic_voter_id = $request->epic_voter_id;
+        $pension_details->pan_no = $request->pan_no;
         $pension_details->bpl_seq_no = $request->bpl_seq_no;
         $pension_details->bpl_id_no = $request->bpl_id_no;
         $pension_details->bpl_total_score = $request->bpl_total_score;
 
-        $pension_details->dist_code       =      $request->district;
-        $pension_details->rural_urban_id     =      $request->urban_code;
-        $pension_details->assembly_code   =    $request->asmb_cons;
+        $pension_details->dist_code = $request->district;
+        $pension_details->rural_urban_id = $request->urban_code;
+        $pension_details->assembly_code = $request->asmb_cons;
         $pension_details->assembly_name = $assembly_name;
-        $pension_details->police_station  = $request->police_station;
-        $pension_details->block_ulb_code  = $request->block;
+        $pension_details->police_station = $request->police_station;
+        $pension_details->block_ulb_code = $request->block;
         $pension_details->gp_ward_code = $request->gp_ward;
-        $pension_details->village_town_city  = $request->village;
-        $pension_details->house_premise_no  = $request->house;
-        $pension_details->post_office  = $request->post_office;
+        $pension_details->village_town_city = $request->village;
+        $pension_details->house_premise_no = $request->house;
+        $pension_details->post_office = $request->post_office;
         $pension_details->pincode = $request->pin_code;
         $pension_details->residency_period = $request->residency_period;
-        $pension_details->mobile_no  = $request->mobile_no;
+        $pension_details->mobile_no = $request->mobile_no;
         $pension_details->email = $request->email;
 
-        $pension_details->bank_name  = $request->name_of_bank;
-        $pension_details->branch_name    = $request->bank_branch;
-        $pension_details->bank_code    = $request->bank_account_number;
-        $pension_details->bank_ifsc   = $request->bank_ifsc_code;
-        $pension_details->npci_bank_code   = $new_bank_code;
+        $pension_details->bank_name = $request->name_of_bank;
+        $pension_details->branch_name = $request->bank_branch;
+        $pension_details->bank_code = $request->bank_account_number;
+        $pension_details->bank_ifsc = $request->bank_ifsc_code;
+        $pension_details->npci_bank_code = $new_bank_code;
 
-        $pension_details->nominate_name    = $request->nominate_name;
-        $pension_details->nominate_address    = $request->nominate_address;
-        $pension_details->nominate_relationship   = $request->nominate_relationship;
+        $pension_details->nominate_name = $request->nominate_name;
+        $pension_details->nominate_address = $request->nominate_address;
+        $pension_details->nominate_relationship = $request->nominate_relationship;
 
         $pension_details->created_by = Auth::user()->id;
         $pension_details->created_by_level = $request->session()->get('level');
         $pension_details->created_by_dist_code = $request->session()->get('distCode');
         $pension_details->created_by_local_body_code = $request->session()->get('blockCode');
-        $pension_details->scheme_id =  $request->scheme_id;
-        $pension_details->av_status =  $request->av_status;
-        $pension_details->receiving_pension_other_source_1 =  $request->receiving_pension_other_source_1;
-        $pension_details->receiving_pension_other_source_2 =  $request->receiving_pension_other_source_2;
-        $pension_details->is_clean =  1;
+        $pension_details->scheme_id = $request->scheme_id;
+        $pension_details->av_status = $request->av_status;
+        $pension_details->receiving_pension_other_source_1 = $request->receiving_pension_other_source_1;
+        $pension_details->receiving_pension_other_source_2 = $request->receiving_pension_other_source_2;
+        $pension_details->is_clean = 1;
         if ($request->is_state_login) {
-            $pension_details->created_by_dist_code =  $request->district;
+            $pension_details->created_by_dist_code = $request->district;
             if ($request->urban_code == 1) {
-                $pension_details->created_by_local_body_code =  $block_ulb->sub_district_code;
+                $pension_details->created_by_local_body_code = $block_ulb->sub_district_code;
             } else {
-                $pension_details->created_by_local_body_code =  $request->block;
+                $pension_details->created_by_local_body_code = $request->block;
             }
-            $pension_details->next_level_role_id =  $this->state_login_next_level_role_id_arr['entry'];
-            $pension_details->is_state =  TRUE;
+            $pension_details->next_level_role_id = $this->state_login_next_level_role_id_arr['entry'];
+            $pension_details->is_state = TRUE;
             $pension_details->block_ulb_type = trim($request->urban_code);
         } else {
             $pension_details->created_by_dist_code = $distCode;
             $pension_details->created_by_local_body_code = $blockCode;
-            $pension_details->next_level_role_id =  NULL;
+            $pension_details->next_level_role_id = NULL;
             $pension_details->block_ulb_type = NULL;
         }
         DB::connection('pgsql5')->beginTransaction();
         DB::connection('pgsql_encwrite')->beginTransaction();
         $is_saved = 0;
         try {
-         
+
             $is_saved = $pension_details->save();
             $beneficiary_id = $pension_details->id;
-            if($beneficiary_id){
-                foreach($upload_file as $key => $csm)
-                {
-                 $upload_file[$key]['beneficiary_id'] = $beneficiary_id;
+            if ($beneficiary_id) {
+                foreach ($upload_file as $key => $csm) {
+                    $upload_file[$key]['beneficiary_id'] = $beneficiary_id;
                 }
                 $doc_inserted = DB::connection('pgsql_encwrite')->table('jb_doc.ben_attach_documents')->insert($upload_file);
-                if( $doc_inserted ){
+                if ($doc_inserted) {
                     DB::connection('pgsql5')->commit();
                     DB::connection('pgsql_encwrite')->commit();
-                    $ben_fullname=trim($request->first_name) . ' ' . trim($request->middle_name) . ' ' . trim($request->last_name);
+                    $ben_fullname = trim($request->first_name) . ' ' . trim($request->middle_name) . ' ' . trim($request->last_name);
                     // $this->bioauthcheckInsert($distCode,$beneficiary_id,$scheme_id,$ben_fullname,$request->ip(),trim($request->aadhar_no),$blockCode,$user_id);
                     // if(($request->caste_category=='SC' || $request->caste_category=='ST') && !empty($request->caste_certificate_no)){
                     //  $this->casteInfoCheckInsert($distCode,$beneficiary_id,$scheme_id,$ben_fullname,$request->ip(),trim($request->caste_certificate_no),$blockCode,$user_id);
                     // }
                     // $this->RationcheckInsert($distCode,$beneficiary_id,$scheme_id,$ben_fullname,$request->ip(),trim($request->aadhar_no),$blockCode,$user_id,$request->dob);
                     try {
-                        $this->bioauthcheckInsert($distCode,$beneficiary_id,$scheme_id,$ben_fullname,$request->ip(),trim($request->aadhar_no),$blockCode,$user_id);
+                        $this->bioauthcheckInsert($distCode, $beneficiary_id, $scheme_id, $ben_fullname, $request->ip(), trim($request->aadhar_no), $blockCode, $user_id);
                     } catch (\Exception $e) {
                         $inputMain['life_certificate_checked'] = -1;
                         $upadated_main = DB::table($schema . '.beneficiary')
-                        ->where([
-                          'id' => $beneficiary_id, 'created_by_local_body_code' => $blockCode,
-                          'created_by_dist_code' => $distCode
-                        ])->update($inputMain);
+                            ->where([
+                                'id' => $beneficiary_id,
+                                'created_by_local_body_code' => $blockCode,
+                                'created_by_dist_code' => $distCode
+                            ])->update($inputMain);
                     }
                     try {
-                        if(($request->caste_category=='SC' || $request->caste_category=='ST') && !empty($request->caste_certificate_no)){
-                            $this->casteInfoCheckInsert($distCode,$beneficiary_id,$scheme_id,$ben_fullname,$request->ip(),trim($request->caste_certificate_no),$blockCode,$user_id);
-                           }
+                        if (($request->caste_category == 'SC' || $request->caste_category == 'ST') && !empty($request->caste_certificate_no)) {
+                            $this->casteInfoCheckInsert($distCode, $beneficiary_id, $scheme_id, $ben_fullname, $request->ip(), trim($request->caste_certificate_no), $blockCode, $user_id);
+                        }
                     } catch (\Exception $e) {
                         $inputMain['caste_certificate_checked'] = -1;
                         $upadated_main = DB::table($schema . '.beneficiary')
-                        ->where([
-                          'id' => $beneficiary_id, 'created_by_local_body_code' => $blockCode,
-                          'created_by_dist_code' => $distCode
-                        ])->update($inputMain);
+                            ->where([
+                                'id' => $beneficiary_id,
+                                'created_by_local_body_code' => $blockCode,
+                                'created_by_dist_code' => $distCode
+                            ])->update($inputMain);
                     }
-                    
+
                     try {
-                        $data = $this->RationcheckInsert($distCode,$beneficiary_id,$scheme_id,$ben_fullname,$request->ip(),trim($request->aadhar_no),$blockCode,$user_id,$request->dob);
-                      } catch (\Exception $e) {
+                        $data = $this->RationcheckInsert($distCode, $beneficiary_id, $scheme_id, $ben_fullname, $request->ip(), trim($request->aadhar_no), $blockCode, $user_id, $request->dob);
+                    } catch (\Exception $e) {
                         $inputMain['aadhaar_no_checked'] = -1;
                         $upadated_main = DB::table($schema . '.beneficiary')
-                        ->where([
-                          'id' => $beneficiary_id, 'created_by_local_body_code' => $blockCode,
-                          'created_by_dist_code' => $distCode
-                        ])->update($inputMain);
-                      }
-
-                    $ben_details=DB::table($schema . '.beneficiary')->where('id',$beneficiary_id)->first();
-                   
-                    if($ben_details){
-                        $caste_certificate_checked=$ben_details->caste_certificate_checked;
-                        $caste_certificate_validation_message=$ben_details->caste_certificate_validation_message;
-                        $caste_certificate_check_lastdatetime=$ben_details->caste_certificate_check_lastdatetime;
-                        $caste_matched_with_certificate_no=$ben_details->caste_matched_with_certificate_no;
-                        $life_certificate_checked=$ben_details->life_certificate_checked;
-                        $life_certificate_pass=$ben_details->life_certificate_pass;
-                        $life_certificate_lastdatetime=$ben_details->life_certificate_lastdatetime;
-                        $last_biometric=$ben_details->last_biometric;
-                        $aadhaar_no_checked=$ben_details->aadhaar_no_checked;
-                        $aadhaar_no_checked_lastdatetime=$ben_details->aadhaar_no_checked_lastdatetime;
-                        $aadhaar_no_checked_pass=$ben_details->aadhaar_no_checked_pass;
-                        $aadhaar_no_validation_msg=$ben_details->aadhaar_no_validation_msg;
-                        $dob_kh=$ben_details->dob_kh;
-                        $dob_is_match_kh=$ben_details->dob_is_match_kh;
-                        $dob=$ben_details->dob;
-                    if($wq==1){
-                        return redirect("wp-wcd?wq=1")->with('success', 'Application Submitted Successfully')
-                        ->with('id',  $beneficiary_id)->with('caste_certificate_checked',  $caste_certificate_checked)
-                            ->with('caste_certificate_validation_message',$caste_certificate_validation_message)
-                            ->with('caste_certificate_check_lastdatetime',$caste_certificate_check_lastdatetime)
-                            ->with('caste_matched_with_certificate_no',$caste_matched_with_certificate_no)
-                            ->with('life_certificate_checked',$life_certificate_checked)
-                            ->with('life_certificate_pass',$life_certificate_pass)
-                            ->with('life_certificate_lastdatetime',$life_certificate_lastdatetime)
-                            ->with('last_biometric',$last_biometric)
-                            ->with('aadhaar_no_checked',$aadhaar_no_checked)
-                            ->with('aadhaar_no_checked_lastdatetime',$aadhaar_no_checked_lastdatetime)
-                            ->with('aadhaar_no_checked_pass',$aadhaar_no_checked_pass)
-                            ->with('aadhaar_no_validation_msg',$aadhaar_no_validation_msg)
-                            ->with('dob_kh',$dob_kh)
-                            ->with('dob_is_match_kh',$dob_is_match_kh)
-                            ->with('dob',$dob);
+                            ->where([
+                                'id' => $beneficiary_id,
+                                'created_by_local_body_code' => $blockCode,
+                                'created_by_dist_code' => $distCode
+                            ])->update($inputMain);
                     }
-                    else
-                    return redirect("wp-wcd")->with('success', 'Application Submitted Successfully')
-                    ->with('id',  $beneficiary_id)->with('caste_certificate_checked',  $caste_certificate_checked)
-                    ->with('caste_certificate_validation_message',$caste_certificate_validation_message)
-                    ->with('caste_certificate_check_lastdatetime',$caste_certificate_check_lastdatetime)
-                    ->with('caste_matched_with_certificate_no',$caste_matched_with_certificate_no)
-                    ->with('life_certificate_checked',$life_certificate_checked)
-                    ->with('life_certificate_pass',$life_certificate_pass)
-                    ->with('life_certificate_lastdatetime',$life_certificate_lastdatetime)
-                    ->with('last_biometric',$last_biometric)
-                    ->with('aadhaar_no_checked',$aadhaar_no_checked)
-                    ->with('aadhaar_no_checked_lastdatetime',$aadhaar_no_checked_lastdatetime)
-                    ->with('aadhaar_no_checked_pass',$aadhaar_no_checked_pass)
-                    ->with('aadhaar_no_validation_msg',$aadhaar_no_validation_msg)
-                    ->with('dob_kh',$dob_kh)
-                    ->with('dob_is_match_kh',$dob_is_match_kh)
-                    ->with('dob',$dob);
+
+                    $ben_details = DB::table($schema . '.beneficiary')->where('id', $beneficiary_id)->first();
+
+                    if ($ben_details) {
+                        $caste_certificate_checked = $ben_details->caste_certificate_checked;
+                        $caste_certificate_validation_message = $ben_details->caste_certificate_validation_message;
+                        $caste_certificate_check_lastdatetime = $ben_details->caste_certificate_check_lastdatetime;
+                        $caste_matched_with_certificate_no = $ben_details->caste_matched_with_certificate_no;
+                        $life_certificate_checked = $ben_details->life_certificate_checked;
+                        $life_certificate_pass = $ben_details->life_certificate_pass;
+                        $life_certificate_lastdatetime = $ben_details->life_certificate_lastdatetime;
+                        $last_biometric = $ben_details->last_biometric;
+                        $aadhaar_no_checked = $ben_details->aadhaar_no_checked;
+                        $aadhaar_no_checked_lastdatetime = $ben_details->aadhaar_no_checked_lastdatetime;
+                        $aadhaar_no_checked_pass = $ben_details->aadhaar_no_checked_pass;
+                        $aadhaar_no_validation_msg = $ben_details->aadhaar_no_validation_msg;
+                        $dob_kh = $ben_details->dob_kh;
+                        $dob_is_match_kh = $ben_details->dob_is_match_kh;
+                        $dob = $ben_details->dob;
+                        if ($wq == 1) {
+                            return redirect("wp-wcd?wq=1")->with('success', 'Application Submitted Successfully')
+                                ->with('id', $beneficiary_id)->with('caste_certificate_checked', $caste_certificate_checked)
+                                ->with('caste_certificate_validation_message', $caste_certificate_validation_message)
+                                ->with('caste_certificate_check_lastdatetime', $caste_certificate_check_lastdatetime)
+                                ->with('caste_matched_with_certificate_no', $caste_matched_with_certificate_no)
+                                ->with('life_certificate_checked', $life_certificate_checked)
+                                ->with('life_certificate_pass', $life_certificate_pass)
+                                ->with('life_certificate_lastdatetime', $life_certificate_lastdatetime)
+                                ->with('last_biometric', $last_biometric)
+                                ->with('aadhaar_no_checked', $aadhaar_no_checked)
+                                ->with('aadhaar_no_checked_lastdatetime', $aadhaar_no_checked_lastdatetime)
+                                ->with('aadhaar_no_checked_pass', $aadhaar_no_checked_pass)
+                                ->with('aadhaar_no_validation_msg', $aadhaar_no_validation_msg)
+                                ->with('dob_kh', $dob_kh)
+                                ->with('dob_is_match_kh', $dob_is_match_kh)
+                                ->with('dob', $dob);
+                        } else
+                            return redirect("wp-wcd")->with('success', 'Application Submitted Successfully')
+                                ->with('id', $beneficiary_id)->with('caste_certificate_checked', $caste_certificate_checked)
+                                ->with('caste_certificate_validation_message', $caste_certificate_validation_message)
+                                ->with('caste_certificate_check_lastdatetime', $caste_certificate_check_lastdatetime)
+                                ->with('caste_matched_with_certificate_no', $caste_matched_with_certificate_no)
+                                ->with('life_certificate_checked', $life_certificate_checked)
+                                ->with('life_certificate_pass', $life_certificate_pass)
+                                ->with('life_certificate_lastdatetime', $life_certificate_lastdatetime)
+                                ->with('last_biometric', $last_biometric)
+                                ->with('aadhaar_no_checked', $aadhaar_no_checked)
+                                ->with('aadhaar_no_checked_lastdatetime', $aadhaar_no_checked_lastdatetime)
+                                ->with('aadhaar_no_checked_pass', $aadhaar_no_checked_pass)
+                                ->with('aadhaar_no_validation_msg', $aadhaar_no_validation_msg)
+                                ->with('dob_kh', $dob_kh)
+                                ->with('dob_is_match_kh', $dob_is_match_kh)
+                                ->with('dob', $dob);
+                    }
+                } else {
+                    $error_found = 1;
                 }
+            } else {
+                $error_found = 1;
+
             }
-                else{
-                    $error_found=1;
-                }
-            }
-            else{
-                $error_found=1;
-                
-            }
-            if($error_found){
+            if ($error_found) {
                 DB::connection('pgsql5')->rollback();
                 DB::connection('pgsql_encwrite')->rollback();
-                if($wq==1){
+                if ($wq == 1) {
                     return redirect("wp-wcd?wq=1")->withInput(Input::all())->with('errors', array('Some error.Please try again'));
+                } else {
+                    return redirect("wp-wcd")->withInput(Input::all())->with('errors', array('Some error.Please try again'));
                 }
-                else{
-                return redirect("wp-wcd")->withInput(Input::all())->with('errors', array('Some error.Please try again'));
-                }  
             }
         } catch (\Exception $e) {
-          // dd($e);
-           DB::connection('pgsql5')->rollback();
-           DB::connection('pgsql_encwrite')->rollback();
-           if($wq==1){
-               return redirect("wp-wcd?wq=1")->withInput(Input::all())->with('errors', array('Some error.Please try again'));
-           }
-           else{
-           return redirect("wp-wcd")->withInput(Input::all())->with('errors', array('Some error.Please try again'));
-           }
+            // dd($e);
+            DB::connection('pgsql5')->rollback();
+            DB::connection('pgsql_encwrite')->rollback();
+            if ($wq == 1) {
+                return redirect("wp-wcd?wq=1")->withInput(Input::all())->with('errors', array('Some error.Please try again'));
+            } else {
+                return redirect("wp-wcd")->withInput(Input::all())->with('errors', array('Some error.Please try again'));
+            }
         }
-       
+
     }
 
     /**
@@ -1041,16 +1038,15 @@ class WPWCDformController extends Controller
         //return redirect("/")->with('error', 'Update temporary suspended.');
         $base_url = url('/');
         $id = $request->id;
-        if(!empty($request->is_nsap)){
-            $is_nsap=$request->is_nsap;
-        }
-        else{
-            $is_nsap=0; 
+        if (!empty($request->is_nsap)) {
+            $is_nsap = $request->is_nsap;
+        } else {
+            $is_nsap = 0;
         }
         //dd($is_nsap);
         $scheme_id = (int) $request->scheme_id;
         // dd($scheme_id);
-        $designation_id_old = Auth::user()->designation_id_old;
+        $designation_id = Auth::user()->designation_id;
         if (!is_int($scheme_id)) {
             return redirect("/")->with('error', 'Scheme Code Not Valid');
         }
@@ -1061,7 +1057,7 @@ class WPWCDformController extends Controller
 
         $is_active = 0;
         $mapping_level = NULL;
-        $roleArray = $request->session()->get('role');
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
         foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == $scheme_id) {
                 $is_active = 1;
@@ -1094,24 +1090,24 @@ class WPWCDformController extends Controller
         } else {
             $query = PensionWPWCD::where(['id' => $id, 'created_by_dist_code' => $distCode, 'scheme_id' => $scheme_id]);
         }
-        if ($designation_id_old == 'Verifier') {
+        if ($designation_id == 'Verifier') {
             if ($is_state_login) {
                 $query = $query->where('next_level_role_id', $this->state_login_next_level_role_id_arr['entry']);
             } else {
                 $query = $query->whereNull('next_level_role_id');
             }
-        } else if ($designation_id_old == 'Approver') {
+        } else if ($designation_id == 'Approver') {
             if ($is_state_login) {
                 $query = $query->where('next_level_role_id', $this->state_login_next_level_role_id_arr['verified']);
             } else {
-                $query = $query->where('is_verified',1)->where('is_approved',0)->where('is_rejected',0);
+                $query = $query->where('is_verified', 1)->where('is_approved', 0)->where('is_rejected', 0);
             }
         }
         $row = $query->first();
         if (empty($row)) {
             return redirect("/")->with('danger', 'Not Allowed');
         }
-        $isValidarr = $this->validateInput($request,  $scheme_id, 2);
+        $isValidarr = $this->validateInput($request, $scheme_id, 2);
         if ($isValidarr['is_valid'] == false) {
             //dd(withInput());
             return redirect("/application-edit?id=" . $request->id . "&scheme_id=" . $request->scheme_id)->with('errors', $isValidarr['errors']);
@@ -1141,13 +1137,13 @@ class WPWCDformController extends Controller
 
 
             $block_ulb_name = $block_ulb->urban_body_name;
-            $gp_ward_name   = $gp_ward->urban_body_ward_name;
+            $gp_ward_name = $gp_ward->urban_body_ward_name;
         } else {
             $block_ulb = Taluka::where('block_code', '=', $request->block)->first();
             $gp_ward = GP::where('gram_panchyat_code', '=', $request->gp_ward)->first();
 
             $block_ulb_name = $block_ulb->block_name;
-            $gp_ward_name   = $gp_ward->gram_panchyat_name;
+            $gp_ward_name = $gp_ward->gram_panchyat_name;
         }
         $assembly = Assembly::where('ac_no', '=', $request->asmb_cons)->first();
         $assembly_name = $assembly->ac_name;
@@ -1177,7 +1173,7 @@ class WPWCDformController extends Controller
             $errors = array();
             $errorMsg = "Bank A/C Already Exist!";
             array_push($errors, $errorMsg);
-            return redirect("/application-edit?id=" . $request->id . "&scheme_id=" . $request->scheme_id)->with('errors',  $errors);
+            return redirect("/application-edit?id=" . $request->id . "&scheme_id=" . $request->scheme_id)->with('errors', $errors);
         }
         $count = PensionWPWCD::where('aadhar_no', trim($request->aadhar_no))->where('id', '!=', $id)->whereRaw("(" . $check_condition_str . ")")->count('id');
         if ($count > 0) {
@@ -1185,27 +1181,27 @@ class WPWCDformController extends Controller
             $errors = array();
             $errorMsg = "Aadhaar Number Already Exist! Please try different.";
             array_push($errors, $errorMsg);
-            return redirect("/application-edit?id=" . $request->id . "&scheme_id=" . $request->scheme_id)->with('dupAadhaar', 1)->with('errors',  $errors);
+            return redirect("/application-edit?id=" . $request->id . "&scheme_id=" . $request->scheme_id)->with('dupAadhaar', 1)->with('errors', $errors);
         }
         $count_mobile = PensionWPWCD::where('mobile_no', $request->mobile_no)->where('id', '!=', $id)->whereRaw("(" . $check_condition_str . ")")->count('id');
         if ($count_mobile > 0) {
             $errors = array();
             $errorMsg = "Mobile Number Already Exist! Please try different.";
             array_push($errors, $errorMsg);
-            return redirect("/application-edit?id=" . $request->id . "&scheme_id=" . $request->scheme_id)->with('errors',  $errors);
+            return redirect("/application-edit?id=" . $request->id . "&scheme_id=" . $request->scheme_id)->with('errors', $errors);
         }
         $ifsc = trim($request->bank_ifsc_code);
         $bank_branch = trim($request->bank_branch);
         $name_of_bank = trim($request->name_of_bank);
-        $row_count_bank = BankDetails::whereraw("trim(branch)='$bank_branch'")->whereraw("trim(ifsc)='$ifsc'")->where('is_active',1)->whereraw("trim(bank)='$name_of_bank'")->count();
+        $row_count_bank = BankDetails::whereraw("trim(branch)='$bank_branch'")->whereraw("trim(ifsc)='$ifsc'")->where('is_active', 1)->whereraw("trim(bank)='$name_of_bank'")->count();
         //$bank_details = BankDetails::whereraw("trim(ifsc)='$ifsc'")->where('is_active',1)->get(['bank', 'branch','bank_code'])->first();
-        $bank_details = BankDetails::where('ifsc', trim($ifsc))->where('is_active',1)->get(['bank', 'branch','bank_code'])->first();
-        $new_bank_code=$bank_details->bank_code;
+        $bank_details = BankDetails::where('ifsc', trim($ifsc))->where('is_active', 1)->get(['bank', 'branch', 'bank_code'])->first();
+        $new_bank_code = $bank_details->bank_code;
         if ($row_count_bank == 0) {
             $errors = array();
             $errorMsg = "Bank IFSC and Bank Name Not Match!";
             array_push($errors, $errorMsg);
-            return redirect("/application-edit?id=" . $request->id . "&scheme_id=" . $request->scheme_id)->with('errors',  $errors);
+            return redirect("/application-edit?id=" . $request->id . "&scheme_id=" . $request->scheme_id)->with('errors', $errors);
         }
         $scheme_schema = $scheme_row->short_code;
         if ($is_state_login) {
@@ -1231,11 +1227,11 @@ class WPWCDformController extends Controller
             }
         }
         if ($request->is_state_login) {
-            $state_created_by_dist_code =  $request->district;
+            $state_created_by_dist_code = $request->district;
             if ($request->urban_code == 1) {
-                $state_created_by_local_body_code =  $block_ulb->sub_district_code;
+                $state_created_by_local_body_code = $block_ulb->sub_district_code;
             } else {
-                $state_created_by_local_body_code =  $request->block;
+                $state_created_by_local_body_code = $request->block;
             }
             $urban_code_state = trim($request->urban_code);
         } else {
@@ -1243,7 +1239,7 @@ class WPWCDformController extends Controller
             $state_created_by_local_body_code = $blockCode;
             $urban_code_state = NULL;
         }
-        $c_time=date('Y-m-d H:i:s');
+        $c_time = date('Y-m-d H:i:s');
         $user_id = AuthChecker::getUserId();
         $input = [
             //'name' => $request['name']
@@ -1281,37 +1277,37 @@ class WPWCDformController extends Controller
             'social_security_pension' => $social_security_pension,
 
             'ration_card_cat' => $request->ration_card_cat,
-            'ration_card_no'  => $request->ration_card_no,
-            'ahl_tin'  => $request->ahl_tin,
-            'aadhar_no'  => $request->aadhar_no,
-            'epic_voter_id'  => $request->epic_voter_id,
-            'pan_no'  => $request->pan_no,
+            'ration_card_no' => $request->ration_card_no,
+            'ahl_tin' => $request->ahl_tin,
+            'aadhar_no' => $request->aadhar_no,
+            'epic_voter_id' => $request->epic_voter_id,
+            'pan_no' => $request->pan_no,
 
 
 
             'dist_code' => $request->district,
-            'assembly_code'  => $request->asmb_cons,
+            'assembly_code' => $request->asmb_cons,
             'assembly_name' => $assembly_name,
             'rural_urban_id' => $request->urban_code,
-            'police_station'  => $request->police_station,
-            'block_ulb_code'  => $request->block,
+            'police_station' => $request->police_station,
+            'block_ulb_code' => $request->block,
             'block_ulb_name' => $block_ulb_name,
             'gp_ward_code' => $request->gp_ward,
             'gp_ward_name' => $gp_ward_name,
-            'village_town_city'  => $request->village,
-            'house_premise_no'  => $request->house,
-            'post_office'  => $request->post_office,
+            'village_town_city' => $request->village,
+            'house_premise_no' => $request->house,
+            'post_office' => $request->post_office,
             'pincode' => $request->pin_code,
             'residency_period' => $request->residency_period,
-            'mobile_no'  => $request->mobile_no,
+            'mobile_no' => $request->mobile_no,
             'email' => $request->email,
 
 
 
-            'bank_name'  => $request->name_of_bank,
-            'branch_name'   => $request->bank_branch,
-            'bank_code'    => $request->bank_account_number,
-            'bank_ifsc'   => $request->bank_ifsc_code,
+            'bank_name' => $request->name_of_bank,
+            'branch_name' => $request->bank_branch,
+            'bank_code' => $request->bank_account_number,
+            'bank_ifsc' => $request->bank_ifsc_code,
             'npci_bank_code' => $new_bank_code,
             'av_status' => $request->av_status,
             'receiving_pension_other_source_1' => $request->receiving_pension_other_source_1,
@@ -1326,11 +1322,11 @@ class WPWCDformController extends Controller
             'is_reverted' => NULL,
             'is_clean' => 1
         ];
-        if(!empty(trim($request->caste_certificate_no))){
+        if (!empty(trim($request->caste_certificate_no))) {
             $pension_details->caste_certificate_no = $request->caste_certificate_no;
         }
-        if($row->is_reverted==1){
-            $input['is_reverted'] =NULL;
+        if ($row->is_reverted == 1) {
+            $input['is_reverted'] = NULL;
         }
         $pr1 = "";
         $uploaded_doc = array();
@@ -1339,95 +1335,92 @@ class WPWCDformController extends Controller
         $doc_list_opt = json_decode($doc_id_list[0]['doc_list_opt']);
         $doc_list = array_merge($doc_list_man, $doc_list_opt);
 
-        $doc_master=DocumentType::get();
-        $encolserdata = BenDocs::where('scheme_id',$scheme_id)->where('created_by_dist_code',$distCode)->where('beneficiary_id', $request->id)->get();
-        $upload_file=array();
-        $upload_file_arch=array();
-        $delete_array=array();
-        $i=0;
-        $j=0;
-        
+        $doc_master = DocumentType::get();
+        $encolserdata = BenDocs::where('scheme_id', $scheme_id)->where('created_by_dist_code', $distCode)->where('beneficiary_id', $request->id)->get();
+        $upload_file = array();
+        $upload_file_arch = array();
+        $delete_array = array();
+        $i = 0;
+        $j = 0;
+
 
         foreach ($doc_list as $doc) {
             if ($request->hasFile('doc_' . $doc)) {
-            $doc_file = $request->file('doc_' . $doc);
-            $img_data = file_get_contents($doc_file);
-            $u_extension_file = $doc_file->getClientOriginalExtension();
-            $u_extension=strtolower($u_extension_file);
-            $mime_type = $doc_file->getMimeType();
-            $doc_type_name =$doc_master->where('id', $doc)->first();
+                $doc_file = $request->file('doc_' . $doc);
+                $img_data = file_get_contents($doc_file);
+                $u_extension_file = $doc_file->getClientOriginalExtension();
+                $u_extension = strtolower($u_extension_file);
+                $mime_type = $doc_file->getMimeType();
+                $doc_type_name = $doc_master->where('id', $doc)->first();
 
-            if(strtolower($mime_type)=='image/jpeg'){
-                if($u_extension=='jpg' || $u_extension=='jpeg'){
-                    $extension=$u_extension;
+                if (strtolower($mime_type) == 'image/jpeg') {
+                    if ($u_extension == 'jpg' || $u_extension == 'jpeg') {
+                        $extension = $u_extension;
+                    } else {
+                        $errors = array();
+                        $errorMsg = "You are trying to upload an incorrect file for " . $doc_type_name->doc_name;
+                        array_push($errors, $errorMsg);
+                        return back()->with('errors', $errors)->withInput(Input::all());
+                    }
+                } else if (strtolower($mime_type) == 'image/png') {
+                    $extension = 'png';
+                } else if (strtolower($mime_type) == 'image/gif') {
+                    $extension = 'gif';
+                } else if (strtolower($mime_type) == 'application/pdf') {
+                    $extension = 'pdf';
+                } else {
+                    $errors = array();
+                    $errorMsg = "You are trying to upload an incorrect file for " . $doc_type_name->doc_name;
+                    array_push($errors, $errorMsg);
+                    return back()->with('errors', $errors)->withInput(Input::all());
                 }
-                else{
-                $errors = array();
-                $errorMsg = "You are trying to upload an incorrect file for ".$doc_type_name->doc_name;
-                array_push($errors, $errorMsg);
-                return back()->with('errors', $errors)->withInput(Input::all());  
+                if ($u_extension != $extension) {
+                    $errors = array();
+                    $errorMsg = "You are trying to upload an incorrect file for " . $doc_type_name->doc_name;
+                    array_push($errors, $errorMsg);
+                    return back()->with('errors', $errors)->withInput(Input::all());
+                }
+                $base64 = base64_encode($img_data);
+                $upload_file[$i]['beneficiary_id'] = $request->id;
+                $upload_file[$i]['created_by_dist_code'] = $distCode;
+                $upload_file[$i]['created_by_local_body_code'] = $blockCode;
+                $upload_file[$i]['document_type'] = $doc;
+                $upload_file[$i]['scheme_id'] = $scheme_id;
+                $upload_file[$i]['created_by_level'] = $mapping_level;
+                $upload_file[$i]['created_at'] = $c_time;
+                $upload_file[$i]['created_by'] = $user_id;
+                $upload_file[$i]['ip_address'] = $request->ip();
+                $upload_file[$i]['attched_document'] = $base64;
+                $upload_file[$i]['document_mime_type'] = $mime_type;
+                $upload_file[$i]['document_extension'] = $extension;
+                if (!empty($doc_type_name)) {
+                    $upload_file[$i]['doc_type_name'] = $doc_type_name->doc_name;
+                }
+                $i++;
+                $doc_already = $encolserdata->where('document_type', $doc)->where('created_by_dist_code', $distCode)->where('beneficiary_id', $request->id)->first();
+                if (!empty($doc_already)) {
+                    array_push($delete_array, $doc);
+                    $upload_file_arch[$j]['beneficiary_id'] = $request->id;
+                    $upload_file_arch[$j]['created_by_dist_code'] = $doc_already->created_by_dist_code;
+                    $upload_file_arch[$j]['created_by_local_body_code'] = $doc_already->created_by_local_body_code;
+                    $upload_file_arch[$j]['document_type'] = $doc_already->document_type;
+                    $upload_file_arch[$j]['scheme_id'] = $doc_already->scheme_id;
+                    $upload_file_arch[$j]['created_by_level'] = $doc_already->created_by_level;
+                    $upload_file_arch[$j]['created_at'] = $doc_already->created_at;
+                    $upload_file_arch[$j]['created_by'] = $doc_already->created_by;
+                    $upload_file_arch[$j]['ip_address'] = $doc_already->ip_address;
+                    $upload_file_arch[$j]['attched_document'] = $doc_already->attched_document;
+                    $upload_file_arch[$j]['document_mime_type'] = $doc_already->document_mime_type;
+                    $upload_file_arch[$j]['document_extension'] = $doc_already->document_extension;
+                    $j++;
                 }
             }
-            else if(strtolower($mime_type)=='image/png'){
-                $extension='png';
-            }else if(strtolower($mime_type)=='image/gif'){
-                $extension='gif';
-            }else if(strtolower($mime_type)=='application/pdf'){
-                $extension='pdf';
-            }
-            else{
-                $errors = array();
-                $errorMsg = "You are trying to upload an incorrect file for ".$doc_type_name->doc_name;
-                array_push($errors, $errorMsg);
-                return back()->with('errors', $errors)->withInput(Input::all());  
-            }
-            if($u_extension!=$extension){
-                $errors = array();
-                $errorMsg = "You are trying to upload an incorrect file for ".$doc_type_name->doc_name;
-                array_push($errors, $errorMsg);
-                return back()->with('errors', $errors)->withInput(Input::all());  
-            }
-            $base64 = base64_encode($img_data);
-            $upload_file[$i]['beneficiary_id']=$request->id;
-            $upload_file[$i]['created_by_dist_code']=$distCode;
-            $upload_file[$i]['created_by_local_body_code']=$blockCode;
-            $upload_file[$i]['document_type']=$doc;
-            $upload_file[$i]['scheme_id']=$scheme_id;
-            $upload_file[$i]['created_by_level']=$mapping_level;
-            $upload_file[$i]['created_at']=$c_time;
-            $upload_file[$i]['created_by']=$user_id;
-            $upload_file[$i]['ip_address']=$request->ip();
-            $upload_file[$i]['attched_document']=$base64;
-            $upload_file[$i]['document_mime_type']=$mime_type;
-            $upload_file[$i]['document_extension']=$extension;
-            if(!empty($doc_type_name)){
-             $upload_file[$i]['doc_type_name'] = $doc_type_name->doc_name;
-            }
-            $i++;
-            $doc_already =$encolserdata->where('document_type',$doc)->where('created_by_dist_code',$distCode)->where('beneficiary_id', $request->id)->first();
-            if(!empty($doc_already)){
-                array_push($delete_array,$doc);
-                $upload_file_arch[$j]['beneficiary_id']=$request->id;
-                $upload_file_arch[$j]['created_by_dist_code']=$doc_already->created_by_dist_code;
-                $upload_file_arch[$j]['created_by_local_body_code']=$doc_already->created_by_local_body_code;
-                $upload_file_arch[$j]['document_type']=$doc_already->document_type;
-                $upload_file_arch[$j]['scheme_id']=$doc_already->scheme_id;
-                $upload_file_arch[$j]['created_by_level']=$doc_already->created_by_level;
-                $upload_file_arch[$j]['created_at']=$doc_already->created_at;
-                $upload_file_arch[$j]['created_by']=$doc_already->created_by;
-                $upload_file_arch[$j]['ip_address']=$doc_already->ip_address;
-                $upload_file_arch[$j]['attched_document']=$doc_already->attched_document;
-                $upload_file_arch[$j]['document_mime_type']=$doc_already->document_mime_type;
-                $upload_file_arch[$j]['document_extension']=$doc_already->document_extension;
-                $j++;
-            }
-           }
         }
         DB::beginTransaction();
         DB::connection('pgsql_encwrite')->beginTransaction();
         try {
-            
-            $arch_status=DB::statement("INSERT INTO wp_wcd.arc_beneficiary(id, 
+
+            $arch_status = DB::statement("INSERT INTO wp_wcd.arc_beneficiary(id, 
                                 dist_code, ben_fname, ben_mname, ben_lname,husband_fname,husband_mname, husband_lname, gender, dob, ben_age, 
                                caste, marital_status, father_fname, father_mname, father_lname, mother_fname, 
                                mother_mname, mother_lname, spouse_fname, spouse_mname, spouse_lname, mothly_income, 
@@ -1460,67 +1453,63 @@ class WPWCDformController extends Controller
                                av_status, legacy_import, old_beneficiary_id, pensioner_type, 
                                receiving_pension_other_source_1, receiving_pension_other_source_2 from wp_wcd.beneficiary where id=" . $id . ")");
             $is_update = DB::table($scheme_schema . '.beneficiary')->where(['id' => $request->id, 'created_by_dist_code' => $distCode, 'scheme_id' => $scheme_id])->update($input);
-            if(count($upload_file_arch)>0){
+            if (count($upload_file_arch) > 0) {
                 $doc_inserted_arch = DB::connection('pgsql_encwrite')->table('jb_doc.ben_attach_documents_arch')->insert($upload_file_arch);
+            } else {
+                $doc_inserted_arch = 1;
             }
-            else{
-                $doc_inserted_arch =1; 
+            if (count($delete_array) > 0) {
+                $doc_inserted_del = DB::connection('pgsql_encwrite')->table('jb_doc.ben_attach_documents')->where('beneficiary_id', $request->id)->whereIn('document_type', $delete_array)->delete();
+            } else {
+                $doc_inserted_del = 1;
             }
-            if(count($delete_array)>0){
-                $doc_inserted_del = DB::connection('pgsql_encwrite')->table('jb_doc.ben_attach_documents')->where('beneficiary_id',$request->id)->whereIn('document_type',$delete_array)->delete();
-            }
-            else{
-                $doc_inserted_del =1;  
-            }
-            if(count($upload_file)>0){
+            if (count($upload_file) > 0) {
                 $doc_inserted = DB::connection('pgsql_encwrite')->table('jb_doc.ben_attach_documents')->insert($upload_file);
-            }
-            else{
-                $doc_inserted =1;  
+            } else {
+                $doc_inserted = 1;
             }
             $accept_reject_model = new AcceptRejectInfo;
             $accept_reject_model->created_at = $c_time;
             $accept_reject_model->application_id = $request->id;
-            $accept_reject_model->scheme_id =  $request->scheme_id;
+            $accept_reject_model->scheme_id = $request->scheme_id;
             $accept_reject_model->user_id = $user_id;
-            $accept_reject_model->op_type = class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod() .'APPUPDATE';
+            $accept_reject_model->op_type = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod() . 'APPUPDATE';
             $accept_reject_model->ip_address = $request->ip();
             $is_saved_log = $accept_reject_model->save();
-           // dump($is_update); dump($doc_inserted_arch); dump($doc_inserted_del); dump($doc_inserted); dd($is_saved_log);
-            if($arch_status && $is_update && $doc_inserted_arch && $doc_inserted_del && $doc_inserted && $is_saved_log){
+            // dump($is_update); dump($doc_inserted_arch); dump($doc_inserted_del); dump($doc_inserted); dd($is_saved_log);
+            if ($arch_status && $is_update && $doc_inserted_arch && $doc_inserted_del && $doc_inserted && $is_saved_log) {
                 DB::commit();
                 DB::connection('pgsql_encwrite')->commit();
-                if ($designation_id_old == 'Operator')
-                   return redirect("application-list-read-only-edit?pr1=" . $scheme_schema)->with('success', 'Application Updated Successfully')
-                ->with('id',   $row->getBenidAttribute());
-              else {
-                return redirect('/')->with('success', 'Application Updated Successfully');
+                if ($designation_id == 'Operator')
+                    return redirect("application-list-read-only-edit?pr1=" . $scheme_schema)->with('success', 'Application Updated Successfully')
+                        ->with('id', $row->getBenidAttribute());
+                else {
+                    return redirect('/')->with('success', 'Application Updated Successfully');
                 }
-            }
-            else{
+            } else {
                 DB::connection('pgsql_encwrite')->rollback();
                 DB::rollback();
-                if ($designation_id_old == 'Operator')
-                 return redirect("/application-edit?id=" . $request->id . "&scheme_id=" . $request->scheme_id)->with('errors', array('Some error.Please try again'));
+                if ($designation_id == 'Operator')
+                    return redirect("/application-edit?id=" . $request->id . "&scheme_id=" . $request->scheme_id)->with('errors', array('Some error.Please try again'));
                 else {
-                  return redirect('/')->with('danger', 'Some error.Please try again');
+                    return redirect('/')->with('danger', 'Some error.Please try again');
                 }
             }
         } catch (\Exception $e) {
             //dd($e);
             DB::rollback();
             DB::connection('pgsql_encwrite')->rollback();
-            if ($designation_id_old == 'Operator')
-            return redirect("/application-edit?id=" . $request->id . "&scheme_id=" . $request->scheme_id)->with('errors', array('Some error.Please try again'));
+            if ($designation_id == 'Operator')
+                return redirect("/application-edit?id=" . $request->id . "&scheme_id=" . $request->scheme_id)->with('errors', array('Some error.Please try again'));
             else {
-                if($is_nsap==1){
+                if ($is_nsap == 1) {
                     return redirect("/application-edit?id=" . $request->id . "&scheme_id=" . $request->scheme_id)->with('errors', array('Some error.Please try again'));
 
-                }else
-                return redirect('/')->with('danger', 'Some error.Please try again');
+                } else
+                    return redirect('/')->with('danger', 'Some error.Please try again');
             }
         }
-      
+
 
         //return view('pension_view_details', ['row' => $row]);
     }
@@ -1628,10 +1617,10 @@ class WPWCDformController extends Controller
             '=',
             $major_programme_head_id
         )->where(
-            'level',
-            '=',
-            $level
-        )->get(['id', 'name']);
+                'level',
+                '=',
+                $level
+            )->get(['id', 'name']);
 
 
         //print_r($programmeHeads);
@@ -1895,7 +1884,8 @@ class WPWCDformController extends Controller
 
         if ($_POST['submit'] == 'Verify') {
             $input = [
-                'verification_status' => $Verified, 'comments' => $comments
+                'verification_status' => $Verified,
+                'comments' => $comments
             ];
 
             $is_status_updated = nhm_employee_details::where('id', $id)
@@ -1908,7 +1898,8 @@ class WPWCDformController extends Controller
             }
         } else if ($_POST['submit'] == 'Reject') {
             $input = [
-                'verification_status' => $Rejected, 'comments' => $comments
+                'verification_status' => $Rejected,
+                'comments' => $comments
             ];
             $is_status_updated = nhm_employee_details::where('id', $id)
                 ->update($input);
@@ -2106,7 +2097,8 @@ class WPWCDformController extends Controller
         if ($_POST['submit'] == 'Approve') {
 
             $input = [
-                'approval_status' => $Approved, 'approval_comments' => $comments
+                'approval_status' => $Approved,
+                'approval_comments' => $comments
             ];
 
             $is_status_updated = nhm_employee_details::where('id', $id)
@@ -2135,7 +2127,8 @@ class WPWCDformController extends Controller
         } else if ($_POST['submit'] == 'Disapprove') {
             // dd('hi');
             $input = [
-                'approval_status' => $Disapproved, 'approval_comments' => $comments
+                'approval_status' => $Disapproved,
+                'approval_comments' => $comments
             ];
 
             $is_status_updated = nhm_employee_details::where('id', $id)
@@ -2154,7 +2147,8 @@ class WPWCDformController extends Controller
         $Approved = "Approved";
         $comments = "Bulk Approval";
         $data = [
-            'approval_status' => $Approved, 'approval_comments' => $comments
+            'approval_status' => $Approved,
+            'approval_comments' => $comments
         ];
 
         foreach ($inputs as $input) {
@@ -2172,12 +2166,12 @@ class WPWCDformController extends Controller
 
     private function validateInput($request, $scheme_id, $add_edit_code)
     {
-        $caste_key =  array_keys(Config::get('constants.caste'));
-        $marital_status_key =  array_keys(Config::get('constants.marital_status'));
-        $gender_key =  array_keys(Config::get('constants.gender'));
+        $caste_key = array_keys(Config::get('constants.caste'));
+        $marital_status_key = array_keys(Config::get('constants.marital_status'));
+        $gender_key = array_keys(Config::get('constants.gender'));
         $today = date("Y-m-d");
         $entry_type_arr = array('Normal Form', 'Form through Duare Sarkar camp');
-        $withoutAadhaarreason_key =  array_keys(Config::get('constants.withoutAadhaarreason'));
+        $withoutAadhaarreason_key = array_keys(Config::get('constants.withoutAadhaarreason'));
         if ($add_edit_code == 1) {
             $entry_type_r = "required";
         } else {
@@ -2294,7 +2288,7 @@ class WPWCDformController extends Controller
         $doc_list = DocumentType::select('id', 'doc_type', 'doc_name', 'doc_size_kb')->get();
         $messages = array();
         foreach ($doc_list as $key => $value) {
-            if (in_array($value->id,  $in_array)) {
+            if (in_array($value->id, $in_array)) {
                 if ($add_edit_code == 1) {
                     $required = 'required';
                 } else {
@@ -2372,14 +2366,14 @@ class WPWCDformController extends Controller
     public function editList(Request $request)
     {
         //dd('ok');
-        $scheme_id =  $this->scheme_id;
+        $scheme_id = $this->scheme_id;
         $user_id = AuthChecker::getUserId();
-        $designation_id_old = Auth::user()->designation_id_old;
-        if (!in_array($designation_id_old, array('Operator'))) {
+        $designation_id = Auth::user()->designation_id;
+        if (!in_array($designation_id, array('Operator'))) {
             return redirect("/")->with('error', 'Not Allowed');
         }
         $is_active = 0;
-        $roleArray = $request->session()->get('role');
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
         foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == $scheme_id) {
                 $is_active = 1;
@@ -2397,7 +2391,7 @@ class WPWCDformController extends Controller
         if ($is_active == 0) {
             return redirect("/")->with('error', 'User Disabled');
         }
-       // dd($blockCode);
+        // dd($blockCode);
         $scheme_row = Scheme::select('scheme_name')->where('id', $this->scheme_id)->first();
         $scheme_name = $scheme_row->scheme_name;
         $report_type_name = 'Application List ';
@@ -2405,7 +2399,7 @@ class WPWCDformController extends Controller
             $condition = array();
             $condition["created_by_dist_code"] = $distCode;
             $condition["created_by_local_body_code"] = $blockCode;
-           // $condition["next_level_role_id"] = 0;
+            // $condition["next_level_role_id"] = 0;
             $serachvalue = $request->search['value'];
             $limit = $request->input('length');
             $offset = $request->input('start');
@@ -2416,8 +2410,8 @@ class WPWCDformController extends Controller
             $data = array();
             $query = BenEntry::where($condition)->where('scheme_id', $scheme_id);
             if (empty($filter_status_new)) {
-               
-            $query = $query->whereraw("((next_level_role_id=0 and legacy_import=TRUE) or no_aadhar=1 or no_mobile=1 or unlock_status=1)");
+
+                $query = $query->whereraw("((next_level_role_id=0 and legacy_import=TRUE) or no_aadhar=1 or no_mobile=1 or unlock_status=1)");
             }
             if (!empty($filter_status)) {
                 if ($filter_status == 1) {
@@ -2443,9 +2437,30 @@ class WPWCDformController extends Controller
             if (empty($serachvalue)) {
                 $totalRecords = $query->count();
                 $data = $query->orderBy('id', 'ASC')->offset($offset)->limit($limit)->get([
-                    'unlock_status','legacy_import','no_aadhar','no_mobile','mobile_no','aadhar_no', 'id', 'created_by_dist_code',
-                    'bank_code', 'ben_fname', 'ben_lname', 'ben_mname', 'gender', 'ben_age', 'block_ulb_name', 'gp_ward_name', 'bank_ifsc', 'village_town_city',
-                    'scheme_id', 'lot_generated', 'payment_count', 'next_level_role_id', 'next_level_role_id_edit', 'caste'
+                    'unlock_status',
+                    'legacy_import',
+                    'no_aadhar',
+                    'no_mobile',
+                    'mobile_no',
+                    'aadhar_no',
+                    'id',
+                    'created_by_dist_code',
+                    'bank_code',
+                    'ben_fname',
+                    'ben_lname',
+                    'ben_mname',
+                    'gender',
+                    'ben_age',
+                    'block_ulb_name',
+                    'gp_ward_name',
+                    'bank_ifsc',
+                    'village_town_city',
+                    'scheme_id',
+                    'lot_generated',
+                    'payment_count',
+                    'next_level_role_id',
+                    'next_level_role_id_edit',
+                    'caste'
                 ]);
             } else {
                 if (is_numeric($serachvalue)) {
@@ -2457,7 +2472,14 @@ class WPWCDformController extends Controller
                     $totalRecords = $query->count();
                     $data = $query->orderBy('id', 'ASC')->offset($offset)->limit($limit)->get(
                         [
-                            'unlock_status','legacy_import', 'no_aadhar','no_mobile','mobile_no','aadhar_no','id', 'created_by_dist_code',
+                            'unlock_status',
+                            'legacy_import',
+                            'no_aadhar',
+                            'no_mobile',
+                            'mobile_no',
+                            'aadhar_no',
+                            'id',
+                            'created_by_dist_code',
                             'bank_code',
                             'ben_fname',
                             'block_ulb_name',
@@ -2468,7 +2490,12 @@ class WPWCDformController extends Controller
                             'lot_generated',
                             'payment_count',
                             'next_level_role_id',
-                            'ben_lname', 'gender', 'ben_age', 'ben_mname', 'next_level_role_id_edit', 'caste'
+                            'ben_lname',
+                            'gender',
+                            'ben_age',
+                            'ben_mname',
+                            'next_level_role_id_edit',
+                            'caste'
                         ]
                     );
                 } else {
@@ -2481,7 +2508,14 @@ class WPWCDformController extends Controller
                     $totalRecords = $query->count();
                     $data = $query->orderBy('id', 'ASC')->offset($offset)->limit($limit)->get(
                         [
-                            'unlock_status', 'legacy_import','no_aadhar','no_mobile','mobile_no','aadhar_no','id', 'created_by_dist_code',
+                            'unlock_status',
+                            'legacy_import',
+                            'no_aadhar',
+                            'no_mobile',
+                            'mobile_no',
+                            'aadhar_no',
+                            'id',
+                            'created_by_dist_code',
                             'bank_code',
                             'ben_fname',
                             'block_ulb_name',
@@ -2492,7 +2526,12 @@ class WPWCDformController extends Controller
                             'lot_generated',
                             'payment_count',
                             'next_level_role_id',
-                            'ben_lname', 'gender', 'ben_age', 'ben_mname', 'next_level_role_id_edit', 'caste'
+                            'ben_lname',
+                            'gender',
+                            'ben_age',
+                            'ben_mname',
+                            'next_level_role_id_edit',
+                            'caste'
                         ]
                     );
                 }
@@ -2514,18 +2553,16 @@ class WPWCDformController extends Controller
                     return "Father Name";
                 })
                 ->addColumn('mobile_no', function ($data) {
-                    if(is_null($data->mobile_no) or $data->mobile_no==''){
-                        return '';   
-                    }
-                    else
-                    return $data->mobile_no;
+                    if (is_null($data->mobile_no) or $data->mobile_no == '') {
+                        return '';
+                    } else
+                        return $data->mobile_no;
                 })
                 ->addColumn('aadhar_no', function ($data) {
-                    if(is_null($data->aadhar_no) or trim($data->aadhar_no)==''){
-                        return '';   
-                    }
-                    else
-                    return "**********".substr($data->aadhar_no,-4);
+                    if (is_null($data->aadhar_no) or trim($data->aadhar_no) == '') {
+                        return '';
+                    } else
+                        return "**********" . substr($data->aadhar_no, -4);
                 })
                 ->addColumn('ben_age', function ($data) {
                     return $data->ben_age;
@@ -2539,11 +2576,11 @@ class WPWCDformController extends Controller
                 ->addColumn('bank_code', function ($data) {
                     $mask_bank_code = '';
                     $bank_code = trim($data->bank_code);
-                    if ($bank_code!= '') {
+                    if ($bank_code != '') {
                         // echo 1;die;
                         $mask_bank_code = '********' . substr($bank_code, 8, 4);
                         // dd($mask_bank_code);
-                    }else{
+                    } else {
                         // echo 1;die;
                         $mask_bank_code = $bank_code;
                     }
@@ -2554,48 +2591,45 @@ class WPWCDformController extends Controller
                 })
                 ->addColumn('status', function ($data) use ($scheme_id) {
                     $val = '';
-                    if ($data->legacy_import==true and $data->next_level_role_id==0 and is_null($data->next_level_role_id_edit) ) {
-                        $val =$val. 'Approved Legacy Data.. Need to modify or add aadhaar number and mobile number and also Upload Supporting documents';
-                        $val =$val."<br/>";
-                    } 
-                    if ($data->no_aadhar==1) {
-                        if($data->next_level_role_id==0)
-                         $next_level_txt='Approved';
-                         else{
-                            $next_level_txt='Non Approved'; 
-                         }
-                        $val =$val.  $next_level_txt.' Aadhaar Number Blank or Aadhar number is not 12 Digit';
-                        $val =$val."<br/>";
-                    } 
-                    if ($data->no_mobile==1) {
-                        if($data->next_level_role_id==0)
-                         $next_level_txt='Approved';
-                         else{
-                            $next_level_txt='Non Approved'; 
-                         }
-                        $val =$val.  $next_level_txt.' Mobile Number Blank or Mobile number is not 10 Digit';
-                        $val =$val."<br/>";
-                    } 
+                    if ($data->legacy_import == true and $data->next_level_role_id == 0 and is_null($data->next_level_role_id_edit)) {
+                        $val = $val . 'Approved Legacy Data.. Need to modify or add aadhaar number and mobile number and also Upload Supporting documents';
+                        $val = $val . "<br/>";
+                    }
+                    if ($data->no_aadhar == 1) {
+                        if ($data->next_level_role_id == 0)
+                            $next_level_txt = 'Approved';
+                        else {
+                            $next_level_txt = 'Non Approved';
+                        }
+                        $val = $val . $next_level_txt . ' Aadhaar Number Blank or Aadhar number is not 12 Digit';
+                        $val = $val . "<br/>";
+                    }
+                    if ($data->no_mobile == 1) {
+                        if ($data->next_level_role_id == 0)
+                            $next_level_txt = 'Approved';
+                        else {
+                            $next_level_txt = 'Non Approved';
+                        }
+                        $val = $val . $next_level_txt . ' Mobile Number Blank or Mobile number is not 10 Digit';
+                        $val = $val . "<br/>";
+                    }
                     return $val;
-                }) ->addColumn('action', function ($data) use ($scheme_id) {
+                })->addColumn('action', function ($data) use ($scheme_id) {
                     $val = '';
                     if ($data->next_level_role_id_edit > 0 and $data->unlock_status == 1 and $data->next_level_role_id_edit != 999) {
                         $val = '<span class="label label-info">Alredy Edited and Pending at Approver</span>';
                     } else if ($data->next_level_role_id_edit == 999 and $data->unlock_status == 1) {
                         $val = '<span class="label label-info">Alredy Edited and Pending at Verifier</span>';
-                    }
-                    else if ($data->no_aadhar == 1 or $data->no_mobile == 1) {
+                    } else if ($data->no_aadhar == 1 or $data->no_mobile == 1) {
                         $val = '<a href="editWp/' . $data->id . '" class="btn btn-primary ben_view_button" role="button" >Edit</a>';
-                    }
-                    else if ($data->next_level_role_id == 0 and $data->legacy_import == true and is_null($data->next_level_role_id_edit)) {
+                    } else if ($data->next_level_role_id == 0 and $data->legacy_import == true and is_null($data->next_level_role_id_edit)) {
                         $val = '<a href="editWp/' . $data->id . '" class="btn btn-primary ben_view_button" role="button" >Edit</a>';
-                    }
-                    else if ($data->next_level_role_id == 0 and $data->legacy_import == true and $data->next_level_role_id_edit==0) {
+                    } else if ($data->next_level_role_id == 0 and $data->legacy_import == true and $data->next_level_role_id_edit == 0) {
                         $val = '<span class="label label-info">Alredy Edited and Approved.</span>';
                     }
                     return $val;
                 })
-                ->rawColumns(['ben_id', 'ben_name', 'ben_age', 'gender', 'bank_ifsc', 'bank_code', 'village_town_city', 'action','status'])
+                ->rawColumns(['ben_id', 'ben_name', 'ben_age', 'gender', 'bank_ifsc', 'bank_code', 'village_town_city', 'action', 'status'])
                 ->make(true);
         } else {
 
@@ -2614,14 +2648,14 @@ class WPWCDformController extends Controller
     }
     public function editUnlock(Request $request)
     {
-        $scheme_id =  $this->scheme_id;
+        $scheme_id = $this->scheme_id;
         $user_id = AuthChecker::getUserId();
-        $designation_id_old = Auth::user()->designation_id_old;
-        if (!in_array($designation_id_old, array('Operator'))) {
+        $designation_id = Auth::user()->designation_id;
+        if (!in_array($designation_id, array('Operator'))) {
             return redirect("/")->with('error', 'Not Allowed');
         }
         $is_active = 0;
-        $roleArray = $request->session()->get('role');
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
         foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == $scheme_id) {
                 $is_active = 1;
@@ -2636,7 +2670,7 @@ class WPWCDformController extends Controller
                 break;
             }
         }
-       // dd($blockCode);
+        // dd($blockCode);
         if ($is_active == 0) {
             return redirect("/")->with('error', 'User Disabled');
         }
@@ -2650,8 +2684,8 @@ class WPWCDformController extends Controller
         $condition = array();
         $condition["created_by_dist_code"] = $distCode;
         $condition["created_by_local_body_code"] = $blockCode;
-       // $condition["next_level_role_id"] = 0;
-        $condition["id"] =  $id;
+        // $condition["next_level_role_id"] = 0;
+        $condition["id"] = $id;
         $row = PensionWPWCD::where($condition)->whereraw("((next_level_role_id=0 and legacy_import=TRUE) or no_aadhar=1 or no_mobile=1)")->first();
         //dd($row);
         if (empty($row)) {
@@ -2717,7 +2751,7 @@ class WPWCDformController extends Controller
             $document_msg = "";
         $encloser_list = array();
         $i = 0;
-        $encolserdata = BenDocs::select('document_type', 'attched_document')->where('scheme_id',$scheme_id)->where('created_by_dist_code',$distCode)->where('beneficiary_id', $request->id)->get()->pluck('attched_document','document_type')->toArray();
+        $encolserdata = BenDocs::select('document_type', 'attched_document')->where('scheme_id', $scheme_id)->where('created_by_dist_code', $distCode)->where('beneficiary_id', $request->id)->get()->pluck('attched_document', 'document_type')->toArray();
         $already_id = array_keys($encolserdata);
         $doc_profile_image_id_row = DocumentType::select('id')->where("is_profile_pic", true)->first();
         $doc_profile_image_id = $doc_profile_image_id_row->id;
@@ -2769,48 +2803,49 @@ class WPWCDformController extends Controller
                 $i++;
             }
         }
-       
-        $status='';
-        if($row->next_level_role_id==0){
-            $next_level_status='Approved';
-        }
-        else
-        $next_level_status='Non Approved';
-        $issue_text='Need to provide ';
-        if ($row->legacy_import==true and $row->next_level_role_id==0 and is_null($row->next_level_role_id_edit) ) {
-            $issue_text =$issue_text. 'Legacy Data';
+
+        $status = '';
+        if ($row->next_level_role_id == 0) {
+            $next_level_status = 'Approved';
+        } else
+            $next_level_status = 'Non Approved';
+        $issue_text = 'Need to provide ';
+        if ($row->legacy_import == true and $row->next_level_role_id == 0 and is_null($row->next_level_role_id_edit)) {
+            $issue_text = $issue_text . 'Legacy Data';
             //$status =$status."<br/>";
-        } 
-        if ($row->no_aadhar==1) {
-            
-            $issue_text =$issue_text.'  Aadhaar Number,';
-           // $status =$status."<br/>";
-        } 
-        if ($row->no_mobile==1) {
-            $issue_text =$issue_text.' Mobile Number';
-        } 
-       //dd($status);
+        }
+        if ($row->no_aadhar == 1) {
+
+            $issue_text = $issue_text . '  Aadhaar Number,';
+            // $status =$status."<br/>";
+        }
+        if ($row->no_mobile == 1) {
+            $issue_text = $issue_text . ' Mobile Number';
+        }
+        //dd($status);
         return view('WPWCD/pension_edit_unlock', [
-            'doc_profile_image_id' => $doc_profile_image_id, 
-            'scheme_name' => $scheme_name, 'row' => $row, 
-            'document_msg' => $document_msg, 
-            'districts' => $districts, 'scheme_id' => $scheme_id, 
-            'encloser_list' => $encloser_list, 
+            'doc_profile_image_id' => $doc_profile_image_id,
+            'scheme_name' => $scheme_name,
+            'row' => $row,
+            'document_msg' => $document_msg,
+            'districts' => $districts,
+            'scheme_id' => $scheme_id,
+            'encloser_list' => $encloser_list,
             'profile_img' => $doc_profile_image_id,
             'next_level_status' => $next_level_status,
             'issue_text' => $issue_text
-          ]);
+        ]);
     }
     function editWpPost(Request $request)
     {
-        $scheme_id =  $this->scheme_id;
+        $scheme_id = $this->scheme_id;
         $user_id = AuthChecker::getUserId();
-        $designation_id_old = Auth::user()->designation_id_old;
-        if (!in_array($designation_id_old, array('Operator'))) {
+        $designation_id = Auth::user()->designation_id;
+        if (!in_array($designation_id, array('Operator'))) {
             return redirect("/")->with('error', 'Not Allowed');
         }
         $is_active = 0;
-        $roleArray = $request->session()->get('role');
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
         foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == $scheme_id) {
                 $is_active = 1;
@@ -2838,15 +2873,15 @@ class WPWCDformController extends Controller
         $condition = array();
         $condition["created_by_dist_code"] = $distCode;
         $condition["created_by_local_body_code"] = $blockCode;
-       // $condition["next_level_role_id"] = 0;
-        $condition["id"] =  $id;
+        // $condition["next_level_role_id"] = 0;
+        $condition["id"] = $id;
         $row = PensionWPWCD::where($condition)->whereraw("((next_level_role_id=0 and legacy_import=TRUE) or no_aadhar=1 or no_mobile=1)")->first();
         if (empty($row)) {
             return redirect("/")->with('error', 'Application Id Valid');
         }
-        $caste_key =  array_keys(Config::get('constants.caste'));
-        $marital_status_key =  array_keys(Config::get('constants.marital_status'));
-        $gender_key =  array_keys(Config::get('constants.gender'));
+        $caste_key = array_keys(Config::get('constants.caste'));
+        $marital_status_key = array_keys(Config::get('constants.marital_status'));
+        $gender_key = array_keys(Config::get('constants.gender'));
 
         $rules = [
             'gender' => 'required|in:' . implode(",", $gender_key),
@@ -2891,7 +2926,7 @@ class WPWCDformController extends Controller
             'mobile_no' => 'required|numeric|digits:10',
             'email' => 'string|email|nullable'
         ];
-        
+
         $attributes = array();
         $messages = array();
         $attributes['first_name'] = 'Beneficiary First Name';
@@ -2954,8 +2989,8 @@ class WPWCDformController extends Controller
         $doc_list = DocumentType::select('id', 'doc_type', 'doc_name', 'doc_size_kb')->get();
         if (count($in_array) > 0) {
             foreach ($doc_list as $key => $value) {
-                if (in_array($value->id,  $in_array)) {
-                    $previus_uploaded =   $request->input('doc_already_' . $value->id);
+                if (in_array($value->id, $in_array)) {
+                    $previus_uploaded = $request->input('doc_already_' . $value->id);
                     if ($previus_uploaded == 0) {
                         if ($value->id == 116) {
                             $required = 'nullable';
@@ -2986,16 +3021,16 @@ class WPWCDformController extends Controller
                 $return_msg = array("" . $return_text);
                 return redirect("/editWp/" . $request->id)->with('errors', $return_msg)->withInput(Input::all());
             }
-            if(!preg_match('/^[0-9]{10}+$/',$request->mobile_no)) {
+            if (!preg_match('/^[0-9]{10}+$/', $request->mobile_no)) {
                 $return_text = 'Mobile Number Invalid';
                 $return_msg = array("" . $return_text);
                 return redirect("/editWp/" . $request->id)->with('errors', $return_msg)->withInput(Input::all());
-             }
-             if($request->mobile_no<1000000000) {
+            }
+            if ($request->mobile_no < 1000000000) {
                 $return_text = 'Mobile Number Invalid';
                 $return_msg = array("" . $return_text);
                 return redirect("/editWp/" . $request->id)->with('errors', $return_msg)->withInput(Input::all());
-             }
+            }
             $district_list = District::all();
             $sel_district = $request->district;
             $cnt = $district_list->where('district_code', $sel_district)->count();
@@ -3029,7 +3064,7 @@ class WPWCDformController extends Controller
                     $return_msg = array("" . $return_text);
                     return redirect("/editWp/" . $request->id)->with('errors', $return_msg)->withInput(Input::all());
                 }
-                $gp_ward_name   = $gp_ward_arr->urban_body_ward_name;
+                $gp_ward_name = $gp_ward_arr->urban_body_ward_name;
             } else if ($sel_urban_code == 2) {
                 $block_munc_arr = Taluka::where('district_code', $sel_district)->where('block_code', $sel_block)->first();
                 if (empty($block_munc_arr)) {
@@ -3044,21 +3079,21 @@ class WPWCDformController extends Controller
                     $return_msg = array("" . $return_text);
                     return redirect("/editWp/" . $request->id)->with('errors', $return_msg)->withInput(Input::all());
                 }
-                $gp_ward_name   = $gp_ward_arr->gram_panchyat_name;
+                $gp_ward_name = $gp_ward_arr->gram_panchyat_name;
             }
             $doc_id_list = SchemeDocMap::select('doc_list_man', 'doc_list_opt', 'doc_list_man_group')->where('scheme_code', $scheme_id)->get();
             $doc_list_man = json_decode($doc_id_list[0]['doc_list_man']);
             $doc_list_opt = json_decode($doc_id_list[0]['doc_list_opt']);
             $doc_list = array_merge($doc_list_man, $doc_list_opt);
-            $encolserdata = BenDocs::where('scheme_id',$scheme_id)->where('created_by_dist_code',$distCode)->where('beneficiary_id', $request->id)->get();
-            $already_id=array();
-            foreach($encolserdata as $enc_item){
-                array_push($already_id,$enc_item->document_type);
-            }         
+            $encolserdata = BenDocs::where('scheme_id', $scheme_id)->where('created_by_dist_code', $distCode)->where('beneficiary_id', $request->id)->get();
+            $already_id = array();
+            foreach ($encolserdata as $enc_item) {
+                array_push($already_id, $enc_item->document_type);
+            }
             $doc_list_man_group_upload = array();
             $doc_list_man_group_db = array();
 
-            if (($doc_id_list[0]['doc_list_man_group']) != '' &&  ($doc_id_list[0]['doc_list_man_group'] != 'null') && ($doc_id_list[0]['doc_list_man_group']) != null) {
+            if (($doc_id_list[0]['doc_list_man_group']) != '' && ($doc_id_list[0]['doc_list_man_group'] != 'null') && ($doc_id_list[0]['doc_list_man_group']) != null) {
                 $doc_list_man_group_db = json_decode($doc_id_list[0]['doc_list_man_group']);
             }
 
@@ -3109,7 +3144,7 @@ class WPWCDformController extends Controller
             $check_condition_str = Helper::getCheckNextLevelRoleIdCon($scheme_id);
 
             //--------- Duplicate bank A/C check---------- //
-            if(!empty($request->aadhar_no)){
+            if (!empty($request->aadhar_no)) {
                 $count_aadhar = PensionWPWCD::where('aadhar_no', trim($request->aadhar_no))->where('id', '!=', $id)->whereRaw("(" . $check_condition_str . ")")->count('id');
                 if ($count_aadhar > 0) {
                     $errors = array();
@@ -3119,7 +3154,7 @@ class WPWCDformController extends Controller
 
                 }
             }
-            if(!empty($request->mobile_no)){
+            if (!empty($request->mobile_no)) {
                 $count_mobile = PensionWPWCD::where('mobile_no', $request->mobile_no)->where('id', '!=', $id)->whereRaw("(" . $check_condition_str . ")")->count('id');
                 if ($count_mobile > 0) {
                     $errors = array();
@@ -3128,7 +3163,7 @@ class WPWCDformController extends Controller
                     return redirect("/editWp/" . $request->id)->with('errors', $errors)->withInput(Input::all());
                 }
             }
-        
+
             $social_security_pension = "";
             $receive_pension = "";
             if ($request->receive_pension != "") {
@@ -3169,25 +3204,25 @@ class WPWCDformController extends Controller
                 'social_security_pension' => trim($social_security_pension),
 
                 'ration_card_cat' => trim($request->ration_card_cat),
-                'ration_card_no'  => trim($request->ration_card_no),
-                'ahl_tin'  => trim($request->ahl_tin),
-                'epic_voter_id'  => trim($request->epic_voter_id),
-                'pan_no'  => trim($request->pan_no),
+                'ration_card_no' => trim($request->ration_card_no),
+                'ahl_tin' => trim($request->ahl_tin),
+                'epic_voter_id' => trim($request->epic_voter_id),
+                'pan_no' => trim($request->pan_no),
 
 
 
                 'dist_code' => $request->district,
-                'assembly_code'  => $request->asmb_cons,
+                'assembly_code' => $request->asmb_cons,
                 'assembly_name' => trim($assembly_name),
                 'rural_urban_id' => $request->urban_code,
-                'police_station'  => trim($request->police_station),
-                'block_ulb_code'  => $request->block,
+                'police_station' => trim($request->police_station),
+                'block_ulb_code' => $request->block,
                 'block_ulb_name' => trim($block_ulb_name),
                 'gp_ward_code' => $request->gp_ward,
                 'gp_ward_name' => trim($gp_ward_name),
-                'village_town_city'  => trim($request->village),
-                'house_premise_no'  => trim($request->house),
-                'post_office'  => trim($request->post_office),
+                'village_town_city' => trim($request->village),
+                'house_premise_no' => trim($request->house),
+                'post_office' => trim($request->post_office),
                 'pincode' => trim($request->pin_code),
                 'residency_period' => $request->residency_period,
                 'email' => trim($request->email),
@@ -3208,157 +3243,150 @@ class WPWCDformController extends Controller
                 'no_mobile' => 0,
                 'is_clean' => 1
             ];
-            if(!empty(trim($request->caste_certificate_no))){
-                $input['caste_certificate_no']=$request->caste_certificate_no;
+            if (!empty(trim($request->caste_certificate_no))) {
+                $input['caste_certificate_no'] = $request->caste_certificate_no;
             }
-            if($row->no_aadhar==1 || $row->no_mobile==1){
-                $input['no_aadhar_mobile_flag'] =1;
+            if ($row->no_aadhar == 1 || $row->no_mobile == 1) {
+                $input['no_aadhar_mobile_flag'] = 1;
             }
-            if(!empty(trim($request->aadhar_no))){
-                if(trim($row->aadhar_no)==trim($request->aadhar_no)){
-                 $sp_aadhar_new=NULL;
-                 $sp_aadhar_old=NULL;
-                }
-                else{
-                $input['aadhar_no']=trim($request->aadhar_no);
-                $sp_aadhar_new=trim($request->aadhar_no);
-                if(empty(trim($row->aadhar_no))){
-                    $sp_aadhar_old=NULL;
-                 }
-                 else{
-                    $sp_aadhar_old=trim($row->aadhar_no);
-                 }
+            if (!empty(trim($request->aadhar_no))) {
+                if (trim($row->aadhar_no) == trim($request->aadhar_no)) {
+                    $sp_aadhar_new = NULL;
+                    $sp_aadhar_old = NULL;
+                } else {
+                    $input['aadhar_no'] = trim($request->aadhar_no);
+                    $sp_aadhar_new = trim($request->aadhar_no);
+                    if (empty(trim($row->aadhar_no))) {
+                        $sp_aadhar_old = NULL;
+                    } else {
+                        $sp_aadhar_old = trim($row->aadhar_no);
+                    }
                 }
             }
-            if(!empty(trim($request->mobile_no))){
-                if($row->mobile_no==trim($request->mobile_no)){
-                 $sp_mobile_new=0;
-                 $sp_mobile_old=0;
-                }
-                else{
-                $input['mobile_no']=trim($request->mobile_no);
-                $sp_mobile_new=trim($request->mobile_no);
-                if(empty(trim($row->mobile_no))){
-                    $sp_mobile_old=0;
-                 }
-                 else{
-                    $sp_mobile_old=$row->mobile_no;
-                 }
+            if (!empty(trim($request->mobile_no))) {
+                if ($row->mobile_no == trim($request->mobile_no)) {
+                    $sp_mobile_new = 0;
+                    $sp_mobile_old = 0;
+                } else {
+                    $input['mobile_no'] = trim($request->mobile_no);
+                    $sp_mobile_new = trim($request->mobile_no);
+                    if (empty(trim($row->mobile_no))) {
+                        $sp_mobile_old = 0;
+                    } else {
+                        $sp_mobile_old = $row->mobile_no;
+                    }
                 }
             }
-           
+
             $scheme_obj = Scheme::where('id', $scheme_id)->where('is_active', 1)->first();
             if (!empty($scheme_obj->short_code)) {
                 $schema = $scheme_obj->short_code;
             } else {
-                $schema = "pension"; 
+                $schema = "pension";
             }
             $uploaded_doc = array();
             $base_url = url('/');
             $encloser_list = array();
             $i = 0;
             $c_time = date('Y-m-d H:i:s', time());
-            $all_document=DocumentType::where('is_active', TRUE)->get();
-            $delete_array=array();
-            $j=0;
-            $upload_file_arch=array();
-            $upload_file=array();
+            $all_document = DocumentType::where('is_active', TRUE)->get();
+            $delete_array = array();
+            $j = 0;
+            $upload_file_arch = array();
+            $upload_file = array();
             foreach ($doc_list as $doc) {
                 if ($request->hasFile('doc_' . $doc)) {
-                $doc_file = $request->file('doc_' . $doc);
-                $img_data = file_get_contents($doc_file);
-                $u_extension_file = $doc_file->getClientOriginalExtension();
-                $u_extension=strtolower($u_extension_file);
-                $mime_type = $doc_file->getMimeType();
-                $doc_type_name =$all_document->where('id', $doc)->first() ;
-                if(strtolower($mime_type)=='image/jpeg'){
-                    if($u_extension=='jpg' || $u_extension=='jpeg'){
-                        $extension=$u_extension;
+                    $doc_file = $request->file('doc_' . $doc);
+                    $img_data = file_get_contents($doc_file);
+                    $u_extension_file = $doc_file->getClientOriginalExtension();
+                    $u_extension = strtolower($u_extension_file);
+                    $mime_type = $doc_file->getMimeType();
+                    $doc_type_name = $all_document->where('id', $doc)->first();
+                    if (strtolower($mime_type) == 'image/jpeg') {
+                        if ($u_extension == 'jpg' || $u_extension == 'jpeg') {
+                            $extension = $u_extension;
+                        } else {
+                            $errors = array();
+                            $errorMsg = "You are trying to upload an incorrect file for " . $doc_type_name->doc_name;
+                            array_push($errors, $errorMsg);
+                            return back()->with('errors', $errors)->withInput(Input::all());
+                        }
+                    } else if (strtolower($mime_type) == 'image/png') {
+                        $extension = 'png';
+                    } else if (strtolower($mime_type) == 'image/gif') {
+                        $extension = 'gif';
+                    } else if (strtolower($mime_type) == 'application/pdf') {
+                        $extension = 'pdf';
+                    } else {
+                        $errors = array();
+                        $errorMsg = "You are trying to upload an incorrect file for " . $doc_type_name->doc_name;
+                        array_push($errors, $errorMsg);
+                        return back()->with('errors', $errors)->withInput(Input::all());
                     }
-                    else{
-                    $errors = array();
-                    $errorMsg = "You are trying to upload an incorrect file for ".$doc_type_name->doc_name;
-                    array_push($errors, $errorMsg);
-                    return back()->with('errors', $errors)->withInput(Input::all());  
+                    if ($u_extension != $extension) {
+                        $errors = array();
+                        $errorMsg = "You are trying to upload an incorrect file for " . $doc_type_name->doc_name;
+                        array_push($errors, $errorMsg);
+                        return back()->with('errors', $errors)->withInput(Input::all());
+                    }
+
+                    $base64 = base64_encode($img_data);
+                    $upload_file[$i]['beneficiary_id'] = $request->id;
+                    $upload_file[$i]['created_by_dist_code'] = $distCode;
+                    $upload_file[$i]['created_by_dist_code'] = $distCode;
+                    $upload_file[$i]['created_by_local_body_code'] = $blockCode;
+                    $upload_file[$i]['document_type'] = $doc;
+                    $upload_file[$i]['scheme_id'] = $scheme_id;
+                    $upload_file[$i]['created_by_level'] = $level;
+                    $upload_file[$i]['created_at'] = $c_time;
+                    $upload_file[$i]['created_by'] = $user_id;
+                    $upload_file[$i]['ip_address'] = $request->ip();
+                    $upload_file[$i]['attched_document'] = $base64;
+                    $upload_file[$i]['document_mime_type'] = $mime_type;
+                    $upload_file[$i]['document_extension'] = $extension;
+                    if (!empty($doc_type_name)) {
+                        $upload_file[$i]['doc_type_name'] = $doc_type_name->doc_name;
+                    }
+                    $i++;
+                    $doc_already_edit = $encolserdata->where('document_type', $doc)->where('created_by_dist_code', $distCode)->where('beneficiary_id', $request->id)->first();
+                    if (in_array($doc, $already_id)) {
+                        array_push($delete_array, $doc);
+                        $upload_file_arch[$j]['beneficiary_id'] = $request->id;
+                        $upload_file_arch[$j]['created_by_dist_code'] = $doc_already_edit->created_by_dist_code;
+                        $upload_file_arch[$j]['created_by_local_body_code'] = $doc_already_edit->created_by_local_body_code;
+                        $upload_file_arch[$j]['document_type'] = $doc_already_edit->document_type;
+                        $upload_file_arch[$j]['scheme_id'] = $doc_already_edit->scheme_id;
+                        $upload_file_arch[$j]['created_by_level'] = $doc_already_edit->created_by_level;
+                        $upload_file_arch[$j]['created_at'] = $doc_already_edit->created_at;
+                        $upload_file_arch[$j]['created_by'] = $doc_already_edit->created_by;
+                        $upload_file_arch[$j]['ip_address'] = $doc_already_edit->ip_address;
+                        $upload_file_arch[$j]['attched_document'] = $doc_already_edit->attched_document;
+                        $upload_file_arch[$j]['document_mime_type'] = $doc_already_edit->document_mime_type;
+                        $upload_file_arch[$j]['document_extension'] = $doc_already_edit->document_extension;
+                        $j++;
                     }
                 }
-                else if(strtolower($mime_type)=='image/png'){
-                    $extension='png';
-                }else if(strtolower($mime_type)=='image/gif'){
-                    $extension='gif';
-                }else if(strtolower($mime_type)=='application/pdf'){
-                    $extension='pdf';
-                }
-                else{
-                    $errors = array();
-                    $errorMsg = "You are trying to upload an incorrect file for ".$doc_type_name->doc_name;
-                    array_push($errors, $errorMsg);
-                    return back()->with('errors', $errors)->withInput(Input::all());  
-                }
-                if($u_extension!=$extension){
-                    $errors = array();
-                    $errorMsg = "You are trying to upload an incorrect file for ".$doc_type_name->doc_name;
-                    array_push($errors, $errorMsg);
-                    return back()->with('errors', $errors)->withInput(Input::all());  
-                }
-                
-                $base64 = base64_encode($img_data);
-                $upload_file[$i]['beneficiary_id']=$request->id;
-                $upload_file[$i]['created_by_dist_code']=$distCode;
-                $upload_file[$i]['created_by_dist_code']=$distCode;
-                $upload_file[$i]['created_by_local_body_code']=$blockCode;
-                $upload_file[$i]['document_type']=$doc;
-                $upload_file[$i]['scheme_id']=$scheme_id;
-                $upload_file[$i]['created_by_level']=$level;
-                $upload_file[$i]['created_at']=$c_time;
-                $upload_file[$i]['created_by']=$user_id;
-                $upload_file[$i]['ip_address']=$request->ip();
-                $upload_file[$i]['attched_document']=$base64;
-                $upload_file[$i]['document_mime_type']=$mime_type;
-                $upload_file[$i]['document_extension']=$extension;
-                if(!empty($doc_type_name)){
-                 $upload_file[$i]['doc_type_name'] = $doc_type_name->doc_name;
-                }
-                $i++;
-                $doc_already_edit =$encolserdata->where('document_type',$doc)->where('created_by_dist_code',$distCode)->where('beneficiary_id', $request->id)->first();
-                if (in_array($doc, $already_id)) {
-                    array_push($delete_array,$doc);
-                    $upload_file_arch[$j]['beneficiary_id']=$request->id;
-                    $upload_file_arch[$j]['created_by_dist_code']=$doc_already_edit->created_by_dist_code;
-                    $upload_file_arch[$j]['created_by_local_body_code']=$doc_already_edit->created_by_local_body_code;
-                    $upload_file_arch[$j]['document_type']=$doc_already_edit->document_type;
-                    $upload_file_arch[$j]['scheme_id']=$doc_already_edit->scheme_id;
-                    $upload_file_arch[$j]['created_by_level']=$doc_already_edit->created_by_level;
-                    $upload_file_arch[$j]['created_at']=$doc_already_edit->created_at;
-                    $upload_file_arch[$j]['created_by']=$doc_already_edit->created_by;
-                    $upload_file_arch[$j]['ip_address']=$doc_already_edit->ip_address;
-                    $upload_file_arch[$j]['attched_document']=$doc_already_edit->attched_document;
-                    $upload_file_arch[$j]['document_mime_type']=$doc_already_edit->document_mime_type;
-                    $upload_file_arch[$j]['document_extension']=$doc_already_edit->document_extension;
-                    $j++;
-                }
-               }
             }
             //dump($upload_file);dump($delete_array);dd($upload_file_arch);
-            $dup_blank_dup_arr=array();
-            $dup_blank_dup_arr['action_on']=$c_time;
-            if(trim($request->mobile_no)==$row->mobile_no && trim($request->aadhar_no)==trim($row->aadhar_no)){
-                $dup_blank_dup_arr['legacy_update']=1;
+            $dup_blank_dup_arr = array();
+            $dup_blank_dup_arr['action_on'] = $c_time;
+            if (trim($request->mobile_no) == $row->mobile_no && trim($request->aadhar_no) == trim($row->aadhar_no)) {
+                $dup_blank_dup_arr['legacy_update'] = 1;
             }
-            $row_dup_blank=BeneficiaryDupBlank::where('id',$id)->first();
-            $document_type_list = BenDocs::select('document_type', 'attched_document')->where('scheme_id',$scheme_id)->where('created_by_dist_code',$distCode)->where('beneficiary_id', $request->id)->get();
+            $row_dup_blank = BeneficiaryDupBlank::where('id', $id)->first();
+            $document_type_list = BenDocs::select('document_type', 'attched_document')->where('scheme_id', $scheme_id)->where('created_by_dist_code', $distCode)->where('beneficiary_id', $request->id)->get();
             //dd($document_type_list);
             DB::beginTransaction();
             DB::connection('pgsql_encwrite')->beginTransaction();
             try {
-                             // dump($sp_aadhar_old); dump($sp_mobile_old); dump($sp_mobile_new); dd($sp_mobile_new);
-                           // $is_inserted_status = DB::select("select oap_wcd.dup_adjustment_insert('".trim($request->aadhar_no)."',".trim($row->mobile_no).")");
-                          
-                            $is_inserted_status=1;
-                           
-                            if($is_inserted_status==1){
-                                //dd('ok');
-                                $arch_status=DB::statement("INSERT INTO wp_wcd.arc_beneficiary(id, 
+                // dump($sp_aadhar_old); dump($sp_mobile_old); dump($sp_mobile_new); dd($sp_mobile_new);
+                // $is_inserted_status = DB::select("select oap_wcd.dup_adjustment_insert('".trim($request->aadhar_no)."',".trim($row->mobile_no).")");
+
+                $is_inserted_status = 1;
+
+                if ($is_inserted_status == 1) {
+                    //dd('ok');
+                    $arch_status = DB::statement("INSERT INTO wp_wcd.arc_beneficiary(id, 
                                 dist_code, ben_fname, ben_mname, ben_lname,husband_fname,husband_mname, husband_lname, gender, dob, ben_age, 
                                caste, marital_status, father_fname, father_mname, father_lname, mother_fname, 
                                mother_mname, mother_lname, spouse_fname, spouse_mname, spouse_lname, mothly_income, 
@@ -3390,185 +3418,163 @@ class WPWCDformController extends Controller
                                bank_edited, bank_code, payment_count, last_paid_yymm, 
                                av_status, legacy_import, old_beneficiary_id, pensioner_type, 
                                receiving_pension_other_source_1, receiving_pension_other_source_2 from wp_wcd.beneficiary where id=" . $id . ")");
-                               //dd( $arch_status);
-                               if($arch_status)
-                               {
-                                $main_update=DB::table($schema . '.beneficiary')->where(['id' => $id, 'created_by_dist_code' => $distCode, 'scheme_id' => $scheme_id])->update($input);
-                                //dd( $main_update);
-                                if($main_update){
-                                    if(count($upload_file_arch)>0){
-                                        $doc_inserted_arch = DB::connection('pgsql_encwrite')->table('jb_doc.ben_attach_documents_arch')->insert($upload_file_arch);
-                                    }
-                                    else{
-                                        $doc_inserted_arch =1; 
-                                    }
-                                    if(count($delete_array)>0){
-                                        $doc_inserted_del = DB::connection('pgsql_encwrite')->table('jb_doc.ben_attach_documents')->where('beneficiary_id',$request->id)->whereIn('document_type',$delete_array)->delete();
-                                    }
-                                    else{
-                                        $doc_inserted_del =1;  
-                                    }
-                                    if(count($upload_file)>0){
-                                        $doc_inserted = DB::connection('pgsql_encwrite')->table('jb_doc.ben_attach_documents')->insert($upload_file);
-                                    }
-                                    else{
-                                        $doc_inserted =1;  
-                                    }
-                                    
-                                    
-                                    
-                                    if($doc_inserted_arch==1 && $doc_inserted_del && $doc_inserted==1){
-                                        if(!empty($row_dup_blank)){
-                                            $dup_blank_dup_arr['new_mobile_no']=trim($request->new_mobile_no);
-                                            $dup_blank_dup_arr['no_mobile_update']=1;
-                                            $dup_blank_dup_arr['new_aadhar_no']=trim($request->aadhar_no);
-                                            $dup_blank_dup_arr['no_aadhar_update']=1;
-                                            $dup_blank_dup_update=BeneficiaryDupBlank::where('id',$row->id)->update($dup_blank_dup_arr);
-                                            
-                                     }
-                                     else{
-                                        $dup_blank_dup_update=1;
-                                     }
-                                     if($dup_blank_dup_update){
-                                        $accept_reject_model = new AcceptRejectInfo;
-                                        $accept_reject_model->created_at = $c_time;
-                                        $accept_reject_model->application_id = $row->id;
-                                        $accept_reject_model->scheme_id =  $row->scheme_id;
-                                        $accept_reject_model->user_id = $user_id;
-                                        $accept_reject_model->user_id = $user_id;
-                                        $accept_reject_model->created_by_dist_code = $distCode;
-                                        $accept_reject_model->created_by_local_body_code = $blockCode;
-                                        $accept_reject_model->op_type = class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod() . 'SM';
-                                        $is_saved_log = $accept_reject_model->save();
-                                        if($is_saved_log){
-                                            DB::commit();
-                                            DB::connection('pgsql_encwrite')->commit();
-                                            $return_text = 'Beneficiary Edited Successfully';
-                                            return redirect("/editWpList")->with('success', $return_text)->with('id', $row->getBenidAttribute());
-                                        }
-                                        else{
-                                            DB::rollback();
-                                            DB::connection('pgsql_encwrite')->rollback();
-                                           // dd('ok77777');
-                                            $return_text = 'Error. Please try again';
-                                            $return_msg = array("" . $return_text);
-                                            return redirect("/editWp/" . $request->id)->with('errors', $return_msg)->withInput(Input::all());   
-                                        }
-                                    }
-                                    else{
+                    //dd( $arch_status);
+                    if ($arch_status) {
+                        $main_update = DB::table($schema . '.beneficiary')->where(['id' => $id, 'created_by_dist_code' => $distCode, 'scheme_id' => $scheme_id])->update($input);
+                        //dd( $main_update);
+                        if ($main_update) {
+                            if (count($upload_file_arch) > 0) {
+                                $doc_inserted_arch = DB::connection('pgsql_encwrite')->table('jb_doc.ben_attach_documents_arch')->insert($upload_file_arch);
+                            } else {
+                                $doc_inserted_arch = 1;
+                            }
+                            if (count($delete_array) > 0) {
+                                $doc_inserted_del = DB::connection('pgsql_encwrite')->table('jb_doc.ben_attach_documents')->where('beneficiary_id', $request->id)->whereIn('document_type', $delete_array)->delete();
+                            } else {
+                                $doc_inserted_del = 1;
+                            }
+                            if (count($upload_file) > 0) {
+                                $doc_inserted = DB::connection('pgsql_encwrite')->table('jb_doc.ben_attach_documents')->insert($upload_file);
+                            } else {
+                                $doc_inserted = 1;
+                            }
+
+
+
+                            if ($doc_inserted_arch == 1 && $doc_inserted_del && $doc_inserted == 1) {
+                                if (!empty($row_dup_blank)) {
+                                    $dup_blank_dup_arr['new_mobile_no'] = trim($request->new_mobile_no);
+                                    $dup_blank_dup_arr['no_mobile_update'] = 1;
+                                    $dup_blank_dup_arr['new_aadhar_no'] = trim($request->aadhar_no);
+                                    $dup_blank_dup_arr['no_aadhar_update'] = 1;
+                                    $dup_blank_dup_update = BeneficiaryDupBlank::where('id', $row->id)->update($dup_blank_dup_arr);
+
+                                } else {
+                                    $dup_blank_dup_update = 1;
+                                }
+                                if ($dup_blank_dup_update) {
+                                    $accept_reject_model = new AcceptRejectInfo;
+                                    $accept_reject_model->created_at = $c_time;
+                                    $accept_reject_model->application_id = $row->id;
+                                    $accept_reject_model->scheme_id = $row->scheme_id;
+                                    $accept_reject_model->user_id = $user_id;
+                                    $accept_reject_model->user_id = $user_id;
+                                    $accept_reject_model->created_by_dist_code = $distCode;
+                                    $accept_reject_model->created_by_local_body_code = $blockCode;
+                                    $accept_reject_model->op_type = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod() . 'SM';
+                                    $is_saved_log = $accept_reject_model->save();
+                                    if ($is_saved_log) {
+                                        DB::commit();
+                                        DB::connection('pgsql_encwrite')->commit();
+                                        $return_text = 'Beneficiary Edited Successfully';
+                                        return redirect("/editWpList")->with('success', $return_text)->with('id', $row->getBenidAttribute());
+                                    } else {
                                         DB::rollback();
                                         DB::connection('pgsql_encwrite')->rollback();
-                                        //dd('ok778');
+                                        // dd('ok77777');
                                         $return_text = 'Error. Please try again';
                                         $return_msg = array("" . $return_text);
-                                        return redirect("/editWp/" . $request->id)->with('errors', $return_msg)->withInput(Input::all());   
+                                        return redirect("/editWp/" . $request->id)->with('errors', $return_msg)->withInput(Input::all());
                                     }
-                                }
-                                    else{
-                                        DB::rollback();
-                                        DB::connection('pgsql_encwrite')->rollback();
-                                       // dd('ok778ggg');
-                                        $return_text = 'Error. Please try again';
-                                        $return_msg = array("" . $return_text);
-                                        return redirect("/editWp/" . $request->id)->with('errors', $return_msg)->withInput(Input::all());   
-                                    }
-                                }
-                                else{
+                                } else {
                                     DB::rollback();
                                     DB::connection('pgsql_encwrite')->rollback();
-                                   // dd('ok778gggtyu');
+                                    //dd('ok778');
                                     $return_text = 'Error. Please try again';
                                     $return_msg = array("" . $return_text);
-                                    return redirect("/editWp/" . $request->id)->with('errors', $return_msg)->withInput(Input::all());   
+                                    return redirect("/editWp/" . $request->id)->with('errors', $return_msg)->withInput(Input::all());
                                 }
-                               }
-                               else{
+                            } else {
                                 DB::rollback();
                                 DB::connection('pgsql_encwrite')->rollback();
-                                //dd('ok777');
+                                // dd('ok778ggg');
                                 $return_text = 'Error. Please try again';
                                 $return_msg = array("" . $return_text);
-                                return redirect("/editWp/" . $request->id)->with('errors', $return_msg)->withInput(Input::all());  
-                               }
-                           
+                                return redirect("/editWp/" . $request->id)->with('errors', $return_msg)->withInput(Input::all());
                             }
-                            else if($is_inserted_status==2){
-                                // dd('ok3');
-                                 DB::rollback();
-                                 DB::connection('pgsql_encwrite')->rollback();
-                                 $return_text = 'Duplicate Bank Info.. Please try different.';
-                                 $return_msg = array("" . $return_text);
-                                 return redirect("/editWp/" . $request->id)->with('errors', $return_msg)->withInput(Input::all());  
- 
-                             }
-                            else if($is_inserted_status==3){
-                                // dd('ok3');
-                                 DB::rollback();
-                                 DB::connection('pgsql_encwrite')->rollback();
-                                 $return_text = 'Duplicate Bank Modification Failed.Please try again.';
-                                 $return_msg = array("" . $return_text);
-                                 return redirect("/editWp/" . $request->id)->with('errors', $return_msg)->withInput(Input::all());  
- 
-                             }
-                            else if($is_inserted_status==4){
-                               // dd('ok3');
-                                DB::rollback();
-                                DB::connection('pgsql_encwrite')->rollback();
-                                $return_text = 'Duplicate Aadhar Number.. Please try different.';
-                                $return_msg = array("" . $return_text);
-                                return redirect("/editWp/" . $request->id)->with('errors', $return_msg)->withInput(Input::all());  
-
-                            }
-                            else if($is_inserted_status==5){
-                                //dd('ok3');
-                                DB::rollback();
-                                DB::connection('pgsql_encwrite')->rollback();
-                                $return_text = 'Aadhar Number Modification Faild.. Please try different.';
-                                $return_msg = array("" . $return_text);
-                                return redirect("/editWp/" . $request->id)->with('errors', $return_msg)->withInput(Input::all());  
-
-                            }
-                            else if($is_inserted_status==6){
-                                //dd('ok4');
-                                DB::rollback();
-                                DB::connection('pgsql_encwrite')->rollback();
-                                $return_text = 'Duplicate Mobile Number.. Please try different.';
-                                $return_msg = array("" . $return_text);
-                                return redirect("/editWp/" . $request->id)->with('errors', $return_msg)->withInput(Input::all());  
-                           }
-                           else if($is_inserted_status==7){
-                           // dd('ok4');
+                        } else {
                             DB::rollback();
                             DB::connection('pgsql_encwrite')->rollback();
-                            $return_text = 'Mobile Number Modification Faild.. Please try different.';
-                            $return_msg = array("" . $return_text);
-                            return redirect("/editWp/" . $request->id)->with('errors', $return_msg)->withInput(Input::all());  
-                          }
-                           else if($is_inserted_status==8){
-                           // dd('ok5');
-                            DB::rollback();
-                            DB::connection('pgsql_encwrite')->rollback();
+                            // dd('ok778gggtyu');
                             $return_text = 'Error. Please try again';
                             $return_msg = array("" . $return_text);
-                            return redirect("/editWp/" . $request->id)->with('errors', $return_msg)->withInput(Input::all());  
-                          }
-                          else{
-                           // dd('ok6');
-                          }
-            }
-            catch (\Exception $e) {
-                       // dd($e);
+                            return redirect("/editWp/" . $request->id)->with('errors', $return_msg)->withInput(Input::all());
+                        }
+                    } else {
                         DB::rollback();
                         DB::connection('pgsql_encwrite')->rollback();
+                        //dd('ok777');
                         $return_text = 'Error. Please try again';
                         $return_msg = array("" . $return_text);
-                        return redirect("/editWp/" . $request->id)->with('errors', $return_msg)->withInput(Input::all());  
+                        return redirect("/editWp/" . $request->id)->with('errors', $return_msg)->withInput(Input::all());
+                    }
+
+                } else if ($is_inserted_status == 2) {
+                    // dd('ok3');
+                    DB::rollback();
+                    DB::connection('pgsql_encwrite')->rollback();
+                    $return_text = 'Duplicate Bank Info.. Please try different.';
+                    $return_msg = array("" . $return_text);
+                    return redirect("/editWp/" . $request->id)->with('errors', $return_msg)->withInput(Input::all());
+
+                } else if ($is_inserted_status == 3) {
+                    // dd('ok3');
+                    DB::rollback();
+                    DB::connection('pgsql_encwrite')->rollback();
+                    $return_text = 'Duplicate Bank Modification Failed.Please try again.';
+                    $return_msg = array("" . $return_text);
+                    return redirect("/editWp/" . $request->id)->with('errors', $return_msg)->withInput(Input::all());
+
+                } else if ($is_inserted_status == 4) {
+                    // dd('ok3');
+                    DB::rollback();
+                    DB::connection('pgsql_encwrite')->rollback();
+                    $return_text = 'Duplicate Aadhar Number.. Please try different.';
+                    $return_msg = array("" . $return_text);
+                    return redirect("/editWp/" . $request->id)->with('errors', $return_msg)->withInput(Input::all());
+
+                } else if ($is_inserted_status == 5) {
+                    //dd('ok3');
+                    DB::rollback();
+                    DB::connection('pgsql_encwrite')->rollback();
+                    $return_text = 'Aadhar Number Modification Faild.. Please try different.';
+                    $return_msg = array("" . $return_text);
+                    return redirect("/editWp/" . $request->id)->with('errors', $return_msg)->withInput(Input::all());
+
+                } else if ($is_inserted_status == 6) {
+                    //dd('ok4');
+                    DB::rollback();
+                    DB::connection('pgsql_encwrite')->rollback();
+                    $return_text = 'Duplicate Mobile Number.. Please try different.';
+                    $return_msg = array("" . $return_text);
+                    return redirect("/editWp/" . $request->id)->with('errors', $return_msg)->withInput(Input::all());
+                } else if ($is_inserted_status == 7) {
+                    // dd('ok4');
+                    DB::rollback();
+                    DB::connection('pgsql_encwrite')->rollback();
+                    $return_text = 'Mobile Number Modification Faild.. Please try different.';
+                    $return_msg = array("" . $return_text);
+                    return redirect("/editWp/" . $request->id)->with('errors', $return_msg)->withInput(Input::all());
+                } else if ($is_inserted_status == 8) {
+                    // dd('ok5');
+                    DB::rollback();
+                    DB::connection('pgsql_encwrite')->rollback();
+                    $return_text = 'Error. Please try again';
+                    $return_msg = array("" . $return_text);
+                    return redirect("/editWp/" . $request->id)->with('errors', $return_msg)->withInput(Input::all());
+                } else {
+                    // dd('ok6');
+                }
+            } catch (\Exception $e) {
+                // dd($e);
+                DB::rollback();
+                DB::connection('pgsql_encwrite')->rollback();
+                $return_text = 'Error. Please try again';
+                $return_msg = array("" . $return_text);
+                return redirect("/editWp/" . $request->id)->with('errors', $return_msg)->withInput(Input::all());
             }
-            
-        }     
-     
-               
-        else {
+
+        } else {
             $return_msg = $validator->errors()->all();
             return redirect("/editWp/" . $request->id)->with('errors', $return_msg)->withInput(Input::all());
         }

@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Scheme;
-use DB;
+use Illuminate\Support\Facades\DB;
 
 class CumulativeBeneficiaryDetailsController extends Controller
 {

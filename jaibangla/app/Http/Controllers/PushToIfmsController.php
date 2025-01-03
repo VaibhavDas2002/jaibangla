@@ -14,7 +14,7 @@ use App\lot_no_seeder;
 use App\lot_master;
 use App\Http\Controllers\ReportLotMasterController;
 use Illuminate\Support\Facades\Session;
-use Excel;
+use Maatwebsite\Excel\Facades\Excel;
 use DOMDocument;
 use Response;
 use Carbon;

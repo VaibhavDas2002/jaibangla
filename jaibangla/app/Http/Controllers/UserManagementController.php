@@ -46,7 +46,7 @@ class UserManagementController extends Controller
         $designation = Designation::All();
         $employees = Employee::All();
         //$query ="";
-       // $query_data = DB::select('SELECT u.id,u.username,u.designation_id_old,u.email,e.lastname,e.firstname,e.middlename  FROM users as u, employees as e WHERE u.emp_id= e.id');
+       // $query_data = DB::select('SELECT u.id,u.username,u.designation_id,u.email,e.lastname,e.firstname,e.middlename  FROM users as u, employees as e WHERE u.emp_id= e.id');
 
         $query_data = DB::table('employees')->join('users', 'employees.id', '=', 'users.emp_id')->get();
      
@@ -87,7 +87,7 @@ class UserManagementController extends Controller
             'email' => 'required|max:60|unique:users',
             'password' =>'required|min:6',
             'employee_id' => 'required',
-            'designation_id_old' =>'required',
+            'designation_id' =>'required',
             'scheme_name' =>'required',
             'mobile_no' =>'required'
             ];
@@ -96,7 +96,7 @@ class UserManagementController extends Controller
             'username' => $request['username'],
             'email' => $request['email'],
             'emp_id' => $request['employee_id'],
-            'designation_id_old' => $request['designation_id_old'],
+            'designation_id' => $request['designation_id'],
             'user_scheme_id' => $request['scheme_name'],
             'mobile_no' => $request['mobile_no'],
         ];
@@ -160,13 +160,13 @@ class UserManagementController extends Controller
             'username'=> 'required|max:60',
             'email' => 'required|max:60',
             'password'=>'required|min:6',
-            'designation_id_old' =>'required'
+            'designation_id' =>'required'
             ];
         $input = [
             'emp_id' => $request['employee_id'],
             'username' => $request['username'],
             'email' => $request['email'],
-            'designation_id_old'=> $request['designation_id_old'],
+            'designation_id'=> $request['designation_id'],
         ];
         if ($request['password'] != null && strlen($request['password']) > 0) {
             $constraints['password'] = 'required|min:6|confirmed';
@@ -222,11 +222,11 @@ class UserManagementController extends Controller
         // $result = Employee::select(DB::raw('concat(firstname,middlename,lastname) AS name'))->
         // leftjoin('users', 'employees.id', '=', 'users.emp_id')->where('name','ilike',$newConstratint1.'%')->orWhere('username','ilike',$newConstratint.'%');
 
-        $result=DB::table('employees')->leftjoin('users', 'employees.id', '=', 'users.emp_id')->where(DB::raw('concat(firstname,middlename,lastname)') , 'ILIKE' , $newConstratint1.'%')->where('users.username','ilike',$newConstratint.'%')->get();//select('employees.id as id','employees.firstname','employees.middlename','employees.lastname','users.username','users.designation_id_old','users.email')->get();
+        $result=DB::table('employees')->leftjoin('users', 'employees.id', '=', 'users.emp_id')->where(DB::raw('concat(firstname,middlename,lastname)') , 'ILIKE' , $newConstratint1.'%')->where('users.username','ilike',$newConstratint.'%')->get();//select('employees.id as id','employees.firstname','employees.middlename','employees.lastname','users.username','users.designation_id','users.email')->get();
         //dd($result);
         //  $query = DB::table('employees')
-        // ->leftJoin('users', 'employees.id', '=', 'users.emp_id')->selectRaw("CONCAT(employees.firstname,employees.middlename,employees.lastname) AS name,users.username,users.designation_id_old,users.email");
-        // ->select('employees.id','employees.firstname','employees.middlename','employees.lastname','users.username','users.designation_id_old','users.email');
+        // ->leftJoin('users', 'employees.id', '=', 'users.emp_id')->selectRaw("CONCAT(employees.firstname,employees.middlename,employees.lastname) AS name,users.username,users.designation_id,users.email");
+        // ->select('employees.id','employees.firstname','employees.middlename','employees.lastname','users.username','users.designation_id','users.email');
 
          //print_r($query);
 
@@ -244,7 +244,7 @@ class UserManagementController extends Controller
         // }
        
         //dd($query);
-        //$query=$query->join('employees', 'query.emp_id', '=', 'employees.id')->select('employees.first_name','employees.middle_name','employees.last_name','query.username','query.designation_id_old','email');
+        //$query=$query->join('employees', 'query.emp_id', '=', 'employees.id')->select('employees.first_name','employees.middle_name','employees.last_name','query.username','query.designation_id','email');
         return $result;
     }
     // private function doSearchingQuery($constraints) {
@@ -266,7 +266,7 @@ class UserManagementController extends Controller
         'email' => 'required|email|max:255|unique:users',
         'password' => 'required|min:6|confirmed',
         'employee_id' => 'required',
-        'designation_id_old'=> 'required',
+        'designation_id'=> 'required',
         'mobile_no'=>'required'
     ]);
     }

@@ -33,9 +33,12 @@ use App\GP;
 use Carbon\Carbon;
 use App\Helpers\Helper;
 use App\Helpers\AuthChecker;
+use App\Configduty;
 
 class DuplicateBanklppController extends Controller
 {
+    protected $source_type;
+    protected $ben_status;
     public function __construct()
     {
         // $this->scheme_id = 20;
@@ -47,10 +50,10 @@ class DuplicateBanklppController extends Controller
     {
         $this->middleware('auth');
         $user_id = AuthChecker::getUserId();
-        $designation_id_old = Auth::user()->designation_id_old;
+        $designation_id = Auth::user()->designation_id;
         $errormsg = Config::get('constants.errormsg');
-        $roleArray = $request->session()->get('role');
-        $urban_body_code = NULL;
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                $urban_body_code = NULL;
         $district_code= NULL;
         foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == 8 || $roleObj['scheme_id'] == 9) {
@@ -66,12 +69,12 @@ class DuplicateBanklppController extends Controller
                 break;
             }
         }
-        if ($designation_id_old == 'Approver') {
+        if ($designation_id == 'Approver') {
             $is_active = 1;
         } else {
             $is_active = 0;
         }
-        if ($designation_id_old == 'Verifier') {
+        if ($designation_id == 'Verifier') {
             $verifier_condition = ' and p.created_by_local_body_code=' . $urban_body_code;
         } else {
             $verifier_condition = '';
@@ -107,10 +110,10 @@ class DuplicateBanklppController extends Controller
         $urban_body_code = NULL;
         $district_code= NULL;
         $user_id = AuthChecker::getUserId();
-        $designation_id_old = Auth::user()->designation_id_old;
+        $designation_id = Auth::user()->designation_id;
         $errormsg = Config::get('constants.errormsg');
-        $roleArray = $request->session()->get('role');
-        foreach ($roleArray as $roleObj) {
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == 8 || $roleObj['scheme_id'] == 9) {
                 $is_active = 1;
                 $is_urban = $roleObj['is_urban'];
@@ -124,12 +127,12 @@ class DuplicateBanklppController extends Controller
                 break;
             }
         }
-        if ($designation_id_old == 'Approver') {
+        if ($designation_id == 'Approver') {
             $is_active = 1;
         } else {
             $is_active = 0;
         }
-        if ($designation_id_old == 'Verifier') {
+        if ($designation_id == 'Verifier') {
             $verifier_condition = ' and p.created_by_local_body_code=' . $urban_body_code;
         } else {
             $verifier_condition = '';
@@ -194,13 +197,13 @@ class DuplicateBanklppController extends Controller
                 $ben_list[$i]['gp_ward_name'] =  'NA';
             }
 
-            if ($designation_id_old = 'Approver') {
+            if ($designation_id = 'Approver') {
                 if ($arr->created_by_dist_code == $district_code) {
                     $allowed = 1;
                 } else {
                     $allowed = 0;
                 }
-            } else if ($designation_id_old = 'Verifier') {
+            } else if ($designation_id = 'Verifier') {
                 if ($arr->created_by_dist_code == $district_code && $arr->created_by_local_body_code == $urban_body_code) {
                     $allowed = 1;
                 } else {
@@ -220,7 +223,7 @@ class DuplicateBanklppController extends Controller
                 'data' => $ben_list,
                 'bank_ifsc' => $request->bank_ifsc,
                 'bank_code' => $request->bank_code,
-                'designation_id_old' => $designation_id_old,
+                'designation_id' => $designation_id,
                 'sessiontimeoutmessage' => $errormsg['sessiontimeOut']
             ]
         );
@@ -230,10 +233,10 @@ class DuplicateBanklppController extends Controller
     {
         $this->middleware('auth');
         $user_id = AuthChecker::getUserId();
-        $designation_id_old = Auth::user()->designation_id_old;
+        $designation_id = Auth::user()->designation_id;
         $errormsg = Config::get('constants.errormsg');
-        $roleArray = $request->session()->get('role');
-        foreach ($roleArray as $roleObj) {
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == 8 || $roleObj['scheme_id'] == 9) {
                 $is_active = 1;
                 $is_urban = $roleObj['is_urban'];
@@ -247,12 +250,12 @@ class DuplicateBanklppController extends Controller
                 break;
             }
         }
-        if ($designation_id_old == 'Approver') {
+        if ($designation_id == 'Approver') {
             $is_active = 1;
         } else {
             $is_active = 0;
         }
-        if ($designation_id_old == 'Verifier') {
+        if ($designation_id == 'Verifier') {
             $verifier_condition = ' and p.created_by_local_body_code=' . $urban_body_code;
         } else {
             $verifier_condition = '';
@@ -349,13 +352,13 @@ class DuplicateBanklppController extends Controller
     {
         $this->middleware('auth');
         $user_id = AuthChecker::getUserId();
-        $designation_id_old = Auth::user()->designation_id_old;
+        $designation_id = Auth::user()->designation_id;
         $urban_body_code = NULL;
         $district_code= NULL;
         $mapping_level=NULL;
         $errormsg = Config::get('constants.errormsg');
-        $roleArray = $request->session()->get('role');
-        foreach ($roleArray as $roleObj) {
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == 8 || $roleObj['scheme_id'] == 9) {
                 $is_active = 1;
                 $is_urban = $roleObj['is_urban'];
@@ -369,12 +372,12 @@ class DuplicateBanklppController extends Controller
                 break;
             }
         }
-        if ($designation_id_old == 'Approver') {
+        if ($designation_id == 'Approver') {
             $is_active = 1;
         } else {
             $is_active = 0;
         }
-        if ($designation_id_old == 'Verifier') {
+        if ($designation_id == 'Verifier') {
             $verifier_condition = ' and p.created_by_local_body_code=' . $urban_body_code;
         } else {
             $verifier_condition = '';
@@ -667,13 +670,13 @@ class DuplicateBanklppController extends Controller
     {
         $this->middleware('auth');
         $user_id = AuthChecker::getUserId();
-        $designation_id_old = Auth::user()->designation_id_old;
+        $designation_id = Auth::user()->designation_id;
         $urban_body_code = NULL;
         $district_code= NULL;
         $mapping_level=NULL;
         $errormsg = Config::get('constants.errormsg');
-        $roleArray = $request->session()->get('role');
-        foreach ($roleArray as $roleObj) {
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == 8 || $roleObj['scheme_id'] == 9) {
                 $is_active = 1;
                 $is_urban = $roleObj['is_urban'];
@@ -687,12 +690,12 @@ class DuplicateBanklppController extends Controller
                 break;
             }
         }
-        if ($designation_id_old == 'Approver') {
+        if ($designation_id == 'Approver') {
             $is_active = 1;
         } else {
             $is_active = 0;
         }
-        if ($designation_id_old == 'Verifier') {
+        if ($designation_id == 'Verifier') {
             $verifier_condition = ' and p.created_by_local_body_code=' . $urban_body_code;
         } else {
             $verifier_condition = '';
@@ -845,12 +848,12 @@ class DuplicateBanklppController extends Controller
     {
         $this->middleware('auth');
         $user_id = AuthChecker::getUserId();
-        $designation_id_old = Auth::user()->designation_id_old;
+        $designation_id = Auth::user()->designation_id;
         $urban_body_code = NULL;
         $district_code= NULL;
         $errormsg = Config::get('constants.errormsg');
-        $roleArray = $request->session()->get('role');
-        foreach ($roleArray as $roleObj) {
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == 8 || $roleObj['scheme_id'] == 9) {
                 $is_active = 1;
                 $is_urban = $roleObj['is_urban'];
@@ -864,12 +867,12 @@ class DuplicateBanklppController extends Controller
                 break;
             }
         }
-        if ($designation_id_old == 'Approver' ) {
+        if ($designation_id == 'Approver' ) {
             $is_active = 1;
         } else {
             $is_active = 0;
         }
-        if ($designation_id_old == 'Verifier') {
+        if ($designation_id == 'Verifier') {
             $verifier_condition = ' and p.created_by_local_body_code=' . $urban_body_code;
         } else {
             $verifier_condition = '';
@@ -986,11 +989,11 @@ class DuplicateBanklppController extends Controller
         try {
             $this->middleware('auth');
             $is_active = 0;
-            $designation_id_old = Auth::user()->designation_id_old;
+            $designation_id = Auth::user()->designation_id;
             $urban_body_code = NULL;
             $district_code= NULL;
-            $roleArray = $request->session()->get('role');
-            foreach ($roleArray as $roleObj) {
+            $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                        foreach ($roleArray as $roleObj) {
                 if ($roleObj['scheme_id'] == 8 || $roleObj['scheme_id'] == 9) {
                     $is_active = 1;
                     $is_urban = $roleObj['is_urban'];
@@ -1004,12 +1007,12 @@ class DuplicateBanklppController extends Controller
                     break;
                 }
             }
-            if ($designation_id_old == 'Approver' ) {
+            if ($designation_id == 'Approver' ) {
                 $is_active = 1;
             } else {
                 $is_active = 0;
             }
-            if ($designation_id_old == 'Verifier') {
+            if ($designation_id == 'Verifier') {
                 $verifier_condition = ' and p.created_by_local_body_code=' . $urban_body_code;
             } else {
                 $verifier_condition = '';
@@ -1057,13 +1060,13 @@ class DuplicateBanklppController extends Controller
                     $local_body = $block->where('block_code', $arr->created_by_local_body_code)->first();
                     $ben_list[$i]['local_body_name'] =  'Block-' . $local_body->block_name;
                 }
-                if ($designation_id_old = 'Approver') {
+                if ($designation_id = 'Approver') {
                     if ($arr->created_by_dist_code == $district_code) {
                         $allowed = 1;
                     } else {
                         $allowed = 0;
                     }
-                } else if ($designation_id_old = 'Verifier') {
+                } else if ($designation_id = 'Verifier') {
                     if ($arr->created_by_dist_code == $district_code && $arr->created_by_local_body_code == $urban_body_code) {
                         $allowed = 1;
                     } else {

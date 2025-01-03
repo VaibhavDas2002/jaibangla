@@ -524,7 +524,7 @@ margin: 10px 0px 10px 0px !important;
                       
                  
                        <div class="row">   
-                         @if($designation_id_old=='Verifier')
+                         @if($designation_id=='Verifier')
                          @if(is_null($row->process_nsap_flag) || $row->nsap_flag==12)   
 
                         
@@ -544,7 +544,7 @@ margin: 10px 0px 10px 0px !important;
                         @endif
                         
                          @endif
-                        @if($designation_id_old=='Approver')
+                        @if($designation_id=='Approver')
                         <div class="col-md-3" style="text-align: center;">
                         <input type="button" name="submit" value="Approve" id="Verifysubmit" class="btn btn-success btn-lg btn-action" >
                         </div>

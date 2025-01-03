@@ -29,14 +29,14 @@ use App\Ward;
 use App\GP;
 use App\User;
 use Redirect;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
-use Config;
+use Illuminate\Support\Facades\Config;
 use App\SchemeCapacity;
 use App\Scheme;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
 use App\BankDetails;
 use App\Helpers\DupCheck;
@@ -64,8 +64,8 @@ class DupcheckController extends Controller
     public function index(){
         try {
             $user_id = AuthChecker::getUserId();
-            $designation_id_old = Auth::user()->designation_id_old;
-            if($designation_id_old == 'Admin'){
+            $designation_id = Auth::user()->designation_id;
+            if($designation_id == 'Admin'){
                 $scheme_id=10;
                 $bank_code ='85785785';
                 $bankDupCheck =DupCheck::geDupCheck($scheme_id,$bank_code);

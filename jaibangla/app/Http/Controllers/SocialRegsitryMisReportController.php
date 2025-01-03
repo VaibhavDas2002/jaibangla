@@ -29,8 +29,8 @@ class SocialRegsitryMisReportController extends Controller
     public function srMisReport(Request $request)
     {
         $user_id = AuthChecker::getUserId();
-        $designation_id_old = Auth::user()->designation_id_old;
-        if ($designation_id_old == 'Admin') {
+        $designation_id = Auth::user()->designation_id;
+        if ($designation_id == 'Admin') {
             return view('sr_mis_report_index');
         } else {
             return redirect("/")->with('success', 'User Disabled. ');

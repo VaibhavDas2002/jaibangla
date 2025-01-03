@@ -40,23 +40,23 @@
         $user_id = Auth::user()->id;
         $mapObj = DB::table('public.duty_assignement')->where('user_id',$user_id)->first();
         @endphp
-        @if($mapObj->district_code == 315 && $mapObj->urban_body_code == 99999 && Auth::user()->designation_id_old == 'Operator') 
+        @if($mapObj->district_code == 315 && $mapObj->urban_body_code == 99999 && Auth::user()->designation_id == 'Operator') 
           <li><a href="{{ route('ben-payment-status') }}"><i class="fa fa-link"></i> <span>Beneficiary Payment Status</span></a></li>
         @endif
 
-        @if($mapObj->district_code == 304 && Auth::user()->designation_id_old == 'Approver' && $user_id == 3606) 
+        @if($mapObj->district_code == 304 && Auth::user()->designation_id == 'Approver' && $user_id == 3606) 
           <li><a href="{{ url('inactive-special') }}"><i class="fa fa-link"></i> <span>Re-activate Beneficiary</span></a></li>
         @endif
         
         @php
-        if($mapObj->district_code == 315 && (Auth::user()->designation_id_old == 'Verifier' || Auth::user()->designation_id_old == 'Approver')) {
+        if($mapObj->district_code == 315 && (Auth::user()->designation_id == 'Verifier' || Auth::user()->designation_id == 'Approver')) {
          $special_cases=1;
         }
-        if($mapObj->district_code == 315 && (Auth::user()->designation_id_old == 'Verifier')) {
+        if($mapObj->district_code == 315 && (Auth::user()->designation_id == 'Verifier')) {
          $marking_ds_8=1;
         }
-        $designation_id_old = Auth::user()->designation_id_old;
-        if($designation_id_old=='Operator'){
+        $designation_id = Auth::user()->designation_id;
+        if($designation_id=='Operator'){
           $district_code=$mapObj->district_code;
           if($mapObj->is_urban==1){
             $block_ulb_code=$mapObj->urban_body_code;
@@ -70,18 +70,18 @@
           $specialEntry =0;
         }
         $mapObjSchemeList = DB::table('public.duty_assignement')->where('is_active',1)->where('user_id',$user_id)->pluck('scheme_id')->toarray();
-        if(in_array(17,$mapObjSchemeList) && ($designation_id_old=='Operator' || $designation_id_old=='Verifier') ){
+        if(in_array(17,$mapObjSchemeList) && ($designation_id=='Operator' || $designation_id=='Verifier') ){
           $isLifeCertificate=1;
         }
         @endphp
         @php
-       if((in_array(17,$mapObjSchemeList) || in_array(8,$mapObjSchemeList) || in_array(9,$mapObjSchemeList)) && ($designation_id_old=='Approver') ){
+       if((in_array(17,$mapObjSchemeList) || in_array(8,$mapObjSchemeList) || in_array(9,$mapObjSchemeList)) && ($designation_id=='Approver') ){
           $incDetailsEntry=1;
         }
         @endphp
-        @if(Storage::exists('menu/'.$designation_id_old.".json"))
+        @if(Storage::exists('menu/'.$designation_id.".json"))
         @php
-        $menu_contents =json_decode(Storage::disk('local')->get('menu/'.$designation_id_old.'.json'),JSON_FORCE_OBJECT);
+        $menu_contents =json_decode(Storage::disk('local')->get('menu/'.$designation_id.'.json'),JSON_FORCE_OBJECT);
         @endphp 
         
         @foreach($menu_contents as $mymenu)

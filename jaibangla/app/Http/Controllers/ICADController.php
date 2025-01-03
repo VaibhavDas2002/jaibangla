@@ -7,7 +7,7 @@ use App\User;
 use App\District;
 use App\Scheme;
 use Redirect;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
@@ -42,6 +42,10 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Config;
 class ICADController extends Controller
 {
+    protected $base_dob_chk_date;
+    protected $max_dob;
+    protected $min_dob;
+    protected $doc_type_id;
 
     public function __construct()
     {
@@ -318,8 +322,8 @@ class ICADController extends Controller
             return redirect("/")->with('danger', 'Scheme Not Found');
         }
         $is_active = 0;
-        $roleArray = $request->session()->get('role');
-        foreach ($roleArray as $roleObj) {
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == $scheme_id) {
                 $is_active = 1;
                 $level = $roleObj['mapping_level'];
@@ -501,8 +505,8 @@ class ICADController extends Controller
             return redirect("/")->with('danger', 'Scheme Not Found');
         }
         $is_active = 0;
-        $roleArray = $request->session()->get('role');
-        foreach ($roleArray as $roleObj) {
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == $scheme_id) {
                 $is_active = 1;
                 $level = $roleObj['mapping_level'];
@@ -1138,8 +1142,8 @@ class ICADController extends Controller
             $this->middleware('auth');
 
             $application_id = $request->application_id;
-            $roleArray = $request->session()->get('role');
-            $user_id = AuthChecker::getUserId();
+            $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                        $user_id = AuthChecker::getUserId();
             //$user_id = AuthChecker::getUserId();
             $duty_obj = Configduty::where('user_id', $user_id)->first();
             $district_code = $duty_obj->district_code;

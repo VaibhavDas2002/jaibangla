@@ -40,19 +40,19 @@ class DashboardController extends Controller
   public function index(Request $request)
   {
     $user_id = AuthChecker::getUserId();
-    $designation_id_old = Auth::user()->designation_id_old;
+    $designation_id = Auth::user()->designation_id;
 
     $role = [];
     $duty = Configduty::where('user_id', '=', $user_id)->where('is_active', 1)->get();
     foreach ($duty as $dutyObj) {
       if ($dutyObj->is_state_login) {
-        if ($designation_id_old == 'Approver') {
+        if ($designation_id == 'Approver') {
           $is_first = 0;
         } else {
           $is_first = 1;
         }
         $newArr = array();
-        $newArr['role_name'] = $designation_id_old;
+        $newArr['role_name'] = $designation_id;
         $newArr['scheme_id'] = $dutyObj->scheme_id;
         $newArr['district_code'] = 0;
         $newArr['mapping_level'] = trim($dutyObj->mapping_level);
@@ -64,9 +64,9 @@ class DashboardController extends Controller
         $newArr['id'] = NULL;
         array_push($role, $newArr);
       } else {
-        if ($designation_id_old == 'StatusCheckerDistrict' || $designation_id_old == 'StatusCheckerField'  || $designation_id_old == 'MIS User') {
+        if ($designation_id == 'StatusCheckerDistrict' || $designation_id == 'StatusCheckerField'  || $designation_id == 'MIS User') {
           $newArr = array();
-          $newArr['role_name'] = $designation_id_old;
+          $newArr['role_name'] = $designation_id;
           $newArr['scheme_id'] = $dutyObj->scheme_id;
           $newArr['district_code'] = $dutyObj->district_code;;
           $newArr['mapping_level'] = trim($dutyObj->mapping_level);
@@ -78,7 +78,7 @@ class DashboardController extends Controller
           $newArr['id'] = NULL;
           array_push($role, $newArr);
         } else {
-          $mapArr = MapLavel::where('scheme_id', $dutyObj->scheme_id)->where('role_name', $designation_id_old)->where('stack_level', $dutyObj->mapping_level)->get(['id', 'role_name', 'scheme_id', 'parent_id', 'is_final', 'stack_level', 'is_first', 'role_id'])->toArray();
+          $mapArr = MapLavel::where('scheme_id', $dutyObj->scheme_id)->where('role_name', $designation_id)->where('stack_level', $dutyObj->mapping_level)->get(['id', 'role_name', 'scheme_id', 'parent_id', 'is_final', 'stack_level', 'is_first', 'role_id'])->toArray();
           if (count($mapArr) > 0) {
             $newArr = array_merge($mapArr[0], ['is_state_login' => 0, 'district_code' => $dutyObj->district_code, 'mapping_level' => $dutyObj->mapping_level, 'taluka_code' => $dutyObj->taluka_code, 'urban_body_code' => $dutyObj->urban_body_code, 'is_urban' => $dutyObj->is_urban]);
             array_push($role, $newArr);
@@ -99,7 +99,7 @@ class DashboardController extends Controller
     }
     $s_id = implode(',', $s_arr);
     $request->session()->put('role', $role);
-    if ($designation_id_old == 'DDO' || $designation_id_old == 'Corp') {
+    if ($designation_id == 'DDO' || $designation_id == 'Corp') {
 
 
       $sbi_count = DB::table('sbi.transaction_lot')->where('lot_status', 5)->whereIn('scheme_id', $s_arr)->count();
@@ -113,7 +113,7 @@ class DashboardController extends Controller
       }
       $ifms_count = DB::connection('pgsql_main_mis')->select($qu);
       return view('ddo_dashboard', ['report' => $reports, 'sbi' => $sbi_count, 'ifms' => $ifms_count]);
-    } else if ($designation_id_old == 'HOD' || $designation_id_old == 'Dashboard') {
+    } else if ($designation_id == 'HOD' || $designation_id == 'Dashboard') {
       return view('hod_dashboard', ['report' => $reports]);
     } else {
       return view('dashboard', compact('reports'));

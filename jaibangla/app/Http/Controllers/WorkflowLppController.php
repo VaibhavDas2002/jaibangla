@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\District;
 use App\Scheme;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 
@@ -41,9 +41,9 @@ class WorkflowLppController extends Controller
   public function schemeSelect(Request $request)
   {
     try {
-      $designation_id_old = Auth::user()->designation_id_old;
+      $designation_id = Auth::user()->designation_id;
       $user_id = AuthChecker::getUserId();
-      if ($designation_id_old == 'HOD') {
+      if ($designation_id == 'HOD') {
         $schemes = DB::select(DB::raw("select id,scheme_name,display_name,is_active from m_scheme where id IN (8,9) and   id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . ") order by rank"));
         //dd($schemes);
         return view(
@@ -64,8 +64,8 @@ class WorkflowLppController extends Controller
   public function list(Request $request)
   {
     $this->middleware('auth');
-    $designation_id_old = Auth::user()->designation_id_old;
-    //dd($designation_id_old);
+    $designation_id = Auth::user()->designation_id;
+    //dd($designation_id);
     $user_id = AuthChecker::getUserId();
 
     $scheme_id = $request->scheme_id;
@@ -80,7 +80,7 @@ class WorkflowLppController extends Controller
     if (empty($duty_obj)) {
       return redirect("/")->with('danger', 'Not Allowed');
     }
-    if ($designation_id_old != 'HOD') {
+    if ($designation_id != 'HOD') {
       return redirect("/")->with('danger', 'Not Allowed');
     }
 
@@ -238,7 +238,7 @@ class WorkflowLppController extends Controller
     return view(
       'workflowlpp.linelisting',
       [
-        'designation_id_old' => $designation_id_old,
+        'designation_id' => $designation_id,
         'scheme_id' => $scheme_id,
         'scheme_name' => $scheme_obj->scheme_name,
         'type_des' => $type_des,
@@ -252,7 +252,7 @@ class WorkflowLppController extends Controller
     //dd('ok');
     try {
       $this->middleware('auth');
-      $designation_id_old = Auth::user()->designation_id_old;
+      $designation_id = Auth::user()->designation_id;
       $user_id = AuthChecker::getUserId();
       $id = $request->id;
       // dd($id);
@@ -334,7 +334,7 @@ class WorkflowLppController extends Controller
       return view(
         'workflowlpp.ViewBeneficiary',
         [
-          'designation_id_old' => $designation_id_old,
+          'designation_id' => $designation_id,
           'row' => $row,
           'id' => $id,
           'district_name' => $district_name,
@@ -355,7 +355,7 @@ class WorkflowLppController extends Controller
     try {
 
       $this->middleware('auth');
-      $designation_id_old = Auth::user()->designation_id_old;
+      $designation_id = Auth::user()->designation_id;
       $user_id = AuthChecker::getUserId();
       if (empty($request->beneficiary_id)) {
         return redirect("/")->with('danger', 'Beneficiary ID Not Found');

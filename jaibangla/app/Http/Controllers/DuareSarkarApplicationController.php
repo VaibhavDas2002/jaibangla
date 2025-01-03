@@ -16,12 +16,14 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use Carbon\Carbon;
 use App\SubDistrict;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 use App\Ward;
 use App\DsPhase;
 
 class DuareSarkarApplicationController extends Controller
 {
+  protected $ds_base_date_3;
+  protected $selected_phase;
   public function __construct()
   {
     $this->middleware('auth');
@@ -33,7 +35,7 @@ class DuareSarkarApplicationController extends Controller
   public function getDistrictApplicationReport()
   {
     //return redirect('/')->with('error', 'Not Allowed');
-    $designationId = Auth::user()->designation_id_old;
+    $designationId = Auth::user()->designation_id;
     $userId = Auth::user()->id;
     $reports = DB::select(DB::raw("select id,scheme_name from m_scheme where id in (select scheme_id from duty_assignement where user_id=" . $userId . " and is_active=1) and is_active=1 order by scheme_name"));
     //print_r( $reports);die;
@@ -575,7 +577,7 @@ class DuareSarkarApplicationController extends Controller
     }
 
     $is_active = 0;
-    $roleArray = $request->session()->get('role');
+    $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();;
     foreach ($roleArray as $roleObj) {
       if ($roleObj['scheme_id'] == $scheme_id) {
         $is_active = 1;
@@ -616,7 +618,7 @@ class DuareSarkarApplicationController extends Controller
     if (empty($phase_arr)) {
       return redirect("/dsReportCommon")->with('error', 'Phase Code  InValid');
     }
-    $designationId = Auth::user()->designation_id_old;
+    $designationId = Auth::user()->designation_id;
     $userId = Auth::user()->id;
     $sceme_list = DB::select(DB::raw("select id,scheme_name from m_scheme where id IN (1,2,3) and id in (select scheme_id from duty_assignement where user_id=" . $userId . " and is_active=1) and is_active=1 order by scheme_name"));
     $base_date = $phase_arr->base_date;
@@ -624,16 +626,16 @@ class DuareSarkarApplicationController extends Controller
     $c_time = Carbon::now();
     $c_date = $c_time->format("Y-m-d");
     $is_active = 0;
-    $roleArray = $request->session()->get('role');
-    $designation_id_old = Auth::user()->designation_id_old;
+    $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();;
+    $designation_id = Auth::user()->designation_id;
     $district_visible = $is_urban_visible = $block_visible = 1;
     $municipality_visible = 0;
     $gp_ward_visible = 0;
     $muncList = collect([]);
     $gpList = collect([]);
-    if ($designation_id_old == 'Admin' || $designation_id_old == 'HOD' ||  $designation_id_old == 'Dashboard') {
+    if ($designation_id == 'Admin' || $designation_id == 'HOD' ||  $designation_id == 'Dashboard') {
       $district_visible = $is_urban_visible = $block_visible = 1;
-    } else if ($designation_id_old == 'Approver' || $designation_id_old == 'StatusCheckerDistrict') {
+    } else if ($designation_id == 'Approver' || $designation_id == 'StatusCheckerDistrict') {
       $district_code = NULL;
       $is_urban = NULL;
       $blockCode = NULL;
@@ -1097,7 +1099,7 @@ class DuareSarkarApplicationController extends Controller
   function dsReportCommon(Request $request)
   {
     //return redirect('/')->with('error', 'Not Allowed');
-    $designationId = Auth::user()->designation_id_old;
+    $designationId = Auth::user()->designation_id;
     $userId = Auth::user()->id;
     // $phase_list = array('2' => 'Phase II', '3' => 'Phase III');
     $phase_list = DsPhase::where('phase_code', '>=', 2)->get();

@@ -66,7 +66,7 @@ class JBDocUploadController extends Controller
     // dd($request->all());
     try {
       $c_time = date('Y-m-d H:i:s', time());
-      // $designation_id_old = Auth::user()->designation_id_old;
+      // $designation_id = Auth::user()->designation_id;
       $user_id = AuthChecker::getUserId();
       $is_verifier = AuthChecker::VerifierChecker();
       $is_approver = AuthChecker::ApproverChecker();
@@ -316,7 +316,7 @@ class JBDocUploadController extends Controller
   public function View(Request $request)
   {
     try {
-      // $designation_id_old = Auth::user()->designation_id_old;
+      // $designation_id = Auth::user()->designation_id;
       $transfer_sc = 0;
       $transfer_st = 0;
       $transfer_oap = 0;

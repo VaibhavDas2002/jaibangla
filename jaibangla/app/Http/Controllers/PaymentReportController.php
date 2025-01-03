@@ -12,7 +12,7 @@ use App\PensionSc;
 use App\PensionSt;
 use App\Manabik;
 use App\UpdateBenDetails;
-use Excel;
+use Maatwebsite\Excel\Facades\Excel;
 use App\Configduty;
 use App\DocumentType;
 use App\SBITransactionLot;
@@ -41,7 +41,7 @@ class PaymentReportController extends Controller
   */
   public function calenderPaymentIndex(Request $request)
   {
-    $designation_id_old = Auth::user()->designation_id_old;
+    $designation_id = Auth::user()->designation_id;
     $user_id = AuthChecker::getUserId();
     $mapObj = DB::table('public.duty_assignement')->where('user_id', $user_id)->where('is_active', 1)->first();
     $scheme = DB::select(DB::raw("select id,scheme_name from m_scheme where  id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . " )"));

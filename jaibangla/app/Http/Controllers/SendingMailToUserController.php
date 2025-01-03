@@ -11,7 +11,7 @@ use App\User;
 use App\UrbanBody;
 use App\Taluka;
 use App\BeneficiaryPensions;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use Mail;
 use App\Mail\SendingToUser;
 
@@ -22,7 +22,7 @@ class SendingMailToUserController extends Controller
         $this->middleware('auth');   
     }
     public function index(Request $request){
-        $designation = User::where('is_active',1)->distinct()->select('designation_id_old')->get();
+        $designation = User::where('is_active',1)->distinct()->select('designation_id')->get();
         $district = District::all();
         $scheme = Scheme::all();
         return view('send-mail-to-users/index',['districts' => $district, 'schemes' => $scheme, 'designations' => $designation]);
@@ -42,7 +42,7 @@ class SendingMailToUserController extends Controller
             $is_rural = $request->is_rural;
             $block_ulb = $request->block_ulb;
 
-            $query = "select u.email,u.username,u.mobile_no from public.users u join public.duty_assignement d on d.user_id=u.id where u.designation_id_old='".$designation."' and d.scheme_id=".$scheme_id." and d.is_active=1  and u.is_active=1";
+            $query = "select u.email,u.username,u.mobile_no from public.users u join public.duty_assignement d on d.user_id=u.id where u.designation_id='".$designation."' and d.scheme_id=".$scheme_id." and d.is_active=1  and u.is_active=1";
             if ($designation == 'Approver') {
                 if (!is_null($district_code)) {
                     $query .= " and d.district_code=".$district_code;

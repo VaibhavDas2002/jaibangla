@@ -41,7 +41,7 @@ class EmployeeManagementController extends Controller
         ->leftJoin('state', 'employees.state_id', '=', 'state.id')
         ->leftJoin('country', 'employees.country_id', '=', 'country.id')
         ->leftJoin('division', 'employees.division_id', '=', 'division.id')
-        ->leftJoin('designation', 'employees.designation_id_old', '=', 'designation.id')
+        ->leftJoin('designation', 'employees.designation_id', '=', 'designation.id')
         ->select('employees.*', 'department.name as department_name', 'department.id as department_id', 'division.name as division_name', 'division.id as division_id')
         ->get();
 
@@ -81,7 +81,7 @@ class EmployeeManagementController extends Controller
     {
         $this->validateInput($request);
         // Upload image  ->store('avatars')
-         $keys = ['lastname', 'firstname', 'middlename', 'address', 'city_id', 'state_id', 'country_id', 'zip','age', 'birthdate', 'date_hired', 'department_id', 'department_id', 'division_id', 'designation_id_old'];
+         $keys = ['lastname', 'firstname', 'middlename', 'address', 'city_id', 'state_id', 'country_id', 'zip','age', 'birthdate', 'date_hired', 'department_id', 'department_id', 'division_id', 'designation_id'];
         $input = $this->createQueryInput($keys, $request);
         if ($request->file('picture')) {
             $path = $request->file('picture')->store('avatars');
@@ -145,7 +145,7 @@ class EmployeeManagementController extends Controller
         $this->validateInput($request);
         // Upload image
         $keys = ['lastname', 'firstname', 'middlename', 'address', 'city_id', 'state_id', 'country_id', 'zip',
-        'age', 'birthdate', 'date_hired', 'department_id', 'department_id', 'division_id', 'designation_id_old'];
+        'age', 'birthdate', 'date_hired', 'department_id', 'department_id', 'division_id', 'designation_id'];
         $input = $this->createQueryInput($keys, $request);
         if ($request->file('picture')) {
             $path = $request->file('picture')->store('avatars');
@@ -248,7 +248,7 @@ class EmployeeManagementController extends Controller
             // 'birthdate' => 'required',
             // 'date_hired' => 'required',
             'department_id' => 'required',
-            'designation_id_old' => 'required',
+            'designation_id' => 'required',
             //'division_id' => 'required'
         ]);
     }

@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\ben_lot_month;
 use App\lot_master;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 
 class CheckLotDetailsDuplicateController extends Controller
 {

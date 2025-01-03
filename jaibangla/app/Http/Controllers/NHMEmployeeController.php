@@ -19,7 +19,7 @@ use App\UrbanBody;
 use App\SubDistrict;
 
 use Redirect;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use App\Helpers\AuthChecker;

@@ -38,7 +38,7 @@
         
 
 
-        @if(Auth::user()->designation_id_old == 'Admin')
+        @if(Auth::user()->designation_id == 'Admin')
 
        
         
@@ -90,18 +90,18 @@
 
          <li><a href="{{ url('parijayi_mis') }}"><i class="fa fa-link"></i> <span>Sneher Paras Report</span></a></li>
 
-        @elseif(Auth::user()->designation_id_old == 'SPDashboard')
+        @elseif(Auth::user()->designation_id == 'SPDashboard')
         <li><a href="{{ url('parijayi_mis') }}"><i class="fa fa-link"></i> <span>Sneher Paras Report</span></a></li>
-        @elseif(Auth::user()->designation_id_old == 'SPNodal')
+        @elseif(Auth::user()->designation_id == 'SPNodal')
         <li><a href="{{ url('parijayi_mis') }}"><i class="fa fa-link"></i> <span>Sneher Paras Report</span></a></li>     
         <li><a href="{{ url('parijayi_generate_lot') }}"><i class="fa fa-link"></i> <span>LOT Generation</span></a></li> 
 
-        @elseif(Auth::user()->designation_id_old == 'Corp')
+        @elseif(Auth::user()->designation_id == 'Corp')
         <li><a href="{{ url('append-lot') }}"><i class="fa fa-link"></i> <span>Repeat Lot</span></a></li>     
         <li><a href="{{ url('push-to-sbi') }}"><i class="fa fa-link"></i> <span>Push to SBI</span></a></li>   
         <li><a href="{{ url('report-lot-master-sbi/index') }}"><i class="fa fa-link"></i> <span>Lot Status</span></a></li>   
 
-        @elseif(Auth::user()->designation_id_old == 'Dashboard')
+        @elseif(Auth::user()->designation_id == 'Dashboard')
 
        
         <!-- <li><a href="{{ url('district-drill-down') }}"><i class="fa fa-link"></i><span>District Wise Report</span></a></li> -->
@@ -120,7 +120,7 @@
         <!-- <li><a href="{{ url('district-drill-down-consolidated') }}"><i class="fa fa-link"></i><span> Payment Mandate Report</span></a></li>
  -->
          
-        @elseif(Auth::user()->designation_id_old === 'DDO')
+        @elseif(Auth::user()->designation_id === 'DDO')
 
         <li><a href="{{ url('lot-generation') }}"><i class="fa fa-link"></i> <span>Lot Generation</span></a></li>
 
@@ -139,7 +139,7 @@
 
         
         
-        @elseif(Auth::user()->designation_id_old === 'HOD')
+        @elseif(Auth::user()->designation_id === 'HOD')
 
         <!-- <li><a href="{{ url('district-drill-down') }}"><i class="fa fa-link"></i><span>District Wise Report</span></a></li> -->
 
@@ -157,7 +157,7 @@
 
        
 
-        @elseif(Auth::user()->designation_id_old === 'Operator' )
+        @elseif(Auth::user()->designation_id === 'Operator' )
         
          
         <!-- <li><a href="{{ url('employee-report-drilldown') }}"><i class="fa fa-link"></i><span>Dashboard Report</span></a></li> -->
@@ -170,7 +170,7 @@
 
         <li class="active"><a href="{{ url('approved_schemelist') }}"><i class="fa fa-link"></i> <span>Verified/Approved/Rejected List</span></a></li>
         
-         @elseif(Auth::user()->designation_id_old === 'Verifier')
+         @elseif(Auth::user()->designation_id === 'Verifier')
         
        <li><a href="{{ url('scheme-selection') }}" ><i class="fa fa-link"></i> <span>Process Application</span></a></li>
         
@@ -178,7 +178,7 @@
        
        <li><a href="{{ url('scheme-selection-revert-rbi') }}" ><i class="fa fa-link"></i> <span>RBI Failed</span></a></li> 
 
-        @elseif(Auth::user()->designation_id_old === 'Approver')
+        @elseif(Auth::user()->designation_id === 'Approver')
         
        <li><a href="{{ url('scheme-selection') }}" ><i class="fa fa-link"></i> <span>Process Application</span></a></li> 
         

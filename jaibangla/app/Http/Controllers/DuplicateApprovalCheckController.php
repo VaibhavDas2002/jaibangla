@@ -15,7 +15,7 @@ use App\Taluka;
 use App\Ward;
 use App\UrbanBody;
 use App\GP;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 
 use App\BenDocsSc;
 use App\BenDocsSt;
@@ -24,7 +24,7 @@ use App\DocumentType;
 use App\Scheme;
 use App\BeneficiaryPensions;
 use App\DupliacteApproveReject;
-use Config;
+use Illuminate\Support\Facades\Config;
 use App\Helpers\AuthChecker;
 
 class DuplicateApprovalCheckController extends Controller
@@ -37,7 +37,7 @@ class DuplicateApprovalCheckController extends Controller
 	    $user_id = AuthChecker::getUserId();
       //$schemeObj=Configduty::select('scheme_id')->where('user_id','=',$user_id)->where('is_active',1)->get();
       //$scheme = Scheme::whereIn('id',$schemeObj)->where('is_active',1)->get();
-      $desig = Auth::user()->designation_id_old;
+      $desig = Auth::user()->designation_id;
       $districts = District::all();
 	    $scheme = DB::select(DB::raw("select id,scheme_name from m_scheme where id in (select scheme_id from duty_assignement where user_id=" . $user_id . " and is_active=1) and is_active=1 order by scheme_name"));
     	return view('duplicate-approval/index', ['schemes' => $scheme, 'district' => $districts, 'designation' => $desig]);

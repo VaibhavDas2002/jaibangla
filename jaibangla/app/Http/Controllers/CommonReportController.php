@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use DB;
+use Illuminate\Support\Facades\DB;
 use App\User;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use App\Configduty;
 use App\lot_master;
 use App\Scheme;
@@ -13,7 +13,7 @@ use App\Helpers\Helper;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Session;
-use Excel;
+use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Response as FacadeResponse;
 use App\Helpers\AuthChecker;
@@ -140,7 +140,7 @@ class CommonReportController extends Controller
     }
     //dd($return_text);
     $user_id = AuthChecker::getUserId();
-    $designation_id_old = Auth::user()->designation_id_old;
+    $designation_id = Auth::user()->designation_id;
     $scheme_obj = Scheme::where('id', $scheme_id)->where('is_active', 1)->first();
     if (empty($scheme_obj)) {
       $return_text = 'Scheme Not Valid';
@@ -160,7 +160,7 @@ class CommonReportController extends Controller
     $condition['beneficiary_id'] = $beneficiary_id;
     $condition['created_by_dist_code'] = $created_by_dist_code;
     $condition['document_type'] = $doc_type_id;
-    if ($designation_id_old == 'Verifier') {
+    if ($designation_id == 'Verifier') {
       if ($duty_obj->mapping_level == "Subdiv") {
         $created_by_local_body_code = $duty_obj->urban_body_code;
       }

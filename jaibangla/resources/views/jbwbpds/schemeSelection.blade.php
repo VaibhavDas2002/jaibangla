@@ -92,7 +92,7 @@
       $('.sidebar-menu #lk-main').addClass("active");
       $('.sidebar-menu #dupBankmis').addClass("active");
       $('.modal-search').on('click', function () {
-        var designation_id_old = $("#desgisnation_id").val();
+        var designation_id = $("#desgisnation_id").val();
         var scheme_id = $("#scheme_id").val();
         var type = $("#type").val();
         if ($.trim($('#scheme_id').val()).length == 0) {

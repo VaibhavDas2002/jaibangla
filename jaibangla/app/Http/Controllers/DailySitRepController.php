@@ -7,7 +7,7 @@ use App\Cspolicestation;
 use App\CrimeHead;
 use App\Dailysitrep;
 use Illuminate\Support\Facades\Log;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use App\Configduty;
 use App\Helpers\AuthChecker;
 

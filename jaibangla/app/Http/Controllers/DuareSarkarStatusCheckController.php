@@ -3,12 +3,12 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use App\Scheme;
 use App\District;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Input;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Foundation\Auth\SendsPasswordResetEmails;
 use App\DSOtpTrack;
 use Carbon\Carbon;

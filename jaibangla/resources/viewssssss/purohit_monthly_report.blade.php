@@ -179,7 +179,7 @@ href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,30
             </div>
           </div>
           <div class="box-body">
-            @if(Auth::user()->designation_id_old == 'Approver')
+            @if(Auth::user()->designation_id == 'Approver')
             <form method="POST" action="{{ route('filter-purohit-monthly') }}" name="filter_form" id="filter_form">
               {{ csrf_field() }}
               <input type="hidden" name="dist_code" id="dist_code" value="{{$district_code}}">
@@ -214,7 +214,7 @@ href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,30
                         <!-- <th width="5%" class="sorting_asc" tabindex="0" aria-controls="example2" rowspan="1" colspan="1" aria-label="Name: activate to sort column descending" aria-sort="ascending">SL No.</th> -->
 
                         <th width="17%" class="sorting_asc" tabindex="0" aria-controls="example2" rowspan="1" colspan="1" aria-label="Name: activate to sort column descending" aria-sort="ascending">District</th>
-                        @if(Auth::user()->designation_id_old == 'Approver')
+                        @if(Auth::user()->designation_id == 'Approver')
                         <th width="15%" class="sorting" tabindex="0" aria-controls="example2" rowspan="1" colspan="1" aria-label="Email: activate to sort column ascending">Block/Municipality</th>
                         @endif
                         <th width="10%" class="sorting" tabindex="0" aria-controls="example2" rowspan="1" colspan="1" aria-label="Email: activate to sort column ascending">Application Phase</th>
@@ -234,7 +234,7 @@ href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,30
                       <tr>
                         <!-- <td>@php print $i++; @endphp</td> -->
                         <td>{{ $rep->district_name }}</td>
-                        @if(Auth::user()->designation_id_old == 'Approver')
+                        @if(Auth::user()->designation_id == 'Approver')
                         <td>{{ $rep->block_ulb_name }}</td>
                         @endif
                         <td>{{ $rep->app_phase }}</td>
@@ -245,9 +245,9 @@ href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,30
                         <td>{{ $rep->approved }}</td>
                         <td>{{ $rep->rejected }}</td>
                         <td align="center">
-                          @if(Auth::user()->designation_id_old == 'Approver')
+                          @if(Auth::user()->designation_id == 'Approver')
                           <a href="{{ url('generate-excel-purohit/'.$rep->dist_code.'/'.$rep->block_ulb_code) }}" title="Download Approved List"><i class="fa fa-download" style="color: #000;"></i></a></td>
-                          @elseif(Auth::user()->designation_id_old == 'HOD')
+                          @elseif(Auth::user()->designation_id == 'HOD')
                           <a href="{{ url('generate-excel-purohit-hod/'.$rep->dist_code) }}"><i class="fa fa-download" style="color: #000;" title="Download Approved List"></i></a></td>
                           @endif
                       </tr>

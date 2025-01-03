@@ -7,13 +7,13 @@ use App\User;
 use App\District;
 use App\Scheme;
 use Redirect;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 use DateTime;
-use Config;
+use Illuminate\Support\Facades\Config;
 use App\Configduty;
 use Maatwebsite\Excel\Facades\Excel;
 use App\DataSourceCommon;
@@ -58,7 +58,7 @@ class OapWcdVerifiedRejectionController extends Controller
             ->first();  
         $distCode = $dutyObj->district_code;
         $scheme_id=$request->wcd_type;
-        if ((Auth::user()->designation_id_old == 'Approver') && ($scheme_id==10))  {
+        if ((Auth::user()->designation_id == 'Approver') && ($scheme_id==10))  {
             $levels = [
                 2 => 'Rural',
                 1 => 'Urban',
@@ -89,7 +89,7 @@ class OapWcdVerifiedRejectionController extends Controller
       if ($request->ajax()) 
       {
         $scheme_id = 10;
-        if (Auth::user()->designation_id_old == 'Approver' && ($scheme_id==10)) 
+        if (Auth::user()->designation_id == 'Approver' && ($scheme_id==10)) 
         {
             if(!empty($rural_urban) && !empty($local_body_code))
             {
@@ -344,8 +344,7 @@ class OapWcdVerifiedRejectionController extends Controller
             }
             $user_id = AuthChecker::getUserId();
             $duty = Configduty::where('user_id', '=', $user_id)->where('is_active', 1)->first();
-            $roleArray = $request->session()->get('role');
-            // dd($roleArray);
+            $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray()            // dd($roleArray);
             $is_active = 0;
             foreach ($roleArray as $roleObj) {
                 if ($roleObj['scheme_id'] == $scheme_id) {

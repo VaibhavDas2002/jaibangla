@@ -4,10 +4,10 @@ namespace App\Http\Controllers;
 
 use App\District;
 use Illuminate\Http\Request;
-use Validator;
-use Auth;
-use Config;
-use PDF;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Config;
+use Elibyy\TCPDF\Facades\TCPDF;
 use Illuminate\Support\Facades\DB;
 use App\PensionLBWCD;
 use App\Ward;
@@ -20,10 +20,12 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use File;
 use Illuminate\Support\Facades\Storage;
-
+use App\Configduty;
+use Illuminate\Support\Facades\View;
 
 class LakkhiBhandarWCD extends Controller
 {
+    protected $scheme_id;
 
     public function __construct()
     {
@@ -41,13 +43,13 @@ class LakkhiBhandarWCD extends Controller
         $code = 0;
         if (!empty($request->code))
             $code = $request->code;
-        $roleArray = $request->session()->get('role');
-        $designation_id_old = Auth::user()->designation_id_old;
-        if ($designation_id_old != 'Approver') {
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray(); 
+               $designation_id = Auth::user()->designation_id;
+        if ($designation_id != 'Approver') {
             return redirect("/")->with('error', 'Not Allowed');
         }
-        $roleArray = $request->session()->get('role');
-        foreach ($roleArray as $roleObj) {
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                foreach ($roleArray as $roleObj) {
             $district_code = $roleObj['district_code'];
             if (!empty($district_code)) {
                 break;
@@ -106,18 +108,18 @@ class LakkhiBhandarWCD extends Controller
                 $scheme_model = 'App\\PensionLBWCDTemp';
                 $data = $scheme_model::take(2)->get();
                 // dd($data);
-                $view = \View::make('LokkhiBhandarWCD/download_pdf/HtmlToPDF')->with('data', $data);
+                $view = View::make('LokkhiBhandarWCD/download_pdf/HtmlToPDF')->with('data', $data);
                 $html_content = $view->render();
 
 
-                PDF::SetAuthor('System');
-                PDF::SetTitle('Lakkhi Bhandaar');
-                PDF::SetSubject('Report of System');
-                PDF::AddPage('P', 'A4');
-                PDF::writeHTML($html_content, true, false, true, false, '');
+                TCPDF::SetAuthor('System');
+                TCPDF::SetTitle('Lakkhi Bhandaar');
+                TCPDF::SetSubject('Report of System');
+                TCPDF::AddPage('P', 'A4');
+                TCPDF::writeHTML($html_content, true, false, true, false, '');
                 //PDF::lastPage();
                 $c_time = time();
-                PDF::Output('LakkhiBhandaar_' . $c_time . '_' . $gp_ward_name . '.pdf', 'D');
+                TCPDF::Output('LakkhiBhandaar_' . $c_time . '_' . $gp_ward_name . '.pdf', 'D');
                 exit;
             }
         } else {
@@ -195,8 +197,8 @@ class LakkhiBhandarWCD extends Controller
         $limit_array = array(20, 50, 100, 500);
         if (!empty($request->code))
             $code = $request->code;
-        $designation_id_old = Auth::user()->designation_id_old;
-        if ($designation_id_old != 'Admin') {
+        $designation_id = Auth::user()->designation_id;
+        if ($designation_id != 'Admin') {
             return redirect("/")->with('error', 'Not Allowed');
         }
         if (isset($request->submit)) {
@@ -259,10 +261,10 @@ class LakkhiBhandarWCD extends Controller
                     if (!Storage::exists($pdf_directory1)) {
                         Storage::makeDirectory($pdf_directory1, 0775, true);
                     }
-                    $view = \View::make('LokkhiBhandarWCD/download_pdf/HtmlToPDFAdmin')->with('data', $pdf_data);
+                    $view = View::make('LokkhiBhandarWCD/download_pdf/HtmlToPDFAdmin')->with('data', $pdf_data);
                     $html_content = $view->render();
-                    PDF::AddPage('P', 'A4');
-                    PDF::writeHTML($html_content, true, false, true, false, '');
+                    TCPDF::AddPage('P', 'A4');
+                    TCPDF::writeHTML($html_content, true, false, true, false, '');
                     //PDF::lastPage();
                     $c_time = time();
                     $c_time1 = $c_time . '.pdf';
@@ -273,7 +275,7 @@ class LakkhiBhandarWCD extends Controller
                             'file_name' => $c_time
                         ];
                         PensionLBWCDTemp::whereIn('id', $id_in)->update($input);
-                        PDF::Output(storage_path('app') . $pdf_directory1 . '/' . $c_time1, 'F');
+                        TCPDF::Output(storage_path('app') . $pdf_directory1 . '/' . $c_time1, 'F');
                         DB::commit();
                         $msg = $limit . ' Beneficiary Added to the PDF';
                     } catch (\Exception $e) {
@@ -325,8 +327,8 @@ class LakkhiBhandarWCD extends Controller
     }
     public function downloadstaticpdf(Request $request)
     {
-        $designation_id_old = Auth::user()->designation_id_old;
-        if (!in_array($designation_id_old, array('Admin', 'Operator'))) {
+        $designation_id = Auth::user()->designation_id;
+        if (!in_array($designation_id, array('Admin', 'Operator'))) {
             return redirect("/")->with('error', 'Not Allowed');
         }
         $file_name = $request->file_name;
@@ -368,14 +370,14 @@ class LakkhiBhandarWCD extends Controller
         $fill_array['block'] = '';
         $fill_array['gp_ward'] = '';
         $issubmitted = 0;
-        $roleArray = $request->session()->get('role');
-        $designation_id_old = Auth::user()->designation_id_old;
-        if (!in_array($designation_id_old, array('Operator'))) {
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                $designation_id = Auth::user()->designation_id;
+        if (!in_array($designation_id, array('Operator'))) {
             return redirect("/")->with('error', 'Not Allowed');
         }
         $is_active = 1;
-        $roleArray = $request->session()->get('role');
-        foreach ($roleArray as $roleObj) {
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == $scheme_id) {
                 $is_active = 1;
                 $level = $roleObj['mapping_level'];

@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use App\Configduty;
 use App\lot_master;
 
@@ -19,7 +19,7 @@ class InternalLotCheckController extends Controller
 	}
 
 	public function loadLotGenStatus($scheme_id,$lot_no){
-		
+		$datas = lot_master::where('scheme_id',$scheme_id)->where('lot_no',$lot_no)->get();
 		return response()->json($datas);
 	}
 }

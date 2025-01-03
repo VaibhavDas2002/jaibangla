@@ -110,6 +110,48 @@ class DupCheck
         }
     }
 
+    public static function dupBankCheck($bank_code)
+    {
+
+        $entry = BenEntry::where('bank_code', $bank_code)->where('is_clean', 1)
+            ->first();
+
+        if ($entry) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    public static function dupAadharCheck($aadhar_no)
+    {
+        $entry = BenEntry::where('aadhar_no', $aadhar_no)->where('is_clean', 1)
+            ->first();
+        if ($entry) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    public static function dupMobileCheck($mobile_no)
+    {
+        $entry = BenEntry::where('mobile_no', $mobile_no)->where('is_clean', 1)
+            ->first();
+        if ($entry) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    public static function dupCasteCheck($caste_certificate_no)
+    {
+        $entry = BenEntry::where('caste_certificate_no', $caste_certificate_no)->where('is_clean', 1)
+            ->first();
+        if ($entry) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 
     public static function dupBankCheckSame($scheme_id, $bank_code, $id = null)
     {

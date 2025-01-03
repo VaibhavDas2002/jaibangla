@@ -7,13 +7,13 @@ use App\User;
 use App\District;
 use App\Scheme;
 use Redirect;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 use DateTime;
-use Config;
+use Illuminate\Support\Facades\Config;
 use App\Configduty;
 use Maatwebsite\Excel\Facades\Excel;
 use App\DataSourceCommon;
@@ -58,8 +58,8 @@ class processApplicationController extends Controller
     {
       try{
       $this->middleware('auth');
-      $designation_id_old = Auth::user()->designation_id_old;
-      //dd($designation_id_old);
+      $designation_id = Auth::user()->designation_id;
+      //dd($designation_id);
       $user_id = AuthChecker::getUserId();
   
       $scheme_id = $request->scheme_id;
@@ -75,7 +75,7 @@ class processApplicationController extends Controller
         return redirect("/")->with('danger', 'Not Allowed');
       }
      
-     //dd($designation_id_old);
+     //dd($designation_id);
       $type_des='Beneficiary yet to Verified';
      
       //dd($type_des);
@@ -125,7 +125,7 @@ class processApplicationController extends Controller
         
         $query = DB::table($schema . '.beneficiary')
           ->whereNull('next_level_role_id')->whereRaw(' (dup_bank=0 or dup_bank IS NULL) and (dup_aadhar=0 or dup_aadhar IS NULL) and (dup_mobile=0 or dup_mobile IS NULL) and (no_aadhar=0 or no_aadhar IS NULL) and (no_mobile=0 or no_mobile IS NULL)');
-          if ($designation_id_old == 'Verifier') {
+          if ($designation_id == 'Verifier') {
             $query = $query->where('created_by_local_body_code', $created_by_local_body_code);
          
           }
@@ -138,14 +138,14 @@ class processApplicationController extends Controller
         if (!empty($request->gp_ward_code)) {
           $query = $query->where('gp_ward_code', $request->gp_ward_code);
         }
-        if ($designation_id_old == 'Approver') {  
+        if ($designation_id == 'Approver') {  
         
         }
         $data = $query->orderBy('id', 'desc')->paginate(100);
       return view(
         'processApplication.linelisting',
         [
-          'designation_id_old' => $designation_id_old,
+          'designation_id' => $designation_id,
           'verifier_type' => $verifier_type,
           'created_by_local_body_code' => $created_by_local_body_code,
           'is_rural' => $is_rural,
@@ -404,7 +404,7 @@ class processApplicationController extends Controller
     $accept_reject_model->created_by_dist_code = $created_by_dist_code;
     $accept_reject_model->created_by_local_body_code = $created_by_local_body_code;
     $accept_reject_model->ip_address = request()->ip();
-    $role = MapLavel::where('scheme_id', $scheme_id)->where('role_name', Auth::user()->designation_id_old)->where('stack_level', $duty_obj->mapping_level)->first();
+    $role = MapLavel::where('scheme_id', $scheme_id)->where('role_name', Auth::user()->designation_id)->where('stack_level', $duty_obj->mapping_level)->first();
     $next_level_role_id = $role->parent_id;
     
     if ($_POST['submit'] == 'Verify') {

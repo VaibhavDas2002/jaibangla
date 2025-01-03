@@ -29,18 +29,18 @@
                             </div>
                         </div>
 
-                        <div class="form-group{{ $errors->has('designation_id_old') ? ' has-error' : '' }}">
-                            <label for="designation_id_old" class="col-md-4 control-label">Designation </label>
+                        <div class="form-group{{ $errors->has('designation_id') ? ' has-error' : '' }}">
+                            <label for="designation_id" class="col-md-4 control-label">Designation </label>
                             <div class="col-md-4">
-                                <select name="designation_id_old" id="designation_id_old" class="form-control" >
+                                <select name="designation_id" id="designation_id" class="form-control" >
                                     <option value="">--select--</option>
                                     @foreach($designations as $designation)
-                                <option value="{{$designation->id}}" {{$designation->id == $mapLavel->designation_id_old ? 'selected' : ''}}>{{$designation->name}}</option>
+                                <option value="{{$designation->id}}" {{$designation->id == $mapLavel->designation_id ? 'selected' : ''}}>{{$designation->name}}</option>
                                 @endforeach
                                 </select>
-                                @if ($errors->has('designation_id_old'))
+                                @if ($errors->has('designation_id'))
                                     <span class="help-block">
-                                        <strong>{{ $errors->first('designation_id_old') }}</strong>
+                                        <strong>{{ $errors->first('designation_id') }}</strong>
                                     </span>
                                 @endif
                             </div>

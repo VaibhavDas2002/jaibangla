@@ -71,7 +71,7 @@ class ValidationCorrectionPendingController extends Controller
     }
     public function index(){
         $user_id = AuthChecker::getUserId();
-        $designation = Auth::user()->designation_id_old;
+        $designation = Auth::user()->designation_id;
         $mapObj = DB::connection('pgsql_mis')
             ->table('public.duty_assignement')
             ->where('user_id', $user_id)
@@ -82,7 +82,7 @@ class ValidationCorrectionPendingController extends Controller
                     $user_id .
                     ' and is_active=1) and id in(2,10,11) order by scheme_name'
         ); 
-        if (Auth::user()->designation_id_old == 'Verifier') {
+        if (Auth::user()->designation_id == 'Verifier') {
             if (count($scheme) > 0) {
                 if ($mapObj->is_urban == 1) {
                     
@@ -806,7 +806,7 @@ class ValidationCorrectionPendingController extends Controller
             $gp_mun = $request->gp_mun;
             $scheme_id = $request->scheme_id;
             $user_id = AuthChecker::getUserId();
-            $designation = Auth::user()->designation_id_old;
+            $designation = Auth::user()->designation_id;
             $mapObj = DB::connection('pgsql_mis')
                 ->table('public.duty_assignement')
                 ->where('user_id', $user_id)
@@ -947,7 +947,7 @@ class ValidationCorrectionPendingController extends Controller
                         $user_id .
                         ' and is_active=1) order by scheme_name'
         );
-        if (Auth::user()->designation_id_old == 'Approver') {
+        if (Auth::user()->designation_id == 'Approver') {
             $levels = [
                 2 => 'Rural',
                 1 => 'Urban',
@@ -976,7 +976,7 @@ class ValidationCorrectionPendingController extends Controller
             $scheme_id = $request->scheme_type;
             $name_validation_type = $request->update_code;
             $table_name = $this->getSchemaName($scheme_id);
-            if (Auth::user()->designation_id_old == 'Approver' && !empty($scheme_id)) {
+            if (Auth::user()->designation_id == 'Approver' && !empty($scheme_id)) {
                 if (!empty($rural_urban) && empty($local_body_code)) {
                 $query ="select * from
                 (select T.* from

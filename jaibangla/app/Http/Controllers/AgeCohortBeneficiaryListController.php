@@ -3,9 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use DB;
 use App\User;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use App\Configduty;
 use App\Helpers\AuthChecker;
 use App\lot_master;
@@ -13,8 +12,8 @@ use App\Scheme;
 use App\Helpers\Helper;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Session;
-use Excel;
+use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
 
 
 
@@ -52,7 +51,7 @@ class AgeCohortBeneficiaryListController extends Controller
   /* Get Data */
   public function getAgeCohortBenList(Request $request) {
     if ($request->ajax()) {
-      $roleArray = $request->session()->get('role');
+      $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
       $scheme_id = $request->scheme_id;
       $ageGroup = $request->age_group;
       $data = $this->getCommonDataPull($roleArray, $scheme_id, $ageGroup);
@@ -85,7 +84,7 @@ class AgeCohortBeneficiaryListController extends Controller
   }
 
   public function generateAgeCohortGroupListExcel(Request $request) {
-    $roleArray = $request->session()->get('role');
+    $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();;
     $scheme_id = $request->scheme_id;
     $ageGroup = $request->age_group;
     $data = $this->getCommonDataPull($roleArray, $scheme_id, $ageGroup);
@@ -112,7 +111,7 @@ class AgeCohortBeneficiaryListController extends Controller
   }
 
   private function getCommonDataPull($roleArray, $scheme_id, $ageGroup) {
-      $designation = Auth::user()->designation_id_old;
+      $designation = Auth::user()->designation_id;
       foreach ($roleArray as $roleObj) {
         if ($roleObj['scheme_id'] == $scheme_id) {
           $is_active = 1;

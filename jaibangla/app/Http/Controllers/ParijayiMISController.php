@@ -9,7 +9,7 @@ Use App\GP;
 Use App\Ward;
 Use App\District;
 use App\BeneficiaryPensions;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use App\Configduty;
 use App\Scheme;
 use App\UrbanBody;

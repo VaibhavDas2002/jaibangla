@@ -3,10 +3,10 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use DB;
-use Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use App\Configduty;
-use Excel;
+use Maatwebsite\Excel\Facades\Excel;
 use App\District;
 use App\UrbanBody;
 use App\Taluka;
@@ -15,9 +15,10 @@ use Carbon\Carbon;
 use App\MapLavel;
 use App\Ward;
 use App\GP;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 use App\DsPhase;
 use App\Helpers\AuthChecker;
+use App\SubDistrict;
 
 class DuareSarkarReportController extends Controller
 {
@@ -53,7 +54,7 @@ class DuareSarkarReportController extends Controller
     }
     public function generateReport(Request $request){
 
-        if (Auth::user()->designation_id_old === 'Dashboard') {
+        if (Auth::user()->designation_id === 'Dashboard') {
         	$scheme = $request->scheme;
         	$yesterday = date('Y-m-d',strtotime("-1 days"));
         	// Toposili Bandhu(For SC)
@@ -285,8 +286,8 @@ class DuareSarkarReportController extends Controller
     $c_time = Carbon::now();
     $c_date = $c_time->format("Y-m-d");
     $is_active = 0;
-    $roleArray = $request->session()->get('role');
-    $designation_id_old = Auth::user()->designation_id_old;
+    $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+    $designation_id = Auth::user()->designation_id;
     $district_visible = $is_urban_visible = $block_visible = 1;
     $municipality_visible = 0;
     $gp_ward_visible = 0;
@@ -298,9 +299,9 @@ class DuareSarkarReportController extends Controller
     foreach ($scheme_list as $scheme_item) {
       array_push($scheme_code_in, $scheme_item->id);
     }
-    if ($designation_id_old == 'Admin' || $designation_id_old == 'HOD' || $designation_id_old == 'HOP' || $designation_id_old == 'MisState' ||  $designation_id_old == 'Dashboard') {
+    if ($designation_id == 'Admin' || $designation_id == 'HOD' || $designation_id == 'HOP' || $designation_id == 'MisState' ||  $designation_id == 'Dashboard') {
       $district_visible = $is_urban_visible = $block_visible = 1;
-    } else if ($designation_id_old == 'Approver' || $designation_id_old == 'Verifier') {
+    } else if ($designation_id == 'Approver' || $designation_id == 'Verifier') {
       $district_code = NULL;
       $is_urban = NULL;
       $blockCode = NULL;
@@ -374,7 +375,7 @@ class DuareSarkarReportController extends Controller
         'c_date' => $c_date,
         'gpList' => $gpList,
         'muncList' => $muncList,
-        'designation_id_old' => $designation_id_old,
+        'designation_id' => $designation_id,
       ]
     );
   }

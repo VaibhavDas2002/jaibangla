@@ -112,8 +112,8 @@ class DeactivatedWorkFlowController extends Controller
       $is_approver = AuthChecker::ApproverChecker();
 
       $errormsg = Config::get('constants.errormsg');
-      $roleArray = $request->session()->get('role');
-      $district_code = NULL;
+      $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+            $district_code = NULL;
       $urban_body_code = NULL;
       $mapping_level = NULL;
       $role_id = NULL;
@@ -250,8 +250,8 @@ class DeactivatedWorkFlowController extends Controller
     try {
       $id = $request->benid;
       $scheme_id = $request->scheme_id;
-      $roleArray = $request->session()->get('role');
-      $district_code = NULL;
+      $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+            $district_code = NULL;
       $urban_body_code = NULL;
       $mapping_level = NULL;
       $role_id = NULL;
@@ -374,9 +374,9 @@ class DeactivatedWorkFlowController extends Controller
       return response()->json($response, $statusCode);
     }
     try {
-      $roleArray = $request->session()->get('role');
-      $user_id = AuthChecker::getUserId();
-      $designation_id_old = Auth::user()->designation_id_old;
+      $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+            $user_id = AuthChecker::getUserId();
+      $designation_id = Auth::user()->designation_id;
       $errormsg = Config::get('constants.errormsg');
       $duty = Configduty::where('user_id', '=', $user_id)->where('is_active', 1)->first();
       if ($duty->isEmpty) {
@@ -449,7 +449,7 @@ class DeactivatedWorkFlowController extends Controller
       $input_json = [];
       $input_json['stop_payment_reason'] = $remarks;
       $input_json[$table_name . '.next_level_role_id'] = '-99';
-      $input_json['designation'] = $designation_id_old;
+      $input_json['designation'] = $designation_id;
 
 
       $is_active = 0;

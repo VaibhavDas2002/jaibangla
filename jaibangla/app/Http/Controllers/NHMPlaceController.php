@@ -13,7 +13,7 @@ use App\Taluka;
 use App\UrbanBody;
 use App\User;
 use App\SubDistrict;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 
 class NHMPlaceController extends Controller
 {

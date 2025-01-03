@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\User;
 use Illuminate\Support\Facades\Log;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 
 class ManualResetPasswordController extends Controller
 {

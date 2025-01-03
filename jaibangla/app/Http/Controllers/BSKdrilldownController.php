@@ -52,8 +52,8 @@ class BSKdrilldownController extends Controller
     public function index(Request $request)
     {
         $is_active = 0;
-        $roleArray = $request->session()->get('role');
-        $designation_id_old = Auth::user()->designation_id_old;
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                $designation_id = Auth::user()->designation_id;
         $user_id = AuthChecker::getUserId();
         // echo $user_id;die();
         $district_visible = $is_urban_visible = $block_visible = 1;
@@ -67,14 +67,14 @@ class BSKdrilldownController extends Controller
         if (AuthChecker::ReportCheckerCommon()) {
             $district_visible = $is_urban_visible = $block_visible = 1;
         } else if (AuthChecker::ApproverChecker() || AuthChecker::VerifierChecker()) {
-            // echo $designation_id_old;die();
+            // echo $designation_id;die();
             $district_code = NULL;
             $is_urban = NULL;
             $blockCode = NULL;
             foreach ($roleArray as $roleObj) {
-                // echo $designation_id_old;die();
+                // echo $designation_id;die();
                 if ($roleObj['scheme_id'] == 2) {
-                    // echo $designation_id_old;die();
+                    // echo $designation_id;die();
                     $is_urban = $roleObj['is_urban'];
                     $district_code = $roleObj['district_code'];
                     if ($roleObj['is_urban'] == 1) {

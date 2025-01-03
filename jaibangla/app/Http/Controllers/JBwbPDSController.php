@@ -34,7 +34,7 @@ class JBwbPDSController extends Controller
         $auth = AuthChecker::ReportChecker();
         if ($auth) {
             $user_id = AuthChecker::getUserId();
-            $designation_id_old = AuthChecker::getDesignationId();
+            $designation_id = AuthChecker::getDesignationId();
             $scheme_id = $request->scheme_id;
             if (!ctype_digit($scheme_id)) {
                 return redirect("/")->with('error', 'Scheme Not Valid');
@@ -274,7 +274,7 @@ class JBwbPDSController extends Controller
                     $app_id = $data->created_by_dist_code . substr('0' . $data->scheme_id, -$scheme_length) . substr('0000000' . $data->id, -$id_length);
 
                     return $app_id;
-                })->addColumn('view', function ($data) use ($scheme_id, $designation_id_old, $type) {
+                })->addColumn('view', function ($data) use ($scheme_id, $designation_id, $type) {
 
                     if (AuthChecker::VerifierChecker()) {
                         if ($data->process_acc_validated_aadhar == -57) {
@@ -307,7 +307,7 @@ class JBwbPDSController extends Controller
                         }
                     }
                     return $action;
-                })->addColumn('check', function ($data) use ($designation_id_old) {
+                })->addColumn('check', function ($data) use ($designation_id) {
                     if (AuthChecker::ApproverChecker()) {
                         if ($data->next_level_role_id_aadhar_validation == 1) {
                             return '<input type="checkbox" name="approvalcheck[]" onClick="controlCheckBox()" value="' . $data->id . '">';
@@ -375,7 +375,7 @@ class JBwbPDSController extends Controller
         return view(
             'wbpds.linelistingmismatch',
             [
-                'designation_id_old' => $designation_id_old,
+                'designation_id' => $designation_id,
                 'verifier_type' => $verifier_type,
                 'created_by_local_body_code' => $created_by_local_body_code,
                 'is_rural' => $is_rural,

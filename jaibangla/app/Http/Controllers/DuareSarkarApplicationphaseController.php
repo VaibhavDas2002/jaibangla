@@ -60,7 +60,7 @@ class DuareSarkarApplicationphaseController extends Controller
     }
 
     $is_active = 0;
-    $roleArray = $request->session()->get('role');
+    $roleArray = Configduty::where('user_id', $user_id)->where('is_active', 1)->get()->toArray();;
     foreach ($roleArray as $roleObj) {
       if ($roleObj['scheme_id'] == $scheme_id) {
         $is_active = 1;
@@ -119,8 +119,8 @@ class DuareSarkarApplicationphaseController extends Controller
     $c_time = Carbon::now();
     $c_date = $c_time->format("Y-m-d");
     $is_active = 0;
-    $roleArray = $request->session()->get('role');
-    $designation_id_old = Auth::user()->designation_id_old;
+    $roleArray = Configduty::where('user_id', $user_id)->where('is_active', 1)->get()->toArray();;
+    $designation_id = Auth::user()->designation_id;
     $district_visible = $is_urban_visible = $block_visible = 1;
     $municipality_visible = 0;
     $gp_ward_visible = 0;
@@ -713,7 +713,7 @@ class DuareSarkarApplicationphaseController extends Controller
   // function dsReportCommon(Request $request)
   // {
   //   //return redirect('/')->with('error', 'Not Allowed');
-  //   $designationId = Auth::user()->designation_id_old;
+  //   $designationId = Auth::user()->designation_id;
   //   $userId = Auth::user()->id;
   //   // $phase_list = array('2' => 'Phase II', '3' => 'Phase III');
   //   $phase_list = DsPhase::where('phase_code', 3)->get();

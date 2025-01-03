@@ -373,7 +373,7 @@ return [
             'host' => 'localhost',
             'port' => '5432',
             'database' => 'jaibangla_local',
-            'username' =>  'postgres',
+            'username' => 'postgres',
             'password' => '123',
             'charset' => 'utf8',
             'prefix' => '',
@@ -385,7 +385,7 @@ return [
             'host' => 'localhost',
             'port' => '5432',
             'database' => 'jaibangla',
-            'username' =>  'postgres',
+            'username' => 'postgres',
             'password' => 'postgres',
             'charset' => 'utf8',
             'prefix' => '',
@@ -398,7 +398,7 @@ return [
             'host' => 'localhost',
             'port' => '5432',
             'database' => 'jaibangla',
-            'username' =>  'postgres',
+            'username' => 'postgres',
             'password' => 'postgres',
             'charset' => 'utf8',
             'prefix' => '',
@@ -413,8 +413,8 @@ return [
             'username' => env('DB_USERNAME', 'postgres'),
             'password' => env('DB_PASSWORD', '123'),
             'charset' => 'utf8',
-           
-           
+
+
             'sslmode' => 'prefer',
         ],
         'pgsql_encwrite' => [
@@ -422,26 +422,37 @@ return [
             'host' => 'localhost',
             'port' => '5432',
             'database' => 'jaibangla_doc_server_local',
-            'username' =>  'postgres',
+            'username' => 'postgres',
             'password' => '123',
             'charset' => 'utf8',
             'prefix' => '',
-            
+
             'sslmode' => 'prefer',
         ],
         'pgsql_paywrite' => [
             'driver' => 'pgsql',
             'host' => 'localhost',
             'port' => '5432',
-            'database' => 'jb_payment',
-            'username' =>  'postgres',
+            'database' => 'jaibangla_payment',
+            'username' => 'postgres',
             'password' => '123',
             'charset' => 'utf8',
             'prefix' => '',
-            
+
             'sslmode' => 'prefer',
         ],
+        'pgsql_main' => [
+            'driver' => 'pgsql',
+            'host' => 'localhost',
+            'port' => '5432',
+            'database' => 'jaibangla_local',
+            'username' => 'postgres',
+            'password' => '123',
+            'charset' => 'utf8',
+            'prefix' => '',
 
+            'sslmode' => 'prefer',
+        ],
 
     ],
 

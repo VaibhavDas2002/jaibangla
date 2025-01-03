@@ -163,9 +163,9 @@
                         <div class="form-group">
                             <label class="col-md-4 control-label">Designation</label>
                             <div class="col-md-6">
-                                <select class="form-control" name="designation_id_old">
+                                <select class="form-control" name="designation_id">
                                     @foreach ($designations as $designation)
-                                        <option {{$employee->designation_id_old == $designation->id ? 'selected' : ''}} value="{{$designation->id}}">{{$designation->name}}</option>
+                                        <option {{$employee->designation_id == $designation->id ? 'selected' : ''}} value="{{$designation->id}}">{{$designation->name}}</option>
                                     @endforeach
                                 </select>
                             </div>

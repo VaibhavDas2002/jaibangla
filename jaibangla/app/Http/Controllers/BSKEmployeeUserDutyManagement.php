@@ -4,9 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\User;
-use DB;
+use Illuminate\Support\Facades\DB;
 use App\Configduty;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use App\Designation;
 use App\District;
 use App\SubDistrict;
@@ -17,7 +17,7 @@ use App\Ward;
 use App\GP;
 use Illuminate\Support\Facades\Log;
 use App\Users_audit_trail;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 use App\Helpers\AuthChecker;
 
 
@@ -28,12 +28,12 @@ class BSKEmployeeUserDutyManagement extends Controller
     }
     public function index() {
         $user_id = AuthChecker::getUserId();
-        $designation_id_old = Auth::user()->designation_id_old;
+        $designation_id = Auth::user()->designation_id;
         $dutys = Configduty::where('user_id', '=', $user_id)->where('is_active', 1)->get(); 
         if ($dutys->isEmpty()) {
             return redirect("/")->with('success', 'User Disabled');
         } else {
-            if ($designation_id_old != 'Approver') {
+            if ($designation_id != 'Approver') {
                 return redirect("/")->with('success', 'User Disabled');
             }
             $dutyObj = Configduty::where('user_id', '=', $user_id)->get();
@@ -59,20 +59,20 @@ class BSKEmployeeUserDutyManagement extends Controller
         if ($request->ajax()) {
             // dd($request->all());
             $user_id = AuthChecker::getUserId();
-            $designation_id_old = Auth::user()->designation_id_old;
+            $designation_id = Auth::user()->designation_id;
             $dutys = Configduty::where('user_id', '=', $user_id)->where('is_active', 1)->get();
 
             if ($dutys->isEmpty()) {
                 return redirect("/")->with('success', 'User Disabled');
             } else {
-                if ($designation_id_old != 'Approver') {
+                if ($designation_id != 'Approver') {
                     return redirect("/")->with('success', 'User Disabled');
                 }
                 $dist_code = $dutys[0]->district_code;
                 // dd($dist_code);
-                $data = DB::connection('pgsql_mis')->select("SELECT u.username,u.mobile_no,u.email,u.designation_id_old,d.* ,s.scheme_name FROM public.users u JOIN public.duty_assignement d ON u.id=d.user_id 
+                $data = DB::connection('pgsql_mis')->select("SELECT u.username,u.mobile_no,u.email,u.designation_id,d.* ,s.scheme_name FROM public.users u JOIN public.duty_assignement d ON u.id=d.user_id 
                     JOIN public.m_scheme s ON s.id=d.scheme_id 
-                    WHERE u.designation_id_old='BSKOperator' 
+                    WHERE u.designation_id='BSKOperator' 
                     AND d.district_code=". $dist_code);
 
                 // dd($data);
@@ -108,7 +108,7 @@ class BSKEmployeeUserDutyManagement extends Controller
                     return $msg;
                 })
                 ->addColumn('designation', function ($data) {
-                    return $data->designation_id_old;
+                    return $data->designation_id;
                 })
                 ->addColumn('username', function ($data) {
                     return $data->username;
@@ -143,7 +143,7 @@ class BSKEmployeeUserDutyManagement extends Controller
                 'username' => 'required',
                 'email' => 'required|unique:users,email',
                 'mobile_no' => 'required|digits:10|unique:users,mobile_no',
-                'designation_id_old' => 'required',
+                'designation_id' => 'required',
                 'urban_code' => 'required',
                 'body_code'  => 'required',
                 'schemelist' => 'required'
@@ -153,7 +153,7 @@ class BSKEmployeeUserDutyManagement extends Controller
                 'username' => 'User Name',
                 'email' => 'Email',
                 'mobile_no' => 'Mobile No',
-                'designation_id_old' => 'Role',
+                'designation_id' => 'Role',
                 'urban_code' => 'Rural/ Urban',
                 'body_code'  => 'Block/ Sub-division',
                 'Scheme' => 'Scheme'
@@ -166,13 +166,13 @@ class BSKEmployeeUserDutyManagement extends Controller
               ];
             $validator = Validator::make($request->all(),$rules,$messages, $attributes);
             if ($validator->passes()) {
-                $designation_id_old = Auth::user()->designation_id_old;
-                if ($designation_id_old != 'Approver') {
+                $designation_id = Auth::user()->designation_id;
+                if ($designation_id != 'Approver') {
                     return redirect("/")->with('success', 'User Disabled');
                 }
                 $created_by = Auth::user()->id;
-                $designation = Designation::where('id', $request['designation_id_old'])->first();
-                $keys = ['lastname', 'firstname', 'middlename', 'designation_id_old'];
+                $designation = Designation::where('id', $request['designation_id'])->first();
+                $keys = ['lastname', 'firstname', 'middlename', 'designation_id'];
                 $input = $this->createQueryInput($keys, $request);
                 $input['created_by'] = $created_by;
                 DB::beginTransaction();
@@ -184,7 +184,7 @@ class BSKEmployeeUserDutyManagement extends Controller
                         'username' => $request['username'],
                         'email' => $request['email'],
                         'emp_id' => $emp->id,
-                        'designation_id_old' => $designation->name,
+                        'designation_id' => $designation->name,
                         // 'user_scheme_id' => $request['scheme_name'],
                         'mobile_no' => $request['mobile_no'],
                         'password' => bcrypt('User@123'),
@@ -232,7 +232,7 @@ class BSKEmployeeUserDutyManagement extends Controller
                     );
                     $trailSave = Users_audit_trail::create($inserttrail);
                     $trail_id = $trailSave->id;
-                    $msg = 'The ' . $user->designation_id_old . ' with Mobile Number ' . $request['mobile_no'] . ' Succesfully Added';
+                    $msg = 'The ' . $user->designation_id . ' with Mobile Number ' . $request['mobile_no'] . ' Succesfully Added';
                     $response = array(
                       'status' => 1, 'msg' => $msg,
                       'type' => 'green', 'icon' => 'fa fa-check', 'title' => 'Success'
@@ -280,8 +280,8 @@ class BSKEmployeeUserDutyManagement extends Controller
           return response()->json($response, $statusCode);
         }
         try { 
-            $designation_id_old = Auth::user()->designation_id_old;
-            if ($designation_id_old != 'Approver') {
+            $designation_id = Auth::user()->designation_id;
+            if ($designation_id != 'Approver') {
                 return redirect("/")->with('success', 'User Disabled');
             }
             $created_by = Auth::user()->id;

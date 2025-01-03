@@ -136,7 +136,7 @@ class BSKPensionFormMainEntryController extends Controller
     $arr = SchemecodeStatic::getpr1ListPurohit();
     $monthlySlug = $arr['monthly']['slug'];
     $housingSlug = $arr['housing']['slug'];
-    $designationId = Auth::user()->designation_id_old;
+    $designationId = Auth::user()->designation_id;
     $userId = Auth::user()->id;
     $scheme_list = DB::select(DB::raw("select id,display_name,pr1_code,scheme_name,short_code from m_scheme where id in (select scheme_id from duty_assignement where user_id=" . $userId . " and is_active=1 and scheme_id=2) and is_active=1 order by rank"));
     // dd($scheme_list);
@@ -149,9 +149,9 @@ class BSKPensionFormMainEntryController extends Controller
   public function editListBsk(Request $request)
   {
     $user_id = AuthChecker::getUserId();
-    $designation_id_old = Auth::user()->designation_id_old;
-    //dd($designation_id_old);
-    if ($designation_id_old != 'Operator') {
+    $designation_id = Auth::user()->designation_id;
+    //dd($designation_id);
+    if ($designation_id != 'Operator') {
       return redirect("/")->with('error', 'Not Allowed');
     }
     //dd($request->get('pr1'));
@@ -172,7 +172,7 @@ class BSKPensionFormMainEntryController extends Controller
       return redirect("/")->with('error', 'Parameter not valid');
     }
     $is_active = 0;
-    $roleArray = $request->session()->get('role');
+    $roleArray = Configduty::where('user_id', $user_id)->where('is_active', 1)->get()->toArray();;
     $is_state_login = NULL;
     $distCode = NULL;
     $blockCode = NULL;
@@ -348,7 +348,7 @@ class BSKPensionFormMainEntryController extends Controller
       return redirect("/")->with('danger', 'Applicant ID Not Valid');
     }
     $is_active = 0;
-    $roleArray = $request->session()->get('role');
+    $roleArray = Configduty::where('user_id', $user_id)->where('is_active', 1)->get()->toArray();;
     $is_state_login = NULL;
     foreach ($roleArray as $roleObj) {
       if ($roleObj['scheme_id'] == $scheme_id) {
@@ -450,7 +450,7 @@ class BSKPensionFormMainEntryController extends Controller
     $user_id = AuthChecker::getUserId();
     $id = $request->id;
     $scheme_id = (int) $request->scheme_id;
-    $designation_id_old = Auth::user()->designation_id_old;
+    $designation_id = Auth::user()->designation_id;
 
     if (!is_int($scheme_id)) {
       return redirect("/")->with('danger', 'Scheme Code Not Valid');
@@ -464,7 +464,7 @@ class BSKPensionFormMainEntryController extends Controller
       $model_name = 'App\\PensionManabikWCDBSK';
     }
     $is_active = 0;
-    $roleArray = $request->session()->get('role');
+    $roleArray = Configduty::where('user_id', $user_id)->where('is_active', 1)->get()->toArray();;
     $is_state_login = NULL;
     $distCode = NULL;
     foreach ($roleArray as $roleObj) {
@@ -495,13 +495,13 @@ class BSKPensionFormMainEntryController extends Controller
         $query = $model_name::where(['id' => $id, 'created_by_dist_code' => $distCode, 'scheme_id' => $scheme_id]);
       }
     }
-    if ($designation_id_old == 'Verifier') {
+    if ($designation_id == 'Verifier') {
       if ($is_state_login) {
         $query = $query->where('next_level_role_id', $this->state_login_next_level_role_id_arr['entry']);
       } else {
         $query = $query->whereNull('next_level_role_id');
       }
-    } else if ($designation_id_old == 'Approver') {
+    } else if ($designation_id == 'Approver') {
       if ($is_state_login) {
         $query = $query->where('next_level_role_id', $this->state_login_next_level_role_id_arr['verified']);
       } else {
@@ -575,7 +575,7 @@ class BSKPensionFormMainEntryController extends Controller
     $id = $request->id;
     $scheme_id = (int) $request->scheme_id;
     // dd($scheme_id);
-    $designation_id_old = Auth::user()->designation_id_old;
+    $designation_id = Auth::user()->designation_id;
     $schemeObj = Scheme::where('id', $scheme_id)->first();
     $scheme_schema = $schemeObj->short_code;
 
@@ -591,7 +591,7 @@ class BSKPensionFormMainEntryController extends Controller
     $mapping_level = NULL;
     $distCode = NULL;
     $blockCode = NULL;
-    $roleArray = $request->session()->get('role');
+    $roleArray = Configduty::where('user_id', $user_id)->where('is_active', 1)->get()->toArray();;
     foreach ($roleArray as $roleObj) {
       if ($roleObj['scheme_id'] == $scheme_id) {
         $is_active = 1;
@@ -998,7 +998,7 @@ class BSKPensionFormMainEntryController extends Controller
       DB::rollback();
       DB::connection('pgsql4')->rollback();
       DB::connection('pgsql_encwrite')->rollback();
-      if ($designation_id_old == 'Operator') {
+      if ($designation_id == 'Operator') {
         return redirect("application-list-read-only-edit-bsk?pr1=" . $scheme_schema)->with('error', 'Some error.Please try again');
         // ->with('id',  $row_data->getBenidAttribute());
       } else {
@@ -1007,7 +1007,7 @@ class BSKPensionFormMainEntryController extends Controller
     }
     // DB::commit();
     // return array('ben_docs_bsk'=> $ben_docs_bsk_count, 'ben_docs' => $ben_docs_count);
-    // if ($designation_id_old == 'Operator') {
+    // if ($designation_id == 'Operator') {
     //     return redirect("application-list-read-only-edit-bsk?pr1=" . $scheme_schema)->with('success', 'Application Updated Successfully')
     //         ->with('id',  $row_data->getBenidAttribute())->with('new_app_id', $new_app_id);
     // } else {
@@ -1024,7 +1024,7 @@ class BSKPensionFormMainEntryController extends Controller
     $id = (int) $request->app_id;
     $scheme_id = (int) $request->scheme_id;
     $reamrks = $request->reject_remarks;
-    $designation_id_old = Auth::user()->designation_id_old;
+    $designation_id = Auth::user()->designation_id;
 
     $schemeObj = Scheme::where('id', $scheme_id)->first();
     $scheme_schema = $schemeObj->short_code;
@@ -1041,7 +1041,7 @@ class BSKPensionFormMainEntryController extends Controller
       $model_name = 'App\\PensionManabikWCDBSK';
     }
     $is_active = 0;
-    $roleArray = $request->session()->get('role');
+    $roleArray = Configduty::where('user_id', $user_id)->where('is_active', 1)->get()->toArray();;
     $mapping_level = NULL;
     $distCode  = NULL;
     $blockCode = NULL;
@@ -1104,7 +1104,7 @@ class BSKPensionFormMainEntryController extends Controller
       // return $e->getMessage();
       DB::rollback();
       DB::connection('pgsql4')->rollback();
-      if ($designation_id_old == 'Operator') {
+      if ($designation_id == 'Operator') {
         return redirect("application-list-read-only-edit-bsk?pr1=" . $scheme_schema)->with('error', 'Some error.Please try again')
           ->with('id',  $row_data->getBenidAttribute());
       } else {
@@ -1113,7 +1113,7 @@ class BSKPensionFormMainEntryController extends Controller
     }
     DB::commit();
     DB::connection('pgsql4')->commit();
-    // if ($designation_id_old == 'Operator') {
+    // if ($designation_id == 'Operator') {
     //   return redirect("application-list-read-only-edit-bsk?pr1=" . $scheme_schema)->with('success', 'Application Rejected Successfully')
     //     ->with('id',  $row_data->getBenidAttribute());
     // } else {

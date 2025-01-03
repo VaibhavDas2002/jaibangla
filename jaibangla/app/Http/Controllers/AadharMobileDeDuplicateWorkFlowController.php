@@ -12,7 +12,7 @@ use App\PensionSc;
 use App\PensionSt;
 use App\Manabik;
 use App\UpdateBenDetails;
-use Excel;
+use Maatwebsite\Excel\Facades\Excel;
 use App\Configduty;
 use App\DocumentType;
 use App\Helpers\AuthChecker;
@@ -53,7 +53,7 @@ class AadharMobileDeDuplicateWorkFlowController extends Controller
   */
   public function index()
   {
-    $designation_id_old = Auth::user()->designation_id_old;
+    $designation_id = Auth::user()->designation_id;
     if (AuthChecker::VerifierChecker()) {
       $is_active = 1;
     } else {
@@ -77,7 +77,7 @@ class AadharMobileDeDuplicateWorkFlowController extends Controller
           $municipality_visible = 1;
           return view('DuplicateAadharUpdate/verifier_index', [
             'schemes' => $scheme,
-            'mapLevel' => $mapObj->mapping_level . $designation_id_old,
+            'mapLevel' => $mapObj->mapping_level . $designation_id,
             'muncList' => $muncList,
             'gpList' => $gpList,
             'rural_urban_fk' => $mapObj->is_urban,
@@ -91,7 +91,7 @@ class AadharMobileDeDuplicateWorkFlowController extends Controller
           $gpList = GP::where('block_code', $taluka_code)->select('gram_panchyat_code', 'gram_panchyat_name')->get();
           return view('DuplicateAadharUpdate/verifier_index', [
             'schemes' => $scheme,
-            'mapLevel' => $mapObj->mapping_level . $designation_id_old,
+            'mapLevel' => $mapObj->mapping_level . $designation_id,
             'muncList' => $muncList,
             'gpList' => $gpList,
             'rural_urban_fk' => $mapObj->is_urban,
@@ -122,9 +122,9 @@ class AadharMobileDeDuplicateWorkFlowController extends Controller
         return redirect("/")->with('error', 'Scheme Not Valid');
       }
       $user_id = AuthChecker::getUserId();
-      $designation_id_old = Auth::user()->designation_id_old;
+      $designation_id = Auth::user()->designation_id;
       $errormsg = Config::get('constants.errormsg');
-      $roleArray = $request->session()->get('role');
+      $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();      
       $district_code = NULL;
       $urban_body_code = NULL;
       $mapping_level = NULL;
@@ -250,10 +250,11 @@ class AadharMobileDeDuplicateWorkFlowController extends Controller
       return response()->json($response, $statusCode);
     }
     try {
+      $user_id = AuthChecker::getUserId();
       $id = $request->id;
       $scheme_id = $request->scheme_id;
-      $designation_id_old = Auth::user()->designation_id_old;
-      $roleArray = $request->session()->get('role');
+      $designation_id = Auth::user()->designation_id;
+      $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
       $district_code = NULL;
       $urban_body_code = NULL;
       $mapping_level = NULL;
@@ -406,9 +407,8 @@ class AadharMobileDeDuplicateWorkFlowController extends Controller
         // echo $update_type;die;
         $action_type = $request->action_type; // Verify or Rejected
         $remarks = $request->remarks;
-        $designation_id_old = Auth::user()->designation_id_old;
-        $roleArray = $request->session()->get('role');
-        $district_code = NULL;
+        $designation_id = Auth::user()->designation_id;
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
         $urban_body_code = NULL;
         $mapping_level = NULL;
         $role_id = NULL;
@@ -543,9 +543,8 @@ class AadharMobileDeDuplicateWorkFlowController extends Controller
       $scheme_id = $request->scheme_id;
       $ben_id = $request->id;
       $update_type = $request->update_type;
-      $designation_id_old = Auth::user()->designation_id_old;
-      $roleArray = $request->session()->get('role');
-      $district_code = NULL;
+      $designation_id = Auth::user()->designation_id;
+      $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
       $urban_body_code = NULL;
       $mapping_level = NULL;
       $role_id = NULL;
@@ -614,7 +613,7 @@ class AadharMobileDeDuplicateWorkFlowController extends Controller
   */
   public function indexApprove()
   {
-    $designation_id_old = Auth::user()->designation_id_old;
+    $designation_id = Auth::user()->designation_id;
     if (AuthChecker::ApproverChecker()) {
       $is_active = 1;
     } else {
@@ -673,10 +672,9 @@ class AadharMobileDeDuplicateWorkFlowController extends Controller
         );
       }
       $user_id = AuthChecker::getUserId();
-      $designation_id_old = Auth::user()->designation_id_old;
+      $designation_id = Auth::user()->designation_id;
       $errormsg = Config::get('constants.errormsg');
-      $roleArray = $request->session()->get('role');
-      $district_code = NULL;
+      $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
       $urban_body_code = NULL;
       $mapping_level = NULL;
       $role_id = NULL;
@@ -787,9 +785,8 @@ class AadharMobileDeDuplicateWorkFlowController extends Controller
     try {
       $id = $request->benid;
       $scheme_id = $request->scheme_id;
-      $designation_id_old = Auth::user()->designation_id_old;
-      $roleArray = $request->session()->get('role');
-      $district_code = NULL;
+      $designation_id = Auth::user()->designation_id;
+      $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
       $urban_body_code = NULL;
       $mapping_level = NULL;
       $role_id = NULL;
@@ -912,9 +909,9 @@ class AadharMobileDeDuplicateWorkFlowController extends Controller
       return response()->json($response, $statusCode);
     }
     try {
-      $roleArray = $request->session()->get('role');
       $user_id = AuthChecker::getUserId();
-      $designation_id_old = Auth::user()->designation_id_old;
+      $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+      $designation_id = Auth::user()->designation_id;
       $errormsg = Config::get('constants.errormsg');
       $duty = Configduty::where('user_id', '=', $user_id)->where('is_active', 1)->first();
       if ($duty->isEmpty) {

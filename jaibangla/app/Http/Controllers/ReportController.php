@@ -4,9 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Employee;
-use Excel;
+use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\DB;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use PDF;
 use App\User;
 

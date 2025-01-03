@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Exception;
 use App\District;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use App\Scheme;
 use App\PensionSc;
 use App\PensionSt;
@@ -20,7 +20,7 @@ use App\SchemeDocMap;
 use App\Assembly;
 use App\BenDocsSc;
 use App\BenDocsSt;
-use Config;
+use Illuminate\Support\Facades\Config;
 use Carbon\Carbon;
 use App\DSRejecedApplicationSc;
 use App\DSRejecedApplicationSt;
@@ -52,7 +52,7 @@ class LPPShortEntryFormController extends Controller
     $scheme_id = $scheme_row->id;
     $scheme_name = $scheme_row->scheme_name;
     $is_active = 0;
-    $roleArray = $request->session()->get('role');
+    $roleArray = Configduty::where('user_id', $user_id)->where('is_active', 1)->get()->toArray();;
     // dd($roleArray);
     foreach ($roleArray as $roleObj) {
       if ($roleObj['scheme_id'] == $scheme_id) {
@@ -103,7 +103,7 @@ class LPPShortEntryFormController extends Controller
     $scheme_id = $scheme_row->id;
     $scheme_name = $scheme_row->scheme_name;
     $is_active = 0;
-    $roleArray = $request->session()->get('role');
+    $roleArray = Configduty::where('user_id', $user_id)->where('is_active', 1)->get()->toArray();;
     foreach ($roleArray as $roleObj) {
       if ($roleObj['scheme_id'] == $scheme_id) {
         $is_active = 1;

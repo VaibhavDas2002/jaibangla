@@ -29,9 +29,9 @@ class JnmpLbDataPullController extends Controller
     public function index()
     {
         $user_id = AuthChecker::getUserId();
-        $designation_id_old = Auth::user()->designation_id_old;
+        $designation_id = Auth::user()->designation_id;
         $schemes = Scheme::where('is_active', 1)->get();
-        if ($designation_id_old == 'Admin') {
+        if ($designation_id == 'Admin') {
             return view('jnmp_data_pull_to_jb', ['schemes' => $schemes]);
         } else{
             return redirect("/")->with('success', 'User disabled.');

@@ -4,9 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\User;
-use DB;
+use Illuminate\Support\Facades\DB;
 use App\Configduty;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use App\Designation;
 use App\District;
 use App\Taluka;
@@ -24,14 +24,14 @@ class EmployeeUserDutyController extends Controller
     public function index()
     {
         $user_id = AuthChecker::getUserId();
-        $designation_id_old = Auth::user()->designation_id_old;
+        $designation_id = Auth::user()->designation_id;
         ////////////////////////////29-06-2020 sd start/////////////////////////////////////////
         $dutys = Configduty::where('user_id', '=', $user_id)->where('is_active', 1)->get(); //first();
 
         if ($dutys->isEmpty()) {
             return redirect("/")->with('success', 'User Disabled');
         } else {
-            if ($designation_id_old != 'Approver') {
+            if ($designation_id != 'Approver') {
                 return redirect("/")->with('success', 'User Disabled');
             }
             $dist_code = $dutys[0]->district_code;
@@ -57,8 +57,8 @@ class EmployeeUserDutyController extends Controller
      */
     public function create()
     {
-        $designation_id_old = Auth::user()->designation_id_old;
-        if ($designation_id_old != 'Approver') {
+        $designation_id = Auth::user()->designation_id;
+        if ($designation_id != 'Approver') {
             return redirect("/")->with('success', 'User Disabled');
         }
         ////////////////////////////26-06-2020 sd start/////////////////////////////////////////
@@ -97,14 +97,14 @@ class EmployeeUserDutyController extends Controller
      */
     public function store(Request $request)
     {
-        $designation_id_old = Auth::user()->designation_id_old;
-        if ($designation_id_old != 'Approver') {
+        $designation_id = Auth::user()->designation_id;
+        if ($designation_id != 'Approver') {
             return redirect("/")->with('success', 'User Disabled');
         }
         $created_by = Auth::user()->id;
         $this->validateInput($request);
-        $designation = Designation::where('id', $request['designation_id_old'])->where('visible_at_dist_level', 1)->first();
-        $keys = ['lastname', 'firstname', 'middlename', 'designation_id_old'];
+        $designation = Designation::where('id', $request['designation_id'])->where('visible_at_dist_level', 1)->first();
+        $keys = ['lastname', 'firstname', 'middlename', 'designation_id'];
         $input = $this->createQueryInput($keys, $request);
         $input['created_by'] = $created_by;
         DB::beginTransaction();
@@ -116,7 +116,7 @@ class EmployeeUserDutyController extends Controller
                 'username' => $request['username'],
                 'email' => $request['email'],
                 'emp_id' => $emp->id,
-                'designation_id_old' => $designation->name,
+                'designation_id' => $designation->name,
                 'user_scheme_id' => $request['scheme_name'],
                 'mobile_no' => $request['mobile'],
                 'password' => bcrypt('User@123'),
@@ -175,7 +175,7 @@ class EmployeeUserDutyController extends Controller
     {
         $this->validate($request, [
             'firstname' => 'required|max:60',
-            'designation_id_old' => 'required|numeric',
+            'designation_id' => 'required|numeric',
             //'mobile' => 'required|numeric|size:10',
             'username' => 'required',
             'email' => 'required|email',
@@ -244,8 +244,8 @@ class EmployeeUserDutyController extends Controller
     ////////////////////////////26-06-2020 sd start/////////////////////////////////////////
     public function enabledisable(Request $request)
     {
-        $designation_id_old = Auth::user()->designation_id_old;
-        if ($designation_id_old != 'Approver') {
+        $designation_id = Auth::user()->designation_id;
+        if ($designation_id != 'Approver') {
             return redirect("/")->with('success', 'User Disabled');
         }
         $created_by = Auth::user()->id;

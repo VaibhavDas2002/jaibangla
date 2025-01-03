@@ -7,13 +7,13 @@ use App\User;
 use App\District;
 use App\Scheme;
 use Redirect;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 use DateTime;
-use Config;
+use Illuminate\Support\Facades\Config;
 use App\Configduty;
 use Maatwebsite\Excel\Facades\Excel;
 use App\DataSourceCommon;
@@ -56,8 +56,8 @@ class CmoGrivanceReportController extends Controller
       $c_time = Carbon::now();
       $c_date = $c_time->format("Y-m-d");
       $is_active = 0;
-      $roleArray = $request->session()->get('role');
-      $designation_id_old = Auth::user()->designation_id_old;
+      $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+            $designation_id = Auth::user()->designation_id;
       $district_visible = $is_urban_visible = $block_visible = 1;
       $municipality_visible = 0;
       $gp_ward_visible = 0;
@@ -70,9 +70,9 @@ class CmoGrivanceReportController extends Controller
         array_push($scheme_code_in,$scheme_item->id);
 
       }
-      if ($designation_id_old == 'Admin' || $designation_id_old == 'HOD' || $designation_id_old == 'HOP' || $designation_id_old == 'MisState' ||  $designation_id_old == 'Dashboard') {
+      if ($designation_id == 'Admin' || $designation_id == 'HOD' || $designation_id == 'HOP' || $designation_id == 'MisState' ||  $designation_id == 'Dashboard') {
           $district_visible = $is_urban_visible = $block_visible = 1;
-      } else if ($designation_id_old == 'Approver' || $designation_id_old == 'Verifier') {
+      } else if ($designation_id == 'Approver' || $designation_id == 'Verifier') {
         $district_code = NULL;
         $is_urban = NULL;
         $blockCode = NULL;
@@ -142,7 +142,7 @@ class CmoGrivanceReportController extends Controller
               'c_date' => $c_date,
               'gpList' => $gpList,
               'muncList' => $muncList,
-              'designation_id_old' => $designation_id_old,
+              'designation_id' => $designation_id,
           ]
       );
     }
@@ -438,9 +438,9 @@ class CmoGrivanceReportController extends Controller
     public function index(Request $request)
     {
         $is_active = 0;
-        $roleArray = $request->session()->get('role');
-        // echo '<pre>'; print_r($roleArray);die();
-        $designation_id_old = Auth::user()->designation_id_old;
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                // echo '<pre>'; print_r($roleArray);die();
+        $designation_id = Auth::user()->designation_id;
         $user_id = AuthChecker::getUserId();
         $district_visible = $is_urban_visible = $block_visible = 1;
         $municipality_visible = 0;
@@ -455,15 +455,15 @@ class CmoGrivanceReportController extends Controller
 
 
         // echo '<pre>';print_r($schemes);die();
-        if ($designation_id_old == 'Admin' || $designation_id_old == 'HOD' || $designation_id_old == 'HOP' || $designation_id_old == 'MisState' ||  $designation_id_old == 'Dashboard') {
+        if ($designation_id == 'Admin' || $designation_id == 'HOD' || $designation_id == 'HOP' || $designation_id == 'MisState' ||  $designation_id == 'Dashboard') {
             $district_visible = $is_urban_visible = $block_visible = 1;
-        } else if ($designation_id_old == 'Approver' || $designation_id_old == 'Verifier') {
+        } else if ($designation_id == 'Approver' || $designation_id == 'Verifier') {
             // echo 1;die();
             $district_code = NULL;
             $is_urban = NULL;
             $blockCode = NULL;
             foreach ($roleArray as $roleObj) {
-                // echo $designation_id_old;die();
+                // echo $designation_id;die();
                 if ($roleObj['scheme_id'] == 2 || $roleObj['scheme_id'] == 10 || $roleObj['scheme_id'] == 11 || $roleObj['scheme_id'] == 1 || $roleObj['scheme_id'] == 3 || $roleObj['scheme_id'] == 19) {
                     $is_urban = $roleObj['is_urban'];
                     $district_code = $roleObj['district_code'];
@@ -532,18 +532,18 @@ class CmoGrivanceReportController extends Controller
     public function benListsm(Request $request)
     {
         //dd($request->district);
-        $roleArray = $request->session()->get('role');
-        $designation_id_old = Auth::user()->designation_id_old;
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                $designation_id = Auth::user()->designation_id;
         $user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id', '=', $user_id)->first();
         // $schemes = DB::select(DB::raw("select id,scheme_name,pr1_code,entry_url,display_name from m_scheme where id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . ") AND id in(2,10,11,1,3,19) order by rank"));
         $schemes = DB::select(DB::raw("select id,scheme_name from m_scheme where  id in (select scheme_id from duty_assignement where user_id=" . $user_id . " and is_active=1) and is_active=1 and id = 10 order by scheme_name"));
 
-        if ($designation_id_old == 'Admin' || $designation_id_old == 'HOD' || $designation_id_old == 'HOP' || $designation_id_old == 'MisState' ||  $designation_id_old == 'Dashboard') {
+        if ($designation_id == 'Admin' || $designation_id == 'HOD' || $designation_id == 'HOP' || $designation_id == 'MisState' ||  $designation_id == 'Dashboard') {
             $district_code = $request->district;
             $is_urban = NULL;
             $blockCode = NULL;
-        } else if ($designation_id_old == 'Approver' || $designation_id_old == 'Verifier') {
+        } else if ($designation_id == 'Approver' || $designation_id == 'Verifier') {
             $district_code = NULL;
             $is_urban = NULL;
             $blockCode = NULL;
@@ -620,9 +620,9 @@ class CmoGrivanceReportController extends Controller
             ->addColumn('approval_date', function ($result) {
                 $convertedDate = date("d-m-Y", strtotime($result->approval_date));
                 return $convertedDate;
-            })->addColumn('view', function ($data) use ($scheme_id, $designation_id_old) {             
+            })->addColumn('view', function ($data) use ($scheme_id, $designation_id) {             
       
-                if ($designation_id_old == 'Approver') {
+                if ($designation_id == 'Approver') {
                  $action = '';
                   if (($data->lot_generated == 1) && ($data->payment_count > 0)) {
                     $action = '<span class="badge badge-danger">Payment has been initiated</span>';
@@ -635,8 +635,8 @@ class CmoGrivanceReportController extends Controller
                 }
       
                 return $action;
-              })->addColumn('check', function ($data) use ($designation_id_old) {
-                if ($designation_id_old == 'Approver') {
+              })->addColumn('check', function ($data) use ($designation_id) {
+                if ($designation_id == 'Approver') {
                     if (($data->lot_generated == 1) && ($data->payment_count > 0)) {
                         return '';
                     }
@@ -671,15 +671,15 @@ class CmoGrivanceReportController extends Controller
 
     public function exportExcelcmo(Request $request)
     {
-        $roleArray = $request->session()->get('role');
-        $designation_id_old = Auth::user()->designation_id_old;
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                $designation_id = Auth::user()->designation_id;
         $user_id = AuthChecker::getUserId();
         $scheme_id = $request->scheme_id;
-        if ($designation_id_old == 'Admin' || $designation_id_old == 'HOD' || $designation_id_old == 'HOP' || $designation_id_old == 'MisState' ||  $designation_id_old == 'Dashboard') {
+        if ($designation_id == 'Admin' || $designation_id == 'HOD' || $designation_id == 'HOP' || $designation_id == 'MisState' ||  $designation_id == 'Dashboard') {
             $district_code =$request->district;
             $is_urban = NULL;
             $blockCode = NULL;
-        } else if ($designation_id_old == 'Approver' || $designation_id_old == 'Verifier') {
+        } else if ($designation_id == 'Approver' || $designation_id == 'Verifier') {
             $district_code = NULL;
             $is_urban = NULL;
             $blockCode = NULL;
@@ -1007,7 +1007,7 @@ class CmoGrivanceReportController extends Controller
         try {
        // dd('ok');
       $this->middleware('auth');
-      $designation_id_old = Auth::user()->designation_id_old;
+      $designation_id = Auth::user()->designation_id;
       $user_id = AuthChecker::getUserId();
       $scheme_id = $request->scheme_id;
       if (!ctype_digit($scheme_id)) {
@@ -1023,7 +1023,7 @@ class CmoGrivanceReportController extends Controller
       if (empty($duty_obj)) {
         return redirect("/")->with('danger', 'Not Allowed');
       }
-      if ($designation_id_old != 'Verifier') {
+      if ($designation_id != 'Verifier') {
         return redirect("/")->with('danger', 'Not Allowed');
       }
       
@@ -1084,7 +1084,7 @@ class CmoGrivanceReportController extends Controller
       return view(
         'SmCmo.linelisting',
         [
-          'designation_id_old' => $designation_id_old,
+          'designation_id' => $designation_id,
           'verifier_type' => $verifier_type,
           'created_by_local_body_code' => $created_by_local_body_code,
           'is_rural' => $is_rural,
@@ -1106,8 +1106,8 @@ class CmoGrivanceReportController extends Controller
   public function cmolist(Request $request)
   {
     if ($request->ajax()) {
-      $designation_id_old = Auth::user()->designation_id_old;
-      if (!in_array($designation_id_old, array('Verifier'))) {
+      $designation_id = Auth::user()->designation_id;
+      if (!in_array($designation_id, array('Verifier'))) {
         return redirect("/")->with('error', 'Not Allowed');
       }
       $user_id = AuthChecker::getUserId();
@@ -1238,8 +1238,8 @@ class CmoGrivanceReportController extends Controller
 public function checkCmo(Request $request){
     try {
       $this->middleware('auth');
-      $designation_id_old = Auth::user()->designation_id_old;
-      if (!in_array($designation_id_old, array('Operator','Verifier'))) {
+      $designation_id = Auth::user()->designation_id;
+      if (!in_array($designation_id, array('Operator','Verifier'))) {
         return redirect("/")->with('error', 'Not Allowed');
       }
       $user_id = AuthChecker::getUserId();
@@ -1356,7 +1356,7 @@ public function checkCmo(Request $request){
       return view(
         'SmCmo.CheckBeneficiary',
         [
-          'designation_id_old' => $designation_id_old,
+          'designation_id' => $designation_id,
           'row' => $row,
           'cmo_id' => $id,
           'scheme_id' => $scheme_id,
@@ -1379,8 +1379,8 @@ public function checkCmo(Request $request){
   public function checkCmoEnCode(Request $request){
     try {
       $this->middleware('auth');
-      $designation_id_old = Auth::user()->designation_id_old;
-      if (!in_array($designation_id_old, array('Operator','Verifier'))) {
+      $designation_id = Auth::user()->designation_id;
+      if (!in_array($designation_id, array('Operator','Verifier'))) {
         return redirect("/")->with('error', 'Not Allowed');
       }
       $user_id = AuthChecker::getUserId();
@@ -1438,8 +1438,8 @@ public function checkCmo(Request $request){
   public function SmPostNewEntry(Request $request)
   {
     try{
-    $designation_id_old = Auth::user()->designation_id_old;
-    if (!in_array($designation_id_old, array('Verifier'))) {
+    $designation_id = Auth::user()->designation_id;
+    if (!in_array($designation_id, array('Verifier'))) {
       return redirect("/")->with('error', 'Not Allowed');
     }
     $user_id = AuthChecker::getUserId();
@@ -1569,8 +1569,8 @@ public function cmoEntrymark(Request $request)
     {
         try{
         $user_id = AuthChecker::getUserId();
-        $designation_id_old = Auth::user()->designation_id_old;
-        if ($designation_id_old != 'Operator') {
+        $designation_id = Auth::user()->designation_id;
+        if ($designation_id != 'Operator') {
             return redirect("/")->with('error', 'Not Allowed');
         }
         //dd($request->get('pr1'));
@@ -1590,8 +1590,8 @@ public function cmoEntrymark(Request $request)
             return redirect("/")->with('error', 'Parameter not valid');
         }
         $is_active = 0;
-        $roleArray = $request->session()->get('role');
-        foreach ($roleArray as $roleObj) {
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == $scheme_id) {
                 $is_active = 1;
                 $level = $roleObj['mapping_level'];
@@ -1712,8 +1712,8 @@ public function cmoEntrymark(Request $request)
    {
     try {
       $this->middleware('auth');
-      $designation_id_old = Auth::user()->designation_id_old;
-      if (!in_array($designation_id_old, array('Operator','Verifier'))) {
+      $designation_id = Auth::user()->designation_id;
+      if (!in_array($designation_id, array('Operator','Verifier'))) {
         return redirect("/")->with('error', 'Not Allowed');
       }
       $user_id = AuthChecker::getUserId();
@@ -1814,7 +1814,7 @@ public function cmoEntrymark(Request $request)
           DB::commit();
           $errors = array();
           $return_text = 'Beneficiary with  Id:' . $id . ' has been marked as Sarasori Mukhyamantri';
-          if($designation_id_old=='Operator'){
+          if($designation_id=='Operator'){
             return redirect("cmoEntrymark?scheme_id=" . $scheme_id)->with('success', $return_text);
           }
           else{
@@ -1829,7 +1829,7 @@ public function cmoEntrymark(Request $request)
       
 
       if (count($errors) > 0) {
-        if($designation_id_old=='Operator'){
+        if($designation_id=='Operator'){
           return redirect("cmoEntrymark?scheme_id=" . $scheme_id)->with('errors', $errors);
 
         }

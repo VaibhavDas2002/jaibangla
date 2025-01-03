@@ -51,7 +51,7 @@
                   <td><?php echo $count;$count++;?></td>
                   <td class="sorting_1">{{ $user->firstname }} {{ $user->middlename }} {{ $user->lastname }} </td>
                   <td class="sorting_1">{{ $user->username }}</td>
-                  <td>{{ $user->designation_id_old }}</td>
+                  <td>{{ $user->designation_id }}</td>
                   <td>{{ $user->email }}</td>
                   
                   <td>

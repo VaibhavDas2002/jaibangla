@@ -235,14 +235,14 @@ desired effect
                 </div>
                 <div class="form-group col-md-4">
                  <label class="required-field">Select Designation</label>
-                 <select name="designation_id_old" id="designation_id_old" class="form-control" tabindex="1" >
+                 <select name="designation_id" id="designation_id" class="form-control" tabindex="1" >
                   <option value="">--All  --</option>
                   @foreach($designations as $designation)
                     <option value="{{$designation->name}}">{{$designation->name}}</option>
                     @endforeach
                  
                 </select>
-                 <span id="error_designation_id_old" class="text-danger"></span>
+                 <span id="error_designation_id" class="text-danger"></span>
 
                 </div>
                <div class="form-group col-md-4" id="scheme_id_div" style="display:none;">
@@ -460,20 +460,20 @@ $(document).ready(function(){
       $('#department_id').change(function() {
       var department_id=$(this).val();
       if(department_id!=''){
-        $('#designation_id_old option[value="Admin"]').prop('disabled', true);
-         $('#designation_id_old option[value="Operator"]').prop('disabled', true);
-         $('#designation_id_old option[value="Verifier"]').prop('disabled', true);
-         $('#designation_id_old option[value="Approver"]').prop('disabled', true);
+        $('#designation_id option[value="Admin"]').prop('disabled', true);
+         $('#designation_id option[value="Operator"]').prop('disabled', true);
+         $('#designation_id option[value="Verifier"]').prop('disabled', true);
+         $('#designation_id option[value="Approver"]').prop('disabled', true);
       }
       else{
-        $('#designation_id_old option[value="Admin"]').prop('disabled', false);
-         $('#designation_id_old option[value="Operator"]').prop('disabled', false);
-         $('#designation_id_old option[value="Verifier"]').prop('disabled', false);
-         $('#designation_id_old option[value="Approver"]').prop('disabled', false);
+        $('#designation_id option[value="Admin"]').prop('disabled', false);
+         $('#designation_id option[value="Operator"]').prop('disabled', false);
+         $('#designation_id option[value="Verifier"]').prop('disabled', false);
+         $('#designation_id option[value="Approver"]').prop('disabled', false);
       }
     });
-     $('#designation_id_old').change(function() {
-      var designation_id_old=$(this).val();
+     $('#designation_id').change(function() {
+      var designation_id=$(this).val();
       $("#scheme_id_div").hide();
       $("#district_div").hide();
       $("#urban_code_div").hide();
@@ -481,7 +481,7 @@ $(document).ready(function(){
       $("#district_label").removeClass("required-field");
       $("#urban_code_label").removeClass("required-field");
       $("#block_label").removeClass("required-field");
-      if(designation_id_old=='Operator'){
+      if(designation_id=='Operator'){
        $("#scheme_id_div").show();
        $("#district_div").show();
        $("#urban_code_div").show();
@@ -490,7 +490,7 @@ $(document).ready(function(){
        $("#urban_code_label").addClass("required-field");
        $("#block_label").addClass("required-field");
       }
-      else if(designation_id_old=='Verifier'){
+      else if(designation_id=='Verifier'){
        $("#scheme_id_div").show();
        $("#district_div").show();
        $("#urban_code_div").show();
@@ -500,7 +500,7 @@ $(document).ready(function(){
        $("#block_label").addClass("required-field");
 
       }
-      else if(designation_id_old=='Approver'){
+      else if(designation_id=='Approver'){
        $("#scheme_id_div").show();
        $("#district_div").show();
        $("#urban_code_div").hide();
@@ -581,7 +581,7 @@ $('#block').change(function() {
 $('.modal-search').on('click',function(){
   var mobile_no=$('#mobile_no').val();
   var department_id=$('#department_id').val();
-  var designation_id_old=$('#designation_id_old').val();
+  var designation_id=$('#designation_id').val();
   var scheme_id=$('#scheme_id').val();
   var district=$('#district').val();
   var urban_code=$('#urban_code').val();
@@ -597,7 +597,7 @@ $('.modal-search').on('click',function(){
                 data: {
                   mobile_no: mobile_no,
                   department_id: department_id,
-                  designation_id_old: designation_id_old,
+                  designation_id: designation_id,
                   scheme_id: scheme_id,
                   district: district,
                   urban_code: urban_code,
@@ -627,10 +627,10 @@ $('.modal-search').on('click',function(){
                    var table = $("#example tbody");
                    $.each(data.row_data, function(i, item) {
                      if(fileter_status==1){
-                     table.append("<tr><td>"+item.username+"</td><td>"+item.email+"</td><td>"+item.designation_id_old+"</td><td>"+item.mobile_no+"</td><td>"+item.login_otp+"</td><td>"+item.otp_time+"</td><td>"+item.department_name+"</td><td>"+item.scheme_name+"</td><td>"+item.district_name+"</td><td>"+item.rural_urban_name+"</td><td>"+item.block_subdiv_name+"</td></tr>");
+                     table.append("<tr><td>"+item.username+"</td><td>"+item.email+"</td><td>"+item.designation_id+"</td><td>"+item.mobile_no+"</td><td>"+item.login_otp+"</td><td>"+item.otp_time+"</td><td>"+item.department_name+"</td><td>"+item.scheme_name+"</td><td>"+item.district_name+"</td><td>"+item.rural_urban_name+"</td><td>"+item.block_subdiv_name+"</td></tr>");
                      }
                      else{
-                     table.append("<tr><td>"+item.username+"</td><td>"+item.email+"</td><td>"+item.designation_id_old+"</td><td>"+item.mobile_no+"</td><td>"+item.login_otp+"</td><td>"+item.otp_time+"</td><td>"+item.department_name+"</td><td>"+item.scheme_name+"</td><td>"+item.district_name+"</td><td>"+item.rural_urban_name+"</td><td>"+item.block_subdiv_name+"</td></tr>");
+                     table.append("<tr><td>"+item.username+"</td><td>"+item.email+"</td><td>"+item.designation_id+"</td><td>"+item.mobile_no+"</td><td>"+item.login_otp+"</td><td>"+item.otp_time+"</td><td>"+item.department_name+"</td><td>"+item.scheme_name+"</td><td>"+item.district_name+"</td><td>"+item.rural_urban_name+"</td><td>"+item.block_subdiv_name+"</td></tr>");
                      }
                   });
                   

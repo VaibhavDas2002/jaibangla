@@ -312,7 +312,7 @@ desired effect
                                   <div class="pull-right" id="report_generation_text">Report Generated on:<b><?php echo date("l jS \of F Y h:i:s A"); ?></b></div>
 
 <button class="btn btn-info exportToExcel" type="button" >Export to Excel</button>&nbsp;&nbsp;&nbsp; <br/><br/>
-@if($designation_id_old=='Approver')
+@if($designation_id=='Approver')
 <form action="applicationListNoaadharExcel" method="post" id="formexcel">
          <input type="hidden" name="_token" id="token" value="{{ csrf_token() }}">
          <input type="hidden" name="scheme_id" id="scheme_id">

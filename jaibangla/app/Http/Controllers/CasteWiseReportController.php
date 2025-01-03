@@ -53,8 +53,8 @@ class CasteWiseReportController extends Controller
         $c_time = Carbon::now();
         $c_date = $c_time->format("Y-m-d");
         $is_active = 0;
-        $roleArray = $request->session()->get('role');
-        // $designation_id_old = Auth::user()->designation_id_old;
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                // $designation_id = Auth::user()->designation_id;
         $userId = AuthChecker::getUserId();
         $district_visible = $is_urban_visible = $block_visible = 1;
         $municipality_visible = 0;
@@ -436,8 +436,8 @@ class CasteWiseReportController extends Controller
 
     public function index(Request $request){
         $is_active = 0;
-        $roleArray = $request->session()->get('role');
-        // echo '<pre>'; print_r($roleArray);die();
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                // echo '<pre>'; print_r($roleArray);die();
         $user_id = AuthChecker::getUserId();
         $district_visible = $is_urban_visible = $block_visible = 1;
         $municipality_visible = 0;
@@ -455,7 +455,7 @@ class CasteWiseReportController extends Controller
             $is_urban = NULL;
             $blockCode = NULL;
             foreach ($roleArray as $roleObj) {
-                // echo $designation_id_old;die();
+                // echo $designation_id;die();
                 if (in_array($roleObj['scheme_id'],array(3,2,10,11,8,9,17,19,1))) {
                     $is_urban = $roleObj['is_urban'];
                     $district_code = $roleObj['district_code'];
@@ -520,8 +520,7 @@ class CasteWiseReportController extends Controller
     }
     public function benList(Request $request){
         // dd($request->all());
-        $roleArray = $request->session()->get('role');
-        $user_id = AuthChecker::getUserId();
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();        $user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id', '=', $user_id)->first();
         $schemes = DB::select(DB::raw("select id,scheme_name,pr1_code,entry_url,display_name from m_scheme where id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . ")  order by rank"));
         if (AuthChecker::AdminChecker() || AuthChecker::HODChecker() || AuthChecker::HOPChecker() || AuthChecker::MisStateChecker() ||  AuthChecker::DashboardChecker()) {
@@ -584,8 +583,7 @@ class CasteWiseReportController extends Controller
         }
     }
     public function castewiseExportExcel(Request $request){
-        $roleArray = $request->session()->get('role');
-        $user_id = AuthChecker::getUserId();
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();        $user_id = AuthChecker::getUserId();
         $scheme_id = $request->scheme_id;
         if (AuthChecker::AdminChecker() || AuthChecker::HODChecker() || AuthChecker::HODChecker() || AuthChecker::MisStateChecker() ||  AuthChecker::MisStateChecker()) {
             $district_code = NULL;

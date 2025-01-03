@@ -278,7 +278,7 @@ var myTable = "";
 function fill_datatable(stake_level = '',district_code = '',search_value = ''){
   if(table!=null && table != ''){
     $('#example').DataTable().destroy();
-    //alert(service_designation_id_old);
+    //alert(service_designation_id);
   }
   
     table=$('#example').DataTable( {
@@ -307,7 +307,7 @@ function fill_datatable(stake_level = '',district_code = '',search_value = ''){
       } ,
       "columns": [
         { "data": "username","defaultContent":"" },
-        { "data": "designation_id_old","defaultContent":"" },
+        { "data": "designation_id","defaultContent":"" },
         { "data": "mobile_no"},
         { "data": "email"},
         { "data": "action"} 
@@ -399,7 +399,7 @@ $("#btnSearch").click(function(){
           $("#id").val(data.id); 
           //alert(data.username);
           $("#usernametxt").text(data.username); 
-          $("#designationtxt").text(data.designation_id_old); 
+          $("#designationtxt").text(data.designation_id); 
           $(".submit_loader").hide(); 
 
         }

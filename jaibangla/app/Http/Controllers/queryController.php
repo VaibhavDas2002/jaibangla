@@ -21,8 +21,8 @@ use App\Ward;
 use App\GP;
 use App\User;
 use Redirect;
-use Auth;
-use Config;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Config;
 
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Log;

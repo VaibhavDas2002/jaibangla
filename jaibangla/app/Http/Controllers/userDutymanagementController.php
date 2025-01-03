@@ -18,13 +18,13 @@ use App\User_level;
 use App\Configduty;
 use App\Users_audit_trail;
 use App\Employee;
-use Config;
+use Illuminate\Support\Facades\Config;
 use Exception;
 use Carbon;
-use DB;
-use Validator;
-use Auth;
-use Excel;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
+use Maatwebsite\Excel\Facades\Excel;
 use App\Helpers\AuthChecker;
 
 
@@ -37,11 +37,11 @@ class userDutymanagementController  extends Controller
     {
         $this->middleware('auth');
         $this->middleware(function ($request, $next) {
-            $designation_id_old = Auth::user()->designation_id_old;
+            $designation_id = Auth::user()->designation_id;
             $has_role = 0;
             $mapping_level_duty = NULL;
             $mapping_level = $district_code = $is_urban = $urban_body_code = $taluka_code = NULL;
-            if ($designation_id_old == 'Admin') {
+            if ($designation_id == 'Admin') {
                 $has_role = 1;
                 $role_loop = 0;
                 $mapping_level = NULL;
@@ -50,7 +50,7 @@ class userDutymanagementController  extends Controller
                 $urban_body_code = NULL;
                 $taluka_code = NULL;
                 $mapping_level_duty = 'State';
-            }            else if ($designation_id_old == 'HOD' || $designation_id_old == 'HOP') {
+            }            else if ($designation_id == 'HOD' || $designation_id == 'HOP') {
                 $has_role = 1;
                 $role_loop = 0;
                 $mapping_level = NULL;
@@ -60,8 +60,7 @@ class userDutymanagementController  extends Controller
                 $taluka_code = NULL;
                 $mapping_level_duty = 'State';
             } else {
-                $roleArray = $request->session()->get('role');
-                //dd($roleArray);
+                $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();                //dd($roleArray);
                 if (count($roleArray) > 0) {
                     $has_role = 1;
                     $role_loop = 1;
@@ -105,8 +104,8 @@ class userDutymanagementController  extends Controller
                     }
                 }
             }
-            $this->designation_id_old = $designation_id_old;
-            $request->session()->put('designation_id_old', $designation_id_old);
+            $this->designation_id = $designation_id;
+            $request->session()->put('designation_id', $designation_id);
             $this->has_role = $has_role;
             $this->mapping_level = $mapping_level;
             $this->mapping_level_duty = $mapping_level_duty;
@@ -122,8 +121,8 @@ class userDutymanagementController  extends Controller
     public function index(Request $request)
     {
         if ($this->has_role) {
-            $designation_id_old = $this->designation_id_old;
-            if ($designation_id_old == 'Verifier'){
+            $designation_id = $this->designation_id;
+            if ($designation_id == 'Verifier'){
                 return redirect("/")->with('success', 'Not Allowded');
             }
             $user_id = AuthChecker::getUserId();
@@ -137,13 +136,13 @@ class userDutymanagementController  extends Controller
             $mapping_visible=1;
             $stake_level_home='';
             $role_visible=1;
-            $designation_id_old_home='';
-            if ($designation_id_old == 'Admin'){
+            $designation_id_home='';
+            if ($designation_id == 'Admin'){
                 $schemes = Scheme::where('is_active', 1)->where('is_active', 1)->get();
                 $mapping_visible=1;
                 $role_visible=1;
             }
-            else if ($designation_id_old == 'HOD' || $designation_id_old == 'HOP'){
+            else if ($designation_id == 'HOD' || $designation_id == 'HOP'){
                 $schme_id_in = Configduty::select('scheme_id')->where('user_id', $user_id)->get()->pluck('scheme_id')->toArray();
                 $schemes = Scheme::where('is_active', 1)->whereIn('id', $schme_id_in)->get();
                 $mapping_visible=1;
@@ -153,22 +152,22 @@ class userDutymanagementController  extends Controller
             else {
                 $schme_id_in = Configduty::select('scheme_id')->where('user_id', $user_id)->get()->pluck('scheme_id')->toArray();
                 $schemes = Scheme::where('is_active', 1)->whereIn('id', $schme_id_in)->get();
-                if ($designation_id_old == 'Approver') {
+                if ($designation_id == 'Approver') {
                     $mapping_visible=1;
                     $role_visible=1;
                     $stake_level_home='';
-                    $designation_id_old_home='';
+                    $designation_id_home='';
                 }
-                else if ($designation_id_old == 'Verifier') {
+                else if ($designation_id == 'Verifier') {
                     $mapping_visible=0;
                     $role_visible=0;
                     if($this->is_urban ==1)
                     $stake_level_home='Subdiv';
                     if($this->is_urban ==2)
                     $stake_level_home='Block';
-                    $designation_id_old_home='Operator';
+                    $designation_id_home='Operator';
                 }
-                else if ($designation_id_old == 'Operator') {
+                else if ($designation_id == 'Operator') {
                     $mapping_visible=1;
                     $role_visible=1;
                 }
@@ -187,7 +186,7 @@ class userDutymanagementController  extends Controller
             if ($mapping_level_duty == 'State') {
                 $is_urban_visible=1;
                 $block_visible=1;
-                if ($designation_id_old == 'HOD' || $designation_id_old == 'HOP') {
+                if ($designation_id == 'HOD' || $designation_id == 'HOP') {
                     $role_arr = $role_arr->whereIn('rank', array(30, 35, 40));
                     //dd($role_arr);
                     $user_level = $user_level;
@@ -200,21 +199,21 @@ class userDutymanagementController  extends Controller
                 $is_urban_visible=1;
                 $block_visible=1;
                
-                if ($designation_id_old == 'Approver') {
+                if ($designation_id == 'Approver') {
                     $role_arr = $role_arr->filter(function ($item) {
                         return ($item->name == 'Verifier' || $item->name == 'Operator' || $item->name == 'MIS User');
                     });
                     $user_level = $user_level->filter(function ($item) {
                         return ($item->rank > 20);
                     });
-                } else if ($designation_id_old == 'Verifier') {
+                } else if ($designation_id == 'Verifier') {
                     $role_arr = $role_arr->filter(function ($item) {
                         return ($item->name == 'Operator');
                     });
                     $user_level = $user_level->filter(function ($item) {
                         return ($item->id > 2);
                     });
-                } else if ($designation_id_old == 'Operator') {
+                } else if ($designation_id == 'Operator') {
                     $role_arr = collect([]);
                     $user_level = collect([]);
                 }
@@ -223,21 +222,21 @@ class userDutymanagementController  extends Controller
                 $is_urban_visible=0;
                 $block_visible=0;
                 
-                if ($designation_id_old == 'Approver') {
+                if ($designation_id == 'Approver') {
                     $role_arr = $role_arr->filter(function ($item) {
                         return ($item->name == 'Verifier' || $item->name == 'Operator' || $item->name == 'MIS User');
                     });
                     $user_level = $user_level->filter(function ($item) {
                         return ($item->rank >= 30);
                     });
-                } else if ($designation_id_old == 'Verifier') {
+                } else if ($designation_id == 'Verifier') {
                     $role_arr = $role_arr->filter(function ($item) {
                         return ($item->name == 'Operator');
                     });
                     $user_level = $user_level->filter(function ($item) {
                         return ($item->rank >= 30 && $item->rank != 40);
                     });
-                } else if ($designation_id_old == 'Operator') {
+                } else if ($designation_id == 'Operator') {
                     $role_arr = collect([]);
                     $user_level = collect([]);
                 }
@@ -245,21 +244,21 @@ class userDutymanagementController  extends Controller
                 $district_visible=0;
                 $is_urban_visible=0;
                 $block_visible=0;
-                if ($designation_id_old == 'Approver') {
+                if ($designation_id == 'Approver') {
                     $role_arr = $role_arr->filter(function ($item) {
                         return ($item->name == 'Verifier' || $item->name == 'Operator' || $item->name == 'MIS User');
                     });
                     $user_level = $user_level->filter(function ($item) {
                         return ($item->rank >= 40);
                     });
-                } else if ($designation_id_old == 'Verifier') {
+                } else if ($designation_id == 'Verifier') {
                     $role_arr = $role_arr->filter(function ($item) {
                         return ($item->name == 'Operator');
                     });
                     $user_level = $user_level->filter(function ($item) {
                         return ($item->rank >= 40);
                     });
-                } else if ($designation_id_old == 'Operator') {
+                } else if ($designation_id == 'Operator') {
                     $role_arr = collect([]);
                     $user_level = collect([]);
                 }
@@ -269,14 +268,14 @@ class userDutymanagementController  extends Controller
                 'departments' => $departments,
                 'user_levels' => $user_level,
                 'levels' => $levels,
-                'designation_id_old' => $designation_id_old,
+                'designation_id' => $designation_id,
                 'roles' => $role_arr,
                 'schemes' => $schemes,
                 'sessiontimeoutmessage' => $errormsg['sessiontimeOut'],
                 'mapping_visible' => $mapping_visible,
                 'stake_level_home' => $stake_level_home,
                 'role_visible' => $role_visible,
-                'designation_id_old_home' => $designation_id_old_home,
+                'designation_id_home' => $designation_id_home,
                 'district_visible' => $district_visible,
                 'is_urban_visible' => $is_urban_visible,
                 'block_visible' => $block_visible,
@@ -289,8 +288,8 @@ class userDutymanagementController  extends Controller
     public function Search(Request $request)
     {
             $user_id = AuthChecker::getUserId();
-            $designation_id_old = $this->designation_id_old;
-            if($designation_id_old=='Admin'){
+            $designation_id = $this->designation_id;
+            if($designation_id=='Admin'){
                 $schme_id_in = Scheme::select('id')->where('is_active',1)->get()->pluck('id')->toArray();
             }
             else
@@ -301,14 +300,14 @@ class userDutymanagementController  extends Controller
             $totalRecords = 0;
             $filterRecords = 0;
 
-            if ($designation_id_old == 'HOD' || $designation_id_old == 'HOP') {
+            if ($designation_id == 'HOD' || $designation_id == 'HOP') {
                 $userQuery = User::with(['employee', 'duty'])->whereNotNull('mobile_no');
                 $userQuery = $userQuery->whereHas('duty', function ($query1) use ($schme_id_in) {
                     $query1->whereIn('scheme_id',$schme_id_in);
                 });
             } else {
-                $designation_rank_arr = Designation::where('name', $designation_id_old)->first();
-                $designation_id_old_in = Designation::where('is_active', 1)->where('rank', '>', $designation_rank_arr->rank)->get()->pluck('name')->toArray();
+                $designation_rank_arr = Designation::where('name', $designation_id)->first();
+                $designation_id_in = Designation::where('is_active', 1)->where('rank', '>', $designation_rank_arr->rank)->get()->pluck('name')->toArray();
                 $userQuery = User::with(['employee', 'duty'])->whereNotNull('mobile_no');
                 $userQuery = $userQuery->whereHas('duty', function ($query1) use ($schme_id_in) {
                     $query1->whereIn('scheme_id',$schme_id_in);
@@ -350,17 +349,17 @@ class userDutymanagementController  extends Controller
             $district_code = $request->get('district_code');
             $is_urban = $request->get('is_urban');
             $block_code = $request->get('block_code');
-            $designation_id_old_post = $request->get('designation_id_old');
+            $designation_id_post = $request->get('designation_id');
             if (!empty($mapping_level)) {
                 $userQuery = $userQuery->whereHas('duty', function ($query1) use ($mapping_level) {
                     $query1->where('mapping_level', '=', $mapping_level);
                 });
             }
-            if (!empty($designation_id_old_post)) {
-                $userQuery->where('designation_id_old', '=', trim($designation_id_old_post));
+            if (!empty($designation_id_post)) {
+                $userQuery->where('designation_id', '=', trim($designation_id_post));
             }
-            if (!empty($designation_id_old_in)) {
-                $userQuery->wherein('designation_id_old', $designation_id_old_in);
+            if (!empty($designation_id_in)) {
+                $userQuery->wherein('designation_id', $designation_id_in);
             }
             if (!empty($scheme_id)) {
                 $userQuery->whereHas('duty', function ($query1) use ($scheme_id) {
@@ -407,8 +406,8 @@ class userDutymanagementController  extends Controller
                 })->addColumn('is_active_db', function ($userArray) {
                     return $userArray->is_active;
                 })
-                ->addColumn('designation_id_old', function ($userArray) {
-                    return $userArray->designation_id_old;
+                ->addColumn('designation_id', function ($userArray) {
+                    return $userArray->designation_id;
                 })
                 ->addColumn('mobile_no', function ($userArray) {
                     return $userArray->mobile_no;
@@ -416,7 +415,7 @@ class userDutymanagementController  extends Controller
                 ->addColumn('email', function ($userArray) {
                     return $userArray->email;
                 })
-                ->addColumn('location', function ($userArray) use($designation_id_old) {
+                ->addColumn('location', function ($userArray) use($designation_id) {
                    
                     if(!empty($userArray->duty))
                     {
@@ -483,7 +482,7 @@ class userDutymanagementController  extends Controller
                 }) ->addColumn('is_active', function ($userArray) {
                     return ($userArray->is_active == 1) ? '<button class="glyphicon glyphicon-ok toggleStatus" id="toggleActivate_' . $userArray->id . '"></button>'
                         : '<button class="glyphicon glyphicon-remove toggleStatus"  id="toggleActivate_' . $userArray->id . '"></button>';
-                })->addColumn('schemes', function ($userArray) use($schme_id_in, $schemes,$designation_id_old) {
+                })->addColumn('schemes', function ($userArray) use($schme_id_in, $schemes,$designation_id) {
                     
                     $scheme_text='';
                     $scheme_in_add=array();
@@ -543,9 +542,9 @@ class userDutymanagementController  extends Controller
                     $scheme_text= $scheme_text1.$scheme_text2;
                    
                     return $scheme_text;
-                }) ->addColumn('CanUpdate', function ($userArray) use($schme_id_in, $schemes,$designation_id_old) {
-                    //dd($designation_id_old);
-                    if($designation_id_old=='Admin'){
+                }) ->addColumn('CanUpdate', function ($userArray) use($schme_id_in, $schemes,$designation_id) {
+                    //dd($designation_id);
+                    if($designation_id=='Admin'){
                         $canUpdate=1;
                     }
                     else{
@@ -608,10 +607,10 @@ class userDutymanagementController  extends Controller
         
         if ($validator->passes()) {
             $errormsg = Config::get('constants.errormsg');
-            $designation_id_old = $this->designation_id_old;
+            $designation_id = $this->designation_id;
             $user_id_session = Auth::user()->id;
             $c_time = date('Y-m-d H:i:s', time());
-            if ($designation_id_old == 'Admin' || $designation_id_old == 'HOD' || $designation_id_old == 'HOP' || $designation_id_old == 'Verifier' || $designation_id_old == 'Approver') {
+            if ($designation_id == 'Admin' || $designation_id == 'HOD' || $designation_id == 'HOP' || $designation_id == 'Verifier' || $designation_id == 'Approver') {
                 $id = $request[trim('id')];
                 $mytime = Carbon\Carbon::now();
                 $user_audit_trail_codearr = Config::get('constants.user_audit_trail_code');
@@ -690,8 +689,8 @@ class userDutymanagementController  extends Controller
     public function adduser(Request $request)
     {
         
-            $designation_id_old = $this->designation_id_old;
-            if ($designation_id_old == 'Verifier'){
+            $designation_id = $this->designation_id;
+            if ($designation_id == 'Verifier'){
                 return redirect("/")->with('success', 'Not Allowded');
             }
             $user_id = AuthChecker::getUserId();
@@ -703,38 +702,38 @@ class userDutymanagementController  extends Controller
             $mapping_visible=1;
             $stake_level='';
             $role_visible=1;
-            $designation_id_old_sel='';
+            $designation_id_sel='';
             $selected_role='Approver';
-            if ($designation_id_old == 'Admin'){
+            if ($designation_id == 'Admin'){
                 $schemes = Scheme::where('is_active', 1)->get();
                 $selected_role='HOD';
                 $district_visible=0;
                 $is_urban_visible=0;
                 $block_visible=0;
             }
-            if ($designation_id_old == 'HOD' || $designation_id_old == 'HOP'){
+            if ($designation_id == 'HOD' || $designation_id == 'HOP'){
                 $schme_id_in = Configduty::select('scheme_id')->where('user_id', $user_id)->get()->pluck('scheme_id')->toArray();
                 $schemes = Scheme::where('is_active', 1)->whereIn('id', $schme_id_in)->get();
             }
             else {
                 $schme_id_in = Configduty::select('scheme_id')->where('user_id', $user_id)->get()->pluck('scheme_id')->toArray();
                 $schemes = Scheme::where('is_active', 1)->whereIn('id', $schme_id_in)->get();
-                if ($designation_id_old == 'Approver') {
+                if ($designation_id == 'Approver') {
                     $mapping_visible=1;
                     $role_visible=1;
                     $stake_level='';
-                    $designation_id_old_sel='';
+                    $designation_id_sel='';
                 }
-                else if ($designation_id_old == 'Verifier') {
+                else if ($designation_id == 'Verifier') {
                     $mapping_visible=0;
                     $role_visible=0;
                     if($this->is_urban ==1)
                     $stake_level='Subdiv';
                     if($this->is_urban ==2)
                     $stake_level='Block';
-                    $designation_id_old_sel='Operator';
+                    $designation_id_sel='Operator';
                 }
-                else if ($designation_id_old == 'Operator') {
+                else if ($designation_id == 'Operator') {
                     $mapping_visible=1;
                     $role_visible=1;
                 }
@@ -753,7 +752,7 @@ class userDutymanagementController  extends Controller
             if ($mapping_level_duty == 'State') {
                 $is_urban_visible=1;
                 $block_visible=1;
-                if($designation_id_old == 'Admin'){
+                if($designation_id == 'Admin'){
                     $selected_role='HOD';
                     $district_visible=0;
                     $is_urban_visible=0;
@@ -761,7 +760,7 @@ class userDutymanagementController  extends Controller
                 }
                 else
                 $selected_role='Approver';
-                if ($designation_id_old == 'HOD' || $designation_id_old == 'HOP') {
+                if ($designation_id == 'HOD' || $designation_id == 'HOP') {
                     $role_arr = $role_arr->whereIn('rank', array(30, 35, 40));
                     //dd($role_arr);
                     $user_level = $user_level;
@@ -774,21 +773,21 @@ class userDutymanagementController  extends Controller
                 $is_urban_visible=1;
                 $block_visible=1;
                 $selected_role='Verifier';
-                if ($designation_id_old == 'Approver') {
+                if ($designation_id == 'Approver') {
                     $role_arr = $role_arr->filter(function ($item) {
                         return ($item->name == 'Verifier' || $item->name == 'Operator' || $item->name == 'MIS User');
                     });
                     $user_level = $user_level->filter(function ($item) {
                         return ($item->rank > 20);
                     });
-                } else if ($designation_id_old == 'Verifier') {
+                } else if ($designation_id == 'Verifier') {
                     $role_arr = $role_arr->filter(function ($item) {
                         return ($item->name == 'Operator');
                     });
                     $user_level = $user_level->filter(function ($item) {
                         return ($item->id > 2);
                     });
-                } else if ($designation_id_old == 'Operator') {
+                } else if ($designation_id == 'Operator') {
                     $role_arr = collect([]);
                     $user_level = collect([]);
                 }
@@ -797,14 +796,14 @@ class userDutymanagementController  extends Controller
                 $is_urban_visible=0;
                 $block_visible=0;
                 //dd('ok');
-                if ($designation_id_old == 'Approver') {
+                if ($designation_id == 'Approver') {
                     $role_arr = $role_arr->filter(function ($item) {
                         return ($item->name == 'Verifier' || $item->name == 'Operator');
                     });
                     $user_level = $user_level->filter(function ($item) {
                         return ($item->rank >= 30);
                     });
-                } else if ($designation_id_old == 'Verifier') {
+                } else if ($designation_id == 'Verifier') {
                     $selected_role='Operator';
                     $role_arr = $role_arr->filter(function ($item) {
                         return ($item->name == 'Operator');
@@ -812,7 +811,7 @@ class userDutymanagementController  extends Controller
                     $user_level = $user_level->filter(function ($item) {
                         return ($item->rank >= 30 && $item->rank != 40);
                     });
-                } else if ($designation_id_old == 'Operator') {
+                } else if ($designation_id == 'Operator') {
                     $role_arr = collect([]);
                     $user_level = collect([]);
                 }
@@ -820,14 +819,14 @@ class userDutymanagementController  extends Controller
                 $district_visible=0;
                 $is_urban_visible=0;
                 $block_visible=0;
-                if ($designation_id_old == 'Approver') {
+                if ($designation_id == 'Approver') {
                     $role_arr = $role_arr->filter(function ($item) {
                         return ($item->name == 'Verifier' || $item->name == 'Operator');
                     });
                     $user_level = $user_level->filter(function ($item) {
                         return ($item->rank >= 40);
                     });
-                } else if ($designation_id_old == 'Verifier') {
+                } else if ($designation_id == 'Verifier') {
                     $selected_role='Operator';
                     $role_arr = $role_arr->filter(function ($item) {
                         return ($item->name == 'Operator');
@@ -835,7 +834,7 @@ class userDutymanagementController  extends Controller
                     $user_level = $user_level->filter(function ($item) {
                         return ($item->rank >= 40);
                     });
-                } else if ($designation_id_old == 'Operator') {
+                } else if ($designation_id == 'Operator') {
                     $role_arr = collect([]);
                     $user_level = collect([]);
                 }
@@ -854,7 +853,7 @@ class userDutymanagementController  extends Controller
             'selected_role' => $selected_role,
             'districts' => $districts,
             'levels' => $levels,
-            'designation_id_old' => $designation_id_old,
+            'designation_id' => $designation_id,
             'roles' => $role_arr,
             'schemes' => $schemes,
             'sessiontimeoutmessage' => $errormsg['sessiontimeOut'],
@@ -867,41 +866,41 @@ class userDutymanagementController  extends Controller
             'mapping_visible' => $mapping_visible,
             'stake_level' => $stake_level,
             'role_visible' => $role_visible,
-            'designation_id_old_sel' => $designation_id_old_sel,
+            'designation_id_sel' => $designation_id_sel,
         ]);
     }
     public function adduserpost(Request $request)
     {
-        $designation_id_old = Auth::user()->designation_id_old;
-        if ($designation_id_old == 'Verifier'){
+        $designation_id = Auth::user()->designation_id;
+        if ($designation_id == 'Verifier'){
             return redirect("/")->with('success', 'Not Allowded');
         }
         $user_id = AuthChecker::getUserId();
-        $assign_designation_id_old = trim($request->designation_id_old);
-        if (!in_array($designation_id_old,array('Admin','HOD','Approver','Verifier'))){
+        $assign_designation_id = trim($request->designation_id);
+        if (!in_array($designation_id,array('Admin','HOD','Approver','Verifier'))){
             $msg = 'Not Allowded.';
             return redirect('/adduser')->with('error', $msg);
         }
-        if ($designation_id_old == 'Admin'){
-            if (!in_array($assign_designation_id_old,array('Special LAO','StatusCheckerDistrict','DDO','HOD','HOP','Approver','Verifier','Operator','SpecialStatusCheck'))){
+        if ($designation_id == 'Admin'){
+            if (!in_array($assign_designation_id,array('Special LAO','StatusCheckerDistrict','DDO','HOD','HOP','Approver','Verifier','Operator','SpecialStatusCheck'))){
                 $msg = 'Not Allowded..';
                 return redirect('/adduser')->with('error', $msg);
             }
         }
-        if ($designation_id_old == 'HOD'){
-            if (!in_array($assign_designation_id_old,array('Approver','Verifier','Operator'))){
+        if ($designation_id == 'HOD'){
+            if (!in_array($assign_designation_id,array('Approver','Verifier','Operator'))){
                 $msg = 'Not Allowded..';
                 return redirect('/adduser')->with('error', $msg);
             }
         }
-        else if ($designation_id_old == 'Approver'){
-            if (!in_array($assign_designation_id_old,array('Verifier','Operator','MIS User'))){
+        else if ($designation_id == 'Approver'){
+            if (!in_array($assign_designation_id,array('Verifier','Operator','MIS User'))){
                 $msg = 'Not Allowded...';
                 return redirect('/adduser')->with('error', $msg);
             }
         }
-        else if ($designation_id_old == 'Verifier'){
-            if (!in_array($assign_designation_id_old,array('Operator'))){
+        else if ($designation_id == 'Verifier'){
+            if (!in_array($assign_designation_id,array('Operator'))){
                 $msg = 'Not Allowded....';
                 return redirect('/adduser')->with('error', $msg);
             }
@@ -911,7 +910,7 @@ class userDutymanagementController  extends Controller
         $rules = [
             'firstname' => 'required|max:60',
             'lastname' => 'required|max:60',
-            'designation_id_old' => 'required',
+            'designation_id' => 'required',
             'username' => 'required',
             'email' => 'required|email',
             'mobile' => 'required|digits:10',
@@ -919,21 +918,21 @@ class userDutymanagementController  extends Controller
         ];
         $attributes['firstname'] = 'First Name';
         $attributes['lastname'] = 'Last Name';
-        $attributes['designation_id_old'] = 'Role';
+        $attributes['designation_id'] = 'Role';
         $attributes['username'] = 'Display Name';
         $attributes['email'] = 'Email';
         $attributes['mobile'] = 'Mobile No';
         $attributes['schemelist'] = 'Scheme';
         $attributes['dist_code'] = 'District';
-        if (in_array($assign_designation_id_old,array('HOD'))){
+        if (in_array($assign_designation_id,array('HOD'))){
            
         }
-        if (in_array($assign_designation_id_old,array('Approver'))){
+        if (in_array($assign_designation_id,array('Approver'))){
             $rules['dist_code'] = 'required';
             $attributes['dist_code'] = 'District';
             
         }
-        if (in_array($assign_designation_id_old,array('Verifier','Operator','MIS User'))){
+        if (in_array($assign_designation_id,array('Verifier','Operator','MIS User'))){
             $rules['is_urban'] = 'required';
             $rules['block_code'] = 'required';
             $attributes['is_urban'] = 'Rural/Urban';
@@ -951,14 +950,14 @@ class userDutymanagementController  extends Controller
            //dd( $error_msg);
             return redirect('/adduser')->with('errors', $error_msg);
         } 
-        if (in_array($assign_designation_id_old,array('Approver','Verifier','Operator','MIS User'))){
+        if (in_array($assign_designation_id,array('Approver','Verifier','Operator','MIS User'))){
             $district_check=District::where('district_code', trim($request->dist_code))->count();
             if ($district_check==0){
                 $msg = 'District Code is invalid';
                 return redirect('/adduser')->with('error', $msg);
             }
         }
-        if (in_array($assign_designation_id_old,array('Verifier','Operator','MIS User'))){
+        if (in_array($assign_designation_id,array('Verifier','Operator','MIS User'))){
             if (!in_array(trim($request->is_urban),array_keys(Config::get('constants.rural_urban')))){
                 $msg = 'Rural/Urban is invalid';
                 return redirect('/adduser')->with('error', $msg);
@@ -978,7 +977,7 @@ class userDutymanagementController  extends Controller
                 }
             }
         }
-        if ($designation_id_old == 'Admin'){
+        if ($designation_id == 'Admin'){
         }
         else{
         $scheme_inputs = request()->input('schemelist');
@@ -992,7 +991,7 @@ class userDutymanagementController  extends Controller
             }
         }
       }
-        $designation_arr = Designation::where('name', $assign_designation_id_old)->first();
+        $designation_arr = Designation::where('name', $assign_designation_id)->first();
         if (empty($designation_arr)){
             $msg = 'Designation Code is invalid';
             return redirect('/adduser')->with('error', $msg);
@@ -1015,7 +1014,7 @@ class userDutymanagementController  extends Controller
             $emp_arr['firstname'] = trim($request->firstname);
             $emp_arr['middlename'] = trim($request->middlename);
             $emp_arr['lastname'] = trim($request->lastname);
-            $emp_arr['designation_id_old'] = $designation_arr->id;
+            $emp_arr['designation_id'] = $designation_arr->id;
             $emp = Employee::create($emp_arr); 
             if(!empty($emp->id)){
                     $user_input = [
@@ -1023,7 +1022,7 @@ class userDutymanagementController  extends Controller
                         'username' => trim($request['username']),
                         'email' => trim($request['email']),
                         'emp_id' => $emp->id,
-                        'designation_id_old' => $assign_designation_id_old,
+                        'designation_id' => $assign_designation_id,
                         'mobile_no' => trim($request['mobile']),
                         'password' => bcrypt('User@123'),
                         'login_otp' => 123456,
@@ -1046,16 +1045,16 @@ class userDutymanagementController  extends Controller
                         $Configduty->created_at = $c_time;
                         $Configduty->created_by = $user_id;
                         $Configduty->user_id = $user->id;
-                        if (in_array($assign_designation_id_old,array('HOD','DDO','SpecialStatusCheck'))){
+                        if (in_array($assign_designation_id,array('HOD','DDO','SpecialStatusCheck'))){
                             $mapping_level='Department';
                         }
-                        if (in_array($assign_designation_id_old,array('Approver','Special LAO'))){
+                        if (in_array($assign_designation_id,array('Approver','Special LAO'))){
                             $mapping_level='District';
                         }
-                        if (in_array($assign_designation_id_old,array('Approver','Verifier','Operator','MIS User'))){
+                        if (in_array($assign_designation_id,array('Approver','Verifier','Operator','MIS User'))){
                          $Configduty->district_code = $request->input('dist_code');
                         }
-                        if (in_array($assign_designation_id_old,array('Verifier','Operator','MIS User'))){
+                        if (in_array($assign_designation_id,array('Verifier','Operator','MIS User'))){
                             $Configduty->is_urban = $request->input('is_urban');
                             if( $request->input('is_urban')==1){
                                 $Configduty->urban_body_code = $request->input('block_code');
@@ -1141,7 +1140,7 @@ class userDutymanagementController  extends Controller
                 ->leftJoin('employees as B', 'A.emp_id', '=', 'B.id')
                 ->select(
                     'A.username',
-                    'A.designation_id_old',
+                    'A.designation_id',
                     'B.firstname',
                     'B.middlename',
                     'B.lastname',
@@ -1194,10 +1193,10 @@ class userDutymanagementController  extends Controller
         $validator = Validator::make($request->all(), $rules, $messages, $attributes);
         if ($validator->passes()) {
             $errormsg = Config::get('constants.errormsg');
-            $designation_id_old = $this->designation_id_old;
+            $designation_id = $this->designation_id;
             $user_id_session = Auth::user()->id;
             $c_time = date('Y-m-d H:i:s', time());
-            if ($designation_id_old == 'Admin' || $designation_id_old == 'HOD' || $designation_id_old == 'HOP' || $designation_id_old == 'Verifier' || $designation_id_old == 'Approver' ) {
+            if ($designation_id == 'Admin' || $designation_id == 'HOD' || $designation_id == 'HOP' || $designation_id == 'Verifier' || $designation_id == 'Approver' ) {
                 $id = $request['id'];
                 $schemeArray = $request['schemeArray'];
                 $roleArray = $request['roleArray'];
@@ -1232,19 +1231,19 @@ class userDutymanagementController  extends Controller
 
                         if ($duPlicate == 0) {
                             $is_acces=1;
-                            if($designation_id_old=='Admin'){
+                            if($designation_id=='Admin'){
                                 $is_acces=1;
                             }
-                            else if($designation_id_old=='HOD' && $userArr->designation_id_old=='HOD'){
+                            else if($designation_id=='HOD' && $userArr->designation_id=='HOD'){
                                 $is_acces=0;
                             }
-                            else if($designation_id_old=='Approver' && ($userArr->designation_id_old=='Approver' || $userArr->designation_id_old=='HOD')){
+                            else if($designation_id=='Approver' && ($userArr->designation_id=='Approver' || $userArr->designation_id=='HOD')){
                                 $is_acces=0;
                             }
-                            else if($designation_id_old=='Verifier' && ($userArr->designation_id_old=='Verifier' || $userArr->designation_id_old=='Approver' || $userArr->designation_id_old=='HOD')){
+                            else if($designation_id=='Verifier' && ($userArr->designation_id=='Verifier' || $userArr->designation_id=='Approver' || $userArr->designation_id=='HOD')){
                                 $is_acces=0;
                             }
-                            else if($designation_id_old=='Operator' && ($userArr->designation_id_old=='Operator' || $userArr->designation_id_old=='Verifier' || $userArr->designation_id_old=='Approver' || $userArr->designation_id_old=='HOD')){
+                            else if($designation_id=='Operator' && ($userArr->designation_id=='Operator' || $userArr->designation_id=='Verifier' || $userArr->designation_id=='Approver' || $userArr->designation_id=='HOD')){
                                 $is_acces=0;
                             }
                             if($is_acces==0){
@@ -1338,10 +1337,10 @@ class userDutymanagementController  extends Controller
         ]);
         if ($validator->passes()) {
             $errormsg = Config::get('constants.errormsg');
-            $designation_id_old = $this->designation_id_old;
+            $designation_id = $this->designation_id;
             $user_id_session = Auth::user()->id;
             $c_time = date('Y-m-d H:i:s', time());
-            if ($designation_id_old == 'Admin' || $designation_id_old == 'HOD'  || $designation_id_old == 'HOP' || $designation_id_old == 'Verifier' || $designation_id_old == 'Approver' || $designation_id_old == 'Operator') {
+            if ($designation_id == 'Admin' || $designation_id == 'HOD'  || $designation_id == 'HOP' || $designation_id == 'Verifier' || $designation_id == 'Approver' || $designation_id == 'Operator') {
                 $user_id = $request[trim('user_id')];
                 $scheme_id = $request[trim('scheme_id')];
                 $user_audit_trail_codearr = Config::get('constants.user_audit_trail_code');
@@ -1359,7 +1358,7 @@ class userDutymanagementController  extends Controller
                         $chk = array();
                         $chk['user_id'] = $DutyArr->user_id;
                         $chk['is_active'] = 1;
-                        $chk['designation_id_old'] = $DutyArr->user->designation_id_old;
+                        $chk['designation_id'] = $DutyArr->user->designation_id;
                         $chk['scheme_id'] = $DutyArr->scheme_id;
                         $chk['district_code'] = $DutyArr->district_code;
                         $chk['mapping_level'] = $DutyArr->mapping_level;
@@ -1440,14 +1439,14 @@ class userDutymanagementController  extends Controller
         if ($arr['is_urban'] != '')
             $where[] = ['is_urban', '=', $arr['is_urban']];
         $query = Configduty::with(['user'])->where($where);
-        $designation_id_old =  $arr['designation_id_old'];
+        $designation_id =  $arr['designation_id'];
 
-        if (!empty($designation_id_old)) {
-            $query = $query->whereHas('user', function ($query1) use ($designation_id_old) {
-                $query1->where('designation_id_old', $designation_id_old);
+        if (!empty($designation_id)) {
+            $query = $query->whereHas('user', function ($query1) use ($designation_id) {
+                $query1->where('designation_id', $designation_id);
             });
         }
-        //dd($designation_id_old);
+        //dd($designation_id);
         if ($query->count() == 0)
             return true;
         else
@@ -1462,7 +1461,7 @@ class userDutymanagementController  extends Controller
             'scheme_id_list' => 'required'
         ]);
         if ($validator->passes()) {
-            $designation_id_old = $this->designation_id_old;
+            $designation_id = $this->designation_id;
             $user_id_session = Auth::user()->id;
             $scheme_id=$request->scheme_id_list;
             $post_user_id=$request->user_id;
@@ -1490,21 +1489,21 @@ class userDutymanagementController  extends Controller
             if($user_row->is_active==0){
                 return response()->json(['return_status' => 0, 'return_msg' => 'User is inActive']);
             }
-            $assign_designation_id_old=$user_row->designation_id_old;
-            if ($designation_id_old == 'HOD'){
-                if (!in_array($assign_designation_id_old,array('Approver','Verifier','Operator'))){
+            $assign_designation_id=$user_row->designation_id;
+            if ($designation_id == 'HOD'){
+                if (!in_array($assign_designation_id,array('Approver','Verifier','Operator'))){
                     return response()->json(['return_status' => 0, 'return_msg' => 'Not Allowded2']);
                 }
 
             } 
-            elseif ($designation_id_old == 'Approver'){
-                if (!in_array($assign_designation_id_old,array('Verifier','Operator'))){
+            elseif ($designation_id == 'Approver'){
+                if (!in_array($assign_designation_id,array('Verifier','Operator'))){
                     return response()->json(['return_status' => 0, 'return_msg' => 'Not Allowded3']);
                 }
                 
             } 
-           elseif ($designation_id_old == 'Verifier'){
-              if (!in_array($assign_designation_id_old,array('Operator'))){
+           elseif ($designation_id == 'Verifier'){
+              if (!in_array($assign_designation_id,array('Operator'))){
                 return response()->json(['return_status' => 0, 'return_msg' => 'Not Allowded4']);
               }
             } 
@@ -1518,16 +1517,16 @@ class userDutymanagementController  extends Controller
                 $Configduty->created_at = $c_time;
                 $Configduty->created_by = $user_id_session;
                 $Configduty->user_id = $user_row->id;
-                if (in_array($assign_designation_id_old,array('HOD'))){
+                if (in_array($assign_designation_id,array('HOD'))){
                     $mapping_level='Department';
                 }
-                if (in_array($assign_designation_id_old,array('Approver'))){
+                if (in_array($assign_designation_id,array('Approver'))){
                     $mapping_level='District';
                 }
-                if (in_array($assign_designation_id_old,array('Approver','Verifier','Operator'))){
+                if (in_array($assign_designation_id,array('Approver','Verifier','Operator'))){
                  $Configduty->district_code = $duty_row->district_code;
                 }
-                if (in_array($assign_designation_id_old,array('Verifier','Operator'))){
+                if (in_array($assign_designation_id,array('Verifier','Operator'))){
                     $Configduty->is_urban = $duty_row->is_urban;
                     if( $duty_row->is_urban==1){
                         $Configduty->urban_body_code = $duty_row->urban_body_code;

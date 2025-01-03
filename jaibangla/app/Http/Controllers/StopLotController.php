@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use DB;
+use Illuminate\Support\Facades\DB;
 use App\User;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use App\Configduty;
 use App\lot_master;
 use App\Scheme;

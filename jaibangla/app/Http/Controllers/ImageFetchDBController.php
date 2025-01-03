@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use Validator;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;

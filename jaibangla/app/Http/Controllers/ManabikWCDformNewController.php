@@ -15,7 +15,7 @@ use App\Ward;
 use App\GP;
 use App\User;
 use Redirect;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Log;
@@ -23,7 +23,7 @@ use Illuminate\Support\Facades\DB;
 use App\SchemeCapacity;
 use App\Scheme;
 use Illuminate\Support\Facades\Schema;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
 use App\BankDetails;
 use App\Helpers\Helper;
@@ -59,8 +59,8 @@ class ManabikWCDformNewController extends Controller
     {
         $scheme_id = 2;
         $is_active = 0;
-        $roleArray = $request->session()->get('role');
-        foreach ($roleArray as $roleObj) {
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == $scheme_id) {
                 $is_active = 1;
                 $request->session()->put('level', $roleObj['mapping_level']);
@@ -203,8 +203,8 @@ class ManabikWCDformNewController extends Controller
         $uploaded_doc = array();
         $destinationPath = storage_path('app/keep_manabik/');
         $scheme_id = $request->scheme_id;
-        $roleArray = $request->session()->get('role');
-        $is_active = 0;
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                $is_active = 0;
         foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == $scheme_id) {
                 $is_active = 1;
@@ -691,8 +691,8 @@ class ManabikWCDformNewController extends Controller
         $created_by = Auth::user()->id;
         $is_active = 0;
         $mapping_level = NULL;
-        $roleArray = $request->session()->get('role');
-        foreach ($roleArray as $roleObj) {
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == $scheme_id) {
                 $is_active = 1;
                 $mapping_level = $roleObj['mapping_level'];
@@ -1121,7 +1121,7 @@ class ManabikWCDformNewController extends Controller
             if($arch_status && $is_update && $doc_inserted_arch && $doc_inserted_del && $doc_inserted && $is_saved_log){
                 DB::commit();
                 DB::connection('pgsql_encwrite')->commit();
-                if ($designation_id_old == 'Operator')
+                if ($designation_id == 'Operator')
                    return redirect("application-list-read-only-edit?pr1=" . $scheme_schema)->with('success', 'Application Updated Successfully')
                 ->with('id',   $row->getBenidAttribute());
               else {
@@ -1131,7 +1131,7 @@ class ManabikWCDformNewController extends Controller
             else{
                 DB::connection('pgsql_encwrite')->rollback();
                 DB::rollback();
-                if ($designation_id_old == 'Operator')
+                if ($designation_id == 'Operator')
                  return redirect("/application-edit?id=" . $request->id . "&scheme_id=" . $request->scheme_id)->with('errors', array('Some error.Please try again'));
                 else {
                   return redirect('/')->with('danger', 'Some error.Please try again');
@@ -1142,7 +1142,7 @@ class ManabikWCDformNewController extends Controller
             //dd($e);
             DB::connection('pgsql_encwrite')->rollback();
             DB::rollback();
-            if ($designation_id_old == 'Operator')
+            if ($designation_id == 'Operator')
             return redirect("/application-edit?id=" . $request->id . "&scheme_id=" . $request->scheme_id)->with('errors', array('Some error.Please try again'));
             else {
                 return redirect('/')->with('danger', 'Some error.Please try again');
@@ -1373,13 +1373,13 @@ class ManabikWCDformNewController extends Controller
     {
         $scheme_id =  $this->scheme_id;
         $user_id = AuthChecker::getUserId();
-        $designation_id_old = Auth::user()->designation_id_old;
-        if (!in_array($designation_id_old, array('Operator'))) {
+        $designation_id = Auth::user()->designation_id;
+        if (!in_array($designation_id, array('Operator'))) {
             return redirect("/")->with('error', 'Not Allowed');
         }
         $is_active = 0;
-        $roleArray = $request->session()->get('role');
-        foreach ($roleArray as $roleObj) {
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == $scheme_id) {
                 $is_active = 1;
                 $level = $roleObj['mapping_level'];
@@ -1614,13 +1614,13 @@ class ManabikWCDformNewController extends Controller
     {
         $scheme_id =  $this->scheme_id;
         $user_id = AuthChecker::getUserId();
-        $designation_id_old = Auth::user()->designation_id_old;
-        if (!in_array($designation_id_old, array('Operator'))) {
+        $designation_id = Auth::user()->designation_id;
+        if (!in_array($designation_id, array('Operator'))) {
             return redirect("/")->with('error', 'Not Allowed');
         }
         $is_active = 0;
-        $roleArray = $request->session()->get('role');
-        foreach ($roleArray as $roleObj) {
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == $scheme_id) {
                 $is_active = 1;
                 $level = $roleObj['mapping_level'];
@@ -1807,13 +1807,13 @@ class ManabikWCDformNewController extends Controller
     {
         $scheme_id =  $this->scheme_id;
         $user_id = AuthChecker::getUserId();
-        $designation_id_old = Auth::user()->designation_id_old;
-        if (!in_array($designation_id_old, array('Operator'))) {
+        $designation_id = Auth::user()->designation_id;
+        if (!in_array($designation_id, array('Operator'))) {
             return redirect("/")->with('error', 'Not Allowed');
         }
         $is_active = 0;
-        $roleArray = $request->session()->get('role');
-        foreach ($roleArray as $roleObj) {
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == $scheme_id) {
                 $is_active = 1;
                 $level = $roleObj['mapping_level'];

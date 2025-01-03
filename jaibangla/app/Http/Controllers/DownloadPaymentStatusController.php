@@ -180,8 +180,8 @@ class DownloadPaymentStatusController extends Controller
     $c_time = Carbon::now();
     $c_date = $c_time->format("Y-m-d");
     $is_active = 0;
-    $roleArray = $request->session()->get('role');
-    $designation_id_old = Auth::user()->designation_id_old;
+    $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();;
+    $designation_id = Auth::user()->designation_id;
     $district_visible = $is_urban_visible = $block_visible = 0;
     $municipality_visible = 0;
     $gp_ward_visible = 0;

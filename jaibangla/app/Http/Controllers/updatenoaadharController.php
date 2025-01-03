@@ -20,8 +20,8 @@ use App\Ward;
 use App\GP;
 use App\User;
 use Redirect;
-use Auth;
-use Config;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Config;
 
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Log;
@@ -78,10 +78,10 @@ class updatenoaadharController extends Controller
             $scheme_model = 'App\\' . $scheme_details['model_name'];
 
             $is_active = 0;
-            $roleArray = $request->session()->get('role');
-            $designation_id_old = Auth::user()->designation_id_old;
-            // dd($designation_id_old);
-            if ($designation_id_old == 'HOD') {
+            $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                        $designation_id = Auth::user()->designation_id;
+            // dd($designation_id);
+            if ($designation_id == 'HOD') {
                 if ($scheme_id == 2 || $scheme_id == 1|| $scheme_id == 11 || $scheme_id == 13 || $scheme_id == 17 || $scheme_id == 18 || $scheme_id == 8 || $scheme_id == 9) {
                     $request->session()->put('scheme_id', $scheme_id);
                     $request->session()->put('scheme_name', $scheme_row['scheme_name']);
@@ -401,11 +401,11 @@ class updatenoaadharController extends Controller
 
         $duty_obj = Configduty::where('user_id', $user_id)->first();
         $district_code = $duty_obj->district_code;
-        $designation_id_old = Auth::user()->designation_id_old;
+        $designation_id = Auth::user()->designation_id;
        
 
         
-        if ($designation_id_old == 'Operator') {
+        if ($designation_id == 'Operator') {
             if ($duty_obj->mapping_level == "Subdiv") {
               $created_by_local_body_code = $duty_obj->urban_body_code;
             }
@@ -511,7 +511,7 @@ class updatenoaadharController extends Controller
       $this->middleware('auth');
      
      
-      $designation_id_old = Auth::user()->designation_id_old;
+      $designation_id = Auth::user()->designation_id;
       
       $user_id = AuthChecker::getUserId();
 
@@ -520,7 +520,7 @@ class updatenoaadharController extends Controller
         
       $scheme_id = $request->scheme_id;
 
-      if ($designation_id_old == 'Operator') {
+      if ($designation_id == 'Operator') {
         if ($duty_obj->mapping_level == "Subdiv") {
           $created_by_local_body_code = $duty_obj->urban_body_code;
         }
@@ -532,7 +532,7 @@ class updatenoaadharController extends Controller
 
   
 
-      if ($designation_id_old!='Operator') {
+      if ($designation_id!='Operator') {
         return redirect("/")->with('error', 'Not Allowed');
       }
       

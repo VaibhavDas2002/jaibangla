@@ -6,8 +6,8 @@ use Illuminate\Http\Request;
 use App\Configduty;
 use App\District;
 use App\Scheme;
-use Auth;
-use Config;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 use App\DataSourceCommon;
@@ -22,6 +22,12 @@ use App\Helpers\AuthChecker;
 
 class MisReportMinormismatchController extends Controller
 {
+    protected $source_type;
+    protected $base_dob_chk_date;
+    protected $max_dob;
+    protected $min_dob;
+    
+
     public function __construct()
     {
         $this->middleware('auth');
@@ -74,11 +80,11 @@ class MisReportMinormismatchController extends Controller
     // {
     //     $scheme_id = $this->scheme_id;
     //     $is_active = 0;
-    //     $roleArray = $request->session()->get('role');
+    //     $roleArray = Configduty::where('user_id', $user_id)->where('is_active', 1)->get()->toArray();;
 
-    //     $designation_id_old = Auth::user()->designation_id_old;
+    //     $designation_id = Auth::user()->designation_id;
 
-    //     if($designation_id_old=='HOD')
+    //     if($designation_id=='HOD')
     //     {
     //         $is_active=1;
 
@@ -133,10 +139,10 @@ class MisReportMinormismatchController extends Controller
             $scheme_model = 'App\\' . $scheme_details['model_name'];
 
             $is_active = 0;
-            $roleArray = $request->session()->get('role');
-            $designation_id_old = Auth::user()->designation_id_old;
-            // dd($designation_id_old);
-            if ($designation_id_old == 'HOD') {
+            $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                        $designation_id = Auth::user()->designation_id;
+            // dd($designation_id);
+            if ($designation_id == 'HOD') {
                 if ($scheme_id == 2 || $scheme_id == 11 || $scheme_id == 13 || $scheme_id == 17 || $scheme_id == 18 || $scheme_id == 8 || $scheme_id == 9 || $scheme_id == 10) {
                     $request->session()->put('scheme_id', $scheme_id);
                     $request->session()->put('scheme_name', $scheme_row['scheme_name']);
@@ -193,7 +199,7 @@ class MisReportMinormismatchController extends Controller
                 
             $pr1 = $request->get('pr1');
             $mappingLevel = $request->session()->get('level');
-            $role_name = Auth::user()->designation_id_old;
+            $role_name = Auth::user()->designation_id;
 
             //dd($role_name);
             //$rejection_cause_list = Config::get('constants.rejection_cause');
@@ -733,8 +739,8 @@ class MisReportMinormismatchController extends Controller
             $mappingLevel = $request->session()->get('level');
             
             $is_active = 0;
-            $roleArray = $request->session()->get('role');
-            foreach ($roleArray as $roleObj) {
+            $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                        foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == $scheme_id) {
             $is_active = 1;
             $mapping_level = $roleObj['mapping_level'];
@@ -754,7 +760,7 @@ class MisReportMinormismatchController extends Controller
         $report_type = $request->get('type');
 
         $condition = array();
-        $role_name = Auth::user()->designation_id_old;
+        $role_name = Auth::user()->designation_id;
         $scheme_name_row = Scheme::where('id', $scheme_id)->first();
         $scheme_name = $scheme_name_row->scheme_name;
 

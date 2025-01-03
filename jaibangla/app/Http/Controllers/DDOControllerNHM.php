@@ -17,7 +17,7 @@ use App\nhm_salary;
 use App\Helpers\AuthChecker;
 
 use Redirect;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 
 class DDOControllerNHM extends Controller
 {

@@ -7,13 +7,13 @@ use App\User;
 use App\District;
 use App\Scheme;
 use Redirect;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 use DateTime;
-use Config;
+use Illuminate\Support\Facades\Config;
 use Maatwebsite\Excel\Facades\Excel;
 use App\DataSourceCommon;
 use App\getModelFunc;
@@ -60,18 +60,18 @@ class DuplicateControllerBankReport extends Controller
     function index(Request $request)
     {
         $is_active = 0;
-        $roleArray = $request->session()->get('role');
-        $user_id = AuthChecker::getUserId();
-        $designation_id_old = Auth::user()->designation_id_old;
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                $user_id = AuthChecker::getUserId();
+        $designation_id = Auth::user()->designation_id;
         $district_visible = $is_urban_visible = $block_visible = 1;
         $municipality_visible = 0;
         $gp_ward_visible = 0;
         $muncList = collect([]);
         $gpList = collect([]);
         $schemes = DB::select(DB::raw("select id,scheme_name from m_scheme where  id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . " and scheme_id in(2,10,11) )"));
-        if ($designation_id_old == 'Admin' || $designation_id_old == 'HOD' ||  $designation_id_old == 'Dashboard') {
+        if ($designation_id == 'Admin' || $designation_id == 'HOD' ||  $designation_id == 'Dashboard') {
             $district_visible = $is_urban_visible = $block_visible = 1;
-        } else if ($designation_id_old == 'Approver' || $designation_id_old == 'Verifier') {
+        } else if ($designation_id == 'Approver' || $designation_id == 'Verifier') {
             $district_code = NULL;
             $is_urban = NULL;
             $blockCode = NULL;

@@ -5,25 +5,17 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Configduty;
 use App\District;
-use App\UrbanBody;
 use App\SubDistrict;
 use App\Taluka;
 use App\Ward;
 use App\GP;
-use App\User;
-use Redirect;
-use Auth;
 use Illuminate\Support\Facades\DB;
-use Validator;
-use DateTime;
 use App\Scheme;
-use Config;
 use Carbon\Carbon;
-use App\DataSourceCommon;
-use App\getModelFunc;
-use App\DsPhase;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Helpers\AuthChecker;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 
 class accountValidationMISController extends Controller
 {
@@ -38,16 +30,16 @@ class accountValidationMISController extends Controller
         $c_date = $c_time->format("Y-m-d");
         $scheme_name = '';
         $is_active = 0;
-        $roleArray = $request->session()->get('role');
-        $designation_id_old = Auth::user()->designation_id_old;
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+        $designation_id = Auth::user()->designation_id;
         $district_visible = $is_urban_visible = $block_visible = 1;
         $municipality_visible = 0;
         $gp_ward_visible = 0;
         $muncList = collect([]);
         $gpList = collect([]);
-        if ($designation_id_old == 'Admin' || $designation_id_old == 'HOD' || $designation_id_old == 'HOP' || $designation_id_old == 'MisState' ||  $designation_id_old == 'Dashboard') {
+        if ($designation_id == 'Admin' || $designation_id == 'HOD' || $designation_id == 'HOP' || $designation_id == 'MisState' ||  $designation_id == 'Dashboard') {
             $district_visible = $is_urban_visible = $block_visible = 1;
-        } else if ($designation_id_old == 'Approver') {
+        } else if ($designation_id == 'Approver') {
             $district_code = NULL;
             $is_urban = NULL;
             $blockCode = NULL;
@@ -94,7 +86,6 @@ class accountValidationMISController extends Controller
                 'block_munc_corp_code_fk' => $block_munc_corp_code_fk,
                 'municipality_visible' => $municipality_visible,
                 'gp_ward_visible' => $gp_ward_visible,
-                'is_urban_visible' => $is_urban_visible,
                 'c_date' => $c_date,
                 'gpList' => $gpList,
                 'muncList' => $muncList,

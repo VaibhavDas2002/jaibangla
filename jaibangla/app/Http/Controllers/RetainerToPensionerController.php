@@ -4,9 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\BeneficiaryPensions;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use App\Configduty;
-use DB;
+use Illuminate\Support\Facades\DB;
 use App\Helpers\AuthChecker;
 
 //use Datatables;

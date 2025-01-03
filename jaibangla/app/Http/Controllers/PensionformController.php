@@ -78,15 +78,14 @@ use App\Ward;
 use App\GP;
 use App\User;
 use Redirect;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use App\Scheme;
-use Config;
 use App\BankDetails;
 use App\Helpers\Helper;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 use App\DsPhase;
 use App\BenDocs;
 use Illuminate\Support\Facades\Storage;
@@ -98,6 +97,7 @@ use App\Traits\TraitCasteCertificateValidate;
 use App\Traits\TraitLifeCertificateValidate;
 use Illuminate\Support\Facades\Session;
 use App\Helpers\DupCheck;
+use Illuminate\Support\Facades\Config;
 
 
 class PensionformController extends Controller
@@ -106,6 +106,18 @@ class PensionformController extends Controller
     use TraitCasteCertificateValidate;
     use TraitLifeCertificateValidate;
     use TraitAadharValidate;
+    protected $monthlySlug;
+    protected $monthlySchemeCode;
+    protected $monthlyMainTable;
+    protected $monthlyDocTable;
+    protected $monthlyDocArchTable;
+    protected $housingSlug;
+    protected $housingSchemeCode;
+    protected $housingMainTable;
+    protected $housingDocTable;
+    protected $housingDocArchTable;
+    protected $state_login_next_level_role_id_arr;
+
     public function __construct()
     {
         $this->middleware('auth');
@@ -148,8 +160,8 @@ class PensionformController extends Controller
         // $base_url=url('/');
         // echo $base_url.'/images/';exit;        
 
-        $roleArray = $request->session()->get('role');
-        foreach ($roleArray as $roleObj) {
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == $scheme_id) {
                 $is_active = 1;
                 $request->session()->put('level', $roleObj['mapping_level']);
@@ -210,8 +222,8 @@ class PensionformController extends Controller
     public function store(Request $request)
     {
         $user_id = AuthChecker::getUserId();
-        $designation_id_old = Auth::user()->designation_id_old;
-        if (!in_array($designation_id_old, array('Operator'))) {
+        $designation_id = Auth::user()->designation_id;
+        if (!in_array($designation_id, array('Operator'))) {
             return redirect("/")->with('error', 'Not Allowed');
         }
         $scheme_id = trim($request->scheme_id);
@@ -760,9 +772,9 @@ class PensionformController extends Controller
         //DB::enableQueryLog();
 
         $user_id = AuthChecker::getUserId();
-        $designation_id_old = Auth::user()->designation_id_old;
-        //dd($designation_id_old);
-        if ($designation_id_old != 'Operator') {
+        $designation_id = Auth::user()->designation_id;
+        //dd($designation_id);
+        if ($designation_id != 'Operator') {
             return redirect("/")->with('error', 'Not Allowed');
         }
         $sucess = $request->get('sucess');
@@ -809,8 +821,8 @@ class PensionformController extends Controller
                 return redirect("/")->with('success', 'User Disabled');
             }
             $is_active = 0;
-            $roleArray = $request->session()->get('role');
-            foreach ($roleArray as $roleObj) {
+            $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                        foreach ($roleArray as $roleObj) {
                 if ($roleObj['scheme_id'] == $scheme_id) {
                     $is_active = 1;
                     $mapping_level = $roleObj['mapping_level'];
@@ -898,8 +910,8 @@ class PensionformController extends Controller
             if ($duty->mapping_level == 'Department') {
                 $is_active = 1;
             } else {
-                $roleArray = $request->session()->get('role');
-                foreach ($roleArray as $roleObj) {
+                $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                                foreach ($roleArray as $roleObj) {
                     if ($roleObj['scheme_id'] == $scheme_id) {
                         $is_active = 1;
                         $mapping_level = $roleObj['mapping_level'];
@@ -1092,7 +1104,7 @@ class PensionformController extends Controller
         $user_id = AuthChecker::getUserId();
         $id = (int) $request->id;
         $scheme_id = (int) $request->scheme_id;
-        $designation_id_old = Auth::user()->designation_id_old;
+        $designation_id = Auth::user()->designation_id;
 
         if (!is_int($scheme_id)) {
             return redirect("/")->with('danger', 'Scheme Code Not Valid');
@@ -1136,8 +1148,8 @@ class PensionformController extends Controller
             $model_name = $this->housingMainTable;
         }
         $is_active = 0;
-        $roleArray = $request->session()->get('role');
-        foreach ($roleArray as $roleObj) {
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == $scheme_id) {
                 $is_active = 1;
                 $mapping_level = $roleObj['mapping_level'];
@@ -1166,13 +1178,13 @@ class PensionformController extends Controller
                 $query = $model_name::where(['id' => $id, 'created_by_dist_code' => $distCode, 'scheme_id' => $scheme_id]);
             }
         }
-        if ($designation_id_old == 'Verifier') {
+        if ($designation_id == 'Verifier') {
             if ($is_state_login) {
                 $query = $query->where('next_level_role_id', $this->state_login_next_level_role_id_arr['entry']);
             } else {
                 $query = $query->whereNull('next_level_role_id');
             }
-        } else if ($designation_id_old == 'Approver') {
+        } else if ($designation_id == 'Approver') {
             if ($is_state_login) {
                 $query = $query->where('next_level_role_id', $this->state_login_next_level_role_id_arr['verified']);
             } else {
@@ -1327,7 +1339,7 @@ class PensionformController extends Controller
         $id = $request->id;
         $scheme_id = (int) $request->scheme_id;
         // dd($scheme_id);
-        $designation_id_old = Auth::user()->designation_id_old;
+        $designation_id = Auth::user()->designation_id;
 
         if (!is_int($scheme_id)) {
             return redirect("/")->with('error', 'Scheme Code Not Valid');
@@ -1338,8 +1350,8 @@ class PensionformController extends Controller
         $created_by = Auth::user()->id;
         $is_active = 0;
         $mapping_level = NULL;
-        $roleArray = $request->session()->get('role');
-        foreach ($roleArray as $roleObj) {
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == $scheme_id) {
                 $is_active = 1;
                 $mapping_level = $roleObj['mapping_level'];
@@ -1762,7 +1774,7 @@ class PensionformController extends Controller
             if ($arch_status && $is_update && $doc_inserted_arch && $doc_inserted_del && $doc_inserted && $is_saved_log) {
                 DB::commit();
                 DB::connection('pgsql_encwrite')->commit();
-                if ($designation_id_old == 'Operator')
+                if ($designation_id == 'Operator')
                     return redirect("application-list-read-only-edit?pr1=" . $scheme_schema)->with('success', 'Application Updated Successfully')
                         ->with('id', $id);
                 else {
@@ -1771,7 +1783,7 @@ class PensionformController extends Controller
             } else {
                 DB::connection('pgsql_encwrite')->rollback();
                 DB::rollback();
-                if ($designation_id_old == 'Operator')
+                if ($designation_id == 'Operator')
                     return redirect("/application-edit?id=" . $request->id . "&scheme_id=" . $request->scheme_id)->with('errors', array('Some error.Please try again'));
                 else {
                     return redirect('/')->with('danger', 'Some error.Please try again');
@@ -1785,7 +1797,7 @@ class PensionformController extends Controller
 
 
             DB::rollback();
-            if ($designation_id_old == 'Operator') {
+            if ($designation_id == 'Operator') {
                 return redirect("application-list-read-only-edit?pr1=" . $scheme_schema)->with('error', 'Some error.Please try again');
             } else {
                 return redirect('/')->with('error', 'Some error.Please try again');
@@ -2644,7 +2656,7 @@ class PensionformController extends Controller
         // dd($request->all());
         //dd(123);
         $user_id = AuthChecker::getUserId();
-        $designation_id = Auth::user()->designation_id_old;
+        $designation_id = Auth::user()->designation_id;
         //dd($designation_id);
         if ($designation_id != 'Operator') {
             // dd('Not Allowed');
@@ -2669,8 +2681,8 @@ class PensionformController extends Controller
             return redirect("/")->with('error', 'Parameter not valid');
         }
         // $is_active = 0;
-        $roleArray = $request->session()->get('role');
-        foreach ($roleArray as $roleObj) {
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == $scheme_id) {
                 $is_active = 1;
                 $level = $roleObj['mapping_level'];

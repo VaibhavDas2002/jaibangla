@@ -13,7 +13,7 @@ use App\UrbanBody;
 use App\Taluka;
 use App\UpdateBenDetails;
 use App\DupliacteApproveReject;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use Elibyy\TCPDF\Facades\TCPDF as PDF;
 use App\Helpers\AuthChecker;
 
@@ -29,7 +29,7 @@ class BeneficiaryApplicationStatusController extends Controller
     public function searchResult(Request $request)
     {
         $user_id = AuthChecker::getUserId();
-        $designation_id_old = Auth::user()->designation_id_old;
+        $designation_id = Auth::user()->designation_id;
         $mapObj = Configduty::where('user_id',$user_id)->where('is_active',1)->first();
         $dist_code = $mapObj->district_code;
         if ($mapObj->is_urban == 1) {

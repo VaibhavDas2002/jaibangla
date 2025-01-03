@@ -539,16 +539,16 @@ class GenericLotController extends Controller
 		try {
 			$sourcecData = "";
 			$targetData = "";
-			$designation_id_old = Auth::user()->designation_id_old;
+			$designation_id = Auth::user()->designation_id;
 			$scheme_id = $request->select_scheme;
-			$sourcePmtData = SchemeDesigPaymentMode::where('designation_id_old', $designation_id_old)
+			$sourcePmtData = SchemeDesigPaymentMode::where('designation_id', $designation_id)
 				->where('source_is_active', 1);
 			if (!empty($scheme_id)) {
 				$sourcePmtData = $sourcePmtData->where('scheme_id', $scheme_id);
 			}
 
 			$sourcePmtData = $sourcePmtData->get();
-			$targetPmtData = SchemeDesigPaymentMode::where('designation_id_old', $designation_id_old)
+			$targetPmtData = SchemeDesigPaymentMode::where('designation_id', $designation_id)
 				->where('target_is_active', 1);
 
 			if (!empty($scheme_id)) {

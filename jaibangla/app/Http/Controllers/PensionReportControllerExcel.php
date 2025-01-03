@@ -6,8 +6,8 @@ use Illuminate\Http\Request;
 use App\Configduty;
 use App\District;
 use App\Scheme;
-use Auth;
-use Config;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 use App\UrbanBody;
@@ -44,8 +44,7 @@ class PensionReportControllerExcel extends Controller
         }
         $scheme_id = $request->scheme_id;
         $is_active = 0;
-        $roleArray = $request->session()->get('role');
-        // dd($roleArray);
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray()        // dd($roleArray);
         foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == $scheme_id) {
                 $is_active = 1;
@@ -63,12 +62,12 @@ class PensionReportControllerExcel extends Controller
             return redirect('/')->with('error', 'User not Authorized for this scheme');
         }
         $condition = array();
-        $designation_id_old = Auth::user()->designation_id_old;
-        if ($designation_id_old == 'Approver') {
+        $designation_id = Auth::user()->designation_id;
+        if ($designation_id == 'Approver') {
             //dd(123);
             $condition["created_by_dist_code"] = $district_code;
         }
-        if ($designation_id_old == 'Verifier' || $designation_id_old == 'Operator') {
+        if ($designation_id == 'Verifier' || $designation_id == 'Operator') {
             //dd(333);
             $condition["created_by_dist_code"] = $district_code;
             $condition["created_by_local_body_code"] = $urban_body_code;
@@ -470,8 +469,7 @@ if (!empty($request->gp_ward_code_app)) {
 
         $scheme_id = $request->scheme_id;
         $is_active = 0;
-        $roleArray = $request->session()->get('role');
-        foreach ($roleArray as $roleObj) {
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray()        foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == $scheme_id) {
                 $is_active = 1;
                 $mapping_level = $roleObj['mapping_level'];
@@ -488,11 +486,11 @@ if (!empty($request->gp_ward_code_app)) {
             return redirect('/')->with('error', 'User not Authorized for this scheme');
         }
         $condition = array();
-        $designation_id_old = Auth::user()->designation_id_old;
-        if ($designation_id_old == 'Approver') {
+        $designation_id = Auth::user()->designation_id;
+        if ($designation_id == 'Approver') {
             $condition["created_by_dist_code"] = $district_code;
         }
-        if ($designation_id_old == 'Verifier' || $designation_id_old == 'Operator') {
+        if ($designation_id == 'Verifier' || $designation_id == 'Operator') {
             $condition["created_by_dist_code"] = $district_code;
             $condition["created_by_local_body_code"] = $urban_body_code;
         }

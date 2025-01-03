@@ -173,10 +173,10 @@ href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,30
          <select name="application_type" id="application_type" class="form-control full-width" >
                   <option value="">-----All----</option>
                   <option value="1" selected >Pending</option> 
-                  @if($designation_id_old=='Operator') 
+                  @if($designation_id=='Operator') 
                   <option value="2">Modified..Verification Pending</option> 
                   @endif
-                   @if($designation_id_old=='Operator' || $designation_id_old=='Verifier') 
+                   @if($designation_id=='Operator' || $designation_id=='Verifier') 
                   <option value="3">Modified and Verified but Approval Pending</option> 
                    @endif
                   <option value="4">Modified and Verified and Approved</option>

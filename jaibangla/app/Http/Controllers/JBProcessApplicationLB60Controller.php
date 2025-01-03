@@ -23,7 +23,12 @@ use App\SchemeDocMap;
 use App\BenDocs;
 use App\DsPhase;
 use App\SubDistrict;
-use Carbon;
+use Illuminate\Support\Facades\Carbon;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Input;
+use Illuminate\Support\Facades\Validator;
+
+
 use Mpdf\Tag\Dd;
 
 class JBProcessApplicationLB60Controller extends Controller
@@ -47,7 +52,7 @@ class JBProcessApplicationLB60Controller extends Controller
         $auth = AuthChecker::ReportChecker();
         if ($auth) {
             $user_id = AuthChecker::getUserId();
-            if (AuthChecker::OperatorChecker() || AuthChecker::VerifierChecker() || AuthChecker::ApproverChecker() || AuthChecker::HODChecker() || AuthChecker::DashboardChecker() || AuthChecker::DDOChecker()) {
+            if (AuthChecker::MakerPermission() || AuthChecker::CheckerPermission() || AuthChecker::ApproverPermission() || AuthChecker::HODChecker() || AuthChecker::DashboardChecker() || AuthChecker::DDOChecker()) {
                 $schemes = DB::select(DB::raw("select id,scheme_name,display_name,is_active from m_scheme where id  IN (1,3,10) and  id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . ") order by rank"));
                 //dd($schemes);
                 return view(
@@ -65,9 +70,9 @@ class JBProcessApplicationLB60Controller extends Controller
     public function ListView(Request $request)
     {
         try {
-            $is_operator = AuthChecker::OperatorChecker();
-            $is_verifier = AuthChecker::VerifierChecker();
-            $is_approver = AuthChecker::ApproverChecker();
+            $is_operator = AuthChecker::MakerPermission();
+            $is_verifier = AuthChecker::CheckerPermission();
+            $is_approver = AuthChecker::ApproverPermission();
             $is_hod = AuthChecker::HODChecker();
             $c_time = date('Y-m-d H:i:s', time());
             $user_id = AuthChecker::getUserId();
@@ -129,7 +134,7 @@ class JBProcessApplicationLB60Controller extends Controller
                 $is_rural = NULL;
                 $created_by_local_body_code = NULL;
             }
-            if (AuthChecker::VerifierChecker()) {
+            if (AuthChecker::CheckerPermission()) {
             }
             if (request()->ajax()) {
                 $limit = $request->input('length');
@@ -137,7 +142,7 @@ class JBProcessApplicationLB60Controller extends Controller
                 $role_arr_verfied = MapLavel::where('scheme_id', $scheme_id)->where('role_name', 'Verifier')->first();
                 $next_level_role_id_verified = $role_arr_verfied->parent_id;
                 if ($request->application_type == 5) {
-                    if (AuthChecker::ApproverChecker() || AuthChecker::VerifierChecker()) {
+                    if (AuthChecker::ApproverPermission() || AuthChecker::CheckerPermission()) {
                         $query = DB::table($schema . '.beneficiaries')
                             ->where('scheme_id', $scheme_id)
                             ->where('created_by_dist_code', $district_code);
@@ -152,7 +157,7 @@ class JBProcessApplicationLB60Controller extends Controller
 
                     }
                 } else {
-                    if (AuthChecker::ApproverChecker() || AuthChecker::VerifierChecker()) {
+                    if (AuthChecker::ApproverPermission() || AuthChecker::CheckerPermission()) {
                         $query = DB::table($schema . '.beneficiaries')->where('scheme_id', $scheme_id)
                             ->where('is_lb_imported', 1)->where('created_by_dist_code', $district_code);
                     } else {
@@ -166,12 +171,12 @@ class JBProcessApplicationLB60Controller extends Controller
                         }
                     }
                 }
-                if (AuthChecker::VerifierChecker()) {
+                if (AuthChecker::CheckerPermission()) {
                     $query = $query->where('created_by_local_body_code', $created_by_local_body_code);
                 }
-                if (AuthChecker::VerifierChecker()) {
+                if (AuthChecker::CheckerPermission()) {
                 }
-                if (AuthChecker::ApproverChecker()) {
+                if (AuthChecker::ApproverPermission()) {
                 }
                 if ($duty_obj->mapping_level == "Subdiv") {
                     if (!empty($request->block_ulb_code) && isset($request->block_ulb_code) && ($request->block_ulb_code !== 'undefined')) {
@@ -184,7 +189,7 @@ class JBProcessApplicationLB60Controller extends Controller
                 if (!empty($request->application_type)) {
                     if ($request->application_type == 1) {
                         //Pending
-                        if (AuthChecker::ApproverChecker()) {
+                        if (AuthChecker::ApproverPermission()) {
                             $query = $query->whereraw(" (((is_transfer=1 and transfer_finalize IS NULL) or (back_lb=1 and back_lb_finalize IS NULL) or next_level_role_id=" . $next_level_role_id_verified . ") and is_rejected=0)");
                         } else
                             $query = $query->whereNull('next_level_role_id')->whereNull('transfer_to_scheme_id')->whereNull('is_transfer')->whereNull('back_lb');
@@ -498,7 +503,7 @@ class JBProcessApplicationLB60Controller extends Controller
                 $scheme_length = NULL;
                 $id_length = NULL;
             }
-            if (AuthChecker::ApproverChecker() || AuthChecker::VerifierChecker()) {
+            if (AuthChecker::ApproverPermission() || AuthChecker::CheckerPermission()) {
                 $query = DB::table($schema . '.beneficiaries')
                     ->where('created_by_dist_code', $district_code)
                     ->where('id', $request->id)->where('is_lb_imported', 1);
@@ -519,12 +524,12 @@ class JBProcessApplicationLB60Controller extends Controller
                 //dd($row->next_level_role_id);
                 return redirect("/")->with('danger', 'Not Allowed');
             }
-            if (AuthChecker::VerifierChecker()) {
+            if (AuthChecker::CheckerPermission()) {
                 if (!is_null($row->next_level_role_id)) {
                     return redirect("/")->with('danger', 'Not Allowed');
                 }
             }
-            if (AuthChecker::ApproverChecker()) {
+            if (AuthChecker::ApproverPermission()) {
 
                 /*if ($row->next_level_role_id != $next_level_role_id_verified) {
                   return redirect("/")->with('danger', 'Not Allowed');
@@ -749,12 +754,12 @@ class JBProcessApplicationLB60Controller extends Controller
                 }
                 //$transfer_oap = 0;
             }
-            if (AuthChecker::VerifierChecker()) {
+            if (AuthChecker::CheckerPermission()) {
                 if ($row->doc_imported == 1) {
                     $can_verify = 1;
                 }
                 $can_approve = 0;
-            } else if (AuthChecker::ApproverChecker()) {
+            } else if (AuthChecker::ApproverPermission()) {
                 $can_verify = 0;
                 // dd($row->transfer_to_scheme_id);
                 $transfer_sc = 0;
@@ -790,7 +795,7 @@ class JBProcessApplicationLB60Controller extends Controller
                     return redirect("/")->with('danger', 'Not Allowed');
                 }
             }
-            if (AuthChecker::ApproverChecker() || AuthChecker::VerifierChecker()) {
+            if (AuthChecker::ApproverPermission() || AuthChecker::CheckerPermission()) {
             } else {
                 $fetch_lb = 0;
                 $can_verify = 0;
@@ -842,7 +847,7 @@ class JBProcessApplicationLB60Controller extends Controller
 
             $user_id = AuthChecker::getUserId();
 
-            if (!AuthChecker::VerifierChecker() || !AuthChecker::ApproverChecker()) {
+            if (!AuthChecker::CheckerPermission() || !AuthChecker::ApproverPermission()) {
                 return redirect("/")->with('danger', 'Not Allowed');
             }
 
@@ -886,11 +891,11 @@ class JBProcessApplicationLB60Controller extends Controller
                 $scheme_length = NULL;
                 $id_length = NULL;
             }
-            if (AuthChecker::VerifierChecker()) {
+            if (AuthChecker::CheckerPermission()) {
                 $query = DB::table($schema . '.beneficiaries')
                     ->where($condition)->whereNull('next_level_role_id');
             }
-            if (AuthChecker::ApproverChecker()) {
+            if (AuthChecker::ApproverPermission()) {
                 $query = DB::table($schema . '.beneficiaries')
                     ->where($condition);
             }
@@ -1016,14 +1021,14 @@ class JBProcessApplicationLB60Controller extends Controller
             //dd($action_msg);
             if ($action_type == 1) {
                 //For Doc Import
-                if (!AuthChecker::VerifierChecker()) {
+                if (!AuthChecker::CheckerPermission()) {
                     return redirect("/")->with('danger', 'Not Allowed');
                 }
             } else if ($action_type == 5) {
 
                 // dd('ok');
                 //For Import & Verify
-                if (!AuthChecker::VerifierChecker()) {
+                if (!AuthChecker::CheckerPermission()) {
                     return redirect("/")->with('danger', 'Not Allowed');
                 }
                 //dd('ok');
@@ -1077,7 +1082,7 @@ class JBProcessApplicationLB60Controller extends Controller
 
                 //Back to LB
 
-                if (AuthChecker::VerifierChecker()) {
+                if (AuthChecker::CheckerPermission()) {
                     $mydate = date('Y-m-d');
                     $max_date = strtotime("-25 year", strtotime($mydate));
                     $max_date = date("Y-m-d", $max_date);
@@ -1210,7 +1215,7 @@ class JBProcessApplicationLB60Controller extends Controller
                                                 $accept_reject_model->scheme_id = $scheme_id;
                                                 $accept_reject_model->user_id = $user_id;
                                                 $accept_reject_model->ip_address = request()->ip();
-                                                $accept_reject_model->op_type = class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod().'@BACKLBV';
+                                                $accept_reject_model->op_type = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod() . '@BACKLBV';
 
                                                 $is_saved_log = $accept_reject_model->save();
                                                 if ($back_lb_status && $is_saved_log) {
@@ -1266,7 +1271,7 @@ class JBProcessApplicationLB60Controller extends Controller
                         // dd($e);
                         return redirect("View60lbapplication?id=" . $request->id . "&scheme_id=" . $scheme_id)->with('error', 'Error! Please try again.');
                     }
-                } else if (AuthChecker::ApproverChecker()) {
+                } else if (AuthChecker::ApproverPermission()) {
                     // dd('ok');
                     try {
                         $serverip = Config::get('constants.lb60server');
@@ -1319,7 +1324,7 @@ class JBProcessApplicationLB60Controller extends Controller
                                     $accept_reject_model->user_id = $user_id;
                                     $accept_reject_model->ip_address = request()->ip();
                                     $accept_reject_model->op_type = 'BACKLBA';
-                                    $accept_reject_model->op_type = class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod().'@BACKLBA';
+                                    $accept_reject_model->op_type = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod() . '@BACKLBA';
                                     $is_saved_log = $accept_reject_model->save();
                                     if ($lb_update && $is_saved_log) {
                                         DB::commit();
@@ -1348,9 +1353,9 @@ class JBProcessApplicationLB60Controller extends Controller
                 }
             } else if ($action_type == 50) {
 
-                // dd($designation_id_old);
+                // dd($designation_id);
                 //For Approve
-                if (!AuthChecker::ApproverChecker()) {
+                if (!AuthChecker::ApproverPermission()) {
                     return redirect("/")->with('danger', 'Not Allowed');
                 }
                 $in_pension_id = 'ARRAY[' . "'$request->id'" . ']';
@@ -1378,7 +1383,7 @@ class JBProcessApplicationLB60Controller extends Controller
             } else if ($action_type == 70) {
 
                 //Transfer to Johar
-                if (AuthChecker::VerifierChecker()) {
+                if (AuthChecker::CheckerPermission()) {
                     $isValidarr = $this->validateInput($request, $scheme_id, $row, $action_type, $schema, 'johar', $request->new_aadhar_no, $request->new_mobile_no, $request->caste_certificate_no, trim($row->bank_code), trim($row->bank_ifsc), $row->aadhar_no, $row->mobile_no, $row->caste_certificate_no);
                     if ($isValidarr['is_valid'] == false) {
                         return back()->with('errors', $isValidarr['errors'])->withInput(Input::all());
@@ -1432,7 +1437,7 @@ class JBProcessApplicationLB60Controller extends Controller
                         }
                     }
                 }
-                if (AuthChecker::ApproverChecker()) {
+                if (AuthChecker::ApproverPermission()) {
                     DB::beginTransaction();
                     $transfer_to_arr = DB::select("select pension.transfer_from_bandhu_to_johar_lb(
           in_op_type => 'TJOHARAV',
@@ -1462,7 +1467,7 @@ class JBProcessApplicationLB60Controller extends Controller
             } else if ($action_type == 75) {
 
                 //Transfer to Bandhu
-                if (AuthChecker::VerifierChecker()) {
+                if (AuthChecker::CheckerPermission()) {
                     $isValidarr = $this->validateInput($request, $scheme_id, $row, $action_type, $schema, 'bandhu', $request->new_aadhar_no, $request->new_mobile_no, $request->caste_certificate_no, trim($row->bank_code), trim($row->bank_ifsc), $row->aadhar_no, $row->mobile_no, $row->caste_certificate_no);
                     if ($isValidarr['is_valid'] == false) {
                         return back()->with('errors', $isValidarr['errors'])->withInput(Input::all());
@@ -1504,7 +1509,7 @@ class JBProcessApplicationLB60Controller extends Controller
                         }
                     }
                 }
-                if (AuthChecker::ApproverChecker()) {
+                if (AuthChecker::ApproverPermission()) {
                     try {
                         DB::beginTransaction();
                         DB::connection('pgsql_encwrite')->beginTransaction();
@@ -1550,7 +1555,7 @@ class JBProcessApplicationLB60Controller extends Controller
             } else if ($action_type == 80) {
 
                 //Transfer to OAP
-                if (AuthChecker::VerifierChecker()) {
+                if (AuthChecker::CheckerPermission()) {
                     $isValidarr = $this->validateInput($request, $scheme_id, $row, $action_type, $schema, 'oap_wcd', $request->new_aadhar_no, $request->new_mobile_no, NULL, trim($row->bank_code), trim($row->bank_ifsc), $row->aadhar_no, $row->mobile_no, NULL);
                     if ($isValidarr['is_valid'] == false) {
                         return back()->with('errors', $isValidarr['errors'])->withInput(Input::all());
@@ -1642,11 +1647,8 @@ class JBProcessApplicationLB60Controller extends Controller
                             $accept_reject_model->scheme_id = $scheme_id;
                             $accept_reject_model->user_id = $user_id;
                             $accept_reject_model->ip_address = request()->ip();
-                            $accept_reject_model->op_type = 'TOAPV';
+                            $accept_reject_model->op_type = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod() . '@' . 'TOAPV';
                             $is_saved_log = $accept_reject_model->save();
-                            $JBPension->action_by = $user_id;
-                            $JBPension->action_ip_address = $request->ip();
-                            $JBPension->action_type = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod() . '@' . 'TOAPV';
                             //dd($transfer_to_status);
                             if ($transfer_to_status == 1 && $is_saved_log) {
                                 DB::commit();
@@ -1669,7 +1671,7 @@ class JBProcessApplicationLB60Controller extends Controller
                             return redirect("View60lbapplication?id=" . $request->id . "&scheme_id=" . $scheme_id)->with('errors', $return_msg);
                         }
                     }
-                } else if (AuthChecker::ApproverChecker()) {
+                } else if (AuthChecker::ApproverPermission()) {
                     DB::beginTransaction();
                     DB::connection('pgsql_encwrite')->beginTransaction();
                     if ($scheme_id == 1) {
@@ -1728,8 +1730,8 @@ class JBProcessApplicationLB60Controller extends Controller
                     $accept_reject_model->ip_address = request()->ip();
                     $accept_reject_model->action_by = $user_id;
                     $accept_reject_model->action_ip_address = $request->ip();
-                    //dd($designation_id_old);
-                    if (AuthChecker::ApproverChecker()) {
+                    //dd($designation_id);
+                    if (AuthChecker::ApproverPermission()) {
                         $accept_reject_model->op_type = 'LRA';
                         $accept_reject_model->action_type = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod() . '@' . 'LRA';
                         $reject_dup_adjustment = 1;
@@ -1765,9 +1767,9 @@ class JBProcessApplicationLB60Controller extends Controller
                 }
 
             } else if ($action_type == 85) {
-                // dd($designation_id_old);
+                // dd($designation_id);
                 //For Approve
-                if (!AuthChecker::ApproverChecker()) {
+                if (!AuthChecker::ApproverPermission()) {
                     return redirect("/")->with('danger', 'Not Allowed');
                 }
 
@@ -1874,7 +1876,7 @@ class JBProcessApplicationLB60Controller extends Controller
             $condition = array();
             $condition['id'] = $ben_id;
             $condition['created_by_dist_code'] = $duty_obj->district_code;
-            if (AuthChecker::VerifierChecker() || AuthChecker::OperatorChecker()) {
+            if (AuthChecker::CheckerPermission() || AuthChecker::MakerPermission()) {
                 if ($duty_obj->mapping_level == "Subdiv") {
                     $created_by_local_body_code = $duty_obj->urban_body_code;
                 }
@@ -1934,7 +1936,7 @@ class JBProcessApplicationLB60Controller extends Controller
                     return response()->json(['return_status' => $return_status, 'return_msg' => $return_text]);
                 }
 
-                if (AuthChecker::ApproverChecker()) {
+                if (AuthChecker::ApproverPermission()) {
                     $mapping_level = NULL;
                     $created_by_local_body_code = 0;
                     //  $row = DB::table($schema . '.beneficiary')->where('id',$ben_id)->first();
@@ -2010,9 +2012,9 @@ class JBProcessApplicationLB60Controller extends Controller
     public function lbapplicationbulkApprove(Request $request)
     {
 
-        $designation_id_old = Auth::user()->designation_id_old;
+        $designation_id = Auth::user()->designation_id;
         $user_id = AuthChecker::getUserId();
-        if (AuthChecker::ApproverChecker()) {
+        if (AuthChecker::ApproverPermission()) {
             //dd('ok');
             $scheme_id = $request->scheme_id;
             // dd($scheme_id);
@@ -2074,7 +2076,7 @@ class JBProcessApplicationLB60Controller extends Controller
                 return redirect($back_url)->with('error', 'Error! Please try again.');
             }
         }
-        if (AuthChecker::VerifierChecker()) {
+        if (AuthChecker::CheckerPermission()) {
             $scheme_id = $request->scheme_id;
             $back_url = 'workflow-lb60?scheme_id=' . $scheme_id;
             $c_time = date('Y-m-d H:i:s', time());
@@ -2150,21 +2152,21 @@ class JBProcessApplicationLB60Controller extends Controller
             $c_time = Carbon::now();
             $c_date = $c_time->format("Y-m-d");
             $is_active = 0;
-            $roleArray = $request->session()->get('role');
-            $designation_id_old = Auth::user()->designation_id_old;
+            $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+            $designation_id = Auth::user()->designation_id;
             $userId = Auth::user()->id;
             $district_visible = $is_urban_visible = $block_visible = 1;
             $municipality_visible = 0;
             $gp_ward_visible = 0;
             $muncList = collect([]);
             $gpList = collect([]);
-            if ($designation_id_old == 'Admin' || $designation_id_old == 'HOD' || $designation_id_old == 'HOP' || $designation_id_old == 'Dashboard' || $designation_id_old == 'MisState' || $designation_id_old == 'DDO') {
+            if ($designation_id == 'Admin' || $designation_id == 'HOD' || $designation_id == 'HOP' || $designation_id == 'Dashboard' || $designation_id == 'MisState' || $designation_id == 'DDO') {
                 $district_visible = $is_urban_visible = $block_visible = 1;
                 if ($userId == 3378)
                     $scsctvisible = 1;
                 else
                     $scsctvisible = 0;
-            } else if (AuthChecker::ApproverChecker() || AuthChecker::VerifierChecker()) {
+            } else if (AuthChecker::ApproverPermission() || AuthChecker::CheckerPermission()) {
                 $district_code = NULL;
                 $is_urban = NULL;
                 $blockCode = NULL;
@@ -2681,7 +2683,7 @@ class JBProcessApplicationLB60Controller extends Controller
                 $scheme_length = NULL;
                 $id_length = NULL;
             }
-            $designation_id_old = Auth::user()->designation_id_old;
+            $designation_id = Auth::user()->designation_id;
             $scheme_name_row = Scheme::where('id', $scheme_id)->first();
             $scheme_name = $scheme_name_row->scheme_name;
             $report_type = $request->report_type;
@@ -2728,7 +2730,7 @@ class JBProcessApplicationLB60Controller extends Controller
             if (!empty($request->application_type)) {
                 if ($request->application_type == 1) {
                     $report_type_name = ' Pending ' . $report_type_name;
-                    if (AuthChecker::ApproverChecker()) {
+                    if (AuthChecker::ApproverPermission()) {
                         $query = $query->where('next_level_role_id', $next_level_role_id);
                     } else {
                         $query->whereNull('next_level_role_id')->whereNull('transfer_to_scheme_id')->whereNull('is_transfer')->whereNull('back_lb');
@@ -2858,7 +2860,7 @@ class JBProcessApplicationLB60Controller extends Controller
                         $phase_des = '';
                     }
                     $status_des = '';
-                    $status_arr = $this->getStatus($row, $designation_id_old, $application_type, $next_level_role_id, 1);
+                    $status_arr = $this->getStatus($row, $designation_id, $application_type, $next_level_role_id, 1);
                     $status_des = $status_arr['status'];
 
                     echo "<tr><td>" . $row->lb_application_id . "</td><td>" . trim($ben_name) . "</td><td>" . $f_mobile_no . "</td><td>" . trim($row->block_ulb_name) . "</td><td>" . trim($row->gp_ward_name) . "</td><td>" . $phase_des . "</td><td>" . $status_des . "</td></tr>";
@@ -3089,7 +3091,7 @@ class JBProcessApplicationLB60Controller extends Controller
                     $status = 'Verified and Approved';
 
                 } else if ($data->next_level_role_id == $next_level_role_id_verified) {
-                    if (AuthChecker::ApproverChecker()) {
+                    if (AuthChecker::ApproverPermission()) {
                         $status = 'Verified but Approval Pending';
                         $return_arr['can_view'] = true;
                         $return_arr['bulk_approve'] = true;
@@ -3101,7 +3103,7 @@ class JBProcessApplicationLB60Controller extends Controller
                     if ($data->back_lb_finalize == 1) {
                         $status = 'Back to LB Request has been Approved';
                     } else if (is_null($data->back_lb_finalize)) {
-                        if (AuthChecker::ApproverChecker()) {
+                        if (AuthChecker::ApproverPermission()) {
                             $status = 'Back to LB Request';
                             $return_arr['can_view'] = true;
                         } else {
@@ -3122,7 +3124,7 @@ class JBProcessApplicationLB60Controller extends Controller
                     if ($data->transfer_finalize == 1) {
                         $status = 'Transfer Request to ' . $to_scheme . ' has been Approved';
                     } else if (is_null($data->transfer_finalize)) {
-                        if (AuthChecker::ApproverChecker()) {
+                        if (AuthChecker::ApproverPermission()) {
                             $return_arr['can_view'] = true;
                             $status = 'Transfer Request to ' . $to_scheme;
                         } else {

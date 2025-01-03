@@ -519,7 +519,7 @@
      var table = "";
      if (table != null && table != '') {
        $('#example').DataTable().destroy();
-       //alert(service_designation_id_old);
+       //alert(service_designation_id);
      }
      $.ajaxSetup({
        headers: {
@@ -999,7 +999,7 @@
          fill_datatable(scheme_code, application_type, district_code_fk, rural_urban_fk, block_munc_corp_code_fk, gp_ward_code_fk,
            mapping_column, mapping_column_val, mapping_rural_urban, s_val);
        }
-       //fill_datatable(department_id,service_designation_id_old,stake_level,district_code,subdiv_code,block_munc_corp_code,s_val);
+       //fill_datatable(department_id,service_designation_id,stake_level,district_code,subdiv_code,block_munc_corp_code,s_val);
 
      });
      table.on('click', '.ben_reject_button', function() {

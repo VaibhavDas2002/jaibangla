@@ -3,7 +3,7 @@
 namespace App\Http\Middleware;
 
 use Closure;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 
 class DCP
 {
@@ -14,18 +14,18 @@ class DCP
      * @param  \Closure  $next
      * @return mixed
      */
-//use Auth; //at the top
+//use Illuminate\Support\Facades\Auth; //at the top
  
     function handle($request, Closure $next)
     {
-        if (Auth::check() && Auth::user()->designation_id_old == 'DCP') {
+        if (Auth::check() && Auth::user()->designation_id == 'DCP') {
             return $next($request);
         }
         /*
-        elseif (Auth::check() && Auth::user()->designation_id_old == 'Admin') {
+        elseif (Auth::check() && Auth::user()->designation_id == 'Admin') {
             return redirect('/Admin');
         }
-        elseif (Auth::check() && Auth::user()->designation_id_old == 'ACP') {
+        elseif (Auth::check() && Auth::user()->designation_id == 'ACP') {
             return redirect('/ACP');
         }
         */

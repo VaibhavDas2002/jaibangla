@@ -95,7 +95,7 @@ desired effect
               </div>
               @endif
         </div>
-         @if(Auth::user()->designation_id_old == 'Admin')
+         @if(Auth::user()->designation_id == 'Admin')
 
         <div>Admin Dashboard</div>
         @endif

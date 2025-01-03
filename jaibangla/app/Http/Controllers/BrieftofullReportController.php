@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use Carbon\Carbon;
 use App\SubDistrict;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 use App\Ward;
 
 class BrieftofullReportController extends Controller
@@ -29,23 +29,23 @@ class BrieftofullReportController extends Controller
   function index(Request $request)
   {
     //return redirect('/')->with('error', 'Not Allowed');
-    $designationId = Auth::user()->designation_id_old;
+    $designationId = Auth::user()->designation_id;
     $userId = Auth::user()->id;
     $sceme_list = DB::select(DB::raw("select id,scheme_name from m_scheme where id IN (10,11,2) and id in (select scheme_id from duty_assignement where user_id=" . $userId . " and is_active=1) and is_active=1 order by scheme_name"));
     $base_date  = '2021-08-16';
     $c_time = Carbon::now();
     $c_date = $c_time->format("Y-m-d");
     $is_active = 0;
-    $roleArray = $request->session()->get('role');
-    $designation_id_old = Auth::user()->designation_id_old;
+    $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();;
+    $designation_id = Auth::user()->designation_id;
     $district_visible = $is_urban_visible = $block_visible = 1;
     $municipality_visible = 0;
     $gp_ward_visible = 0;
     $muncList = collect([]);
     $gpList = collect([]);
-    if ($designation_id_old == 'Admin' || $designation_id_old == 'HOD' ||  $designation_id_old == 'Dashboard') {
+    if ($designation_id == 'Admin' || $designation_id == 'HOD' ||  $designation_id == 'Dashboard') {
       $district_visible = $is_urban_visible = $block_visible = 1;
-    } else if ($designation_id_old == 'Approver') {
+    } else if ($designation_id == 'Approver') {
       $district_code = NULL;
       $is_urban = NULL;
       $blockCode = NULL;

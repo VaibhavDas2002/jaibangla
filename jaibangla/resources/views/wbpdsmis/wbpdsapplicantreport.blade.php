@@ -211,7 +211,7 @@ desired effect
         <a href="{{$backurl}}"><img width="50px;" style="pull-left" src="{{ asset("images/back.png") }}" alt="Back" /></a></div>
               <div class="col-md-8">
                 <h3 style="text-align: center;">Scheme:<span style="color:red;">{{$scheme_name}}</span></h3>
-                @if($designation_id_old=='HOD' || $designation_id_old=='Approver')
+                @if($designation_id=='HOD' || $designation_id=='Approver')
                 <h3 style="text-align: center;">District:<span style="color:red;">{{$district_name}}</span></h3>
                 <h3 style="text-align: center;">{{$blksubdivtxt}}:<span style="color:red;">{{$location_name}}</span></h3>
                 @endif
@@ -225,7 +225,7 @@ desired effect
          <label class=" control-label">Filter Type</label>
          <select name="filter_status" id="filter_status" class="form-control full-width" >
                   <option value="" selected>-----All----</option>
-                  @if($designation_id_old=='HOD' || $designation_id_old=='Approver')
+                  @if($designation_id=='HOD' || $designation_id=='Approver')
                   <option value="5">Name Match</option> 
                   @endif  
                   <option value="6">Name Not Match</option>   
@@ -272,7 +272,7 @@ desired effect
               <th>Name as in Aadhar</th>
               <th>Name as in Jai Bangla</th>
               <th>Name is Match?</th>
-              @if($designation_id_old=='Verifier')
+              @if($designation_id=='Verifier')
               <th>Action</th>
               @endif
               </tr>
@@ -403,7 +403,7 @@ desired effect
         { "data": "name_as_in_aadhar"},
         { "data": "jb_ben_name_new" },
         { "data": "is_match" },
-        @if($designation_id_old=='Verifier')
+        @if($designation_id=='Verifier')
         { "data": "view" },
         @endif
                

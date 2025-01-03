@@ -14,7 +14,7 @@ use App\Taluka;
 use App\UpdateBenDetails;
 use App\DupliacteApproveReject;
 use App\lot_master;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use App\Helpers\AuthChecker;
 
 class BeneficiaryPaymentStatusController extends Controller

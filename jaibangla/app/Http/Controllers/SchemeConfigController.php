@@ -15,7 +15,7 @@ class SchemeConfigController extends Controller
   public function index()
   {
     $user_id = AuthChecker::getUserId();
-    $designation = Auth::user()->designation_id_old;
+    $designation = Auth::user()->designation_id;
     $mapObj = DB::connection('pgsql_mis')->table('public.duty_assignement')->where('user_id', $user_id)->where('is_active', 1)->first();
     $scheme = DB::connection('pgsql_mis')->select('select id,scheme_name from public.m_scheme where  id in (select scheme_id from public.duty_assignement where user_id=' . $user_id . ' and is_active=1) and is_active=1 order by scheme_name');
     $schemes = DB::connection('pgsql_mis')->select('select * from public.m_scheme where is_active = 1');

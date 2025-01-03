@@ -16,7 +16,7 @@ class Configduty extends Model implements Auditable
 
 	 public function hasRole($role)
 	 {
-		 return User::where('designation_id_old', $role)->get();
+		 return User::where('designation_id', $role)->get();
 	 }
  
 	 public function district()

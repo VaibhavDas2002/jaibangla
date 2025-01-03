@@ -59,8 +59,8 @@ class wBPdsChangeController extends Controller
   function selectschemeOp(Request $request)
   {
     $this->middleware('auth');
-    $roleArray = $request->session()->get('role');
-    $designation_id_old = Auth::user()->designation_id_old;
+    $roleArray = Configduty::where('user_id', $user_id)->where('is_active', 1)->get()->toArray();;
+    $designation_id = Auth::user()->designation_id;
     $userId = Auth::user()->id;
     $type = $request->type;
     if (!in_array($type, array(1, 2))) {
@@ -72,7 +72,7 @@ class wBPdsChangeController extends Controller
       'wbpds.selectSchemeOp',
       [
         'scheme_list' => $scheme_list,
-        'designation_id_old' => $designation_id_old,
+        'designation_id' => $designation_id,
         'type' => $type
       ]
     );
@@ -80,8 +80,8 @@ class wBPdsChangeController extends Controller
   public function namemismatchdlist(Request $request)
   {
     $this->middleware('auth');
-    $designation_id_old = Auth::user()->designation_id_old;
-    //dd($designation_id_old);
+    $designation_id = Auth::user()->designation_id;
+    //dd($designation_id);
     $user_id = AuthChecker::getUserId();
     $scheme_id = $request->scheme_id;
     // var_dump($scheme_id);
@@ -156,7 +156,7 @@ class wBPdsChangeController extends Controller
       // dd($process_type);
       $query = DB::table($schema . '.beneficiaries')
         ->where('created_by_dist_code', $district_code)->where('scheme_id', $scheme_id)->whereIn('next_level_role_id', array(0, -57))->whereRaw(" (freezing_modify_aadhar=0 OR freezing_modify_aadhar IS NULL) ");
-      if ($designation_id_old == 'Verifier') {
+      if ($designation_id == 'Verifier') {
         $query = $query->where('created_by_local_body_code', $created_by_local_body_code);
         if (!empty($application_type)) {
           if ($application_type == 1)
@@ -187,7 +187,7 @@ class wBPdsChangeController extends Controller
       if (!empty($request->gp_ward_code)) {
         $query = $query->where('gp_ward_code', $request->gp_ward_code);
       }
-      if ($designation_id_old == 'Approver') {
+      if ($designation_id == 'Approver') {
         // dd($process_type);
         if ($application_type != '') {
           if ($application_type == 1)
@@ -261,9 +261,9 @@ class wBPdsChangeController extends Controller
           $app_id = $data->created_by_dist_code . substr('0' . $data->scheme_id, -$scheme_length) . substr('0000000' . $data->id, -$id_length);
 
           return $app_id;
-        })->addColumn('view', function ($data) use ($scheme_id, $designation_id_old, $type) {
+        })->addColumn('view', function ($data) use ($scheme_id, $designation_id, $type) {
 
-          if ($designation_id_old == 'Verifier') {
+          if ($designation_id == 'Verifier') {
             if ($data->process_acc_validated_aadhar == -57) {
               $action = 'Rejected';
             } else if ($data->acc_validated_aadhar == -2 && $data->next_level_role_id_aadhar_validation == 1) {
@@ -278,7 +278,7 @@ class wBPdsChangeController extends Controller
               $action = '';
             }
           }
-          if ($designation_id_old == 'Approver') {
+          if ($designation_id == 'Approver') {
             if ($data->next_level_role_id_aadhar_validation == -57) {
               $action = 'Rejected';
             } else if ($data->next_level_role_id_aadhar_validation == 0) {
@@ -294,8 +294,8 @@ class wBPdsChangeController extends Controller
             }
           }
           return $action;
-        })->addColumn('check', function ($data) use ($designation_id_old) {
-          if ($designation_id_old == 'Approver') {
+        })->addColumn('check', function ($data) use ($designation_id) {
+          if ($designation_id == 'Approver') {
             if ($data->next_level_role_id_aadhar_validation == 1) {
               return '<input type="checkbox" name="approvalcheck[]" onClick="controlCheckBox()" value="' . $data->id . '">';
             } else
@@ -362,7 +362,7 @@ class wBPdsChangeController extends Controller
     return view(
       'wbpds.linelistingmismatch',
       [
-        'designation_id_old' => $designation_id_old,
+        'designation_id' => $designation_id,
         'verifier_type' => $verifier_type,
         'created_by_local_body_code' => $created_by_local_body_code,
         'is_rural' => $is_rural,
@@ -380,7 +380,7 @@ class wBPdsChangeController extends Controller
   public function ViewMismatchName(Request $request)
   {
     $this->middleware('auth');
-    $designation_id_old = Auth::user()->designation_id_old;
+    $designation_id = Auth::user()->designation_id;
     $user_id = AuthChecker::getUserId();
 
     $scheme_id = $request->scheme_id;
@@ -487,7 +487,7 @@ class wBPdsChangeController extends Controller
     $doc_type_id = $this->doc_type_id;
     // $docs = DB::table($schema . '.ben_docs')->where('ben_id', $request->id)->where('doc_type_id', $doc_type_id)->first();
     $encolserdata = DB::connection('pgsql_encwrite')->table('jb_doc.ben_attach_documents')->where('created_by_dist_code', $district_code)->where('beneficiary_id', $request->id)->where('scheme_id', $scheme_id)->where('document_type', $doc_type_id)->first();
-    if ($designation_id_old == 'Approver') {
+    if ($designation_id == 'Approver') {
       // $docs_new = DB::table($schema . '.ben_docs')->where('ben_id', $request->id)->where('doc_type_id', $doc_type_id)->first();
       $encolserdata = DB::connection('pgsql_encwrite')->table('jb_doc.ben_attach_documents')->where('created_by_dist_code', $district_code)->where('beneficiary_id', $request->id)->where('scheme_id', $scheme_id)->where('document_type', $doc_type_id)->first();
     } else {
@@ -499,7 +499,7 @@ class wBPdsChangeController extends Controller
     return view(
       'wbpds.ViewMismatchName',
       [
-        'designation_id_old' => $designation_id_old,
+        'designation_id' => $designation_id,
         'scheme_id' => $scheme_id,
         'row' => $row,
         'district_name' => $district_name,
@@ -517,7 +517,7 @@ class wBPdsChangeController extends Controller
     $this->middleware('auth');
     //dd('ok2');
     $doc_type_id = $this->doc_type_id;
-    $designation_id_old = Auth::user()->designation_id_old;
+    $designation_id = Auth::user()->designation_id;
     $user_id = AuthChecker::getUserId();
     $id = $request->id;
     //dd($request->id);
@@ -574,7 +574,7 @@ class wBPdsChangeController extends Controller
     $condition = array();
     $condition['id'] = $request->id;
     $district_code = $duty_obj->district_code;
-    if ($designation_id_old == 'Verifier') {
+    if ($designation_id == 'Verifier') {
       if ($duty_obj->mapping_level == "Subdiv") {
         $created_by_local_body_code = $duty_obj->urban_body_code;
       }
@@ -749,7 +749,7 @@ class wBPdsChangeController extends Controller
     } else {
       $sp_mobile = 0;
     }
-    if ($designation_id_old == 'Verifier') {
+    if ($designation_id == 'Verifier') {
       $inputMain = [
         'failed_process_type_aadhaar' => $process_type,
         // 'failed_process_type_aadhaar' => $process_type,
@@ -939,8 +939,8 @@ class wBPdsChangeController extends Controller
    
     $this->middleware('auth');
     //dd('ok');
-    $designation_id_old = Auth::user()->designation_id_old;
-    if ($designation_id_old != 'Approver') {
+    $designation_id = Auth::user()->designation_id;
+    if ($designation_id != 'Approver') {
       return redirect("/")->with('error', 'Not Allowed');
     }
     $user_id = AuthChecker::getUserId();
@@ -1210,17 +1210,17 @@ class wBPdsChangeController extends Controller
     $c_time = Carbon::now();
     $c_date = $c_time->format("Y-m-d");
     $is_active = 0;
-    $roleArray = $request->session()->get('role');
-    $designation_id_old = Auth::user()->designation_id_old;
+    $roleArray = Configduty::where('user_id', $user_id)->where('is_active', 1)->get()->toArray();;
+    $designation_id = Auth::user()->designation_id;
     $userId = Auth::user()->id;
     $district_visible = $is_urban_visible = $block_visible = 1;
     $municipality_visible = 0;
     $gp_ward_visible = 0;
     $muncList = collect([]);
     $gpList = collect([]);
-    if ($designation_id_old == 'Admin' || $designation_id_old == 'HOD' || $designation_id_old == 'HOP' ||  $designation_id_old == 'Dashboard' || $designation_id_old == 'MisState' || $designation_id_old == 'DDO') {
+    if ($designation_id == 'Admin' || $designation_id == 'HOD' || $designation_id == 'HOP' ||  $designation_id == 'Dashboard' || $designation_id == 'MisState' || $designation_id == 'DDO') {
       $district_visible = $is_urban_visible = $block_visible = 1;
-    } else if ($designation_id_old == 'Approver' || $designation_id_old == 'Verifier') {
+    } else if ($designation_id == 'Approver' || $designation_id == 'Verifier') {
       $district_code = NULL;
       $is_urban = NULL;
       $blockCode = NULL;

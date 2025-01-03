@@ -6,12 +6,12 @@ use Illuminate\Http\Request;
 use App\applicationModel;
 use App\Policestation;
 use App\PicUpload;
-use DB;
+use Illuminate\Support\Facades\DB;
 use APP\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use App\Configduty;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use App\Helpers\AuthChecker;
 
 

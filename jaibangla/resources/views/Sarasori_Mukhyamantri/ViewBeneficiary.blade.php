@@ -494,7 +494,7 @@ margin: 10px 0px 10px 0px !important;
                {{-- <div class="row color1">
                   <div class="col-md-12"><h3>Sarasori Mukhyamantri</h3></div>
                 </div>   --}}
-                @if($designation_id_old=='Verifier' && is_null($row->sm_flag) && ($row->no_aadhar == 1 || $row->no_mobile == 1 || $row->dup_aadhar == 1 || $row->dup_mobile == 1 || $row->dup_bank == 1))
+                @if($designation_id=='Verifier' && is_null($row->sm_flag) && ($row->no_aadhar == 1 || $row->no_mobile == 1 || $row->dup_aadhar == 1 || $row->dup_mobile == 1 || $row->dup_bank == 1))
                 <div class="row">
                 <form method="POST" action="{{route('SmPostRevert')}}"  name="formReject" id="formReject">
                 <input type="hidden" name="_token" value="{{ csrf_token() }}">

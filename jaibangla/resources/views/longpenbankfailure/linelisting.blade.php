@@ -217,7 +217,7 @@ href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,30
           <input type="hidden" name="rural_urban_code"  id="rural_urban_code" value="{{$is_rural}}">
           <input value="{{$created_by_local_body_code}}" type="hidden" name="created_by_local_body_code"  id="created_by_local_body_code">
            @endif
-           @if($designation_id_old=='Approver')
+           @if($designation_id=='Approver')
          
            
         <div class="form-group col-md-3">
@@ -418,7 +418,7 @@ href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,30
         var block_ulb_code = $('#block_ulb_code').val();
         var gp_ward_code = $('#gp_ward_code').val();
         var application_type = $('#application_type').val();
-        var designation_id_old = $('#designation_id_old').val();
+        var designation_id = $('#designation_id').val();
         var created_by_local_body_code = $('#created_by_local_body_code').val();
         $('#example').DataTable().destroy();
         fill_datatable(block_ulb_code,gp_ward_code, created_by_local_body_code);

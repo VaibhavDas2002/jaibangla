@@ -50,9 +50,8 @@ class AadharMobileDuplicateBenListController extends Controller
     public function index(Request $request)
     {
         $is_active = 0;
-        $roleArray = $request->session()->get('role');
-        // echo '<pre>'; print_r($roleArray);die();
-        $designation_id_old = Auth::user()->designation_id_old;
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();        // echo '<pre>'; print_r($roleArray);die();
+        $designation_id = Auth::user()->designation_id;
         $user_id = AuthChecker::getUserId();
         $district_visible = $is_urban_visible = $block_visible = 1;
         $municipality_visible = 0;
@@ -62,15 +61,15 @@ class AadharMobileDuplicateBenListController extends Controller
         $duty = Configduty::where('user_id', '=', $user_id)->first();
         $schemes = DB::select(DB::raw("select id,scheme_name,pr1_code,entry_url,display_name from m_scheme where id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . ")  order by rank"));
         // echo '<pre>';print_r($schemes);die();
-        if ($designation_id_old == 'Admin' || $designation_id_old == 'HOD' || $designation_id_old == 'HOP' || $designation_id_old == 'MisState' ||  $designation_id_old == 'Dashboard') {
+        if ($designation_id == 'Admin' || $designation_id == 'HOD' || $designation_id == 'HOP' || $designation_id == 'MisState' ||  $designation_id == 'Dashboard') {
             $district_visible = $is_urban_visible = $block_visible = 1;
-        } else if ($designation_id_old == 'Approver' || $designation_id_old == 'Verifier') {
+        } else if ($designation_id == 'Approver' || $designation_id == 'Verifier') {
             // echo 1;die();
             $district_code = NULL;
             $is_urban = NULL;
             $blockCode = NULL;
             foreach ($roleArray as $roleObj) {
-                // echo $designation_id_old;die();
+                // echo $designation_id;die();
                 if (in_array($roleObj['scheme_id'],array(3,2,10,11,8,9,17,19,1))) {
                     $is_urban = $roleObj['is_urban'];
                     $district_code = $roleObj['district_code'];
@@ -136,16 +135,16 @@ class AadharMobileDuplicateBenListController extends Controller
 
     public function benList(Request $request)
     {
-        $roleArray = $request->session()->get('role');
-        $designation_id_old = Auth::user()->designation_id_old;
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+        $designation_id = Auth::user()->designation_id;
         $user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id', '=', $user_id)->first();
         $schemes = DB::select(DB::raw("select id,scheme_name,pr1_code,entry_url,display_name from m_scheme where id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . ")  order by rank"));
-        if ($designation_id_old == 'Admin' || $designation_id_old == 'HOD' || $designation_id_old == 'HOP' || $designation_id_old == 'MisState' ||  $designation_id_old == 'Dashboard') {
+        if ($designation_id == 'Admin' || $designation_id == 'HOD' || $designation_id == 'HOP' || $designation_id == 'MisState' ||  $designation_id == 'Dashboard') {
             $district_code = NULL;
             $is_urban = NULL;
             $blockCode = NULL;
-        } else if ($designation_id_old == 'Approver' || $designation_id_old == 'Verifier') {
+        } else if ($designation_id == 'Approver' || $designation_id == 'Verifier') {
             $district_code = NULL;
             $is_urban = NULL;
             $blockCode = NULL;
@@ -303,15 +302,15 @@ class AadharMobileDuplicateBenListController extends Controller
 
     public function exportExcel(Request $request)
     {
-        $roleArray = $request->session()->get('role');
-        $designation_id_old = Auth::user()->designation_id_old;
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+        $designation_id = Auth::user()->designation_id;
         $user_id = AuthChecker::getUserId();
         $scheme_id = $request->scheme_id;
-        if ($designation_id_old == 'Admin' || $designation_id_old == 'HOD' || $designation_id_old == 'HOP' || $designation_id_old == 'MisState' ||  $designation_id_old == 'Dashboard') {
+        if ($designation_id == 'Admin' || $designation_id == 'HOD' || $designation_id == 'HOP' || $designation_id == 'MisState' ||  $designation_id == 'Dashboard') {
             $district_code = NULL;
             $is_urban = NULL;
             $blockCode = NULL;
-        } else if ($designation_id_old == 'Approver' || $designation_id_old == 'Verifier') {
+        } else if ($designation_id == 'Approver' || $designation_id == 'Verifier') {
             $district_code = NULL;
             $is_urban = NULL;
             $blockCode = NULL;

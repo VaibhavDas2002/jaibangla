@@ -23,11 +23,11 @@ use App\Taluka;
 use App\Ward;
 use App\GP;
 use App\User;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\DB;
 use App\Scheme;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 use App\BankDetails;
 use App\Helpers\Helper;
 use App\BenDocs;
@@ -61,7 +61,7 @@ class MSMEformController extends Controller
         // $base_url=url('/');
         // echo $base_url.'/images/';exit;        
 
-        $roleArray = $request->session()->get('role');
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
         foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == $scheme_id) {
                 $is_active = 1;
@@ -92,7 +92,10 @@ class MSMEformController extends Controller
             //echo "<pre>";print_r($doc_profile_image_id); echo "</pre>";die();  
             return view('msme/pension_details', [
                 'districts' => $districts,
-                'scheme_id' => $scheme_id, 'doc_list_man' => $doc_list_man, 'doc_list_opt' => $doc_list_opt, 'profile_img' => $doc_profile_image_id
+                'scheme_id' => $scheme_id,
+                'doc_list_man' => $doc_list_man,
+                'doc_list_opt' => $doc_list_opt,
+                'profile_img' => $doc_profile_image_id
             ]);
         }
         if ($is_active == 0) {
@@ -130,7 +133,7 @@ class MSMEformController extends Controller
         $doc_list_opt = json_decode($doc_id_list[0]['doc_list_opt']);
         $doc_list = array_merge($doc_list_man, $doc_list_opt);
 
-        $isValidarr = $this->validateInput($request,  $scheme_id, 1);
+        $isValidarr = $this->validateInput($request, $scheme_id, 1);
         if ($isValidarr['is_valid'] == false) {
             return back()->with('errors', $isValidarr['errors'])->withInput(Input::all());
         }
@@ -142,14 +145,14 @@ class MSMEformController extends Controller
                 return back()->withErrors($errors)->withInput();
             }
         }
-        
+
         $ifsc = trim($request->bank_ifsc_code);
         $bank_account_number = trim($request->bank_account_number);
         $bank_branch = trim($request->bank_branch);
         $name_of_bank = trim($request->name_of_bank);
-        $row_count_bank = BankDetails::whereraw("trim(branch)='$bank_branch'")->whereraw("trim(ifsc)='$ifsc'")->whereraw("trim(bank)='$name_of_bank'")->where('is_active',1)->count();
-        $bank_details = BankDetails::where('ifsc', trim($ifsc))->where('is_active',1)->get(['bank', 'branch','bank_code'])->first();
-        $new_bank_code=$bank_details->bank_code;
+        $row_count_bank = BankDetails::whereraw("trim(branch)='$bank_branch'")->whereraw("trim(ifsc)='$ifsc'")->whereraw("trim(bank)='$name_of_bank'")->where('is_active', 1)->count();
+        $bank_details = BankDetails::where('ifsc', trim($ifsc))->where('is_active', 1)->get(['bank', 'branch', 'bank_code'])->first();
+        $new_bank_code = $bank_details->bank_code;
         if ($row_count_bank == 0) {
             $errors = array();
             $errorMsg = "Bank IFSC and Bank Name Not Match!";
@@ -161,116 +164,113 @@ class MSMEformController extends Controller
         if (!empty($scheme_obj->short_code)) {
             $schema = $scheme_obj->short_code;
         } else {
-            $schema = "pension"; 
-        
+            $schema = "pension";
+
         }
-        if(!preg_match('/^[0-9]{10}+$/',$request->mobile_no)) {
+        if (!preg_match('/^[0-9]{10}+$/', $request->mobile_no)) {
             $errors = array();
             $errorMsg = "Mobile Number Invalid";
             array_push($errors, $errorMsg);
             return back()->with('errors', $errors)->withInput(Input::all());
-         }
-         if($request->mobile_no<1000000000) {
+        }
+        if ($request->mobile_no < 1000000000) {
             $errors = array();
             $errorMsg = "Mobile Number Invalid";
             array_push($errors, $errorMsg);
             return back()->with('errors', $errors)->withInput(Input::all());
-         }       
-          $errormsg=array();
-          if(!empty($bank_account_number) && !empty($ifsc)){
-           $bank_count = DB::table($schema . '.beneficiaries')->where('scheme_id',$scheme_id)->where('is_clean', '!=', 10)->where('bank_code',$bank_account_number)->count('bank_code');
-           if($bank_count>0){  
-            $is_error=1;  
-            array_push($errormsg,'Bank A/C Already Exist!');
-           } 
-        }          
-        if(!empty($request->aadhar_no)){
-            $aadhar_count = DB::table($schema . '.beneficiaries')->where('scheme_id',$scheme_id)->where('is_clean', '!=', 10)->where('aadhar_no',trim($request->aadhar_no))->count('aadhar_no');
-            if($aadhar_count>0){  
-             $is_error=1;  
-             array_push($errormsg,'Aadhaar Number Already Exist! Please try different.');     
-            } 
-         } 
-         if(!empty($request->mobile_no)){
-            $mobile_count = DB::table($schema . '.beneficiaries')->where('scheme_id',$scheme_id)->where('is_clean', '!=', 10)->where('mobile_no',$request->mobile_no)->count('mobile_no');
-            if($mobile_count>0){  
-             $is_error=1;  
-             array_push($errormsg,'Mobile Number Already Exist! Please try different.');    
-            } 
-         } 
-         
-         if(count($errormsg)>0){
-           
-            return redirect("msme")->withInput(Input::all())->with('errors',$errormsg);
-            
-           
+        }
+        $errormsg = array();
+        if (!empty($bank_account_number) && !empty($ifsc)) {
+            $bank_count = DB::table($schema . '.beneficiaries')->where('scheme_id', $scheme_id)->where('is_clean', '!=', 10)->where('bank_code', $bank_account_number)->count('bank_code');
+            if ($bank_count > 0) {
+                $is_error = 1;
+                array_push($errormsg, 'Bank A/C Already Exist!');
+            }
+        }
+        if (!empty($request->aadhar_no)) {
+            $aadhar_count = DB::table($schema . '.beneficiaries')->where('scheme_id', $scheme_id)->where('is_clean', '!=', 10)->where('aadhar_no', trim($request->aadhar_no))->count('aadhar_no');
+            if ($aadhar_count > 0) {
+                $is_error = 1;
+                array_push($errormsg, 'Aadhaar Number Already Exist! Please try different.');
+            }
+        }
+        if (!empty($request->mobile_no)) {
+            $mobile_count = DB::table($schema . '.beneficiaries')->where('scheme_id', $scheme_id)->where('is_clean', '!=', 10)->where('mobile_no', $request->mobile_no)->count('mobile_no');
+            if ($mobile_count > 0) {
+                $is_error = 1;
+                array_push($errormsg, 'Mobile Number Already Exist! Please try different.');
+            }
+        }
+
+        if (count($errormsg) > 0) {
+
+            return redirect("msme")->withInput(Input::all())->with('errors', $errormsg);
+
+
         }
         $body = Assembly::where('ac_no', '=', $request->asmb_cons)->first();
-        $c_time=date('Y-m-d H:i:s');
+        $c_time = date('Y-m-d H:i:s');
         $pension_details = new BenEntry();
         $pension_details->entry_datetime = $c_time;
-        $pension_details->ip_address=$request->ip();
+        $pension_details->ip_address = $request->ip();
 
         //Document Dynamic
-        $upload_file=array();
-        $i=0;
-        $doc_master=DocumentType::get();
-       // dd($request->file);
+        $upload_file = array();
+        $i = 0;
+        $doc_master = DocumentType::get();
+        // dd($request->file);
         foreach ($doc_list as $doc) {
             if ($request->hasFile('doc_' . $doc)) {
-            $doc_file = $request->file('doc_' . $doc);
-            $img_data = file_get_contents($doc_file);
-            $u_extension = $doc_file->getClientOriginalExtension();
-            $mime_type = $doc_file->getMimeType();
-            $doc_type_name =$doc_master->where('id', $doc)->first() ;
-            if(strtolower($mime_type)=='image/jpeg'){
-                if($u_extension=='jpg' || $u_extension=='jpeg'){
-                    $extension=$u_extension;
-                }
-                else{
-                $errors = array();
-                $errorMsg = "You are trying to upload an incorrect file for ".$doc_type_name->doc_name;
-                array_push($errors, $errorMsg);
-                return back()->with('errors', $errors)->withInput(Input::all());  
-                }
+                $doc_file = $request->file('doc_' . $doc);
+                $img_data = file_get_contents($doc_file);
+                $u_extension = $doc_file->getClientOriginalExtension();
+                $mime_type = $doc_file->getMimeType();
+                $doc_type_name = $doc_master->where('id', $doc)->first();
+                if (strtolower($mime_type) == 'image/jpeg') {
+                    if ($u_extension == 'jpg' || $u_extension == 'jpeg') {
+                        $extension = $u_extension;
+                    } else {
+                        $errors = array();
+                        $errorMsg = "You are trying to upload an incorrect file for " . $doc_type_name->doc_name;
+                        array_push($errors, $errorMsg);
+                        return back()->with('errors', $errors)->withInput(Input::all());
+                    }
 
+                } else if (strtolower($mime_type) == 'image/png') {
+                    $extension = 'png';
+                } else if (strtolower($mime_type) == 'image/gif') {
+                    $extension = 'gif';
+                } else if (strtolower($mime_type) == 'application/pdf') {
+                    $extension = 'pdf';
+                } else {
+                    $errors = array();
+                    $errorMsg = "You are trying to upload an incorrect file for " . $doc_type_name->doc_name;
+                    array_push($errors, $errorMsg);
+                    return back()->with('errors', $errors)->withInput(Input::all());
+                }
+                if ($u_extension != $extension) {
+                    $errors = array();
+                    $errorMsg = "You are trying to upload an incorrect file for " . $doc_type_name->doc_name;
+                    array_push($errors, $errorMsg);
+                    return back()->with('errors', $errors)->withInput(Input::all());
+                }
+                $base64 = base64_encode($img_data);
+                $upload_file[$i]['created_by_dist_code'] = $request->session()->get('distCode');
+                $upload_file[$i]['created_by_local_body_code'] = $request->session()->get('blockCode');
+                $upload_file[$i]['document_type'] = $doc;
+                $upload_file[$i]['scheme_id'] = $scheme_id;
+                $upload_file[$i]['created_by_level'] = $request->session()->get('level');
+                $upload_file[$i]['created_at'] = $c_time;
+                $upload_file[$i]['created_by'] = $user_id;
+                $upload_file[$i]['ip_address'] = $request->ip();
+                $upload_file[$i]['attched_document'] = $base64;
+                $upload_file[$i]['document_mime_type'] = $mime_type;
+                $upload_file[$i]['document_extension'] = $extension;
+                if (!empty($doc_type_name)) {
+                    $upload_file[$i]['doc_type_name'] = $doc_type_name->doc_name;
+                }
+                $i++;
             }
-            else if(strtolower($mime_type)=='image/png'){
-                $extension='png';
-            }else if(strtolower($mime_type)=='image/gif'){
-                $extension='gif';
-            }else if(strtolower($mime_type)=='application/pdf'){
-                $extension='pdf';
-            }
-            else{
-                $errors = array();
-                $errorMsg = "You are trying to upload an incorrect file for ".$doc_type_name->doc_name;
-                array_push($errors, $errorMsg);
-                return back()->with('errors', $errors)->withInput(Input::all());  
-            }
-            if($u_extension!=$extension){
-                $errors = array();
-                $errorMsg = "You are trying to upload an incorrect file for ".$doc_type_name->doc_name;
-                array_push($errors, $errorMsg);
-                return back()->with('errors', $errors)->withInput(Input::all());  
-            }
-            $base64 = base64_encode($img_data);
-            $upload_file[$i]['created_by_dist_code']=$request->session()->get('distCode');
-            $upload_file[$i]['created_by_local_body_code']=$request->session()->get('blockCode');
-            $upload_file[$i]['document_type']=$doc;
-            $upload_file[$i]['scheme_id']=$scheme_id;
-            $upload_file[$i]['created_by_level']=$request->session()->get('level');
-            $upload_file[$i]['created_at']=$c_time;
-            $upload_file[$i]['created_by']=$user_id;
-            $upload_file[$i]['ip_address']=$request->ip();
-            $upload_file[$i]['attched_document']=$base64;
-            $upload_file[$i]['document_mime_type']=$mime_type;
-            $upload_file[$i]['document_extension']=$extension;
-            if(!empty($doc_type_name)){
-             $upload_file[$i]['doc_type_name'] = $doc_type_name->doc_name;
-            }
-            $i++;
-           }
         }
         //Document Dynamic End
 
@@ -279,13 +279,13 @@ class MSMEformController extends Controller
             $gp_ward = Ward::where('urban_body_ward_code', '=', $request->gp_ward)->first();
 
             $pension_details->block_ulb_name = $block_ulb->urban_body_name;
-            $pension_details->gp_ward_name   = $gp_ward->urban_body_ward_name;
+            $pension_details->gp_ward_name = $gp_ward->urban_body_ward_name;
         } else {
             $block_ulb = Taluka::where('block_code', '=', $request->block)->first();
             $gp_ward = GP::where('gram_panchyat_code', '=', $request->gp_ward)->first();
 
             $pension_details->block_ulb_name = $block_ulb->block_name;
-            $pension_details->gp_ward_name   = $gp_ward->gram_panchyat_name;
+            $pension_details->gp_ward_name = $gp_ward->gram_panchyat_name;
         }
 
         $assembly = Assembly::where('ac_no', '=', $request->asmb_cons)->first();
@@ -293,12 +293,12 @@ class MSMEformController extends Controller
 
         if ($request->receive_pension != "") {
             $receive_pension = implode(',', $request->receive_pension);
-            $pension_details->receive_pension    = $receive_pension;
+            $pension_details->receive_pension = $receive_pension;
         }
 
         if ($request->social_security_pension != "") {
             $social_security_pension = implode(',', $request->social_security_pension);
-            $pension_details->social_security_pension   = $social_security_pension;
+            $pension_details->social_security_pension = $social_security_pension;
         }
 
         $pension_details->ben_fname = $request->first_name;
@@ -325,154 +325,154 @@ class MSMEformController extends Controller
         $pension_details->spouse_lname = $request->spouse_last_name;
 
         $pension_details->ration_card_cat = $request->ration_card_cat;
-        $pension_details->ration_card_no  = $request->ration_card_no;
-        $pension_details->ahl_tin  = $request->ahl_tin;
-        $pension_details->aadhar_no  = $request->aadhar_no;
-        $pension_details->epic_voter_id  = $request->epic_voter_id;
-        $pension_details->pan_no  = $request->pan_no;
+        $pension_details->ration_card_no = $request->ration_card_no;
+        $pension_details->ahl_tin = $request->ahl_tin;
+        $pension_details->aadhar_no = $request->aadhar_no;
+        $pension_details->epic_voter_id = $request->epic_voter_id;
+        $pension_details->pan_no = $request->pan_no;
         $pension_details->bpl_seq_no = $request->bpl_seq_no;
         $pension_details->bpl_id_no = $request->bpl_id_no;
         $pension_details->bpl_total_score = $request->bpl_total_score;
 
-        $pension_details->dist_code       =      $request->district;
-        $pension_details->rural_urban_id     =      $request->urban_code;
-        $pension_details->assembly_code   =    $request->asmb_cons;
+        $pension_details->dist_code = $request->district;
+        $pension_details->rural_urban_id = $request->urban_code;
+        $pension_details->assembly_code = $request->asmb_cons;
         $pension_details->assembly_name = $assembly_name;
-        $pension_details->police_station  = $request->police_station;
-        $pension_details->block_ulb_code  = $request->block;
+        $pension_details->police_station = $request->police_station;
+        $pension_details->block_ulb_code = $request->block;
         $pension_details->gp_ward_code = $request->gp_ward;
-        $pension_details->village_town_city  = $request->village;
-        $pension_details->house_premise_no  = $request->house;
-        $pension_details->post_office  = $request->post_office;
+        $pension_details->village_town_city = $request->village;
+        $pension_details->house_premise_no = $request->house;
+        $pension_details->post_office = $request->post_office;
         $pension_details->pincode = $request->pin_code;
         $pension_details->residency_period = $request->residency_period;
-        $pension_details->mobile_no  = $request->mobile_no;
+        $pension_details->mobile_no = $request->mobile_no;
         $pension_details->email = $request->email;
 
-        $pension_details->bank_name  = $request->name_of_bank;
-        $pension_details->branch_name    = $request->bank_branch;
-        $pension_details->bank_code    = $request->bank_account_number;
-        $pension_details->bank_ifsc   = $request->bank_ifsc_code;
+        $pension_details->bank_name = $request->name_of_bank;
+        $pension_details->branch_name = $request->bank_branch;
+        $pension_details->bank_code = $request->bank_account_number;
+        $pension_details->bank_ifsc = $request->bank_ifsc_code;
 
-        $pension_details->npci_bank_code   = $new_bank_code;
+        $pension_details->npci_bank_code = $new_bank_code;
 
-        $pension_details->nominate_name    = $request->nominate_name;
-        $pension_details->nominate_address    = $request->nominate_address;
-        $pension_details->nominate_relationship   = $request->nominate_relationship;
+        $pension_details->nominate_name = $request->nominate_name;
+        $pension_details->nominate_address = $request->nominate_address;
+        $pension_details->nominate_relationship = $request->nominate_relationship;
 
         $pension_details->created_by = Auth::user()->id;
         $pension_details->created_by_level = $request->session()->get('level');
         $pension_details->created_by_dist_code = $request->session()->get('distCode');
         $pension_details->created_by_local_body_code = $request->session()->get('blockCode');
-        $pension_details->scheme_id =  $request->scheme_id;
+        $pension_details->scheme_id = $request->scheme_id;
 
         DB::connection('pgsql5')->beginTransaction();
         DB::connection('pgsql_encwrite')->beginTransaction();
         try {
             $is_saved = $pension_details->save();
             $beneficiary_id = $pension_details->id;
-            if($is_saved){
-                foreach($upload_file as $key => $csm)
-                {
-                 $upload_file[$key]['beneficiary_id'] = $beneficiary_id;
+            if ($is_saved) {
+                foreach ($upload_file as $key => $csm) {
+                    $upload_file[$key]['beneficiary_id'] = $beneficiary_id;
                 }
                 $doc_inserted = DB::connection('pgsql_encwrite')->table('jb_doc.ben_attach_documents')->insert($upload_file);
-                if( $doc_inserted ){
+                if ($doc_inserted) {
                     DB::connection('pgsql5')->commit();
                     DB::connection('pgsql_encwrite')->commit();
-                    $ben_fullname=trim($request->first_name) . ' ' . trim($request->middle_name) . ' ' . trim($request->last_name);
+                    $ben_fullname = trim($request->first_name) . ' ' . trim($request->middle_name) . ' ' . trim($request->last_name);
 
                     // $this->bioauthcheckInsert($request->session()->get('distCode'),$beneficiary_id,$scheme_id,$ben_fullname,$request->ip(),trim($request->aadhar_no),$request->session()->get('blockCode'),$user_id);
                     // if(($request->caste_category=='SC' || $request->caste_category=='ST') && !empty($request->caste_certificate_no)){
                     //  $this->casteInfoCheckInsert($request->session()->get('distCode'),$beneficiary_id,$scheme_id,$ben_fullname,$request->ip(),trim($request->caste_certificate_no),$request->session()->get('blockCode'),$user_id);
                     // }
-                    
+
                     // $this->RationcheckInsert($request->session()->get('distCode'),$beneficiary_id,$scheme_id,$ben_fullname,$request->ip(),trim($request->aadhar_no),$request->session()->get('blockCode'),$user_id);
 
                     try {
-                        $this->bioauthcheckInsert($request->session()->get('distCode'),$beneficiary_id,$scheme_id,$ben_fullname,$request->ip(),trim($request->aadhar_no),$request->session()->get('blockCode'),$user_id);
+                        $this->bioauthcheckInsert($request->session()->get('distCode'), $beneficiary_id, $scheme_id, $ben_fullname, $request->ip(), trim($request->aadhar_no), $request->session()->get('blockCode'), $user_id);
                     } catch (\Exception $e) {
                         $inputMain['life_certificate_checked'] = -1;
                         $upadated_main = DB::table($schema . '.beneficiary')
-                        ->where([
-                          'id' => $beneficiary_id, 'created_by_local_body_code' => $request->session()->get('blockCode'),
-                          'created_by_dist_code' => $request->session()->get('distCode')
-                        ])->update($inputMain);
+                            ->where([
+                                    'id' => $beneficiary_id,
+                                    'created_by_local_body_code' => $request->session()->get('blockCode'),
+                                    'created_by_dist_code' => $request->session()->get('distCode')
+                                ])->update($inputMain);
                     }
                     try {
-                        if(($request->caste_category=='SC' || $request->caste_category=='ST') && !empty($request->caste_certificate_no)){
-                            $this->casteInfoCheckInsert($request->session()->get('distCode'),$beneficiary_id,$scheme_id,$ben_fullname,$request->ip(),trim($request->caste_certificate_no),$request->session()->get('blockCode'),$user_id);
-                           }
+                        if (($request->caste_category == 'SC' || $request->caste_category == 'ST') && !empty($request->caste_certificate_no)) {
+                            $this->casteInfoCheckInsert($request->session()->get('distCode'), $beneficiary_id, $scheme_id, $ben_fullname, $request->ip(), trim($request->caste_certificate_no), $request->session()->get('blockCode'), $user_id);
+                        }
                     } catch (\Exception $e) {
                         $inputMain['caste_certificate_checked'] = -1;
                         $upadated_main = DB::table($schema . '.beneficiary')
-                        ->where([
-                          'id' => $beneficiary_id, 'created_by_local_body_code' => $request->session()->get('blockCode'),
-                          'created_by_dist_code' => $request->session()->get('distCode')
-                        ])->update($inputMain);
+                            ->where([
+                                'id' => $beneficiary_id,
+                                'created_by_local_body_code' => $request->session()->get('blockCode'),
+                                'created_by_dist_code' => $request->session()->get('distCode')
+                            ])->update($inputMain);
                     }
-                    
+
                     try {
-                        $data = $this->RationcheckInsert($request->session()->get('distCode'),$beneficiary_id,$scheme_id,$ben_fullname,$request->ip(),trim($request->aadhar_no),$request->session()->get('blockCode'),$user_id,$request->dob);
-                      } catch (\Exception $e) {
+                        $data = $this->RationcheckInsert($request->session()->get('distCode'), $beneficiary_id, $scheme_id, $ben_fullname, $request->ip(), trim($request->aadhar_no), $request->session()->get('blockCode'), $user_id, $request->dob);
+                    } catch (\Exception $e) {
                         $inputMain['aadhaar_no_checked'] = -1;
                         $upadated_main = DB::table($schema . '.beneficiary')
-                        ->where([
-                          'id' => $request->id, 'created_by_local_body_code' => $request->session()->get('blockCode'),
-                          'created_by_dist_code' => $request->session()->get('distCode')
-                        ])->update($inputMain);
-                      }
-
-                    $ben_details=DB::table($schema . '.beneficiary')->where('id',$beneficiary_id)->first();
-                    if($ben_details){
-                        $caste_certificate_checked=$ben_details->caste_certificate_checked;
-                        $caste_certificate_validation_message=$ben_details->caste_certificate_validation_message;
-                        $caste_certificate_check_lastdatetime=$ben_details->caste_certificate_check_lastdatetime;
-                        $caste_matched_with_certificate_no=$ben_details->caste_matched_with_certificate_no;
-                        $life_certificate_checked=$ben_details->life_certificate_checked;
-                        $life_certificate_pass=$ben_details->life_certificate_pass;
-                        $life_certificate_lastdatetime=$ben_details->life_certificate_lastdatetime;
-                        $last_biometric=$ben_details->last_biometric;
-                        $aadhaar_no_checked=$ben_details->aadhaar_no_checked;
-                        $aadhaar_no_checked_lastdatetime=$ben_details->aadhaar_no_checked_lastdatetime;
-                        $aadhaar_no_checked_pass=$ben_details->aadhaar_no_checked_pass;
-                        $aadhaar_no_validation_msg=$ben_details->aadhaar_no_validation_msg;
-                    return redirect("msme")->with('success', 'Application Submitted Successfully')
-                        ->with('id',  $beneficiary_id)
-                        ->with('caste_certificate_checked',  $caste_certificate_checked)
-                            ->with('caste_certificate_validation_message',$caste_certificate_validation_message)
-                            ->with('caste_certificate_check_lastdatetime',$caste_certificate_check_lastdatetime)
-                            ->with('caste_matched_with_certificate_no',$caste_matched_with_certificate_no)
-                            ->with('life_certificate_checked',$life_certificate_checked)
-                            ->with('life_certificate_pass',$life_certificate_pass)
-                            ->with('life_certificate_lastdatetime',$life_certificate_lastdatetime)
-                            ->with('last_biometric',$last_biometric)
-                            ->with('aadhaar_no_checked',$aadhaar_no_checked)
-                            ->with('aadhaar_no_checked_lastdatetime',$aadhaar_no_checked_lastdatetime)
-                            ->with('aadhaar_no_checked_pass',$aadhaar_no_checked_pass)
-                            ->with('aadhaar_no_validation_msg',$aadhaar_no_validation_msg);
+                            ->where([
+                                'id' => $request->id,
+                                'created_by_local_body_code' => $request->session()->get('blockCode'),
+                                'created_by_dist_code' => $request->session()->get('distCode')
+                            ])->update($inputMain);
                     }
+
+                    $ben_details = DB::table($schema . '.beneficiary')->where('id', $beneficiary_id)->first();
+                    if ($ben_details) {
+                        $caste_certificate_checked = $ben_details->caste_certificate_checked;
+                        $caste_certificate_validation_message = $ben_details->caste_certificate_validation_message;
+                        $caste_certificate_check_lastdatetime = $ben_details->caste_certificate_check_lastdatetime;
+                        $caste_matched_with_certificate_no = $ben_details->caste_matched_with_certificate_no;
+                        $life_certificate_checked = $ben_details->life_certificate_checked;
+                        $life_certificate_pass = $ben_details->life_certificate_pass;
+                        $life_certificate_lastdatetime = $ben_details->life_certificate_lastdatetime;
+                        $last_biometric = $ben_details->last_biometric;
+                        $aadhaar_no_checked = $ben_details->aadhaar_no_checked;
+                        $aadhaar_no_checked_lastdatetime = $ben_details->aadhaar_no_checked_lastdatetime;
+                        $aadhaar_no_checked_pass = $ben_details->aadhaar_no_checked_pass;
+                        $aadhaar_no_validation_msg = $ben_details->aadhaar_no_validation_msg;
+                        return redirect("msme")->with('success', 'Application Submitted Successfully')
+                            ->with('id', $beneficiary_id)
+                            ->with('caste_certificate_checked', $caste_certificate_checked)
+                            ->with('caste_certificate_validation_message', $caste_certificate_validation_message)
+                            ->with('caste_certificate_check_lastdatetime', $caste_certificate_check_lastdatetime)
+                            ->with('caste_matched_with_certificate_no', $caste_matched_with_certificate_no)
+                            ->with('life_certificate_checked', $life_certificate_checked)
+                            ->with('life_certificate_pass', $life_certificate_pass)
+                            ->with('life_certificate_lastdatetime', $life_certificate_lastdatetime)
+                            ->with('last_biometric', $last_biometric)
+                            ->with('aadhaar_no_checked', $aadhaar_no_checked)
+                            ->with('aadhaar_no_checked_lastdatetime', $aadhaar_no_checked_lastdatetime)
+                            ->with('aadhaar_no_checked_pass', $aadhaar_no_checked_pass)
+                            ->with('aadhaar_no_validation_msg', $aadhaar_no_validation_msg);
+                    }
+                } else {
+                    $error_found = 1;
                 }
-                else{
-                    $error_found=1;
-                }
+            } else {
+                $error_found = 1;
+
             }
-            else{
-                $error_found=1;
-                
-            }
-            if($error_found){
+            if ($error_found) {
                 DB::connection('pgsql5')->rollback();
                 DB::connection('pgsql_encwrite')->rollback();
-               
+
                 return redirect("msme")->withInput(Input::all())->with('errors', array('Some error.Please try again'));
-        }  
-                
+            }
+
         } catch (\Exception $e) {
-           dd($e);
+            dd($e);
             DB::connection('pgsql5')->rollback();
             DB::connection('pgsql_encwrite')->rollback();
-           
+
             return redirect("msme")->withInput(Input::all())->with('errors', array('Some error.Please try again'));
         }
     }
@@ -724,7 +724,7 @@ class MSMEformController extends Controller
         $id = $request->id;
         $scheme_id = (int) $request->scheme_id;
         // dd($scheme_id);
-        $designation_id_old = Auth::user()->designation_id_old;
+        $designation_id = Auth::user()->designation_id;
 
         if (!is_int($scheme_id)) {
             return redirect("/")->with('error', 'Scheme Code Not Valid');
@@ -735,7 +735,7 @@ class MSMEformController extends Controller
         $created_by = Auth::user()->id;
         $is_active = 0;
         $mapping_level = NULL;
-        $roleArray = $request->session()->get('role');
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
         foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == $scheme_id) {
                 $is_active = 1;
@@ -754,10 +754,10 @@ class MSMEformController extends Controller
             return redirect("/")->with('error', 'User Disabled');
         }
         $query = PensionMSME::where(['id' => $id, 'created_by_dist_code' => $distCode, 'scheme_id' => $scheme_id]);
-        if ($designation_id_old == 'Verifier') {
+        if ($designation_id == 'Verifier') {
             $query = $query->whereNull('next_level_role_id');
-        } else if ($designation_id_old == 'Approver') {
-            $query = $query->where('is_verified',1)->where('is_approved',0)->where('is_rejected',0);
+        } else if ($designation_id == 'Approver') {
+            $query = $query->where('is_verified', 1)->where('is_approved', 0)->where('is_rejected', 0);
         } else {
             $query = $query->whereNull('next_level_role_id');
         }
@@ -766,7 +766,7 @@ class MSMEformController extends Controller
         if (empty($row->scheme_id)) {
             return redirect("/")->with('error', 'Not Allowed');
         }
-        $isValidarr = $this->validateInput($request,  $scheme_id, 2);
+        $isValidarr = $this->validateInput($request, $scheme_id, 2);
         if ($isValidarr['is_valid'] == false) {
             //dd(withInput());
             return redirect("/application-edit?id=" . $request->id . "&scheme_id=" . $request->scheme_id)->with('errors', $isValidarr['errors']);
@@ -777,41 +777,41 @@ class MSMEformController extends Controller
             return redirect("/")->with('error', 'User Disabled');
         }
         $check_condition_str = Helper::getCheckNextLevelRoleIdCon($scheme_id);
-          if (!empty($request->mobile_no)) {
-              $mobile_count = PensionMSME::where('mobile_no', trim($request->mobile_no))->where('id', '!=', $id)->whereRaw("(" . $check_condition_str . ")")->count('id');
-             // dd( $mobile_count);
-              if ($mobile_count > 0) {
-                  $errors = array();
-                  $errorMsg = "Mobile Number Already Exist! Please try different.";
-                  array_push($errors, $errorMsg);
-                  return redirect("/application-edit?id=" . $request->id . "&scheme_id=" . $request->scheme_id)->with('errors',  $errors);
-              }
-          }
-          //--------- Duplicate bank A/C check---------- //
-          $bankCount = PensionMSME::whereRaw("trim(bank_code)=trim(" . "'" . $request->bank_account_number . "'" . ")")->where('id', '!=', $id)
-              ->whereRaw("(" . $check_condition_str . ")")
-              ->count('id');
+        if (!empty($request->mobile_no)) {
+            $mobile_count = PensionMSME::where('mobile_no', trim($request->mobile_no))->where('id', '!=', $id)->whereRaw("(" . $check_condition_str . ")")->count('id');
+            // dd( $mobile_count);
+            if ($mobile_count > 0) {
+                $errors = array();
+                $errorMsg = "Mobile Number Already Exist! Please try different.";
+                array_push($errors, $errorMsg);
+                return redirect("/application-edit?id=" . $request->id . "&scheme_id=" . $request->scheme_id)->with('errors', $errors);
+            }
+        }
+        //--------- Duplicate bank A/C check---------- //
+        $bankCount = PensionMSME::whereRaw("trim(bank_code)=trim(" . "'" . $request->bank_account_number . "'" . ")")->where('id', '!=', $id)
+            ->whereRaw("(" . $check_condition_str . ")")
+            ->count('id');
 
-            // $bank_details = BankDetails::whereraw("trim(ifsc)='$request->bank_ifsc_code'")->where('is_active',1)->get(['bank', 'branch','bank_code'])->first();
-            // $new_bank_code=$bank_details->bank_code;
+        // $bank_details = BankDetails::whereraw("trim(ifsc)='$request->bank_ifsc_code'")->where('is_active',1)->get(['bank', 'branch','bank_code'])->first();
+        // $new_bank_code=$bank_details->bank_code;
 
-            $bank_details = BankDetails::where('ifsc', trim($request->bank_ifsc_code))->where('is_active',1)->get(['bank', 'branch','bank_code'])->first();
-            $new_bank_code=$bank_details->bank_code;
-          
-          if ($bankCount > 0) {
-              $errors = array();
-              $errorMsg = "Bank A/C Already Exist!";
-              array_push($errors, $errorMsg);
-              return redirect("/application-edit?id=" . $request->id . "&scheme_id=" . $request->scheme_id)->with('errors',  $errors);
-          }
-          $count = PensionMSME::where('aadhar_no', trim($request->aadhar_no))->where('id', '!=', $id)->whereRaw("(" . $check_condition_str . ")")->count('id');
-          if ($count > 0) {
-              $request->session()->put('dupAadhaarCheck', trim($request->aadhar_no));
-              $errors = array();
-              $errorMsg = "Aadhaar Number Already Exist! Please try different.";
-              array_push($errors, $errorMsg);
-              return redirect("/application-edit?id=" . $request->id . "&scheme_id=" . $request->scheme_id)->with('dupAadhaar', 1)->with('errors',  $errors);
-          }
+        $bank_details = BankDetails::where('ifsc', trim($request->bank_ifsc_code))->where('is_active', 1)->get(['bank', 'branch', 'bank_code'])->first();
+        $new_bank_code = $bank_details->bank_code;
+
+        if ($bankCount > 0) {
+            $errors = array();
+            $errorMsg = "Bank A/C Already Exist!";
+            array_push($errors, $errorMsg);
+            return redirect("/application-edit?id=" . $request->id . "&scheme_id=" . $request->scheme_id)->with('errors', $errors);
+        }
+        $count = PensionMSME::where('aadhar_no', trim($request->aadhar_no))->where('id', '!=', $id)->whereRaw("(" . $check_condition_str . ")")->count('id');
+        if ($count > 0) {
+            $request->session()->put('dupAadhaarCheck', trim($request->aadhar_no));
+            $errors = array();
+            $errorMsg = "Aadhaar Number Already Exist! Please try different.";
+            array_push($errors, $errorMsg);
+            return redirect("/application-edit?id=" . $request->id . "&scheme_id=" . $request->scheme_id)->with('dupAadhaar', 1)->with('errors', $errors);
+        }
         $scheme_schema = $scheme_row->short_code;
         $social_security_pension = "";
         $receive_pension = "";
@@ -832,13 +832,13 @@ class MSMEformController extends Controller
 
 
             $block_ulb_name = $block_ulb->urban_body_name;
-            $gp_ward_name   = $gp_ward->urban_body_ward_name;
+            $gp_ward_name = $gp_ward->urban_body_ward_name;
         } else {
             $block_ulb = Taluka::where('block_code', '=', $request->block)->first();
             $gp_ward = GP::where('gram_panchyat_code', '=', $request->gp_ward)->first();
 
             $block_ulb_name = $block_ulb->block_name;
-            $gp_ward_name   = $gp_ward->gram_panchyat_name;
+            $gp_ward_name = $gp_ward->gram_panchyat_name;
         }
         $assembly = Assembly::where('ac_no', '=', $request->asmb_cons)->first();
         $assembly_name = $assembly->ac_name;
@@ -848,7 +848,7 @@ class MSMEformController extends Controller
             $request->spouse_middle_name = "";
             $request->spouse_last_name = "";
         }
-        $c_time=date('Y-m-d H:i:s');
+        $c_time = date('Y-m-d H:i:s');
         $user_id = AuthChecker::getUserId();
         $input = [
             //'name' => $request['name']
@@ -882,37 +882,37 @@ class MSMEformController extends Controller
             'social_security_pension' => $social_security_pension,
 
             'ration_card_cat' => $request->ration_card_cat,
-            'ration_card_no'  => $request->ration_card_no,
-            'ahl_tin'  => $request->ahl_tin,
-            'aadhar_no'  => $request->aadhar_no,
-            'epic_voter_id'  => $request->epic_voter_id,
-            'pan_no'  => $request->pan_no,
+            'ration_card_no' => $request->ration_card_no,
+            'ahl_tin' => $request->ahl_tin,
+            'aadhar_no' => $request->aadhar_no,
+            'epic_voter_id' => $request->epic_voter_id,
+            'pan_no' => $request->pan_no,
 
 
 
             'dist_code' => $request->district,
-            'assembly_code'  => $request->asmb_cons,
+            'assembly_code' => $request->asmb_cons,
             'assembly_name' => $assembly_name,
             'rural_urban_id' => $request->urban_code,
-            'police_station'  => $request->police_station,
-            'block_ulb_code'  => $request->block,
+            'police_station' => $request->police_station,
+            'block_ulb_code' => $request->block,
             'block_ulb_name' => $block_ulb_name,
             'gp_ward_code' => $request->gp_ward,
             'gp_ward_name' => $gp_ward_name,
-            'village_town_city'  => $request->village,
-            'house_premise_no'  => $request->house,
-            'post_office'  => $request->post_office,
+            'village_town_city' => $request->village,
+            'house_premise_no' => $request->house,
+            'post_office' => $request->post_office,
             'pincode' => $request->pin_code,
             'residency_period' => $request->residency_period,
-            'mobile_no'  => $request->mobile_no,
+            'mobile_no' => $request->mobile_no,
             'email' => $request->email,
 
 
 
-            'bank_name'  => $request->name_of_bank,
-            'branch_name'   => $request->bank_branch,
-            'bank_code'    => $request->bank_account_number,
-            'bank_ifsc'   => $request->bank_ifsc_code,
+            'bank_name' => $request->name_of_bank,
+            'branch_name' => $request->bank_branch,
+            'bank_code' => $request->bank_account_number,
+            'bank_ifsc' => $request->bank_ifsc_code,
             'npci_bank_code' => $new_bank_code,
             'nominate_name' => $request->nominate_name,
             'nominate_address' => $request->nominate_address,
@@ -949,93 +949,90 @@ class MSMEformController extends Controller
                 $file_passport = null;
             }
         }
-        $doc_master=DocumentType::get();
-        $encolserdata = BenDocs::where('scheme_id',$scheme_id)->where('created_by_dist_code',$distCode)->where('beneficiary_id', $request->id)->get();
-        $upload_file=array();
-        $upload_file_arch=array();
-        $delete_array=array();
-        $i=0;
-        $j=0;
-        
+        $doc_master = DocumentType::get();
+        $encolserdata = BenDocs::where('scheme_id', $scheme_id)->where('created_by_dist_code', $distCode)->where('beneficiary_id', $request->id)->get();
+        $upload_file = array();
+        $upload_file_arch = array();
+        $delete_array = array();
+        $i = 0;
+        $j = 0;
+
 
         foreach ($doc_list as $doc) {
             if ($request->hasFile('doc_' . $doc)) {
-            $doc_file = $request->file('doc_' . $doc);
-            $img_data = file_get_contents($doc_file);
-            $u_extension = $doc_file->getClientOriginalExtension();
-            $mime_type = $doc_file->getMimeType();
-            $doc_type_name =$doc_master->where('id', $doc)->first() ;
-            if(strtolower($mime_type)=='image/jpeg'){
-                if($u_extension=='jpg' || $u_extension=='jpeg'){
-                    $extension=$u_extension;
+                $doc_file = $request->file('doc_' . $doc);
+                $img_data = file_get_contents($doc_file);
+                $u_extension = $doc_file->getClientOriginalExtension();
+                $mime_type = $doc_file->getMimeType();
+                $doc_type_name = $doc_master->where('id', $doc)->first();
+                if (strtolower($mime_type) == 'image/jpeg') {
+                    if ($u_extension == 'jpg' || $u_extension == 'jpeg') {
+                        $extension = $u_extension;
+                    } else {
+                        $errors = array();
+                        $errorMsg = "You are trying to upload an incorrect file for " . $doc_type_name->doc_name;
+                        array_push($errors, $errorMsg);
+                        return back()->with('errors', $errors)->withInput(Input::all());
+                    }
+                } else if (strtolower($mime_type) == 'image/png') {
+                    $extension = 'png';
+                } else if (strtolower($mime_type) == 'image/gif') {
+                    $extension = 'gif';
+                } else if (strtolower($mime_type) == 'application/pdf') {
+                    $extension = 'pdf';
+                } else {
+                    $errors = array();
+                    $errorMsg = "You are trying to upload an incorrect file for " . $doc_type_name->doc_name;
+                    array_push($errors, $errorMsg);
+                    return back()->with('errors', $errors)->withInput(Input::all());
                 }
-                else{
-                $errors = array();
-                $errorMsg = "You are trying to upload an incorrect file for ".$doc_type_name->doc_name;
-                array_push($errors, $errorMsg);
-                return back()->with('errors', $errors)->withInput(Input::all());  
+                if ($u_extension != $extension) {
+                    $errors = array();
+                    $errorMsg = "You are trying to upload an incorrect file for " . $doc_type_name->doc_name;
+                    array_push($errors, $errorMsg);
+                    return back()->with('errors', $errors)->withInput(Input::all());
+                }
+                $base64 = base64_encode($img_data);
+                $upload_file[$i]['beneficiary_id'] = $request->id;
+                $upload_file[$i]['created_by_dist_code'] = $distCode;
+                $upload_file[$i]['created_by_local_body_code'] = $blockCode;
+                $upload_file[$i]['document_type'] = $doc;
+                $upload_file[$i]['scheme_id'] = $scheme_id;
+                $upload_file[$i]['created_by_level'] = $mapping_level;
+                $upload_file[$i]['created_at'] = $c_time;
+                $upload_file[$i]['created_by'] = $user_id;
+                $upload_file[$i]['ip_address'] = $request->ip();
+                $upload_file[$i]['attched_document'] = $base64;
+                $upload_file[$i]['document_mime_type'] = $mime_type;
+                $upload_file[$i]['document_extension'] = $extension;
+                if (!empty($doc_type_name)) {
+                    $upload_file[$i]['doc_type_name'] = $doc_type_name->doc_name;
+                }
+                $i++;
+                $doc_already = $encolserdata->where('document_type', $doc)->where('created_by_dist_code', $distCode)->where('beneficiary_id', $request->id)->first();
+                if (!empty($doc_already)) {
+                    array_push($delete_array, $doc);
+                    $upload_file_arch[$j]['beneficiary_id'] = $request->id;
+                    $upload_file_arch[$j]['created_by_dist_code'] = $doc_already->created_by_dist_code;
+                    $upload_file_arch[$j]['created_by_local_body_code'] = $doc_already->created_by_local_body_code;
+                    $upload_file_arch[$j]['document_type'] = $doc_already->document_type;
+                    $upload_file_arch[$j]['scheme_id'] = $doc_already->scheme_id;
+                    $upload_file_arch[$j]['created_by_level'] = $doc_already->created_by_level;
+                    $upload_file_arch[$j]['created_at'] = $doc_already->created_at;
+                    $upload_file_arch[$j]['created_by'] = $doc_already->created_by;
+                    $upload_file_arch[$j]['ip_address'] = $doc_already->ip_address;
+                    $upload_file_arch[$j]['attched_document'] = $doc_already->attched_document;
+                    $upload_file_arch[$j]['document_mime_type'] = $doc_already->document_mime_type;
+                    $upload_file_arch[$j]['document_extension'] = $doc_already->document_extension;
+                    $j++;
                 }
             }
-            else if(strtolower($mime_type)=='image/png'){
-                $extension='png';
-            }else if(strtolower($mime_type)=='image/gif'){
-                $extension='gif';
-            }else if(strtolower($mime_type)=='application/pdf'){
-                $extension='pdf';
-            }
-            else{
-                $errors = array();
-                $errorMsg = "You are trying to upload an incorrect file for ".$doc_type_name->doc_name;
-                array_push($errors, $errorMsg);
-                return back()->with('errors', $errors)->withInput(Input::all());  
-            }
-            if($u_extension!=$extension){
-                $errors = array();
-                $errorMsg = "You are trying to upload an incorrect file for ".$doc_type_name->doc_name;
-                array_push($errors, $errorMsg);
-                return back()->with('errors', $errors)->withInput(Input::all());  
-            }
-            $base64 = base64_encode($img_data);
-            $upload_file[$i]['beneficiary_id']=$request->id;
-            $upload_file[$i]['created_by_dist_code']=$distCode;
-            $upload_file[$i]['created_by_local_body_code']=$blockCode;
-            $upload_file[$i]['document_type']=$doc;
-            $upload_file[$i]['scheme_id']=$scheme_id;
-            $upload_file[$i]['created_by_level']=$mapping_level;
-            $upload_file[$i]['created_at']=$c_time;
-            $upload_file[$i]['created_by']=$user_id;
-            $upload_file[$i]['ip_address']=$request->ip();
-            $upload_file[$i]['attched_document']=$base64;
-            $upload_file[$i]['document_mime_type']=$mime_type;
-            $upload_file[$i]['document_extension']=$extension;
-            if(!empty($doc_type_name)){
-             $upload_file[$i]['doc_type_name'] = $doc_type_name->doc_name;
-            }
-            $i++;
-            $doc_already =$encolserdata->where('document_type',$doc)->where('created_by_dist_code',$distCode)->where('beneficiary_id', $request->id)->first();
-            if(!empty($doc_already)){
-                array_push($delete_array,$doc);
-                $upload_file_arch[$j]['beneficiary_id']=$request->id;
-                $upload_file_arch[$j]['created_by_dist_code']=$doc_already->created_by_dist_code;
-                $upload_file_arch[$j]['created_by_local_body_code']=$doc_already->created_by_local_body_code;
-                $upload_file_arch[$j]['document_type']=$doc_already->document_type;
-                $upload_file_arch[$j]['scheme_id']=$doc_already->scheme_id;
-                $upload_file_arch[$j]['created_by_level']=$doc_already->created_by_level;
-                $upload_file_arch[$j]['created_at']=$doc_already->created_at;
-                $upload_file_arch[$j]['created_by']=$doc_already->created_by;
-                $upload_file_arch[$j]['ip_address']=$doc_already->ip_address;
-                $upload_file_arch[$j]['attched_document']=$doc_already->attched_document;
-                $upload_file_arch[$j]['document_mime_type']=$doc_already->document_mime_type;
-                $upload_file_arch[$j]['document_extension']=$doc_already->document_extension;
-                $j++;
-            }
-           }
         }
         DB::beginTransaction();
         DB::connection('pgsql_encwrite')->beginTransaction();
         DB::connection('pgsql9')->beginTransaction();
         try {
-            $arch_status=DB::statement("INSERT INTO msme.arc_beneficiary(id, 
+            $arch_status = DB::statement("INSERT INTO msme.arc_beneficiary(id, 
             dist_code, ben_fname, ben_mname, ben_lname, gender, dob, ben_age, 
            caste, marital_status, father_fname, father_mname, father_lname, mother_fname, 
            mother_mname, mother_lname, spouse_fname, spouse_mname, spouse_lname, mothly_income, 
@@ -1067,66 +1064,62 @@ class MSMEformController extends Controller
            bank_edited, bank_code, payment_count, last_paid_yymm, 
            av_status  
            from msme.beneficiary where id=" . $id . ")");
-            $is_update=PensionMSME::where(['id' => $id, 'created_by_dist_code' => $distCode,  'scheme_id' => $scheme_id, 'next_level_role_id' => null])
+            $is_update = PensionMSME::where(['id' => $id, 'created_by_dist_code' => $distCode, 'scheme_id' => $scheme_id, 'next_level_role_id' => null])
                 ->update($input);
             $pr1 = "fisherman";
-            if(count($upload_file_arch)>0){
+            if (count($upload_file_arch) > 0) {
                 $doc_inserted_arch = DB::connection('pgsql_encwrite')->table('jb_doc.ben_attach_documents_arch')->insert($upload_file_arch);
+            } else {
+                $doc_inserted_arch = 1;
             }
-            else{
-                $doc_inserted_arch =1; 
+            if (count($delete_array) > 0) {
+                $doc_inserted_del = DB::connection('pgsql_encwrite')->table('jb_doc.ben_attach_documents')->where('beneficiary_id', $request->id)->whereIn('document_type', $delete_array)->delete();
+            } else {
+                $doc_inserted_del = 1;
             }
-            if(count($delete_array)>0){
-                $doc_inserted_del = DB::connection('pgsql_encwrite')->table('jb_doc.ben_attach_documents')->where('beneficiary_id',$request->id)->whereIn('document_type',$delete_array)->delete();
-            }
-            else{
-                $doc_inserted_del =1;  
-            }
-            if(count($upload_file)>0){
+            if (count($upload_file) > 0) {
                 $doc_inserted = DB::connection('pgsql_encwrite')->table('jb_doc.ben_attach_documents')->insert($upload_file);
-            }
-            else{
-                $doc_inserted =1;  
+            } else {
+                $doc_inserted = 1;
             }
             $accept_reject_model = new AcceptRejectInfo;
             $accept_reject_model->created_at = $c_time;
             $accept_reject_model->application_id = $request->id;
-            $accept_reject_model->scheme_id =  $request->scheme_id;
+            $accept_reject_model->scheme_id = $request->scheme_id;
             $accept_reject_model->user_id = $user_id;
             $accept_reject_model->op_type = 'APPUPDATE';
             $accept_reject_model->ip_address = $request->ip();
             $is_saved_log = $accept_reject_model->save();
             //dump($is_update); dump($doc_inserted_arch); dump($doc_inserted_del); dump($doc_inserted); dd($is_saved_log);
-            if($arch_status && $is_update && $doc_inserted_arch && $doc_inserted_del && $doc_inserted && $is_saved_log){
+            if ($arch_status && $is_update && $doc_inserted_arch && $doc_inserted_del && $doc_inserted && $is_saved_log) {
                 DB::commit();
                 DB::connection('pgsql_encwrite')->commit();
                 DB::connection('pgsql9')->commit();
-                if ($designation_id_old == 'Operator')
-                   return redirect("application-list-read-only-edit?pr1=" . $scheme_schema)->with('success', 'Application Updated Successfully')
-                ->with('id',   $id);
-              else {
-                return redirect('/')->with('success', 'Application Updated Successfully');
+                if ($designation_id == 'Operator')
+                    return redirect("application-list-read-only-edit?pr1=" . $scheme_schema)->with('success', 'Application Updated Successfully')
+                        ->with('id', $id);
+                else {
+                    return redirect('/')->with('success', 'Application Updated Successfully');
                 }
-            }
-            else{
+            } else {
                 DB::connection('pgsql9')->rollback();
                 DB::rollback();
                 DB::connection('pgsql_encwrite')->rollback();
-                if ($designation_id_old == 'Operator')
-                 return redirect("/application-edit?id=" . $request->id . "&scheme_id=" . $request->scheme_id)->with('errors', array('Some error.Please try again'));
+                if ($designation_id == 'Operator')
+                    return redirect("/application-edit?id=" . $request->id . "&scheme_id=" . $request->scheme_id)->with('errors', array('Some error.Please try again'));
                 else {
-                  return redirect('/')->with('danger', 'Some error.Please try again');
+                    return redirect('/')->with('danger', 'Some error.Please try again');
                 }
             }
-           
+
         } catch (\Exception $e) {
             //dd($e);
             DB::rollback();
             DB::connection('pgsql_encwrite')->rollback();
             DB::connection('pgsql9')->rollback();
-            if ($designation_id_old == 'Operator') {
+            if ($designation_id == 'Operator') {
                 return redirect("application-list-read-only-edit?pr1=" . $scheme_schema)->with('error', 'Some error.Please try again')
-                    ->with('id',  $row->getBenidAttribute());
+                    ->with('id', $row->getBenidAttribute());
             } else {
                 return redirect('/')->with('error', 'Some error.Please try again');
             }
@@ -1237,10 +1230,10 @@ class MSMEformController extends Controller
             '=',
             $major_programme_head_id
         )->where(
-            'level',
-            '=',
-            $level
-        )->get(['id', 'name']);
+                'level',
+                '=',
+                $level
+            )->get(['id', 'name']);
 
 
         //print_r($programmeHeads);
@@ -1504,7 +1497,8 @@ class MSMEformController extends Controller
 
         if ($_POST['submit'] == 'Verify') {
             $input = [
-                'verification_status' => $Verified, 'comments' => $comments
+                'verification_status' => $Verified,
+                'comments' => $comments
             ];
 
             $is_status_updated = nhm_employee_details::where('id', $id)
@@ -1517,7 +1511,8 @@ class MSMEformController extends Controller
             }
         } else if ($_POST['submit'] == 'Reject') {
             $input = [
-                'verification_status' => $Rejected, 'comments' => $comments
+                'verification_status' => $Rejected,
+                'comments' => $comments
             ];
             $is_status_updated = nhm_employee_details::where('id', $id)
                 ->update($input);
@@ -1715,7 +1710,8 @@ class MSMEformController extends Controller
         if ($_POST['submit'] == 'Approve') {
 
             $input = [
-                'approval_status' => $Approved, 'approval_comments' => $comments
+                'approval_status' => $Approved,
+                'approval_comments' => $comments
             ];
 
             $is_status_updated = nhm_employee_details::where('id', $id)
@@ -1744,7 +1740,8 @@ class MSMEformController extends Controller
         } else if ($_POST['submit'] == 'Disapprove') {
             // dd('hi');
             $input = [
-                'approval_status' => $Disapproved, 'approval_comments' => $comments
+                'approval_status' => $Disapproved,
+                'approval_comments' => $comments
             ];
 
             $is_status_updated = nhm_employee_details::where('id', $id)
@@ -1763,7 +1760,8 @@ class MSMEformController extends Controller
         $Approved = "Approved";
         $comments = "Bulk Approval";
         $data = [
-            'approval_status' => $Approved, 'approval_comments' => $comments
+            'approval_status' => $Approved,
+            'approval_comments' => $comments
         ];
 
         foreach ($inputs as $input) {
@@ -1889,7 +1887,7 @@ class MSMEformController extends Controller
         $doc_list = DocumentType::select('id', 'doc_type', 'doc_name', 'doc_size_kb')->get();
         $messages = array();
         foreach ($doc_list as $key => $value) {
-            if (in_array($value->id,  $in_array)) {
+            if (in_array($value->id, $in_array)) {
                 if ($add_edit_code == 1) {
                     $required = 'required';
                 } else {
@@ -1936,7 +1934,7 @@ class MSMEformController extends Controller
         $customMessage = array();
         foreach ($doc_list as $key => $value) {
 
-            if (in_array($value->id,  $in_array)) {
+            if (in_array($value->id, $in_array)) {
                 $required = 'required';
             } else {
                 $required = 'nullable';

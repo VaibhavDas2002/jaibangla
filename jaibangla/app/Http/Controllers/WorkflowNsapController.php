@@ -12,18 +12,18 @@ use App\Taluka;
 use App\Ward;
 use App\UrbanBody;
 use App\GP;
-use Auth;
-use DB;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use App\Helpers\Helper;
 use App\SubDistrict;
 use Carbon\Carbon;
-use Config;
+use Illuminate\Support\Facades\Config;
 use App\BlkUrbanlEntryMapping;
 use App\RejectRevertReason;
 use App\AcceptRejectInfo;
 use App\Scheme;
 use App\DocumentType;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 use App\Helpers\AuthChecker;
 use App\Workflow;
 
@@ -38,9 +38,9 @@ class WorkflowNsapController extends Controller
 
   public function shemeSelectionnsapmarked(Request $request)
   {
-    $designation_id_old = Auth::user()->designation_id_old;
+    $designation_id = Auth::user()->designation_id;
     $user_id = AuthChecker::getUserId();
-    if ($designation_id_old == 'Verifier') {
+    if ($designation_id == 'Verifier') {
       $schemes = DB::select(DB::raw("select id,scheme_name,display_name,is_active from m_scheme where id  IN (11) and  id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . ") order by rank"));
       //dd($schemes);
       return view(
@@ -57,10 +57,10 @@ class WorkflowNsapController extends Controller
   public function showApplicantDetails(Request $request)
   {
     return redirect('/')->with('error', 'Not Allowded');
-    $designation_id_old = Auth::user()->designation_id_old;
-    //dd($designation_id_old);
+    $designation_id = Auth::user()->designation_id;
+    //dd($designation_id);
     $user_id = AuthChecker::getUserId();
-    if ($designation_id_old == 'Verifier' || $designation_id_old == 'Approver') {
+    if ($designation_id == 'Verifier' || $designation_id == 'Approver') {
       $scheme_id = $request->scheme_id;
       if (!ctype_digit($scheme_id)) {
         return redirect("/scheme-selection-nsap-marked")->with('error', 'Scheme Not Valid');
@@ -92,9 +92,9 @@ class WorkflowNsapController extends Controller
       $query = DB::table($schema . '.beneficiary')
         ->where('created_by_dist_code', $district_code)
         ->where('id', $request->id);
-      if ($designation_id_old == 'Verifier') {
+      if ($designation_id == 'Verifier') {
         $query = $query->whereNull('next_level_role_id');
-      } else if ($designation_id_old == 'Approver') {
+      } else if ($designation_id == 'Approver') {
         $query = $query->where('is_verified',1)->where('is_approved',0)->where('is_rejected',0);
       }
       $row = $query->first();
@@ -162,7 +162,7 @@ class WorkflowNsapController extends Controller
           'docs' => $docs,
           'image_id' => $doc_profile_image_id,
           'reject_revert_cause_list' => $reject_revert_cause_list,
-          'designation_id_old' => $designation_id_old
+          'designation_id' => $designation_id
         ]
       );
     } else {
@@ -172,9 +172,9 @@ class WorkflowNsapController extends Controller
   public function nsap_marked_list(Request $request)
   {
     return redirect('/')->with('error', 'Not Allowded');
-    $designation_id_old = Auth::user()->designation_id_old;
+    $designation_id = Auth::user()->designation_id;
     $user_id = AuthChecker::getUserId();
-    if ($designation_id_old == 'Verifier' || $designation_id_old == 'Approver') {
+    if ($designation_id == 'Verifier' || $designation_id == 'Approver') {
       $scheme_id = $request->scheme_id;
       if (!ctype_digit($scheme_id)) {
         return redirect("/scheme-selection-nsap-marked")->with('error', 'Scheme Not Valid');
@@ -652,9 +652,9 @@ class WorkflowNsapController extends Controller
   public function verifydata(Request $request)
   {
     return redirect('/')->with('error', 'Not Allowded');
-    $designation_id_old = Auth::user()->designation_id_old;
+    $designation_id = Auth::user()->designation_id;
     $user_id = AuthChecker::getUserId();
-    if ($designation_id_old == 'Verifier' || $designation_id_old == 'Approver') {
+    if ($designation_id == 'Verifier' || $designation_id == 'Approver') {
       $scheme_id = $request->scheme_id;
       if (!ctype_digit($scheme_id)) {
         return redirect("/scheme-selection-nsap-marked")->with('error', 'Scheme Not Valid');
@@ -688,9 +688,9 @@ class WorkflowNsapController extends Controller
       }
       $query = DB::table($schema . '.beneficiary')
         ->where('created_by_dist_code', $district_code)->where('id', $request->id);
-      if ($designation_id_old == 'Verifier') {
+      if ($designation_id == 'Verifier') {
         $query =  $query->whereNull('next_level_role_id');
-      } else if ($designation_id_old == 'Approver') {
+      } else if ($designation_id == 'Approver') {
         $query = $query->where('next_level_role_id', 48);
       }
       $row = $query->first();
@@ -757,8 +757,8 @@ class WorkflowNsapController extends Controller
         }
       } else if ($request->action_type == 'Verify') {
         //dd('ok');
-        // $mapArr = MapLavel::where('scheme_id', $duty_obj->scheme_id)->where('role_name', $designation_id_old)->where('stack_level', $duty_obj->mapping_level)->get(['id', 'role_name', 'scheme_id', 'parent_id', 'is_final', 'stack_level', 'is_first', 'role_id'])->first();
-        $next_level_role_id = Workflow::getParentId($duty_obj->scheme_id, Auth::user()->designation_id_old);
+        // $mapArr = MapLavel::where('scheme_id', $duty_obj->scheme_id)->where('role_name', $designation_id)->where('stack_level', $duty_obj->mapping_level)->get(['id', 'role_name', 'scheme_id', 'parent_id', 'is_final', 'stack_level', 'is_first', 'role_id'])->first();
+        $next_level_role_id = Workflow::getParentId($duty_obj->scheme_id, Auth::user()->designation_id);
         if (empty($mapArr)) {
           return redirect("/")->with('danger', 'Not Allowed');
         }
@@ -796,7 +796,7 @@ class WorkflowNsapController extends Controller
         }
       } else if ($request->action_type == 'Approve') {
         //dd('ok');
-        $mapArr = MapLavel::where('scheme_id', $duty_obj->scheme_id)->where('role_name', $designation_id_old)->where('stack_level', $duty_obj->mapping_level)->get(['id', 'role_name', 'scheme_id', 'parent_id', 'is_final', 'stack_level', 'is_first', 'role_id'])->first();
+        $mapArr = MapLavel::where('scheme_id', $duty_obj->scheme_id)->where('role_name', $designation_id)->where('stack_level', $duty_obj->mapping_level)->get(['id', 'role_name', 'scheme_id', 'parent_id', 'is_final', 'stack_level', 'is_first', 'role_id'])->first();
         if (empty($mapArr)) {
           return redirect("/")->with('danger', 'Not Allowed');
         }
@@ -883,12 +883,12 @@ class WorkflowNsapController extends Controller
         $input = [
           'comments' => $comments, 'is_reverted' => 1
         ];
-        if($designation_id_old=='Verifier'){
+        if($designation_id=='Verifier'){
           $input['next_level_role_id']=NULL;
           $input['process_nsap_flag']=NULL;
           $input['nsap_flag']=11;
         }
-        else if($designation_id_old=='Approver'){
+        else if($designation_id=='Approver'){
           $input['next_level_role_id']=NULL;
           $input['process_nsap_flag']=NULL;
           $input['nsap_flag']=12;
@@ -917,9 +917,9 @@ class WorkflowNsapController extends Controller
   public function bulkapprove(Request $request)
   {
     return redirect('/')->with('error', 'Not Allowded');
-    $designation_id_old = Auth::user()->designation_id_old;
+    $designation_id = Auth::user()->designation_id;
     $user_id = AuthChecker::getUserId();
-    if ($designation_id_old == 'Approver') {
+    if ($designation_id == 'Approver') {
       //dd('ok');
       $scheme_id = $request->scheme_id;
       // dd($scheme_id);
@@ -994,7 +994,7 @@ class WorkflowNsapController extends Controller
   }
   public function generate_excel(Request $request)
   {
-    $designation_id_old = Auth::user()->designation_id_old;
+    $designation_id = Auth::user()->designation_id;
     $user_id = AuthChecker::getUserId();
     if (empty($request->scheme_id)) {
       return redirect('/')->with('error', 'Scheme Id Required');
@@ -1015,10 +1015,10 @@ class WorkflowNsapController extends Controller
       $created_by_local_body_code = $duty_obj->urban_body_code;
     }
     $condition = array();
-    if ($designation_id_old == 'Approver') {
+    if ($designation_id == 'Approver') {
       $condition["created_by_dist_code"] = $district_code;
     }
-    if ($designation_id_old == 'Verifier' || $designation_id_old == 'Operator') {
+    if ($designation_id == 'Verifier' || $designation_id == 'Operator') {
       $condition["created_by_dist_code"] = $district_code;
       $condition["created_by_local_body_code"] = $created_by_local_body_code;
     }
@@ -1197,17 +1197,17 @@ class WorkflowNsapController extends Controller
     $cp_time = time();
     $c_date = $c_time->format("Y-m-d");
     $is_active = 0;
-    $roleArray = $request->session()->get('role');
-    $designation_id_old = Auth::user()->designation_id_old;
+    $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();;
+    $designation_id = Auth::user()->designation_id;
     $userId = Auth::user()->id;
     $district_visible = $is_urban_visible = $block_visible = 1;
     $municipality_visible = 0;
     $gp_ward_visible = 0;
     $muncList = collect([]);
     $gpList = collect([]);
-    if ($designation_id_old == 'Admin' || $designation_id_old == 'HOD' || $designation_id_old == 'HOP' ||  $designation_id_old == 'Dashboard' || $designation_id_old == 'MisState' || $designation_id_old == 'DDO') {
+    if ($designation_id == 'Admin' || $designation_id == 'HOD' || $designation_id == 'HOP' ||  $designation_id == 'Dashboard' || $designation_id == 'MisState' || $designation_id == 'DDO') {
       $district_visible = $is_urban_visible = $block_visible = 1;
-    } else if ($designation_id_old == 'Approver' || $designation_id_old == 'Verifier') {
+    } else if ($designation_id == 'Approver' || $designation_id == 'Verifier') {
       $district_code = NULL;
       $is_urban = NULL;
       $blockCode = NULL;

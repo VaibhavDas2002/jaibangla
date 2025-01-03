@@ -17,21 +17,21 @@ use App\Service_designation;
 use App\User_level;
 use App\Configduty;
 use App\Users_audit_trail;
-use Auth;
-use Config;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Config;
 use Exception;
 use Carbon;
-use DB;
-use Validator;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 class UserMobileEmailUpdateController extends Controller
 {
     public function __construct()
     {
         $this->middleware('auth');
         $this->middleware(function ($request, $next) {
-                    $designation_id_old = Auth::user()->designation_id_old;
+                    $designation_id = Auth::user()->designation_id;
                     $has_role=0;
-                    if($designation_id_old=='Admin'){
+                    if($designation_id=='Admin'){
                         $has_role=1;
                         $role_loop=0;
                     }
@@ -59,7 +59,7 @@ class UserMobileEmailUpdateController extends Controller
                                 }
                         }
                         }
-                        $this->designation_id_old=$designation_id_old;
+                        $this->designation_id=$designation_id;
                         $this->has_role=$has_role;
                         $this->mapping_level=$mapping_level;
                         $this->is_urban=$is_urban;
@@ -104,7 +104,7 @@ class UserMobileEmailUpdateController extends Controller
         $offset = $request->input('start');
         if(!$offset)
         $offset=0;
-        $designation_id_old = $this->designation_id_old;
+        $designation_id = $this->designation_id;
         $district_code = $this->district_code;
         $userArray = array();    
         $totalRecords = 0;
@@ -134,7 +134,7 @@ class UserMobileEmailUpdateController extends Controller
         }
        else
        $where='where 1=1';
-        $sql = "select A.user_id,B.username,B.email,B.mobile_no,B.designation_id_old from (
+        $sql = "select A.user_id,B.username,B.email,B.mobile_no,B.designation_id from (
             SELECT distinct(user_id) as user_id	
             FROM duty_assignement  where mapping_level IN (".$whereMapping.") and district_code=".$whereDistrict." 
             ) as A JOIN users as B On A.user_id=B.id $where";
@@ -211,7 +211,7 @@ class UserMobileEmailUpdateController extends Controller
                         'old_username'=>trim($userArr['username']),
                         'old_email'=>trim($userArr['email']),
                         'old_mobile_no'=>trim($userArr['mobile_no']),
-                        'old_designation_id_old'=>intval($userArr['designation_id_old']),
+                        'old_designation_id'=>intval($userArr['designation_id']),
                         'operation_type'=>$user_audit_trail_codearr['Update'],
                         'operate_by'=>$id,
                         'operate_by_stake_level'=>trim($this->mapping_level),

@@ -4,9 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\User;
-use DB;
+use Illuminate\Support\Facades\DB;
 use App\Configduty;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use App\Designation;
 use App\District;
 use App\Taluka;
@@ -77,8 +77,8 @@ class LineDepartmentDutyController extends Controller
     {
     
         $this->validateInput($request);
-        $designation = Designation::where('id',$request['designation_id_old'])->where('visible_at_dist_level',2)->first();
-        $keys = ['lastname', 'firstname', 'middlename', 'designation_id_old'];
+        $designation = Designation::where('id',$request['designation_id'])->where('visible_at_dist_level',2)->first();
+        $keys = ['lastname', 'firstname', 'middlename', 'designation_id'];
         $input = $this->createQueryInput($keys, $request);        
         $emp = Employee::create($input);
         $is_saved=false;
@@ -87,7 +87,7 @@ class LineDepartmentDutyController extends Controller
             'username' => $request['username'],
             'email' => $request['email'],
             'emp_id' => $emp->id,
-            'designation_id_old' => $designation->name,
+            'designation_id' => $designation->name,
             'user_scheme_id' => $request['scheme_name'],
             'mobile_no' => $request['mobile'],
             'password' => bcrypt('User@123'),
@@ -129,7 +129,7 @@ class LineDepartmentDutyController extends Controller
     private function validateInput($request) {
         $this->validate($request, [            
             'firstname' => 'required|max:60',            
-            'designation_id_old' => 'required|numeric',
+            'designation_id' => 'required|numeric',
             //'mobile' => 'required|numeric|size:10',
             'username' => 'required',
             'email' => 'required|email',

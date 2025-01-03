@@ -55,9 +55,9 @@ class AadharUpdateMisReportController extends Controller
     {
         // echo 1;die;
         $is_active = 0;
-        $roleArray = $request->session()->get('role');
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
         // echo '<pre>'; print_r($roleArray);die();
-        $designation_id_old = Auth::user()->designation_id_old;
+        $designation_id = Auth::user()->designation_id;
         $user_id = AuthChecker::getUserId();
         $district_visible = $is_urban_visible = $block_visible = 1;
         $municipality_visible = 0;
@@ -67,15 +67,15 @@ class AadharUpdateMisReportController extends Controller
         $duty = Configduty::where('user_id', '=', $user_id)->first();
         $schemes = DB::select(DB::raw("select id,scheme_name,pr1_code,entry_url,display_name from m_scheme where id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . ") and is_active = 1 order by rank"));
         // echo '<pre>';print_r($schemes);die();
-        if ($designation_id_old == 'Admin') {
+        if ($designation_id == 'Admin') {
             $district_visible = $is_urban_visible = $block_visible = 1;
-        } else if ($designation_id_old == 'Approver') {
+        } else if ($designation_id == 'Approver') {
             // echo 1;die();
             $district_code = NULL;
             $is_urban = NULL;
             $blockCode = NULL;
             foreach ($roleArray as $roleObj) {
-                // echo $designation_id_old;die();
+                // echo $designation_id;die();
                 // if ($roleObj['scheme_id']) {
                     $is_urban = $roleObj['is_urban'];
                     $district_code = $roleObj['district_code'];

@@ -13,8 +13,8 @@ use App\Ward;
 use App\GP;
 use App\MapLavel;
 use Redirect;
-use Auth;
-use Validator;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
@@ -38,9 +38,9 @@ class ChartController extends Controller
     public function index(Request $request)
     {
       // dd($request->all());
-      $designation_id_old = Auth::user()->designation_id_old;
+      $designation_id = Auth::user()->designation_id;
       $user_id = AuthChecker::getUserId();
-      if($designation_id_old!='HOD'){
+      if($designation_id!='HOD'){
         return redirect("/")->with('danger', 'Not Allowed');
 
       }
@@ -49,7 +49,7 @@ class ChartController extends Controller
         return redirect("/")->with('danger', 'Not Allowed');
       }
         $data1=array();
-        $designation_id_old = Auth::user()->designation_id_old;
+        $designation_id = Auth::user()->designation_id;
         $userId = Auth::user()->id;
         $selected_scheme=2;
         $sceme_list = DB::select(DB::raw("select id,scheme_name from m_scheme where id IN (2,10,11) and id in (select scheme_id from duty_assignement where user_id=" . $userId . " and is_active=1) and is_active=1 order by scheme_name"));

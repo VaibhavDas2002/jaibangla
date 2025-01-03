@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\BeneficiaryPensions;
 use Illuminate\Support\Facades\DB;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use App\Configduty;
 use App\Scheme;
 use App\lot_master;
@@ -87,7 +87,7 @@ class LargeLotGenerationController extends Controller
         					->first();
         $assignedScheme = $duty->scheme_id;
 
-        if((Auth::user()->designation_id_old == "DDO")&&($assignedScheme==$scheme_id)&&($in_category=="ALL")){
+        if((Auth::user()->designation_id == "DDO")&&($assignedScheme==$scheme_id)&&($in_category=="ALL")){
     		$new_lot_no = DB::statement('SELECT generate_large_lot(?, ?, ?, ?)', [$in_fin_year,$in_lot_month, $scheme_id, $in_lot_size]);
 	        if(strlen($new_lot_no)>0){
 	        	$lot = lot_master::where('scheme_id',$scheme_id)        		
@@ -103,7 +103,7 @@ class LargeLotGenerationController extends Controller
 	            ->with('id', $new_lot_no);
 	        }
 
-        }else if((Auth::user()->designation_id_old == "DDO")&&($assignedScheme==$scheme_id)&&($in_category != "ALL")){
+        }else if((Auth::user()->designation_id == "DDO")&&($assignedScheme==$scheme_id)&&($in_category != "ALL")){
             $new_lot_no = DB::statement('SELECT generate_large_lot_category_wise(?, ?, ?, ? , ? )', [$in_fin_year,$in_lot_month, $scheme_id, $in_lot_size, $in_category ]);
             if(strlen($new_lot_no)>0){
                 $lot = lot_master::where('scheme_id',$scheme_id)                

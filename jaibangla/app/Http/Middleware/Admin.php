@@ -3,7 +3,7 @@
 namespace App\Http\Middleware;
 
 use Closure;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 
 class Admin
 {
@@ -18,13 +18,13 @@ class Admin
 
     function handle($request, Closure $next)
     {
-        if (Auth::check() && Auth::user()->designation_id_old == 'Admin') {
+        if (Auth::check() && Auth::user()->designation_id == 'Admin') {
             return $next($request);
         }
-        /*elseif (Auth::check() && Auth::user()->designation_id_old == 'DCP') {
+        /*elseif (Auth::check() && Auth::user()->designation_id == 'DCP') {
             return redirect('/DCP');
         }
-        else if (Auth::check() && Auth::user()->designation_id_old == 'ACP') { 
+        else if (Auth::check() && Auth::user()->designation_id == 'ACP') { 
             return redirect('/ACP');
         }*/
         else {

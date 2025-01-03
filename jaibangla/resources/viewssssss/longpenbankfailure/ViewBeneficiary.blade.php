@@ -298,7 +298,7 @@ margin: 10px 0px 10px 0px !important;
 
 
                         </div>
-                        @if($designation_id_old=='Approver')
+                        @if($designation_id=='Approver')
                         @if(!empty($image))
                         <div class="row">
                           <div class="col-md-12"  style="margin:10px 0px"><h3>{{$doc_man->doc_name}}</h3></div>

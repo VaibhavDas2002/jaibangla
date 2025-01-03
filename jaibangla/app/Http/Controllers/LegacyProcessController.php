@@ -9,7 +9,7 @@ use App\District;
 use App\GP;
 use App\Ward;
 use App\BeneficiaryPensions;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use App\Configduty;
 use App\Scheme;
 use App\UrbanBody;
@@ -19,7 +19,7 @@ use App\LegacyApplicationStatus;
 use App\BankDetails;
 
 use Illuminate\Support\Collection;
-use Excel;
+use Maatwebsite\Excel\Facades\Excel;
 
 
 use Illuminate\Support\Facades\DB;
@@ -42,7 +42,7 @@ class LegacyProcessController extends Controller
 
     $user_level = '';
     $user_local_body_code = $district_name;
-    $roleArray = $request->session()->get('role');
+    $roleArray = Configduty::where('user_id', $user_id)->where('is_active', 1)->get()->toArray();;
     foreach ($roleArray as $roleObj) {
       //Check scheme for ST           
       if ($roleObj['scheme_id'] == 1) {
@@ -71,8 +71,8 @@ class LegacyProcessController extends Controller
 
       $user_level = '';
       $user_local_body_code = '';
-      $roleArray = $request->session()->get('role');
-      foreach ($roleArray as $roleObj) {
+      $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+            foreach ($roleArray as $roleObj) {
         //Check scheme for ST           
         if ($roleObj['scheme_id'] == 1) {
           $user_level = $roleObj['mapping_level'];
@@ -271,7 +271,8 @@ class LegacyProcessController extends Controller
 
     $user_level = '';
     $user_local_body_code = '';
-    $roleArray = $request->session()->get('role');
+    $roleArray = Configduty::where('user_id', $user_id)->where('is_active', 1)->get()->toArray();
+
     foreach ($roleArray as $roleObj) {
       //Check scheme for ST           
       if ($roleObj['scheme_id'] == 1) {
@@ -313,7 +314,7 @@ class LegacyProcessController extends Controller
     $ben_id = $request->ben_id;
     $reject_reason = $request->reject_reason;
 
-    $roleArray = $request->session()->get('role');
+    $roleArray = Configduty::where('user_id', $user_id)->where('is_active', 1)->get()->toArray();;
     foreach ($roleArray as $roleObj) {
       //Check scheme for ST           
       if ($roleObj['scheme_id'] == 1) {

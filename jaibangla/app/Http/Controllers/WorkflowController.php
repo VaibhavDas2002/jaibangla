@@ -35,7 +35,7 @@ use App\SchemecodeStatic;
 use App\Helpers\Helper;
 use App\SubDistrict;
 use Carbon\Carbon;
-use Config;
+use Illuminate\Support\Facades\Config;
 use App\BlkUrbanlEntryMapping;
 use App\RejectRevertReason;
 use App\AcceptRejectInfo;
@@ -45,6 +45,21 @@ use App\BenDocs;
 use App\Helpers\AuthChecker;
 class WorkflowController extends Controller
 {
+  protected $monthlySlug;
+  protected $monthlySchemeCode;
+  protected $monthlyMainTable;
+  protected $monthlyMainTable1;
+  protected $monthlyDocArchTable;
+  protected $monthlyDocTable;
+  protected $housingSlug;
+  protected $housingSchemeCode;
+  protected $housingMainTable;
+  protected $housingMainTable1;
+  protected $housingDocArchTable;
+  protected $housingDocTable;
+  protected $state_login_next_level_role_id_arr;
+  
+
   public function __construct()
   {
     $this->middleware('auth');
@@ -124,9 +139,9 @@ class WorkflowController extends Controller
   public function formEntryOptionwtQuota(Request $request)
   {
     $scheme_not_re = array(4, 12, 14, 15, 16, 18, 19);
-    $designation_id_old = Auth::user()->designation_id_old;
+    $designation_id = Auth::user()->designation_id;
     $user_id = AuthChecker::getUserId();
-    if ($designation_id_old != 'Operator') {
+    if ($designation_id != 'Operator') {
       return redirect('/')->with('error', 'Not Allowded');
     }
     $district_arr = Configduty::select('district_code', 'urban_body_code', 'taluka_code', 'is_urban')->where('user_id', $user_id)->where('is_active', 1)->first();
@@ -182,9 +197,9 @@ class WorkflowController extends Controller
   public function shemeSelection(Request $request)
   {
     $scheme_not_re = array(4, 12, 14, 15, 16, 18, 19);
-    $designation_id_old = Auth::user()->designation_id_old;
+    $designation_id = Auth::user()->designation_id;
     $user_id = AuthChecker::getUserId();
-    if ($designation_id_old == 'Verifier') {
+    if ($designation_id == 'Verifier') {
 
       $district_arr = Configduty::select('district_code', 'urban_body_code', 'taluka_code', 'is_urban')->where('user_id', $user_id)->where('is_active', 1)->first();
       if (empty($district_arr)) {
@@ -232,7 +247,7 @@ class WorkflowController extends Controller
           'return_arr' => $return_arr,
         ]
       );
-    } else if ($designation_id_old == 'Approver') {
+    } else if ($designation_id == 'Approver') {
       $district_arr = Configduty::select('district_code')->where('user_id', $user_id)->where('is_active', 1)->first();
       if (empty($district_arr)) {
         return redirect("/")->with('danger', 'User Disabled');
@@ -376,7 +391,7 @@ class WorkflowController extends Controller
     }
 
     $is_active = 0;
-    $roleArray = $request->session()->get('role');
+    $roleArray = Configduty::where('user_id', $user_id)->where('is_active', 1)->get()->toArray();;
     foreach ($roleArray as $roleObj) {
       if ($roleObj['scheme_id'] == $scheme_id) {
         $is_active = 1;
@@ -401,14 +416,14 @@ class WorkflowController extends Controller
     }
     if ($is_active == 1) {
       if ($scheme_id == 10 || $scheme_id == 11 || $scheme_id == 2) {
-        $designation_id_old = Auth::user()->designation_id_old;
-        if ($designation_id_old == 'Verifier') {
+        $designation_id = Auth::user()->designation_id;
+        if ($designation_id == 'Verifier') {
           $allowded_arr_cnt = BlkUrbanlEntryMapping::where('scheme_id', $scheme_id)->where('block_ulb_code', $block_ulb_code)->where('district_code', $district_code)->whereraw(" (main_verification=TRUE or special_verification=TRUE)")->count();
           if ($allowded_arr_cnt == 0) {
             return false;
           }
         }
-        if ($designation_id_old == 'Approver') {
+        if ($designation_id == 'Approver') {
           $allowded_arr_cnt = BlkUrbanlEntryMapping::where('scheme_id', $scheme_id)->where('district_code', $district_code)->whereraw(" (main_approval=TRUE or special_approval=TRUE)")->count();
           if ($allowded_arr_cnt == 0) {
             return false;
@@ -428,8 +443,8 @@ class WorkflowController extends Controller
 
     // dd($request->all());
     if ($this->shemeSessionCheck($request)) {
-      $designation_id_old = Auth::user()->designation_id_old;
-      if (in_array($designation_id_old, array('StatusCheckerDistrict', 'StatusCheckerField'))) {
+      $designation_id = Auth::user()->designation_id;
+      if (in_array($designation_id, array('StatusCheckerDistrict', 'StatusCheckerField'))) {
         return redirect('/')->with('error', 'Not Allowded');
       }
       $scheme_id = $request->session()->get('scheme_id');
@@ -460,8 +475,8 @@ class WorkflowController extends Controller
       if ($table_name == '') {
         return redirect('/')->with('error', 'Scheme Not Found...');
       }
-      $designation_id_old = Auth::user()->designation_id_old;
-      if ($designation_id_old == 'Operator') {
+      $designation_id = Auth::user()->designation_id;
+      if ($designation_id == 'Operator') {
         return redirect('/')->with('error', 'Not Allowded...');
       }
 
@@ -1912,7 +1927,7 @@ class WorkflowController extends Controller
     if ($is_state_login) {
       $next_level_role_id = 0;
     } else {
-      $role = MapLavel::where('scheme_id', $scheme_id)->where('role_name', Auth::user()->designation_id_old)->where('stack_level', $duty->mapping_level)->first();
+      $role = MapLavel::where('scheme_id', $scheme_id)->where('role_name', Auth::user()->designation_id)->where('stack_level', $duty->mapping_level)->first();
       $next_level_role_id = $role->parent_id;
     }
 
@@ -2248,11 +2263,11 @@ class WorkflowController extends Controller
     $scheme_capacity_arr = array();
     $distCode = $request->session()->get('distCode');
     if ($row->wt_special == 1) {
-      $designation_id_old = Auth::user()->designation_id_old;
-      if ($designation_id_old == 'Verifier') {
+      $designation_id = Auth::user()->designation_id;
+      if ($designation_id == 'Verifier') {
         $scheme_capacity_arr = Helper::getCapacityWtQuota($scheme_id, $distCode, $request->session()->get('bodyCode'));
       }
-      if ($designation_id_old == 'Approver') {
+      if ($designation_id == 'Approver') {
         $scheme_capacity_arr = Helper::getCapacityWtQuotaDistrict($scheme_id, $distCode);
       }
       if ($scheme_capacity_arr['visible'] == 1) {
@@ -2388,7 +2403,7 @@ class WorkflowController extends Controller
       ]);
     } else if ($scheme_id == 17) {
       $duty = Configduty::where('user_id', '=', Auth::user()->id)->where('scheme_id', $scheme_id)->first();
-      $role = MapLavel::where('scheme_id', $scheme_id)->where('role_name', Auth::user()->designation_id_old)->where('stack_level', $duty->mapping_level)->first();
+      $role = MapLavel::where('scheme_id', $scheme_id)->where('role_name', Auth::user()->designation_id)->where('stack_level', $duty->mapping_level)->first();
 
       return view('PurohitICAD/pension_view_details', [
         'is_state_login' => $is_state_login,
@@ -2451,8 +2466,8 @@ class WorkflowController extends Controller
       return redirect("/")->with('danger', 'Scheme ID Not Valid');
     }
     $user_id = AuthChecker::getUserId();
-    $designation_id_old = Auth::user()->designation_id_old;
-    if ($designation_id_old == 'Operator') {
+    $designation_id = Auth::user()->designation_id;
+    if ($designation_id == 'Operator') {
       return redirect("/")->with('danger', 'Not Allowded');
     }
     $reject_revert_cause_list = RejectRevertReason::where('status', true)->get();
@@ -2514,7 +2529,7 @@ class WorkflowController extends Controller
     $accept_reject_model->created_by_dist_code = $created_by_dist_code;
     $accept_reject_model->created_by_local_body_code = $created_by_local_body_code;
     $accept_reject_model->ip_address = request()->ip();
-    $role = MapLavel::where('scheme_id', $scheme_id)->where('role_name', Auth::user()->designation_id_old)->where('stack_level', $duty_obj->mapping_level)->first();
+    $role = MapLavel::where('scheme_id', $scheme_id)->where('role_name', Auth::user()->designation_id)->where('stack_level', $duty_obj->mapping_level)->first();
     $next_level_role_id = $role->parent_id;
 
     if ($_POST['submit'] == 'Verify') {
@@ -2698,7 +2713,7 @@ class WorkflowController extends Controller
       $next_level_role_id = 0;
       $row = DB::table($table_name)->where('id', '=', $id)->where('is_state', TRUE)->first();
     } else {
-      $role = MapLavel::where('scheme_id', $scheme_id)->where('role_name', Auth::user()->designation_id_old)->where('stack_level', $duty->mapping_level)->first();
+      $role = MapLavel::where('scheme_id', $scheme_id)->where('role_name', Auth::user()->designation_id)->where('stack_level', $duty->mapping_level)->first();
       $next_level_role_id = $role->parent_id;
       $row = DB::table($table_name)->where('id', '=', $id)->where('next_level_role_id', $role->id)->first();
     }
@@ -2919,7 +2934,7 @@ class WorkflowController extends Controller
       }
       //Verified
       $duty = Configduty::where('user_id', '=', $user_id)->where('scheme_id', $scheme_id)->first();
-      $role = MapLavel::where('scheme_id', $scheme_id)->where('role_name', Auth::user()->designation_id_old)->where('stack_level', $duty->mapping_level)->first();
+      $role = MapLavel::where('scheme_id', $scheme_id)->where('role_name', Auth::user()->designation_id)->where('stack_level', $duty->mapping_level)->first();
 
       $input = ['is_verified' => 1, 'next_level_role_id' => $role->parent_id, 'comments' => $pensioncomments, 'verification_date' => $c_time, 'verified_by' => $user_id];
       $appPrefix = "App";
@@ -2976,7 +2991,7 @@ class WorkflowController extends Controller
         }
       }
       $duty = Configduty::where('user_id', '=', $user_id)->where('scheme_id', $scheme_id)->first();
-      $role = MapLavel::where('scheme_id', $scheme_id)->where('role_name', Auth::user()->designation_id_old)->where('stack_level', $duty->mapping_level)->first();
+      $role = MapLavel::where('scheme_id', $scheme_id)->where('role_name', Auth::user()->designation_id)->where('stack_level', $duty->mapping_level)->first();
       //Verified
       $input = ['is_verified' => 1, 'next_level_role_id' => $role->parent_id, 'comments' => $housingcomments];
       $appPrefix = "App";
@@ -3077,7 +3092,7 @@ class WorkflowController extends Controller
         }
       }
       $duty = Configduty::where('user_id', '=', $user_id)->where('scheme_id', $scheme_id)->first();
-      $role = MapLavel::where('scheme_id', $scheme_id)->where('role_name', Auth::user()->designation_id_old)->where('stack_level', $duty->mapping_level)->first();
+      $role = MapLavel::where('scheme_id', $scheme_id)->where('role_name', Auth::user()->designation_id)->where('stack_level', $duty->mapping_level)->first();
 
       //Approved
       $input = ['is_approved' => 1, 'next_level_role_id' => $role->parent_id, 'comments' => $pensioncomments, 'payment_start_date' => date('Y-m-d'), 'approval_date' => $c_time, 'approved_by' => $user_id,];
@@ -3137,7 +3152,7 @@ class WorkflowController extends Controller
       }
       //Verified
       $duty = Configduty::where('user_id', '=', $user_id)->where('scheme_id', $scheme_id)->first();
-      $role = MapLavel::where('scheme_id', $scheme_id)->where('role_name', Auth::user()->designation_id_old)->where('stack_level', $duty->mapping_level)->first();
+      $role = MapLavel::where('scheme_id', $scheme_id)->where('role_name', Auth::user()->designation_id)->where('stack_level', $duty->mapping_level)->first();
 
       $input = ['next_level_role_id' => $role->parent_id, 'comments' => $housingcomments];
       $appPrefix = "App";
@@ -3183,7 +3198,7 @@ class WorkflowController extends Controller
 
     // $user_id = AuthChecker::getUserId();        
     // $duty = Configduty::where('user_id','=',$user_id)->where('scheme_id',$scheme_id)->first();
-    // $role=MapLavel::where('scheme_id',$scheme_id)->where('role_name',Auth::user()->designation_id_old)->where('stack_level',$duty->mapping_level)->first();
+    // $role=MapLavel::where('scheme_id',$scheme_id)->where('role_name',Auth::user()->designation_id)->where('stack_level',$duty->mapping_level)->first();
 
 
     // if ($_POST['submit'] == 'Approve') {
@@ -3248,7 +3263,7 @@ class WorkflowController extends Controller
     $accept_reject_model->ip_address = request()->ip();
     $user_id = AuthChecker::getUserId();
     $duty = Configduty::where('user_id', '=', $user_id)->where('scheme_id', $scheme_id)->first();
-    $role = MapLavel::where('scheme_id', $scheme_id)->where('role_name', Auth::user()->designation_id_old)->where('stack_level', $duty->mapping_level)->first();
+    $role = MapLavel::where('scheme_id', $scheme_id)->where('role_name', Auth::user()->designation_id)->where('stack_level', $duty->mapping_level)->first();
     $inputs = request()->input('approvalcheck');
     if ($scheme_capacity_arr['visible'] == 1) {
       $total_check = $scheme_capacity_arr['total_data'] + count($inputs);
@@ -3555,7 +3570,7 @@ class WorkflowController extends Controller
       ]);
     } else if ($scheme_id == 17) {
       $duty = Configduty::where('user_id', '=', Auth::user()->id)->where('scheme_id', $scheme_id)->first();
-      $role = MapLavel::where('scheme_id', $scheme_id)->where('role_name', Auth::user()->designation_id_old)->where('stack_level', $duty->mapping_level)->first();
+      $role = MapLavel::where('scheme_id', $scheme_id)->where('role_name', Auth::user()->designation_id)->where('stack_level', $duty->mapping_level)->first();
 
       return view('PurohitICAD/pension_view_details', [
         'is_state_login' => $is_state_login,

@@ -9,7 +9,7 @@ Use App\District;
 Use App\GP;
 Use App\Ward;
 use App\BeneficiaryPensions;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use App\Configduty;
 use App\Scheme;
 use App\UrbanBody;
@@ -22,7 +22,7 @@ use App\ApplicationStatus;
 use App\StatusCode;
 use App\BankResponse;
 use Illuminate\Support\Collection;
-use Excel;
+use Maatwebsite\Excel\Facades\Excel;
 use App\Helpers\AuthChecker;
 
 

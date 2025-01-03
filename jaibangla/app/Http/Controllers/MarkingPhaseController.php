@@ -7,13 +7,13 @@ use App\User;
 use App\District;
 use App\Scheme;
 use Redirect;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 use DateTime;
-use Config;
+use Illuminate\Support\Facades\Config;
 use App\Configduty;
 use Maatwebsite\Excel\Facades\Excel;
 use App\DataSourceCommon;
@@ -61,8 +61,8 @@ class MarkingPhaseController extends Controller
   {
     //return redirect("/")->with('danger', 'Not Allowed');
     $this->middleware('auth');
-    $designation_id_old = Auth::user()->designation_id_old;
-    //dd($designation_id_old);
+    $designation_id = Auth::user()->designation_id;
+    //dd($designation_id);
     $user_id = AuthChecker::getUserId();
 
     $scheme_id = $request->scheme_id;
@@ -95,7 +95,7 @@ class MarkingPhaseController extends Controller
       return redirect("/")->with('danger', 'Not Allowed');
     }
     if ($type == 1) {
-      if (!in_array($designation_id_old, array( 'Special LAO'))) {
+      if (!in_array($designation_id, array( 'Special LAO'))) {
         return redirect("/")->with('danger', 'Not Allowed');
       }
     }
@@ -214,7 +214,7 @@ class MarkingPhaseController extends Controller
         ->setTotalRecords($totalRecords)
         ->setFilteredRecords($filterRecords)
         ->skipPaging()
-        ->addColumn('view', function ($data) use ($ds_mark_phase, $camp_roman, $type, $scheme_id, $designation_id_old, $next_level_role_id_approver, $next_level_role_id_verifier) {
+        ->addColumn('view', function ($data) use ($ds_mark_phase, $camp_roman, $type, $scheme_id, $designation_id, $next_level_role_id_approver, $next_level_role_id_verifier) {
           $action = '<a href="Viewmarkds?ds_mark_phase=' . $ds_mark_phase . '&type=' . $type . '&id=' . $data->id  . '&scheme_id=' . $data->scheme_id . '" class="btn btn-xs btn-info"><i class="glyphicon glyphicon-edit"></i> View</a>';
 
          
@@ -230,7 +230,7 @@ class MarkingPhaseController extends Controller
 
 
           return $action;
-        })->addColumn('check', function ($data) use ($designation_id_old) {
+        })->addColumn('check', function ($data) use ($designation_id) {
           return '';
         })
         ->addColumn('id', function ($data) {
@@ -274,7 +274,7 @@ class MarkingPhaseController extends Controller
     return view(
       'markds.markdslist',
       [
-        'designation_id_old' => $designation_id_old,
+        'designation_id' => $designation_id,
         'created_by_dist_code' => $district_code,
         'scheme_id' => $scheme_id,
         'scheme_name' => $scheme_obj->scheme_name,
@@ -296,7 +296,7 @@ class MarkingPhaseController extends Controller
     //return redirect("/")->with('danger', 'Not Allowed');
     try {
       $this->middleware('auth');
-      $designation_id_old = Auth::user()->designation_id_old;
+      $designation_id = Auth::user()->designation_id;
       $user_id = AuthChecker::getUserId();
       $id = $request->id;
       // dd($id);
@@ -342,7 +342,7 @@ class MarkingPhaseController extends Controller
         }
       }
       if ($type == 1) {
-        if (!in_array($designation_id_old, array( 'Special LAO'))) {
+        if (!in_array($designation_id, array( 'Special LAO'))) {
           return redirect("/")->with('danger', 'Not Allowed');
         }
       }
@@ -418,7 +418,7 @@ class MarkingPhaseController extends Controller
       return view(
         'markds.Viewmark',
         [
-          'designation_id_old' => $designation_id_old,
+          'designation_id' => $designation_id,
           'row' => $row,
           'id' => $id,
           'district_name' => $district_name,
@@ -443,7 +443,7 @@ class MarkingPhaseController extends Controller
     try {
       //return redirect("/")->with('danger', 'Not Allowed');
       $this->middleware('auth');
-      $designation_id_old = Auth::user()->designation_id_old;
+      $designation_id = Auth::user()->designation_id;
       $user_id = AuthChecker::getUserId();
       if (empty($request->beneficiary_id)) {
         return redirect("/")->with('danger', 'Beneficiary ID Not Found');
@@ -484,7 +484,7 @@ class MarkingPhaseController extends Controller
         return redirect("/")->with('danger', 'Not Allowed');
       }
       if ($type == 1) {
-        if (!in_array($designation_id_old, array( 'Special LAO'))) {
+        if (!in_array($designation_id, array( 'Special LAO'))) {
           return redirect("/")->with('danger', 'Not Allowed');
         }
       }

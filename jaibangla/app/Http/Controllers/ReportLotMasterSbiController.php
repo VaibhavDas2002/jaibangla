@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\User;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use App\Configduty;
 use App\Helpers\AuthChecker;
 
@@ -71,7 +71,7 @@ class ReportLotMasterSbiController extends Controller
             $status = 1;
         }
         //$rbi_status = DB::select(DB::raw("select lot_no from temp_lot_master where scheme_id IN (select id from m_scheme where ddo_code IN 
-        //(select username from users where mobile_no='".$mobile."' and designation_id_old='DDO')) order by lot_no DESC"));
+        //(select username from users where mobile_no='".$mobile."' and designation_id='DDO')) order by lot_no DESC"));
 
         return view('report-lot-master-sbi/lot_listing', ['reports' => $report,'status'=>$status]);
         //return view('report_lot_master_sbi_test');

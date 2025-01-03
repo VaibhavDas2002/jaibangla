@@ -72,7 +72,7 @@
                       </td>
 
                       <td id="con_set_user">
-                        {{$map->user->designation_id_old}}
+                        {{$map->user->designation_id}}
                        
                         
 

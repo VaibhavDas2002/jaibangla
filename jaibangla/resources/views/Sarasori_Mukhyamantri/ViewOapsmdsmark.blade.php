@@ -466,15 +466,15 @@ margin: 10px 0px 10px 0px !important;
                @endif
                @php
               $visible=0;
-              if($designation_id_old=='Operator' && is_null($row->sm_ds_mark_viii)){
+              if($designation_id=='Operator' && is_null($row->sm_ds_mark_viii)){
                 $visible=1;
                 $btntext='Mark as Duare Sarkar '.$camp_roman;
               }
-              if($designation_id_old=='Verifier' && is_null($row->sm_ds_mark)){
+              if($designation_id=='Verifier' && is_null($row->sm_ds_mark)){
                 $visible=1;
                 $btntext='Mark as Duare Sarkar '.$camp_roman;
               }
-              if($designation_id_old=='Approver' && $row->sm_ds_mark==1 && $row->sm_ds_mark_role_id==1){
+              if($designation_id=='Approver' && $row->sm_ds_mark==1 && $row->sm_ds_mark_role_id==1){
                 $visible=0;
                 $btntext='Approve Duare Sarkar '.$camp_roman.' Marking Request';
               }

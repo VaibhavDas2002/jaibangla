@@ -5,14 +5,14 @@ namespace App\Http\Controllers;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Http\Request;
 use App\BeneficiaryPensions;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use App\Configduty;
 use App\Scheme;
 use Redirect;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
 use App\District;
 use App\SubDistrict;
@@ -90,7 +90,7 @@ class DrillDownReport extends Controller
       $validator = Validator::make($request->all(), $rules, $messages, $attributes);
       if ($validator->passes()) {
         $inValid = 0;
-        $designation_id_old = Auth::user()->designation_id_old;
+        $designation_id = Auth::user()->designation_id;
         $heading_msg = 'Districtwise Drill Down Report(' . $payment_mode . ') ';
         if (!is_null($scheme_id)) {
           $file_3_part = $scheme_id;
@@ -99,13 +99,13 @@ class DrillDownReport extends Controller
           $file_3_part = $user_id;
           $duty_arr =  Configduty::select('district_code', 'urban_body_code', 'taluka_code', 'is_urban', 'mapping_level')->where('user_id', '=', $user_id)->first();
         }
-        if ($designation_id_old == 'HOD' || $designation_id_old == 'DDO' || $designation_id_old == 'CORP' || $designation_id_old == 'Admin') {
+        if ($designation_id == 'HOD' || $designation_id == 'DDO' || $designation_id == 'CORP' || $designation_id == 'Admin') {
           $file_1_part = '1';
           $file_2_part =  $duty_arr->mapping_level;
-        } else if ($designation_id_old == 'Approver') {
+        } else if ($designation_id == 'Approver') {
           $file_1_part = $duty_arr->district_code;
           $file_2_part =  $duty_arr->mapping_level;
-        } else if ($designation_id_old == 'Verifier' || $designation_id_old == 'Operator') {
+        } else if ($designation_id == 'Verifier' || $designation_id == 'Operator') {
           if ($duty_arr->is_urban == 1) {
             $file_1_part = $duty_arr->district_code . '-' . $duty_arr->urban_body_code;
             $file_2_part =  $duty_arr->mapping_level;
@@ -325,7 +325,7 @@ class DrillDownReport extends Controller
       return redirect('/')->with('error', 'Payment Mode Not Valid');
     }
     $user_id = AuthChecker::getUserId();
-    $designation_id_old = Auth::user()->designation_id_old;
+    $designation_id = Auth::user()->designation_id;
     $scheme_id = $request->scheme_id;
     if (!is_null($scheme_id)) {
       $file_3_part = $scheme_id;
@@ -334,7 +334,7 @@ class DrillDownReport extends Controller
       $file_3_part = $user_id;
       $duty_arr =  Configduty::select('district_code', 'urban_body_code', 'taluka_code', 'is_urban', 'mapping_level')->where('user_id', '=', $user_id)->first();
     }
-    if ($designation_id_old == 'HOD' || $designation_id_old == 'DDO' || $designation_id_old == 'CORP' || $designation_id_old == 'Admin') {
+    if ($designation_id == 'HOD' || $designation_id == 'DDO' || $designation_id == 'CORP' || $designation_id == 'Admin') {
       $district_code = $request->district_code;
     } else {
       $district_code =  $duty_arr->district_code;
@@ -391,7 +391,7 @@ class DrillDownReport extends Controller
     $validator = Validator::make($request->all(), $rules, $messages, $attributes);
     if ($validator->passes()) {
       $inValid = 0;
-      $designation_id_old = Auth::user()->designation_id_old;
+      $designation_id = Auth::user()->designation_id;
       $heading_msg = 'Block/Municipality Wise Drill Down Report(' . $payment_mode . ') ';
       if (!is_null($scheme_id)) {
         $file_3_part = $scheme_id;

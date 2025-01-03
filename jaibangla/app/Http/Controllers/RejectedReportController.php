@@ -27,23 +27,22 @@ class RejectedReportController extends Controller
         set_time_limit(600);   
     }
     public function index(Request $request) {
-        $designationId = Auth::user()->designation_id_old;
+        $designationId = Auth::user()->designation_id;
         $userId = Auth::user()->id;
         $sceme_list = DB::select(DB::raw("select id,scheme_name from m_scheme where id IN (1) and id in (select scheme_id from duty_assignement where user_id=" . $userId . " and is_active=1) and is_active=1 order by scheme_name"));
         $base_date  = '2021-08-16';
         $c_time = Carbon::now();
         $c_date = $c_time->format("Y-m-d");
         $is_active = 0;
-        $roleArray = $request->session()->get('role');
-        $designation_id_old = Auth::user()->designation_id_old;
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray()        $designation_id = Auth::user()->designation_id;
         $district_visible = $is_urban_visible = $block_visible = 1;
         $municipality_visible = 0;
         $gp_ward_visible = 0;
         $muncList = collect([]);
         $gpList = collect([]);
-        if ($designation_id_old == 'Admin' || $designation_id_old == 'HOD' ||  $designation_id_old == 'Dashboard' || $designation_id_old == 'DDO') {
+        if ($designation_id == 'Admin' || $designation_id == 'HOD' ||  $designation_id == 'Dashboard' || $designation_id == 'DDO') {
             $district_visible = $is_urban_visible = $block_visible = 1;
-        } else if ($designation_id_old == 'Approver' || $designation_id_old == 'Verifier' || $designation_id_old == 'StatusCheckerDistrict' || $designation_id_old == 'StatusCheckerField') {
+        } else if ($designation_id == 'Approver' || $designation_id == 'Verifier' || $designation_id == 'StatusCheckerDistrict' || $designation_id == 'StatusCheckerField') {
             $district_code = NULL;
             $is_urban = NULL;
             $blockCode = NULL;

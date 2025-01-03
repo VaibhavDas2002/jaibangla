@@ -32,14 +32,14 @@ use App\GP;
 use App\User;
 use Redirect;
 use App\BenEntry;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
-use Config;
+use Illuminate\Support\Facades\Config;
 use App\SchemeCapacity;
 use App\Scheme;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
 use App\BankDetails;
 use App\Helpers\Helper;
@@ -88,8 +88,7 @@ class OAPWCDformController extends Controller
         // $base_url=url('/');
         // echo $base_url.'/images/';exit;        
 
-        $roleArray = $request->session()->get('role');
-        foreach ($roleArray as $roleObj) {
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray()        foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == $scheme_id) {
                 $is_active = 1;
                 $request->session()->put('level', $roleObj['mapping_level']);
@@ -371,8 +370,7 @@ class OAPWCDformController extends Controller
         $uploaded_doc = array();
         $destinationPath = storage_path('app/keep_oap/');
         $scheme_id = $request->scheme_id;
-        $roleArray = $request->session()->get('role');
-        $is_active = 0;
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray()        $is_active = 0;
         foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == $scheme_id) {
                 $is_active = 1;
@@ -1470,7 +1468,7 @@ class OAPWCDformController extends Controller
           $id = $request->id;
           $scheme_id = (int) $request->scheme_id;
           // dd($scheme_id);
-          $designation_id_old = Auth::user()->designation_id_old;
+          $designation_id = Auth::user()->designation_id;
           if (!is_int($scheme_id)) {
               return redirect("/")->with('error', 'Scheme Code Not Valid');
           }
@@ -1481,8 +1479,7 @@ class OAPWCDformController extends Controller
   
           $is_active = 0;
           $mapping_level = NULL;
-          $roleArray = $request->session()->get('role');
-          foreach ($roleArray as $roleObj) {
+          $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray()          foreach ($roleArray as $roleObj) {
               if ($roleObj['scheme_id'] == $scheme_id) {
                   $is_active = 1;
                   $mapping_level = $roleObj['mapping_level'];
@@ -1514,13 +1511,13 @@ class OAPWCDformController extends Controller
           } else {
               $query = PensionOAPWCD::where(['id' => $id, 'created_by_dist_code' => $distCode, 'scheme_id' => $scheme_id]);
           }
-          if ($designation_id_old == 'Verifier') {
+          if ($designation_id == 'Verifier') {
               if ($is_state_login) {
                   $query = $query->where('next_level_role_id', $this->state_login_next_level_role_id_arr['entry']);
               } else {
                   $query = $query->whereNull('next_level_role_id');
               }
-          } else if ($designation_id_old == 'Approver') {
+          } else if ($designation_id == 'Approver') {
               if ($is_state_login) {
                   $query = $query->where('next_level_role_id', $this->state_login_next_level_role_id_arr['verified']);
               } else {
@@ -1909,7 +1906,7 @@ class OAPWCDformController extends Controller
             if($arch_status && $is_update && $doc_inserted_arch && $doc_inserted_del && $doc_inserted && $is_saved_log){
                 DB::commit();
                 DB::connection('pgsql_encwrite')->commit();
-                if ($designation_id_old == 'Operator')
+                if ($designation_id == 'Operator')
                    return redirect("application-list-read-only-edit?pr1=" . $scheme_schema)->with('success', 'Application Updated Successfully')
                 ->with('id',   $row->getBenidAttribute());
               else {
@@ -1919,7 +1916,7 @@ class OAPWCDformController extends Controller
             else{
                 DB::connection('pgsql_encwrite')->rollback();
                 DB::rollback();
-                if ($designation_id_old == 'Operator')
+                if ($designation_id == 'Operator')
                  return redirect("/application-edit?id=" . $request->id . "&scheme_id=" . $request->scheme_id)->with('errors', array('Some error.Please try again'));
                 else {
                   return redirect('/')->with('danger', 'Some error.Please try again');
@@ -1929,7 +1926,7 @@ class OAPWCDformController extends Controller
            // dd($e);
             DB::rollback();
             DB::connection('pgsql_encwrite')->rollback();
-            if ($designation_id_old == 'Operator')
+            if ($designation_id == 'Operator')
             return redirect("/application-edit?id=" . $request->id . "&scheme_id=" . $request->scheme_id)->with('errors', array('Some error.Please try again'));
             else {
                 if($is_nsap==1){
@@ -2796,13 +2793,12 @@ class OAPWCDformController extends Controller
         // dd($request);
         $scheme_id =  $this->scheme_id;
         $user_id = AuthChecker::getUserId();
-        $designation_id_old = Auth::user()->designation_id_old;
-        if (!in_array($designation_id_old, array('Operator'))) {
+        $designation_id = Auth::user()->designation_id;
+        if (!in_array($designation_id, array('Operator'))) {
             return redirect("/")->with('error', 'Not Allowed');
         }
         $is_active = 0;
-        $roleArray = $request->session()->get('role');
-        foreach ($roleArray as $roleObj) {
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray()        foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == $scheme_id) {
                 $is_active = 1;
                 $level = $roleObj['mapping_level'];
@@ -3044,13 +3040,12 @@ class OAPWCDformController extends Controller
         // dd($request->all());
         $scheme_id =  $this->scheme_id;
         $user_id = AuthChecker::getUserId();
-        $designation_id_old = Auth::user()->designation_id_old;
-        if (!in_array($designation_id_old, array('Operator'))) {
+        $designation_id = Auth::user()->designation_id;
+        if (!in_array($designation_id, array('Operator'))) {
             return redirect("/")->with('error', 'Not Allowed');
         }
         $is_active = 0;
-        $roleArray = $request->session()->get('role');
-        foreach ($roleArray as $roleObj) {
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray()        foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == $scheme_id) {
                 $is_active = 1;
                 $level = $roleObj['mapping_level'];
@@ -3233,13 +3228,12 @@ class OAPWCDformController extends Controller
     {
         $scheme_id =  $this->scheme_id;
         $user_id = AuthChecker::getUserId();
-        $designation_id_old = Auth::user()->designation_id_old;
-        if (!in_array($designation_id_old, array('Operator'))) {
+        $designation_id = Auth::user()->designation_id;
+        if (!in_array($designation_id, array('Operator'))) {
             return redirect("/")->with('error', 'Not Allowed');
         }
         $is_active = 0;
-        $roleArray = $request->session()->get('role');
-        foreach ($roleArray as $roleObj) {
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray()        foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == $scheme_id) {
                 $is_active = 1;
                 $level = $roleObj['mapping_level'];

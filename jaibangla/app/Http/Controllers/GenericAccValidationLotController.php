@@ -36,7 +36,7 @@ class GenericAccValidationLotController extends Controller
 	{
 		return redirect("/")->with('success', 'Validation Lot creation is temporarily suspended due to financial year end migration.');
 		$user_id = AuthChecker::getUserId();
-		$designation_id_old = Auth::user()->designation_id_old;
+		$designation_id = Auth::user()->designation_id;
 		$report = DB::select(DB::raw("select id,scheme_name from m_scheme where id in (select scheme_id from duty_assignement where user_id=" . $user_id . " and is_active=1) and id in(2,10,11)"));
 		$bank_list = DB::table('sbi.npci_nach_live_banks')->get();
 		return view('generic-lot/sbi_validation_lot_index', ['userId' => $user_id, 'reports' => $report, 'bankLists' => $bank_list]);

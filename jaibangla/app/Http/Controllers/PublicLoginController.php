@@ -8,7 +8,7 @@ use App\OTPUser;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Log;
 use Session;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 
 class PublicLoginController extends Controller
 {

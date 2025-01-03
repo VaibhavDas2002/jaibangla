@@ -173,7 +173,7 @@ href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,30
          <select name="application_type" id="application_type" class="form-control full-width" >
                   <option value="">-----All----</option>
                   <option value="1" selected >Pending</option> 
-                  @if($designation_id_old=='Operator'){
+                  @if($designation_id=='Operator'){
                     <option value="3">Edited pending at Verifier</option>  
                   }
                   @endif
@@ -243,7 +243,7 @@ href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,30
             <button type="button" name="reset" id="reset" class="btn btn-default">Reset</button>
           </div>
         </div>
-        @if($designation_id_old=='Verifier')
+        @if($designation_id=='Verifier')
         <form class="row" method="POST" action="{{ route('bulkApproveLifeCertificate') }}" class="submit-once">
         <input type="hidden" name="_token" id="token" value="{{ csrf_token() }}">
         <input type="hidden" id="scheme_id" name="scheme_id" value="{{ $scheme_id }}">
@@ -270,7 +270,7 @@ href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,30
                 @endif
                 <th width="12%">GP/Ward Name</th>               
                 <th width="17%">Action</th>
-                @if($designation_id_old=='Verifier')
+                @if($designation_id=='Verifier')
                 <th width="2%">Check</th>
                  @endif
               </tr>
@@ -372,7 +372,7 @@ href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,30
         @endif
         { "data": "gp_ward_name" },
         { "data": "view" },
-        @if($designation_id_old=='Verifier')
+        @if($designation_id=='Verifier')
         { "data": "check" }
         @endif  
        // { "data": "check" },

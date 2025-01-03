@@ -34,8 +34,8 @@ class OapPaymentSuspendedController extends Controller
 
     public function index()
     {
-        $designation_id_old = Auth::user()->designation_id_old;
-        if ($designation_id_old == 'HOD' || $designation_id_old == 'Admin') {
+        $designation_id = Auth::user()->designation_id;
+        if ($designation_id == 'HOD' || $designation_id == 'Admin') {
             $is_active = 1;
         } else{
             $is_active = 0;

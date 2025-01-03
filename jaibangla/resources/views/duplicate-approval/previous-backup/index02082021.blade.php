@@ -21,7 +21,7 @@
     <!-- Content Header (Page header) -->
     <section class="content-header">
       <h1>
-        @if(Auth::user()->designation_id_old == 'Dashboard' || Auth::user()->designation_id_old == 'HOD' || Auth::user()->designation_id_old == 'Admin')
+        @if(Auth::user()->designation_id == 'Dashboard' || Auth::user()->designation_id == 'HOD' || Auth::user()->designation_id == 'Admin')
           Duplicate Approved Beneficiary
         @else  
           Reject Duplicate Approved Beneficiary
@@ -77,7 +77,7 @@
                     </select>
                     <span class="text-danger" id="error_filter"></span>
                   </div>
-                  @if(Auth::user()->designation_id_old == 'Dashboard' || Auth::user()->designation_id_old == 'HOD' || Auth::user()->designation_id_old == 'Admin')
+                  @if(Auth::user()->designation_id == 'Dashboard' || Auth::user()->designation_id == 'HOD' || Auth::user()->designation_id == 'Admin')
                   <div class="form-group col-md-3">
                     <label class="control-label">District</label>
                     <select class="form-control select2" name="dist_code"  id="dist_code">

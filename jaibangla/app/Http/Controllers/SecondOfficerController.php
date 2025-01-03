@@ -7,7 +7,7 @@ use App\applicationModel;
 use App\Policestation;
 use App\PicUpload;
 use App\User;
-use DB;
+use Illuminate\Support\Facades\DB;
 
 class SecondOfficerController extends Controller
 {

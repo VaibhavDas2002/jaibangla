@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Http\Request;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
 use App\District;
@@ -15,7 +15,7 @@ use App\UrbanBody;
 use App\Scheme;
 use App\Department;
 use App\Designation;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 use App\Helpers\AuthChecker;
 
 
@@ -29,8 +29,8 @@ class GetOtp extends Controller
   {
     $this->middleware('auth');
     $user_id = AuthChecker::getUserId();
-    $designation_id_old = Auth::user()->designation_id_old;
-    if ($designation_id_old != 'Admin') {
+    $designation_id = Auth::user()->designation_id;
+    if ($designation_id != 'Admin') {
       return redirect('/')->with('error', 'Payment Mode Not Valid');
     }
     $district_list = Cache::rememberForever('master_districts', function () {
@@ -64,7 +64,7 @@ class GetOtp extends Controller
     $lot_yes = 1;
     $mobile_no = $request->mobile_no;
     $department_id = $request->department_id;
-    $designation_id_old = $request->designation_id_old;
+    $designation_id = $request->designation_id;
     $scheme_id = $request->scheme_id;
     $district = $request->district;
     $urban_code = $request->urban_code;
@@ -86,17 +86,17 @@ class GetOtp extends Controller
         $inValid = 0;
         $return_status = 1;
         $fileter_status = 1;
-        $query = "select mobile_no,login_otp,username,otp_time,designation_id_old,email from users   where mobile_no='" . $mobile_no . "'";
+        $query = "select mobile_no,login_otp,username,otp_time,designation_id,email from users   where mobile_no='" . $mobile_no . "'";
       }
     } else {
-      if (empty($designation_id_old)) {
+      if (empty($designation_id)) {
         $inValid = 1;
         array_push($errors, "Please Select Designation");
         $return_status = 0;
       } else {
-        $user_msg = $user_msg . ' Designation:' . $designation_id_old;
+        $user_msg = $user_msg . ' Designation:' . $designation_id;
         if (empty($department_id)) {
-          if (in_array($designation_id_old, array('Operator', 'Verifier'))) {
+          if (in_array($designation_id, array('Operator', 'Verifier'))) {
             if (empty($scheme_id)) {
               $inValid = 1;
               array_push($errors, "Please Select Scheme");
@@ -137,7 +137,7 @@ class GetOtp extends Controller
                 $user_msg = $user_msg . ' ,Block:' . $block_row->block_name;
               }
             }
-          } else if ($designation_id_old == 'Approver') {
+          } else if ($designation_id == 'Approver') {
             if (empty($scheme_id)) {
               $inValid = 1;
               array_push($errors, "Please Select Scheme");
@@ -187,13 +187,13 @@ class GetOtp extends Controller
             $block_condition = " and taluka_code=" . $block;
         } else
           $block_condition = "";
-        $query = "select A.mobile_no,A.login_otp,A.username,A.otp_time,A.email,A.designation_id_old,
+        $query = "select A.mobile_no,A.login_otp,A.username,A.otp_time,A.email,A.designation_id,
         B.district_code,B.is_urban,B.urban_body_code,B.taluka_code,B.mapping_level,B.scheme_id,
         C.department_id
         from users as A 
         LEFT JOIN duty_assignement as B ON A.id=B.user_id
         LEFT JOIN employees as C ON A.emp_id=C.id
-        where A.designation_id_old='" . $designation_id_old . "' and B.is_active=1 " . $department_condition . " " . $scheme_condition . "" . $district_condition . "" . $urban_condition . "" . $block_condition . "";
+        where A.designation_id='" . $designation_id . "' and B.is_active=1 " . $department_condition . " " . $scheme_condition . "" . $district_condition . "" . $urban_condition . "" . $block_condition . "";
       }
     }
     if ($inValid == 0) {
@@ -208,8 +208,8 @@ class GetOtp extends Controller
         $result[$i]['username'] = $row->username;
         $result[$i]['otp_time'] = $row->otp_time;
         $result[$i]['email'] = $row->email;
-        $result[$i]['designation_id_old'] = $row->designation_id_old;
-        if ($row->designation_id_old == 'Admin') {
+        $result[$i]['designation_id'] = $row->designation_id;
+        if ($row->designation_id == 'Admin') {
           $result[$i]['scheme_name'] = 'NA';
           $result[$i]['district_name'] = 'NA';
           $result[$i]['rural_urban_name'] = 'NA';

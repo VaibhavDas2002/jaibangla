@@ -51,8 +51,8 @@ class DuplicateAadharMobileMisReportController extends Controller
     public function index(Request $request)
     {
         $is_active = 0;
-        $roleArray = $request->session()->get('role');
-        $designation_id_old = Auth::user()->designation_id_old;
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                $designation_id = Auth::user()->designation_id;
         $user_id = AuthChecker::getUserId();
         // echo $user_id;die();
         $district_visible = $is_urban_visible = $block_visible = 1;
@@ -63,17 +63,17 @@ class DuplicateAadharMobileMisReportController extends Controller
         $duty = Configduty::where('user_id', '=', $user_id)->first();
         $schemes = DB::select(DB::raw("select id,scheme_name,pr1_code,entry_url,display_name from m_scheme where id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . ")  order by rank"));
         // print_r($schemes);die();
-        if ($designation_id_old == 'Admin' || $designation_id_old == 'HOD' || $designation_id_old == 'HOP' || $designation_id_old == 'MisState' ||  $designation_id_old == 'Dashboard') {
+        if ($designation_id == 'Admin' || $designation_id == 'HOD' || $designation_id == 'HOP' || $designation_id == 'MisState' ||  $designation_id == 'Dashboard') {
             $district_visible = $is_urban_visible = $block_visible = 1;
-        } else if ($designation_id_old == 'Approver' || $designation_id_old == 'Verifier') {
-            // echo $designation_id_old;die();
+        } else if ($designation_id == 'Approver' || $designation_id == 'Verifier') {
+            // echo $designation_id;die();
             $district_code = NULL;
             $is_urban = NULL;
             $blockCode = NULL;
             foreach ($roleArray as $roleObj) {
-                // echo $designation_id_old;die();
+                // echo $designation_id;die();
                  if (in_array($roleObj['scheme_id'],array(3,2,10,11,8,9,17,19,1))) {
-                    // echo $designation_id_old;die();
+                    // echo $designation_id;die();
                     $is_urban = $roleObj['is_urban'];
                     $district_code = $roleObj['district_code'];
                     if ($roleObj['is_urban'] == 1) {

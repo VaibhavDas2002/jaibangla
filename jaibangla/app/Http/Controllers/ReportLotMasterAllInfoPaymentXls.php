@@ -5,9 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\User;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use App\Configduty;
-use Excel;
+use Maatwebsite\Excel\Facades\Excel;
 use App\lot_master;
 use App\Scheme;
 use App\Helpers\Helper as Helper;
@@ -45,7 +45,7 @@ class ReportLotMasterAllInfoPaymentXls extends Controller
         from lot_master l where scheme_id = " . $scheme_id . " and lot_year = '" . $lot_year . "' and lot_month = '" . $lot_month . "' order by l.lot_no DESC"));
 
         //$rbi_status = DB::select(DB::raw("select lot_no from temp_lot_master where scheme_id IN (select id from m_scheme where ddo_code IN 
-        //(select username from users where mobile_no='".$mobile."' and designation_id_old='DDO')) order by lot_no DESC"));
+        //(select username from users where mobile_no='".$mobile."' and designation_id='DDO')) order by lot_no DESC"));
 
         return view('report-lot-master-all-info-payment-xls/result_lot_master_report', ['reports' => $report, 'scheme_name' => $schemeObj->scheme_name]);
     }

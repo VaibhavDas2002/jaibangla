@@ -232,7 +232,7 @@ href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,30
                     <td>{{ $rep->report_name }}</td>
                     <td>@php print date('d-m-Y', strtotime($rep->report_date)); @endphp</td>
                     <td align="center">
-                      @if(Auth::user()->designation_id_old == 'Dashboard')
+                      @if(Auth::user()->designation_id == 'Dashboard')
                       <a href="{{ url('download-datewise-report/'.$rep->report_name) }}"><i class="glyphicon glyphicon-download-alt" style="color: #000;" title="Download Report"></i></a>
                       @endif
                     </td>

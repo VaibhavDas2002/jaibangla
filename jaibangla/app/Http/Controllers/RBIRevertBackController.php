@@ -31,7 +31,7 @@ class RBIRevertBackController extends Controller
      echo "</pre>";
      die();*/
 
-    if (Auth::user()->designation_id_old == "Verifier") {
+    if (Auth::user()->designation_id == "Verifier") {
       return view('scheme-selection-revert-rbi/main');
     } else {
       return redirect("/")->with('success', 'UnAuthorized');
@@ -83,7 +83,7 @@ class RBIRevertBackController extends Controller
     }
 
     $is_active = 0;
-    $roleArray = $request->session()->get('role');
+    $roleArray = Configduty::where('user_id', $user_id)->where('is_active', 1)->get()->toArray();;
     /*echo "<pre>";  
                 print_r($roleArray);
                 echo "</pre>";
@@ -447,7 +447,7 @@ if(!empty($query_res[0]->ifms_status)){
     //$scheme_id = 3;
     $user_id = AuthChecker::getUserId();
     $duty = Configduty::where('user_id', '=', $user_id)->where('scheme_id', $scheme_id)->first();
-    $role = MapLavel::where('scheme_id', $scheme_id)->where('role_name', Auth::user()->designation_id_old)->where('stack_level', $duty->mapping_level)->first();
+    $role = MapLavel::where('scheme_id', $scheme_id)->where('role_name', Auth::user()->designation_id)->where('stack_level', $duty->mapping_level)->first();
 
     $this->validateInput($request);
     if ($_POST['submit'] == 'Update') {

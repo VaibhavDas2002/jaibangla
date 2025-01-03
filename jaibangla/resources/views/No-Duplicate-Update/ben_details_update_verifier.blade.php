@@ -235,26 +235,6 @@ scratch. This page gets rid of all links and provides the needed markup only.
 
 
 </head>
-<!--
-BODY TAG OPTIONS:
-=================
-Apply one or more of the following classes to get the
-desired effect
-|---------------------------------------------------------|
-| SKINS         | skin-blue                               |
-|               | skin-black                              |
-|               | skin-purple                             |
-|               | skin-yellow                             |
-|               | skin-red                                |
-|               | skin-green                              |
-|---------------------------------------------------------|
-|LAYOUT OPTIONS | fixed                                   |
-|               | layout-boxed                            |
-|               | layout-top-nav                          |
-|               | sidebar-collapse                        |
-|               | sidebar-mini                            |
-|---------------------------------------------------------|
--->
 
 <body class="hold-transition skin-blue sidebar-mini">
     <div class="wrapper">
@@ -269,6 +249,19 @@ desired effect
             <!-- Content Header (Page header) -->
             <section class="content">
                 <div class="row">
+                @if (count($field_arrays)> 0)
+                        <div class="alert alert-warning alert-block">
+                            <strong>Need To Update / Upload the Following Data</strong>
+                                <ul>
+                                    @foreach ($field_arrays as $field_array)
+                                        <li><strong> {{ $field_array }}</strong></li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
+                </div>
+                <div class="row">
+
                     <!-- left column -->
                     <div class="col-md-12">
 
@@ -290,6 +283,7 @@ desired effect
                         @endif
                         @if (count($errors) > 0)
                             <div class="alert alert-danger alert-block">
+                                <button type="button" class="close" data-dismiss="alert">×</button>
                                 <ul>
                                     @foreach ($errors->all() as $error)
                                         <li><strong> {{ $error }}</strong></li>
@@ -297,18 +291,8 @@ desired effect
                                 </ul>
                             </div>
                         @endif
-
-
-                        <!--   @if ($message = Session::get('failure'))
-<div class="alert alert-success alert-block">
-                <button type="button" class="close" data-dismiss="alert">×</button>
-                      <strong>{{ $message }}</strong>
-              </div>
-@endif -->
+                   
                     </div>
-                    <!-- /.box-header -->
-                    <!-- form start -->
-
 
                     <div class="tab-content" style="margin-top:16px;">
                         <div class="tab-pane active" id="personal_details">
@@ -322,7 +306,7 @@ desired effect
                                     <div class="row">
                                         <div class="col-md-12">
                                             <h3 style="text-align: center; color:rgb(18, 219, 62);">Application ID:{{ $row->id }}
-                                                <a href="{{ route('no-dup-beneficiaries-list') }}"><img width="50px;" style="pull-right"
+                                                <a href="{{ route('no-dup-beneficiaries-list') }}"><img width="50px;" style="pull-right ;"
                                                         src="{{ asset('images/back.png') }}" alt="Back" /></a>
                                             </h3>
                                         </div>
@@ -344,105 +328,16 @@ desired effect
                                         </div>
                                     </div>
                                     @endif
-                                    <div class="row color1">
-                                        <div class="col-md-12">
-                                            <h3>Personal Details</h3>
-                                        </div>
-                                    </div>
-
-
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div><strong>Name :</strong> {{ $row->ben_fname }} {{ $row->ben_mname }}
-                                                {{ $row->ben_lname }}</div>
-                                        </div>
-                                        @if (!is_null($row->dob))
-                                            <div class="col-md-6">
-                                                <div><strong>Date of Birth (DD-MM-YYYY):</strong>
-                                                    {{ date('d/m/Y', strtotime($row->dob)) }}</div>
-
-                                            </div>
-                                        @endif
-
-                                        <div class="col-md-6">
-                                            <div><strong>Father's Name :</strong> {{ $row->father_fname }}
-                                                {{ $row->father_mname }} {{ $row->father_lname }}</div>
-                                        </div>
-
-                                        <div class="col-md-6">
-                                            <div><strong>Mother's Name :</strong> {{ $row->mother_fname }}
-                                                {{ $row->mother_mname }} {{ $row->mother_lname }}</div>
-                                        </div>
-
-                                        <div class="col-md-6">
-                                            <div><strong>Caste:</strong> {{ trim($row->caste) }}</div>
-                                        </div>
-
-                                        <div class="col-md-6">
-                                            <div><strong>Marital Status:</strong> {{ $row->marital_status }}</div>
-                                        </div>
-
-                                        <div class="col-md-6">
-                                            <div><strong>Spouse Name :</strong> {{ $row->spouse_fname }}
-                                                {{ $row->spouse_mname }} {{ $row->spouse_lname }}</div>
-                                        </div>
-
-                                        <div class="col-md-6">
-                                            <div><strong>Monthly Family Income(Rs.):</strong> {{ $row->mothly_income }}
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div><strong>Aadhaar No.:</strong> {{ $row->aadhar_no }}</div>
-                                        </div>
-
-
-
-
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-md-12 color1" style="margin:10px 0px">
-                                            <h3>Bank Details</h3>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div><strong>Bank Name:</strong> {{ $row->bank_name }}</div>
-                                        </div>
-
-                                        <div class="col-md-6">
-                                            <div><strong>Bank Branch Name:</strong> {{ $row->branch_name }}</div>
-                                        </div>
-
-                                        <div class="col-md-6">
-                                            <div><strong>Bank Account No.:</strong> {{ $row->bank_code }}</div>
-                                        </div>
-
-                                        <div class="col-md-6">
-                                            <div><strong>IFS Code:</strong>{{ $row->bank_ifsc }}</div>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-md-12 color1" style="margin:10px 0px">
-                                            <h3>Contact Details</h3>
-                                        </div>
-                                    </div>
-
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div><strong>Block/Municipality/Corp:</strong> {{ $row->block_ulb_name }}
-                                            </div>
-                                        </div>
-
-                                        <div class="col-md-6">
-                                            <div><strong>GP/Ward Name:</strong> {{ $row->gp_ward_name }}</div>
-                                        </div>
-                                    </div>
-                                    @if ($designation_id == 'Verifier')
+                                    @include('pension-details-view.personal_details')
+                                    @include('pension-details-view.personal_identification')
+                                    @include('pension-details-view.bank_details')
+                                    @include('pension-details-view.contact_details')
+                                    @if ($is_verifier)
                                         <form method="post" name="formSubmit" id="formSubmit"
                                             action="{{ route('updateApplicantDetails') }}" class="submit-once"
                                             enctype="multipart/form-data">
                                             {{ csrf_field() }}
-                                            <input type="hidden" name="designation_id" id="designation_id" value="{{ $designation_id }}" />
+                                             <input type="hidden" name="is_verifier" id="is_verifier" value="{{$is_verifier}}" />
                                             <input type="hidden" name="id" id="id" value="{{ $row->id }}" />
                                             <input type="hidden" name="scheme_id" id="scheme_id" value="{{ $row->scheme_id }}" />
                                             <input type="hidden" name="old_aadhar" id="old_aadhar" value="{{ $row->aadhar_no }}" />
@@ -456,167 +351,436 @@ desired effect
                                             <input type="hidden" name="dup_mobile" id="dup_mobile" value="{{ $row->dup_mobile }}">
                                             <input type="hidden" name="no_mobile" id="no_mobile" value="{{ $row->no_mobile }}">
                                             <input type="hidden" name="no_aadhar" id="no_aadhar" value="{{ $row->no_aadhar }}">
+                                            <input type="hidden" name="is_incomplete" id="is_incomplete" value="{{ $row->is_incomplete }}">
                                             <input type="hidden" name="bank_checked" id="bank_checked" value="">
                                             <input type="hidden" name="mobile_checked" id="mobile_checked" value="">
                                             <input type="hidden" name="aadhar_checked" id="aadhar_checked" value="">
+                                            
+
+
+
+
                                             @if (intval($row->dup_aadhar) == 1 || intval($row->no_aadhar) == 1)
-                                                <div class="row">
-                                                    <div class="col-md-12 color1" style="margin:10px 0px">
-                                                        <h3>New Aadhar Details</h3>
-                                                    </div>
+                                            <div class="panel panel-default">
+                                            <div class="panel-heading" id="panel_head"
+                                                style="font-size: 14px; font-weight: bold; font-style: italic;">New Aadhar Details</div>
+                                            <div class="panel-body" style="padding: 5px; font-size: 14px;">
+                                            <div class="row">
+
+                                            <div class="form-group col-md-4">
+                                                <label class="required-field">Aadhaar
+                                                    Number</label>
+                                                <input type="text" name="new_aadhar_no" id="new_aadhar_no"
+                                                    class="form-control NumOnly" placeholder="Aadhar No."
+                                                    maxlength="12" value="{{ trim($row->aadhar_no) }}" />
+                                                <span id="error_new_aadhar_no" class="text-danger"></span>
+                                            </div>
+                                            <div class="form-group col-md-4">
+                                                <label
+                                                    class="@if (intval($row->no_aadhar) == 1) required-field @endif">Aadhaar
+                                                    Document</label>
+                                                <input type="file" name="new_aadhar_doc"
+                                                    id="new_aadhar_doc" class="form-control" />
+                                                <span id="error_new_aadhar_doc" class="text-danger"></span>
+                                            </div>
+
+                                            @if ($getAadharDoc > 0)
+                                                <div class="form-group col-md-2" style="margin-top: 30px;">
+                                                    <button class="btn btn-warning btn-sm aadhar_doc_button"
+                                                        id="bankDoc_{{ $row->id }}" value="{{ $row->id }}">View Existing Aadhaar Copy</button>
                                                 </div>
-                                                <div class="row">
+                                            @endif
+                                            @if(intval($row->dup_aadhar == 1))
+                                            <div class="form-group col-md-2" style="margin-top: 30px;" id="aadharCheckDiv">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox"
+                                                        value="1" id="aadharCheck">
+                                                    <label class="form-check-label" for="aadharCheck">
+                                                        Keep Same
+                                                    </label>
+                                                </div>
+                                                <span id="error_new_aadhar_no" class="text-danger"></span>
+                                            </div>
+                                                @endif
+                                                </div>
+                                            </div>
+                                             </div>    
+                                            @endif
+                                            @if (intval($row->dup_bank) == 1 || intval($row->is_bank_failed == 1))
+                                            <div class="panel panel-default">
+                                            <div class="panel-heading" id="panel_head"
+                                                style="font-size: 14px; font-weight: bold; font-style: italic;">New Bank Details</div>
+                                            <div class="panel-body" style="padding: 5px; font-size: 14px;">
+                                            <div class="row">
+                                            <div class="form-group col-md-4">
+                                                <label class="required-field">IFSC</label>
+                                                <input type="text" name="bank_ifsc_code"
+                                                    id="bank_ifsc_code" class="form-control"
+                                                    autocomplete="off" placeholder="IFSC Code"
+                                                    onkeyup="this.value = this.value.toUpperCase();"
+                                                    value="{{ trim($row->bank_ifsc) }}" />
+                                                <span id="error_bank_ifsc_code" class="text-danger"></span>
+                                            </div>
+                                            <div class="form-group col-md-4">
+                                                <label class="required-field">Bank
+                                                    Branch</label>
+                                                <input type="text" name="new_bank_branch"
+                                                    id="new_bank_branch" class="form-control NumOnly"
+                                                    placeholder="Bank Account"
+                                                    value="{{ trim($row->branch_name) }}" readonly/>
+                                                <span id="error_new_bank_branch" class="text-danger"></span>
+                                            </div>
 
-                                                    <div class="form-group col-md-4">
-                                                        <label class="required-field">Aadhaar
-                                                            Number</label>
-                                                        <input type="text" name="new_aadhar_no" id="new_aadhar_no"
-                                                            class="form-control NumOnly" placeholder="Aadhar No."
-                                                            maxlength="12" value="{{ trim($row->aadhar_no) }}" />
-                                                        <span id="error_new_aadhar_no" class="text-danger"></span>
+
+                                            <br />
+                                            </div>
+                                            <div class="row">
+
+                                            <div class="form-group col-md-4">
+                                                <label class="required-field">Bank
+                                                    Name</label>
+                                                <input type="text" name="new_bank_name" id="new_bank_name"
+                                                    class="form-control" placeholder="Bank Name"
+                                                    value="{{ trim($row->bank_name) }}" readonly/>
+                                                <span id="error_new_bank_name" class="text-danger"></span>
+                                            </div>
+                                            <div class="form-group col-md-4">
+                                                <label class="required-field">Bank
+                                                    Account</label>
+                                                <input type="text" name="new_bank_code" id="new_bank_code"
+                                                    class="form-control NumOnly" placeholder="Bank Account"
+                                                    value="{{ trim($row->bank_code) }}" />
+                                                <span id="error_new_bank_code" class="text-danger"></span>
+                                            </div>
+
+                                            </div>
+
+                                            <div class="row">
+                                            <div class="form-group col-md-4">
+                                                <label class="required-field">Passbook
+                                                    Document</label>
+                                                <input type="file" name="new_bank_doc" id="new_bank_doc"
+                                                    class="form-control" />
+                                                <span id="error_new_bank_doc" class="text-danger"></span>
+                                            </div>
+                                            @if($getBankDoc > 0)
+                                            <div class="form-group col-md-2" style="margin-top: 30px;">
+                                                <button class="btn btn-warning btn-sm bank_doc_button"
+                                                    id="bankDoc_{{ $row->id }}"
+                                                    value="{{ $row->id }}">View Passbook</button>
+                                            </div>
+                                            @endif
+                                            <div class="form-group col-md-2" style="margin-top: 30px;" id="bankCheckDiv">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox"
+                                                        value="2" id="bankCheck">
+                                                    <label class="form-check-label" for="bankCheck">
+                                                        Keep Same
+                                                    </label>
+                                                </div>
+                                                <span id="error_new_aadhar_no" class="text-danger"></span>
+                                            </div>
+                                            </div>
+                                            </div>
+                                            </div>    
+
+                                            @endif
+                                            
+                                            
+                                            @if (intval($row->dup_mobile) == 1 || intval($row->no_mobile) == 1)
+
+                                            <div class="panel panel-default">
+                                            <div class="panel-heading" id="panel_head"
+                                                style="font-size: 14px; font-weight: bold; font-style: italic;">New Mobile Details</div>
+                                            <div class="panel-body" style="padding: 5px; font-size: 14px;">
+                                            <div class="row">
+                                                <div class="form-group col-md-4">
+                                                    <label
+                                                        class="@if (intval($row->no_mobile) == 1) required-field @endif">Mobile
+                                                        Number</label>
+                                                    <input type="text" id="new_mobile_no"
+                                                        name="new_mobile_no" class="form-control NumOnly"
+                                                        placeholder="Mobile No" maxlength="10"
+                                                        value="{{ trim($row->mobile_no) }}">
+                                                    <span id="error_new_mobile_no" class="text-danger"></span>
+                                                </div>
+                                                @if (intval($row->dup_mobile == 1))
+                                                    <div class="form-group col-md-4" style="margin-top: 30px;" id="mobileCheckDiv">
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="checkbox"
+                                                                value="3" id="mobileCheck">
+                                                            <label class="form-check-label" for="mobileCheck">
+                                                                Keep Same
+                                                            </label>
+                                                        </div>
+                                                        <span id="error_new_aadhar_no"
+                                                            class="text-danger"></span>
                                                     </div>
-                                                    <div class="form-group col-md-4">
+                                                @endif
+                                                </div>
+                                            </div>
+                                             </div>
+                                            @endif
+
+
+                                            <!-- Manabik Edit -->
+                                            @if ($manabik_visible > 0)
+
+                                            <div class="panel panel-default">
+                                            <div class="panel-heading" id="panel_head"
+                                                style="font-size: 14px; font-weight: bold; font-style: italic;">Manabik Mandatory Details</div>
+                                            <div class="panel-body" style="padding: 5px; font-size: 14px;">
+                                            <div class="form-group col-md-4">
+                                                    <label class="required-field">Type of Disability</label>
+                                                    <select class="form-control" name="new_disablity_type" id="disablity_type">
+                                                    @if ($type == $op_type)
+                                                        @foreach(Config::get('constants.disablity_type') as $key => $val)
+                                                            <option value="{{ $key }}" @if($row->type_disability == $key) selected @endif>
+                                                                {{ $val }}
+                                                            </option>
+                                                        @endforeach
+                                                    @else
+                                                        <option value="">--Select--</option>
+                                                        @foreach(Config::get('constants.disablity_type') as $key => $val)
+                                                            <option value="{{$key}}" @if(old('disablity_type') == $key) selected @endif>{{$val}}</option>
+                                                        @endforeach
+                                                    @endif
+                                                    </select>
+                                                        <span id="error_disablity_type" class="text-danger"></span>
+                                                </div>
+
+                                                <div class="form-group col-md-4">
+                                                    <label class="required-field">Percentage of Disablity</label>
+                                                    <input type="text" name="new_disablity_type_percentage" id="disablity_type_percentage" class="form-control "
+                                                        placeholder="Percentage" maxlength="5"
+                                                        value="{{ $type == $op_type ? $row->percentage_disability : old('disablity_type_percentage') }}" />
+                                                    <span id="error_disablity_type_percentage" class="text-danger"></span>
+
+                                                </div>
+
+                                                <div class="form-group col-md-4">
+                                                    <label class="required-field">Authority Name</label>
+                                                    <input type="text" name="new_disablity_type_authority" id="disablity_type_authority" class="form-control txtOnly"
+                                                        placeholder="Certifying Authority" maxlength="200"
+                                                        value="{{$type == $op_type ? $row->certifying_auth : old('disablity_type_authority') }}" />
+                                                    <span id="error_disablity_type_authority" class="text-danger"></span>
+                                                </div>
+
+                                                <div class="form-group col-md-4">
+                                                    <label class="required-field">Authority Designation</label>
+                                                    <input type="text" name="new_disability_designation" id="disability_designation" class="form-control txtOnly"
+                                                        placeholder="Designation Name" maxlength="200"
+                                                        value="{{$type == $op_type ? $row->disability_designation : old('disability_designation') }}" />
+                                                    <span id="error_disability_designation" class="text-danger"></span>
+                                                </div>
+                                                <div class="form-group col-md-4">
                                                         <label
-                                                            class="@if (intval($row->no_aadhar) == 1) required-field @endif">Aadhaar
-                                                            Document</label>
-                                                        <input type="file" name="new_aadhar_doc"
-                                                            id="new_aadhar_doc" class="form-control" />
-                                                        <span id="error_new_aadhar_doc" class="text-danger"></span>
+                                                            class="required-field">Disability Certificate from Appropriate Authority</label>
+                                                        <input type="file" name="new_disability_doc"
+                                                            id="new_disability_doc" class="form-control" />
+                                                        <span id="error_new_disability_doc" class="text-danger"></span>
                                                     </div>
-
-                                                    @if ($getAadharDoc > 0)
+                                                @if ($getDisabilityDoc > 0)
                                                         <div class="form-group col-md-2" style="margin-top: 30px;">
                                                             <button class="btn btn-warning btn-sm aadhar_doc_button"
                                                                 id="bankDoc_{{ $row->id }}"
-                                                                value="{{ $row->id }}">View Existing Aadhaar Copy</button>
+                                                                value="{{ $row->id }}">View Existing Disability Certificate Copy</button>
                                                         </div>
                                                     @endif
-                                                    @if(intval($row->dup_aadhar == 1))
-                                                    <div class="form-group col-md-2" style="margin-top: 30px;" id="aadharCheckDiv">
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="checkbox"
-                                                                value="1" id="aadharCheck">
-                                                            <label class="form-check-label" for="aadharCheck">
-                                                                Keep Same
-                                                            </label>
-                                                        </div>
-                                                        <span id="error_new_aadhar_no" class="text-danger"></span>
-                                                    </div>
-                                                    @endif
-                                                </div>
+                                            </div>                                 
+                                            </div>
+                                             </div>
+
+
+                                
+                                                          
                                             @endif
-                                            @if (intval($row->dup_bank) == 1 || intval($row->is_bank_failed == 1))
-                                                <div class="row">
-                                                    <div class="col-md-12 color1" style="margin:10px 0px">
-                                                        <h3>New Bank Details</h3>
-                                                    </div>
+
+                                            @if ($wcd_wp_visible > 0)
+                                            <div class="panel panel-default">
+                                            <div class="panel-heading" id="panel_head"
+                                                style="font-size: 14px; font-weight: bold; font-style: italic;">Widow Pension Mandatory Details</div>
+                                            <div class="panel-body" style="padding: 5px; font-size: 14px;">
+                                            <div class="form-group col-md-12">
+                                                <label class="">Husband's Name</label>
+                                            </div>
+
+                                            <div class="form-group col-md-4">
+                                                <label class="required-field">First Name</label>
+                                                <input type="text" name="new_husband_first_name" id="husband_first_name" class="form-control txtOnly"
+                                                    placeholder="First Name" maxlength="200" value="{{$type == $op_type ? $row->husband_fname : old('husband_first_name') }}" tabindex="4" />
+                                                <span id="error_husband_first_name" class="text-danger"></span>
+                                            </div>
+                                            <div class="form-group col-md-4">
+                                                <label>Middle Name</label>
+                                                <input type="text" name="new_husband_middle_name" id="husband_middle_name" class="form-control txtOnly"
+                                                    placeholder="Middle Name" maxlength="100" value="{{$type == $op_type ? $row->husband_mname : old('husband_middle_name') }}" tabindex="5" />
+                                                <span id="error_husband_middle_name" class="text-danger"></span>
+                                            </div>
+                                            <div class="form-group col-md-4">
+                                                <label class="required-field">Last Name</label>
+                                                <input type="text" name="new_husband_last_name" id="husband_last_name" class="form-control txtOnly"
+                                                    placeholder="Last Name" maxlength="200" value="{{$type == $op_type ? $row->husband_lname : old('husband_last_name') }}" tabindex="6" />
+                                                <span id="error_husband_last_name" class="text-danger"></span>
+                                            </div>
+                                            <div class="form-group col-md-4">
+                                                <label class="required-field">Husband's Death Certificate</label>
+                                                    <input type="file" name="new_husband_death_doc"
+                                                        id="new_husband_death_doc" class="form-control" />
+                                                    <span id="error_new_husband_death_doc" class="text-danger"></span>
                                                 </div>
-                                                <div class="row">
-
-
-                                                    <div class="form-group col-md-4">
-                                                        <label class="required-field">IFSC</label>
-                                                        <input type="text" name="bank_ifsc_code"
-                                                            id="bank_ifsc_code" class="form-control"
-                                                            autocomplete="off" placeholder="IFSC Code"
-                                                            onkeyup="this.value = this.value.toUpperCase();"
-                                                            value="{{ trim($row->bank_ifsc) }}" />
-                                                        <span id="error_bank_ifsc_code" class="text-danger"></span>
-                                                    </div>
-                                                    <div class="form-group col-md-4">
-                                                        <label class="required-field">Bank
-                                                            Branch</label>
-                                                        <input type="text" name="new_bank_branch"
-                                                            id="new_bank_branch" class="form-control NumOnly"
-                                                            placeholder="Bank Account"
-                                                            value="{{ trim($row->branch_name) }}" readonly/>
-                                                        <span id="error_new_bank_branch" class="text-danger"></span>
-                                                    </div>
-
-
-                                                    <br />
-                                                </div>
-                                                <div class="row">
-
-                                                    <div class="form-group col-md-4">
-                                                        <label class="required-field">Bank
-                                                            Name</label>
-                                                        <input type="text" name="new_bank_name" id="new_bank_name"
-                                                            class="form-control" placeholder="Bank Name"
-                                                            value="{{ trim($row->bank_name) }}" readonly/>
-                                                        <span id="error_new_bank_name" class="text-danger"></span>
-                                                    </div>
-                                                    <div class="form-group col-md-4">
-                                                        <label class="required-field">Bank
-                                                            Account</label>
-                                                        <input type="text" name="new_bank_code" id="new_bank_code"
-                                                            class="form-control NumOnly" placeholder="Bank Account"
-                                                            value="{{ trim($row->bank_code) }}" />
-                                                        <span id="error_new_bank_code" class="text-danger"></span>
-                                                    </div>
-
-                                                </div>
-
-                                                <div class="row">
-                                                    <div class="form-group col-md-4">
-                                                        <label class="required-field">Passbook
-                                                            Document</label>
-                                                        <input type="file" name="new_bank_doc" id="new_bank_doc"
-                                                            class="form-control" />
-                                                        <span id="error_new_bank_doc" class="text-danger"></span>
-                                                    </div>
-                                                    @if($getBankDoc > 0)
-                                                    <div class="form-group col-md-2" style="margin-top: 30px;">
-                                                        <button class="btn btn-warning btn-sm bank_doc_button"
-                                                            id="bankDoc_{{ $row->id }}"
-                                                            value="{{ $row->id }}">View Passbook</button>
-                                                    </div>
+                                            </div>
+                                            @if ($getHusbandDoc > 0)
+                                                        <div class="form-group col-md-2" style="margin-top: 30px;">
+                                                            <button class="btn btn-warning btn-sm aadhar_doc_button"
+                                                                id="bankDoc_{{ $row->id }}"
+                                                                value="{{ $row->id }}">View Existing Husband Death Certificate </button>
+                                                        </div>
                                                     @endif
-                                                    <div class="form-group col-md-2" style="margin-top: 30px;" id="bankCheckDiv">
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="checkbox"
-                                                                value="2" id="bankCheck">
-                                                            <label class="form-check-label" for="bankCheck">
-                                                                Keep Same
-                                                            </label>
-                                                        </div>
-                                                        <span id="error_new_aadhar_no" class="text-danger"></span>
-                                                    </div>
                                                 </div>
+                                            </div>
+                                             
+    
                                             @endif
-                                            @if (intval($row->dup_mobile) == 1 || intval($row->no_mobile) == 1)
-                                                <div class="row">
-                                                    <div class="col-md-12 color1" style="margin:10px 0px">
-                                                        <h3>New Mobile Details</h3>
-                                                    </div>
-                                                    <div class="row">
+                                            @if ($sc_visible > 0 || $st_visible > 0)
+                                            <div class="panel panel-default">
+                                            <div class="panel-heading" id="panel_head"
+                                                style="font-size: 14px; font-weight: bold; font-style: italic;">SC / ST Pension Mandatory Details</div>
+                                            <div class="panel-body" style="padding: 5px; font-size: 14px;">
+                                            <div class="row">
 
-                                                        <div class="form-group col-md-4">
-                                                            <label
-                                                                class="@if (intval($row->no_mobile) == 1) required-field @endif">Mobile
-                                                                Number</label>
-                                                            <input type="text" id="new_mobile_no"
-                                                                name="new_mobile_no" class="form-control NumOnly"
-                                                                placeholder="Mobile No" maxlength="10"
-                                                                value="{{ trim($row->mobile_no) }}">
-                                                            <span id="error_new_mobile_no" class="text-danger"></span>
-                                                        </div>
-                                                        @if (intval($row->dup_mobile == 1))
-                                                            <div class="form-group col-md-4" style="margin-top: 30px;" id="mobileCheckDiv">
-                                                                <div class="form-check">
-                                                                    <input class="form-check-input" type="checkbox"
-                                                                        value="3" id="mobileCheck">
-                                                                    <label class="form-check-label" for="mobileCheck">
-                                                                        Keep Same
-                                                                    </label>
-                                                                </div>
-                                                                <span id="error_new_aadhar_no"
-                                                                    class="text-danger"></span>
-                                                            </div>
+                                            <div class="form-group col-md-4">
+                                                    <label class="required-field">Caste</label>
+                                                    <select class="form-control" name="new_caste_category" id="caste_category">
+                                                        @if ($type == $op_type)
+                                                            @if($scheme_id == 3)
+                                                                <option value="SC">SC</option>
+                                                            @elseif ($scheme_id == 1)
+                                                                <option value="ST">ST</option>
+                                                            @else
+                                                                @foreach(Config::get('constants.caste') as $key => $val)
+                                                                    <option value="{{$key}}" @if($row->gender == $key) selected @endif>{{$val}}
+                                                                    </option>
+                                                                @endforeach
+                                                            @endif
+                                                        @else
+                                                            @if($scheme_id == 3)
+                                                                <option value="SC">SC</option>
+                                                            @elseif ($scheme_id == 1)
+                                                                <option value="ST">ST</option>
+                                                            @else
+                                                                @foreach(Config::get('constants.caste') as $key => $val)
+                                                                    <option value="{{$key}}" @if(old('caste_category') == $key) selected @endif>{{$val}}
+                                                                    </option>
+                                                                @endforeach
+                                                            @endif
                                                         @endif
+                                                    </select>
+                                                    <span id="error_caste_category" class="text-danger"></span>
+                                                </div>
+                                                
+                                                <div class="form-group col-md-4" id="caste_certificate_no_section">
+                                                    <label class="required-field">Caste Certificate No.</label>
+                                                    <input type="text" name="new_caste_certificate_no" id="caste_certificate_no" class="form-control"
+                                                        placeholder="Caste Certificate No." maxlength="200"
+                                                        value="{{$type == $op_type ? $row->caste_certificate_no : old('caste_certificate_no')}}" />
+                                                    <span id="error_caste_certificate_no" class="text-danger"></span>
+                                                </div>
+
+
+                                                <div class="form-group col-md-4">
+                                                <label class="required-field">Caste Certificate</label>
+                                                    <input type="file" name="new_caste_certificate_doc"
+                                                        id="new_caste_certificate_doc" class="form-control" />
+                                                    <span id="new_caste_certificate_doc" class="text-danger"></span>
+                                                </div>
+                                            </div>
+                                            @if ($getCasteDoc > 0)
+                                                        <div class="form-group col-md-2" style="margin-top: 30px;">
+                                                            <button class="btn btn-warning btn-sm caste_doc_button"
+                                                                id="casteDoc_{{ $row->id }}"
+                                                                value="{{ $row->id }}">View Existing Caste Certificate </button>
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                             </div>
+
+                                            
+                                            @endif
+                                            @if ($farmer_visible > 1)
+
+                                            <div class="panel panel-default">
+                                            <div class="panel-heading" id="panel_head"
+                                                style="font-size: 14px; font-weight: bold; font-style: italic;">Old age Farmer Mandatory Details</div>
+                                            <div class="panel-body" style="padding: 5px; font-size: 14px;">
+                                            <div class="row">
+                                            <div class="form-group col-md-4">
+                                                    <label class="required-field">Digital Ration Card Number</label>
+                                                    <div class="row">
+                                                        <div class="col-md-5">
+                                                            <select class="form-control" name="ration_card_cat" id="ration_card_cat" style="margin-left:-15px;">
+                                                                @if ($type == $op_type)
+                                                                    @foreach(Config::get('constants.ration_cat') as $key => $val)
+                                                                        <option value="{{$key}}" @if($row->ration_card_cat == $key) selected @endif>{{$val}}</option>
+                                                                    @endforeach
+                                                                @else
+                                                                    <option value="">Category</option>
+                                                                    @foreach(Config::get('constants.ration_cat') as $key => $val)
+                                                                        <option value="{{ $key }}" @if(old('ration_card_cat') == $key) selected @endif>{{ $val }}</option>
+                                                                    @endforeach
+                                                                @endif
+                                                            </select>
+                                                        </div>
+                                                        <div class="col-md-7">
+                                                            <input type="text" name="ration_card_no" id="ration_card_no" class="form-control NumOnly" 
+                                                                placeholder="Card Number" maxlength="10" 
+                                                                value="{{$type == $op_type ? $row->ration_card_no : old('ration_card_no') }}"
+                                                                style="margin-left:-15px; margin-right:-15px;" />
+                                                        </div>
+                                                        <span id="error_ration_card_cat" class="text-danger"></span><br />
+                                                        <span id="error_ration_card_no" class="text-danger"></span>
                                                     </div>
                                                 </div>
-                                            @endif
+                                                <div class="form-group col-md-4">
+                                                    <label class="required-field">EPIC/Voter Id number</label>
+                                                    <input type="text" name="epic_voter_id" id="epic_voter_id" class="form-control" 
+                                                        placeholder="EPIC/Voter Id.No." maxlength="20" 
+                                                        value="{{$type == $op_type ? $row->epic_voter_id : old('epic_voter_id') }}" />
+                                                    <span id="error_epic_voter_id" class="text-danger"></span>
+                                                </div>
+                                                <div class="form-group col-md-4">
+                                                    <label class="required-field">Copy of EPIC/ Voter Id</label>
+                                                    <input type="file" name="new_epic_doc" id="new_epic_doc" class="form-control" />
+                                                    <span id="new_epic_doc" class="text-danger"></span>
+                                                </div>
+                                                <div class="form-group col-md-4">
+                                                    <label class="required-field">Copy of Digital Ration Card</label>
+                                                    <input type="file" name="new_ration_doc" id="new_ration_doc" class="form-control" />
+                                                    <span id="new_ration_doc" class="text-danger"></span>
+                                                </div>
+                                                @if ($getCasteDoc > 0)
+                                                    <div class="form-group col-md-2" style="margin-top: 30px;">
+                                                        <button class="btn btn-warning btn-sm aadhar_doc_button" id="bankDoc_{{ $row->id }}" value="{{ $row->id }}">
+                                                            View Existing Digital Ration Card
+                                                        </button>
+                                                    </div>
+                                                @endif
+                                                @if ($getCasteDoc > 0)
+                                                    <div class="form-group col-md-2" style="margin-top: 30px;">
+                                                        <button class="btn btn-warning btn-sm aadhar_doc_button" id="bankDoc_{{ $row->id }}" value="{{ $row->id }}">
+                                                            View EPIC/Voter ID Card
+                                                        </button>
+                                                    </div>
+                                                @endif
+                                                
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    @endif
+                                            
+                                            
                                         </form>
                                     @endif
                                     <br /> <br /> <br /> <br />
@@ -760,6 +924,7 @@ desired effect
                 var bank_check = $('#bank_checked').val();
                 var aadhar_check = $('#aadhar_checked').val();
                 var mobile_check = $('#mobile_checked').val();
+                var is_verifier = $('#is_verifier').val();
                 // $('#bank_code').val(new_bank);
                 // $('#bank_ifsc').val(new_ifsc);
                 // $('#new_aadhar').val(new_aadhar);
@@ -775,7 +940,7 @@ desired effect
                 $('#op_text').text(op_text);
                 $('#action_msg').val(op_text);
                 // alert(op_text);
-                if (designation_id == 'Verifier') {
+                if (is_verifier) {
                     var error_new_mobile_no = '';
                     var error_new_aadhar_no = '';
                     if ($.trim($('#new_mobile_no').val()) != "") {
@@ -860,6 +1025,13 @@ desired effect
                 // $('.bank_doc_button').attr('disabled', true);
                 var benid = $(this).val();
                 View_encolser_modal('Copy of Bank Passbook', 10, benid);
+            });
+
+            $(document).on('click', '.caste_doc_button', function(e) {
+                e.preventDefault();
+                // $('.caste_doc_button').attr('disabled', true);
+                var benid = $(this).val();
+                View_encolser_modal('Copy of Caste Certificate', 3, benid);
             });
             // *******keep same******* //
             $('#aadharCheck').click(function(){
@@ -1034,10 +1206,8 @@ desired effect
                 if ($ifscRGEX.test($ifsc_data)) {
                     $('#bank_ifsc_code').removeClass('has-error');
                     $('#error_bank_ifsc_code').text('');
-                    $('#error_new_bank_name').html(
-                        '<img  src="{{ asset('images/ZKZg.gif') }}" width="50px" height="50px"/>');
-                    $('#error_new_bank_branch').html(
-                        '<img  src="{{ asset('images/ZKZg.gif') }}" width="50px" height="50px"/>');
+                    $('#error_new_bank_name').html('<img  src="{{ asset('images/ZKZg.gif') }}" width="50px" height="50px"/>');
+                    $('#error_new_bank_branch').html('<img  src="{{ asset('images/ZKZg.gif') }}" width="50px" height="50px"/>');
                     $.ajax({
                         type: 'POST',
                         url: '{{ url('legacy/getBankDetails') }}',

@@ -13,7 +13,7 @@ use App\SubDistrict;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 use App\GP;
 use App\Helpers\AuthChecker;
@@ -45,8 +45,8 @@ class PaymentReportgetController extends Controller
             $c_time = Carbon::now();
             $c_date = $c_time->format("Y-m-d");
             $is_active = 0;
-            $roleArray = $request->session()->get('role');
-            $designation_id_old = Auth::user()->designation_id_old;
+            $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                        $designation_id = Auth::user()->designation_id;
             $user_id = AuthChecker::getUserId();
             // echo $user_id;die();
             $district_visible = $is_urban_visible = $block_visible = 1;
@@ -56,16 +56,16 @@ class PaymentReportgetController extends Controller
             $gpList = collect([]);
             $duty = Configduty::where('user_id', '=', $user_id)->first();
             $schemes = DB::select(DB::raw("select id,scheme_name from m_scheme where id in (select scheme_id from duty_assignement where user_id=" . $user_id . " and is_active=1 )"));
-            if ($designation_id_old == 'Admin' || $designation_id_old == 'HOD' || $designation_id_old == 'HOP' || $designation_id_old == 'MisState' ||  $designation_id_old == 'Dashboard') {
+            if ($designation_id == 'Admin' || $designation_id == 'HOD' || $designation_id == 'HOP' || $designation_id == 'MisState' ||  $designation_id == 'Dashboard') {
                 $district_visible = $is_urban_visible = $block_visible = 1;
-            } else if ($designation_id_old == 'Approver') {
+            } else if ($designation_id == 'Approver') {
                 $district_code = NULL;
                 $is_urban = NULL;
                 $blockCode = NULL;
                 foreach ($roleArray as $roleObj) {
-                    // echo $designation_id_old;die();
+                    // echo $designation_id;die();
                     if ($roleObj['scheme_id'] == 2) {
-                        // echo $designation_id_old;die();
+                        // echo $designation_id;die();
                         $is_urban = $roleObj['is_urban'];
                         $district_code = $roleObj['district_code'];
                         if ($roleObj['is_urban'] == 1) {
@@ -121,7 +121,7 @@ class PaymentReportgetController extends Controller
                 'is_urban_visible' => $is_urban_visible,
                 'gpList' => $gpList,
                 'muncList' => $muncList,
-                'designation_id_old'=>$designation_id_old,
+                'designation_id'=>$designation_id,
                 'c_date' => $c_date,
             ]
             );

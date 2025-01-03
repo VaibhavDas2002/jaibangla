@@ -19,7 +19,7 @@ use App\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 use Elibyy\TCPDF\Facades\TCPDF as PDF;
 
 class ViewTrackApplicationStatusController extends Controller
@@ -70,7 +70,7 @@ class ViewTrackApplicationStatusController extends Controller
     $mobile_no = $request->mobile_no;
     $designation = 'SpecialStatusCheck';
     // dump($mobile_no);
-    $num = User::where('designation_id_old', $designation)->where('mobile_no', $mobile_no)->count();
+    $num = User::where('designation_id', $designation)->where('mobile_no', $mobile_no)->count();
     
     if ($num > 0) {
       if (!is_null($ben_id)) {

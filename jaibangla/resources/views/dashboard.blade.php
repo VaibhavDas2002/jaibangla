@@ -137,7 +137,7 @@ href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,30
   <!-- Sidebar -->
   @include('layouts.sidebar')
   <div class="content-wrapper">
-    @if(Auth::user()->designation_id_old == 'Approver')
+    @if(Auth::user()->designation_id == 'Approver')
     <!-- Content Header (Page header) -->
     <section class="content-header">
       <h1>
@@ -370,14 +370,14 @@ href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,30
     <!-- Content Header (Page header) -->
     <section class="content-header">
       <h1>
-        Dashboard <small>@php print Auth::user()->designation_id_old; @endphp</small>
+        Dashboard <small>@php print Auth::user()->designation_id; @endphp</small>
       </h1>
       <ol class="breadcrumb">
         <i class="fa fa-clock-o"></i> Date : <span style="font-size: 12px; font-weight: bold;"><span class='date-part'></span>&nbsp;&nbsp;<span class='time-part'></span></span>
       </ol>
     </section>
     <section class="content">
-      <h5>@php print Auth::user()->designation_id_old; @endphp Dashboard</h5>
+      <h5>@php print Auth::user()->designation_id; @endphp Dashboard</h5>
       @if ($message = Session::get('success'))
       <div class="alert alert-success alert-block successErrorMessage">
         <button type="button" class="close" data-dismiss="alert">×</button> 

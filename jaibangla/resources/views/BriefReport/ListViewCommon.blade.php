@@ -627,7 +627,7 @@
      function fill_datatable() {
      if (table != null && table != '') {
        $('#example').DataTable().destroy();
-       //alert(service_designation_id_old);
+       //alert(service_designation_id);
      }
      $.ajaxSetup({
        headers: {

@@ -272,7 +272,7 @@
             <div class="form-group">
                 <label class="col-md-4 control-label">Designation <span class="requied">*</span></label>
                 <div class="col-md-6">
-                    <select class="form-control select2" id="designation_id_old" name="designation_id_old[]"  multiple>
+                    <select class="form-control select2" id="designation_id" name="designation_id[]"  multiple>
                     <option value="">--Please Select--</option> 
                     
                     </select>
@@ -509,7 +509,7 @@ function CreatemenuForm(id){
           $("#rank").val(data[0]['rank']);
           
           var designationList = data[2];
-          $('#designation_id_old').html(designationList);
+          $('#designation_id').html(designationList);
 
           var parent_menu = data[3];
           $('#parent_id').html(parent_menu);
@@ -517,7 +517,7 @@ function CreatemenuForm(id){
           var designation=data[1];
           var Values = new Array();
           for (var  i = 0; i < designation.length; i++) {
-          Values.push(designation[i].designation_id_old);
+          Values.push(designation[i].designation_id);
           }
           $('.select2').val(Values).trigger('change');
           $("#parent_id").val(data[0]['parent_id']).change();
@@ -553,7 +553,7 @@ function CreatemenuForm(id){
         
         success: function (data) {         
           var designationList = data[0];
-          $('#designation_id_old').html(designationList);
+          $('#designation_id').html(designationList);
 
           var parent_menu = data[1];
           $('#parent_id').html(parent_menu);
@@ -584,7 +584,7 @@ function CreatemenuForm(id){
     var menu_class = $("input[name='menu_class']").val();
     var menu_slug = $("input[name='menu_slug']").val();
     var rank = $("input[name='rank']").val();
-    var designation_id_old=$(".select2").val();
+    var designation_id=$(".select2").val();
     var id=$("#id").val();
     // alert(id);
     $.ajaxSetup({
@@ -597,7 +597,7 @@ function CreatemenuForm(id){
       type:'POST',
       dataType: "json",
       data: {id:id,menu_name:menu_name,parent_id:parent_id,menu_icon:menu_icon,link_url:link_url,
-        url_type:url_type,menu_class:menu_class,menu_slug:menu_slug,rank:rank,designation_id_old:designation_id_old},
+        url_type:url_type,menu_class:menu_class,menu_slug:menu_slug,rank:rank,designation_id:designation_id},
       success: function(data) {
         if(data.return_status){
           if(id){

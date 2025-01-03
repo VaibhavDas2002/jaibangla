@@ -50,7 +50,7 @@ class JBProcessApplicationController extends Controller
       $approverURL = 'ProcessApllicationApprover';
       $cmo_url = 'cmo-grievance-workflow';
       $type = (int) $request->type;
-      $designation_id_old = AuthChecker::getdesignation();
+      // $designation_id = AuthChecker::getdesignation();
       $user_id = AuthChecker::getUserId();
       // dd($user_id);
       $configDuty = DB::table('duty_assignement')
@@ -59,7 +59,7 @@ class JBProcessApplicationController extends Controller
         ->where('is_active', 1)
         ->get();
 
-      $url = ($designation_id_old === 'Verifier') ? $verifierURL : $approverURL;
+      $url = ($designation_id === 'Verifier') ? $verifierURL : $approverURL;
 
       $scheme_id_arr = [];
       $district_code = null;
@@ -121,28 +121,28 @@ class JBProcessApplicationController extends Controller
       $return_arr = Scheme::whereIn('id', $schemeIds)
         ->orderBy('id')
         ->get()
-        ->map(function ($scheme) use ($is_cmo, $not_cmo, $designation_id_old, $cmo_url, $verifierURL, $approverURL, $type) {
+        ->map(function ($scheme) use ($is_cmo, $not_cmo, $designation_id, $cmo_url, $verifierURL, $approverURL, $type) {
           if ($type === 1) {
             if (in_array($scheme->id, $is_cmo)) {
-              $scheme->url = $designation_id_old === 'Verifier'
+              $scheme->url = $designation_id === 'Verifier'
                 ? $cmo_url
                 : $approverURL;
             } elseif (in_array($scheme->id, $not_cmo)) {
-              $scheme->url = $designation_id_old === 'Verifier'
+              $scheme->url = $designation_id === 'Verifier'
                 ? $verifierURL
                 : $approverURL;
             } else {
-              $scheme->url = $designation_id_old === 'Verifier'
+              $scheme->url = $designation_id === 'Verifier'
                 ? $verifierURL
                 : $approverURL;
             }
           } elseif ($type === 2) {
             if (in_array($scheme->id, $not_cmo)) {
-              $scheme->url = $designation_id_old === 'Verifier'
+              $scheme->url = $designation_id === 'Verifier'
                 ? $verifierURL
                 : $approverURL;
             } else {
-              $scheme->url = $designation_id_old === 'Verifier'
+              $scheme->url = $designation_id === 'Verifier'
                 ? $verifierURL
                 : $approverURL;
             }
@@ -165,7 +165,7 @@ class JBProcessApplicationController extends Controller
   public function verifierview(Request $request)
   {
     try {
-      $auth = AuthChecker::VerifierChecker();
+      $auth = AuthChecker::CheckerPermission();
       if ($auth) {
         $type = (int) $request->type;
         $designation_id = AuthChecker::getDesignation();
@@ -177,8 +177,8 @@ class JBProcessApplicationController extends Controller
         if (!intval($scheme_id)) {
           return redirect('/')->with('error', 'Scheme ID is missing or invalid.');
         }
-        $designation_id_old = Auth::user()->designation_id_old;
-        if ($designation_id_old != 'Verifier') {
+        $designation_id = Auth::user()->designation_id;
+        if ($designation_id != 'Verifier') {
           return redirect('/')->with('error', 'Not Allowed...');
         }
         $user_id = AuthChecker::getUserId();
@@ -238,7 +238,7 @@ class JBProcessApplicationController extends Controller
 
   public function approverview(Request $request)
   {
-    $auth = AuthChecker::ApproverChecker();
+    $auth = AuthChecker::ApproverPermission();
     if ($auth) {
       $user_id = AuthChecker::getUserId();
       $type = (int) $request->type;
@@ -310,9 +310,9 @@ class JBProcessApplicationController extends Controller
   public function hodview(Request $request)
   {
     $scheme_id = Crypt::decrypt($request->scheme_id);
-    $designation_id_old = Auth::user()->designation_id_old;
-    dd($scheme_id, $designation_id_old);
-    if ($designation_id_old == 'Operator') {
+    $designation_id = Auth::user()->designation_id;
+    dd($scheme_id, $designation_id);
+    if ($designation_id == 'Operator') {
       return redirect('/')->with('error', 'Not Allowded...');
     }
   }
@@ -795,12 +795,12 @@ class JBProcessApplicationController extends Controller
     if (!is_numeric($request->scheme_id)) {
       return redirect("/")->with('danger', 'Scheme ID Not Valid');
     }
-    $is_verifier = AuthChecker::VerifierChecker();
-    $is_approver = AuthChecker::ApproverChecker();
+    $is_verifier = AuthChecker::CheckerPermission();
+    $is_approver = AuthChecker::ApproverPermission();
     $approveBtnvisible = 1;
     $verifyBtnvisible = 1;
     $user_id = AuthChecker::getUserId();
-    $designation_id = Auth::user()->designation_id_old;
+    $designation_id = Auth::user()->designation_id;
     $reject_revert_cause_list = RejectRevertReason::where('status', true)->get();
     $id = $request->id;
     $scheme_id = $request->scheme_id;

@@ -13,7 +13,7 @@ use App\lot_no_seeder;
 use App\lot_master;
 
 
-use Excel;
+use Maatwebsite\Excel\Facades\Excel;
 use DOMDocument;
 use Response;
 use Carbon;
@@ -22,7 +22,7 @@ use League\Flysystem\Filesystem;
 use League\Flysystem\Sftp\SftpAdapter;
 ///////////03-04-2020 start/////////
 use App\Configduty;
-use Auth;
+use Illuminate\Support\Facades\Auth;
  ///////////03-04-2020 end/////////
 
  use App\Helpers\AuthChecker;

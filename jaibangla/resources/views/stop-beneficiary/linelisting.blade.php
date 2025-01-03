@@ -243,7 +243,7 @@ href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,30
           <input type="hidden" name="rural_urban_code"  id="rural_urban_code" value="{{$is_rural}}">
           <input value="{{$created_by_local_body_code}}" type="hidden" name="created_by_local_body_code"  id="created_by_local_body_code">
            @endif
-           @if($designation_id_old=='Approver' || $verifier_type=='Department')
+           @if($designation_id=='Approver' || $verifier_type=='Department')
          
        
         <div class="form-group col-md-3">

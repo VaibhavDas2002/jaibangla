@@ -13,7 +13,7 @@ use App\UrbanBody;
 use App\Taluka;
 use App\UpdateBenDetails;
 use App\DupliacteApproveReject;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use App\Helpers\AuthChecker;
 
 class BeneficiaryPaymentStatusController extends Controller

@@ -434,7 +434,7 @@ href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,30
         var created_by_local_body_code = $('#created_by_local_body_code').val();
         var application_type = $('#application_type').val();
         var process_type = $('#process_type').val();
-        var designation_id_old = $('#designation_id_old').val();
+        var designation_id = $('#designation_id').val();
         var error_application_type='';
         var error_process_type='';
         if(application_type=='')
@@ -449,7 +449,7 @@ href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,30
           $('#error_application_type').text(error_application_type);
           $('#application_type').removeClass('has-error');
         }
-        if(designation_id_old=='Approver'){
+        if(designation_id=='Approver'){
         if(process_type=='')
         {
           error_process_type = 'Process Type is required';

@@ -45,7 +45,7 @@ class UpdateBankStopPaymentController extends Controller
   public function index()
   {
     $user_id = AuthChecker::getUserId();
-    $designation = Auth::user()->designation_id_old;
+    $designation = Auth::user()->designation_id;
     if ($designation == 'Approver' || $designation == 'Verifier') {
       $mapObj = Configduty::where('user_id', $user_id)->where('is_active', 1)->first();
       if ($designation == 'Approver') {
@@ -68,7 +68,7 @@ class UpdateBankStopPaymentController extends Controller
   {
     if ($request->ajax()) {
       $user_id = AuthChecker::getUserId();
-      $designation = Auth::user()->designation_id_old;
+      $designation = Auth::user()->designation_id;
       $mapObj = Configduty::where('user_id', $user_id)->where('is_active', 1)->first();
       $dist_code = $mapObj->district_code;
      
@@ -541,7 +541,7 @@ class UpdateBankStopPaymentController extends Controller
       $validator = Validator::make($request->all(), $rules, $messages, $attributes);
       if ($validator->passes()) {
         $scheme_id = $request->scheme_id;
-        $designation = Auth::user()->designation_id_old;
+        $designation = Auth::user()->designation_id;
         // dd($scheme_id);
         $table = $this->getSchemaName($scheme_id);
         $schemaarr=explode('.', $table);

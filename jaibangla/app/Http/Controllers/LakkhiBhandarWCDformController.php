@@ -21,15 +21,20 @@ use App\Ward;
 use App\GP;
 use App\User;
 use Redirect;
-use Auth;
-use Config;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use App\SchemeCapacity;
 use App\Scheme;
 use App\Helpers\AuthChecker;
-
+use App\nhm_health_facility;
+use App\programmeHeadMaster;
+use App\PensionSc;
+use App\majorProgammeHeadMaster;
+use App\nhm_employee_details;
+use App\NHMEmployee;
 class LakkhiBhandarWCDformController extends Controller
 {
 
@@ -53,8 +58,8 @@ class LakkhiBhandarWCDformController extends Controller
         // $base_url=url('/');
         // echo $base_url.'/images/';exit;        
 
-        $roleArray = $request->session()->get('role');
-        foreach ($roleArray as $roleObj) {
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == $scheme_id) {
                 $is_active = 1;
                 $request->session()->put('level', $roleObj['mapping_level']);
@@ -638,8 +643,8 @@ class LakkhiBhandarWCDformController extends Controller
         $id = $request->id;
         $scheme_id = (int) $request->scheme_id;
         // dd($scheme_id);
-        $designation_id_old = Auth::user()->designation_id_old;
-        if ($designation_id_old != 'Operator') {
+        $designation_id = Auth::user()->designation_id;
+        if ($designation_id != 'Operator') {
             return redirect("/")->with('error', 'Not Allowed');
         }
         if (!is_int($scheme_id)) {
@@ -651,8 +656,8 @@ class LakkhiBhandarWCDformController extends Controller
         $created_by = Auth::user()->id;
         $is_active = 0;
         $mapping_level = NULL;
-        $roleArray = $request->session()->get('role');
-        foreach ($roleArray as $roleObj) {
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == $scheme_id) {
                 $is_active = 1;
                 $mapping_level = $roleObj['mapping_level'];

@@ -16,7 +16,7 @@ use App\Ward;
 use App\GP;
 use App\User;
 use Redirect;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Config;
@@ -61,7 +61,7 @@ class LifeCertificateController extends Controller
   {
 
     // dd($request->all());
-    // $designation_id_old = Auth::user()->designation_id_old;
+    // $designation_id = Auth::user()->designation_id;
     $is_operator = AuthChecker::OperatorChecker();
     $is_verifier = AuthChecker::VerifierChecker();
     $is_approver = AuthChecker::ApproverChecker();
@@ -334,7 +334,7 @@ class LifeCertificateController extends Controller
     return view(
       'LifeCertificate.linelisting',
       [
-        // 'designation_id_old' => $designation_id_old,
+        // 'designation_id' => $designation_id,
         'verifier_type' => $verifier_type,
         'created_by_local_body_code' => $created_by_local_body_code,
         'is_rural' => $is_rural,
@@ -369,12 +369,12 @@ class LifeCertificateController extends Controller
     if (empty($scheme_obj)) {
       return redirect("/")->with('danger', 'Scheme Not Found');
     }
-    // $designation_id_old = Auth::user()->designation_id_old;
+    // $designation_id = Auth::user()->designation_id;
     if (!AuthChecker::OperatorChecker() || AuthChecker::VerifierChecker()) {
       return redirect("/")->with('error', 'Not Allowed');
     }
     $is_active = 0;
-    $roleArray = $request->session()->get('role');
+    $roleArray = Configduty::where('user_id', $user_id)->where('is_active', 1)->get()->toArray();;
     foreach ($roleArray as $roleObj) {
       if ($roleObj['scheme_id'] == $scheme_id) {
         $is_active = 1;
@@ -440,7 +440,11 @@ class LifeCertificateController extends Controller
       'doc_certificate' => $doc_certificate,
       'encolserdata' => $encolserdata,
       'already_uploaded' => $already_uploaded,
-      // 'designation_id_old' => $designation_id_old,
+      'is_operator' => AuthChecker::OperatorChecker(),
+      'is_verifier' => AuthChecker::VerifierChecker(),
+      
+
+      // 'designation_id' => $designation_id,
     ]);
   }
   function editLifeCertificatePost(Request $request)
@@ -448,12 +452,12 @@ class LifeCertificateController extends Controller
     $scheme_id = $request->scheme_id;
     $scheme_obj = Scheme::where('id', $scheme_id)->where('is_active', 1)->first();
     $user_id = AuthChecker::getUserId();
-    // $designation_id_old = Auth::user()->designation_id_old;
+    // $designation_id = Auth::user()->designation_id;
     if (!AuthChecker::OperatorChecker()) {
       return redirect("/")->with('error', 'Not Allowed');
     }
     $is_active = 0;
-    $roleArray = $request->session()->get('role');
+    $roleArray = Configduty::where('user_id', $user_id)->where('is_active', 1)->get()->toArray();;
     foreach ($roleArray as $roleObj) {
       if ($roleObj['scheme_id'] == $scheme_id) {
         $is_active = 1;
@@ -621,7 +625,7 @@ class LifeCertificateController extends Controller
 
   public function bulkApproveLifeCertificate(Request $request)
   {
-    // $designation_id_old = Auth::user()->designation_id_old;
+    // $designation_id = Auth::user()->designation_id;
     $user_id = AuthChecker::getUserId();
 
     $scheme_id = $request->scheme_id;
@@ -706,7 +710,7 @@ class LifeCertificateController extends Controller
   }
   public function SingleApproveLifeCertificate(Request $request)
   {
-    // $designation_id_old = Auth::user()->designation_id_old;
+    // $designation_id = Auth::user()->designation_id;
 
     $user_id = AuthChecker::getUserId();
 

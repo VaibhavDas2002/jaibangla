@@ -182,7 +182,7 @@ href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,30
             <input type="hidden" name="rural_urban_code"  id="rural_urban_code" value="{{$is_rural}}">
             <input value="{{$created_by_local_body_code}}" type="hidden" name="created_by_local_body_code"  id="created_by_local_body_code">
           @endif
-          @if($designation_id_old=='Approver')
+          @if($designation_id=='Approver')
             <div class="form-group col-md-3">
               <label class=" control-label" >Urban/Rural</label>
               <select name="rural_urban_code" id="rural_urban_code" class="form-control" >
@@ -322,7 +322,7 @@ href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,30
         var block_ulb_code = $('#block_ulb_code').val();
         var application_type = $('#application_type').val();
         var process_type = $('#process_type').val();
-        var designation_id_old = $('#designation_id_old').val();
+        var designation_id = $('#designation_id').val();
         var error_application_type='';
         var error_process_type='';
         if(application_type=='')
@@ -337,7 +337,7 @@ href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,30
           $('#error_application_type').text(error_application_type);
           $('#application_type').removeClass('has-error');
         }
-        if(designation_id_old=='Approver'){
+        if(designation_id=='Approver'){
         if(process_type=='')
         {
           error_process_type = 'Process Type is required';

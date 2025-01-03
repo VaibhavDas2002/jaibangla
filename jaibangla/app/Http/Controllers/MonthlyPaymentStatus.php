@@ -4,12 +4,12 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\District;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 use DateTime;
 use App\Scheme;
-use Config;
+use Illuminate\Support\Facades\Config;
 use Carbon\Carbon;
 use App\Configduty;
 use App\Helpers\AuthChecker;
@@ -26,8 +26,8 @@ class MonthlyPaymentStatus extends Controller
   function index(Request $request)
   {
 
-    $roleArray = $request->session()->get('role');
-    $designation_id_old = Auth::user()->designation_id_old;
+    $roleArray = Configduty::where('user_id', Auth::user()->id )->where('is_active', 1)->get()->toArray();;
+    $designation_id = Auth::user()->designation_id;
     $district_visible = $is_urban_visible = $block_visible = $scheme_visible = 1;
     $scheme_arr = array();
     $user_id = AuthChecker::getUserId();
@@ -39,10 +39,10 @@ class MonthlyPaymentStatus extends Controller
       $payment_scheme_in = array(1, 5, 6, 7, 19);
     elseif ($payment_mode == 'SBI')
       $payment_scheme_in = array(2, 3, 8, 9, 10, 11, 17);
-    if ($designation_id_old == 'Admin' || $designation_id_old == 'HOD' || $designation_id_old == 'DDO' || $designation_id_old == 'Corp') {
+    if ($designation_id == 'Admin' || $designation_id == 'HOD' || $designation_id == 'DDO' || $designation_id == 'Corp') {
       $district_visible = $is_urban_visible = $block_visible = 1;
       $schemes = DB::select(DB::raw("select id,scheme_name from m_scheme where id in ( " . implode(',', $payment_scheme_in) . ") and id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . ")"));
-    } else if ($designation_id_old == 'Approver' || $designation_id_old == 'Verifier' || $designation_id_old == 'Operator') {
+    } else if ($designation_id == 'Approver' || $designation_id == 'Verifier' || $designation_id == 'Operator') {
       $district_code = NULL;
       $is_urban = NULL;
       $blockCode = NULL;
@@ -61,7 +61,7 @@ class MonthlyPaymentStatus extends Controller
           break;
         }
       }
-      if ($designation_id_old == 'Verifier' || $designation_id_old == 'Operator') {
+      if ($designation_id == 'Verifier' || $designation_id == 'Operator') {
         $scheme_visible = 0;
         $is_urban_visible = 0;
         $schemes = array();
@@ -200,9 +200,9 @@ class MonthlyPaymentStatus extends Controller
         }
       }
 
-      $designation_id_old = Auth::user()->designation_id_old;
+      $designation_id = Auth::user()->designation_id;
 
-      if ($designation_id_old == 'Verifier' || $designation_id_old == 'Operator') {
+      if ($designation_id == 'Verifier' || $designation_id == 'Operator') {
         if ($payment_mode == 'IFMS') {
           $query = "select A.*,B.*
           from
@@ -329,7 +329,7 @@ class MonthlyPaymentStatus extends Controller
         $data = array_merge($data, $data_part);
         $heading_msg = 'Scheme Wise Monthly Payment Status (' . $payment_mode . ') ' . $user_msg;
         $column = "Scheme";
-      } else if ($designation_id_old == 'Approver') {
+      } else if ($designation_id == 'Approver') {
         if (empty($scheme_code)) {
           if (empty($urban_code)) {
             $urban_code_condition = " and rural_urban_id IN (1,2)";
@@ -827,7 +827,7 @@ class MonthlyPaymentStatus extends Controller
             $column = "Block/Munc";
           }
         }
-      } else if ($designation_id_old == 'Admin' || $designation_id_old == 'HOD' || $designation_id_old == 'DDO' || $designation_id_old == 'Corp') {
+      } else if ($designation_id == 'Admin' || $designation_id == 'HOD' || $designation_id == 'DDO' || $designation_id == 'Corp') {
         $schemewise = $districrwise = $blockwise = $muncwise = $blkmuncwise = 0;
         if (empty($scheme_code)) {
           $schemewise = 1;

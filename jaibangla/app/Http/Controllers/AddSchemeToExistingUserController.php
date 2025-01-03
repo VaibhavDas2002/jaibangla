@@ -5,11 +5,11 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\User;
 use App\Configduty;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use App\Employee;
 use App\Scheme;
 use Illuminate\Support\Facades\Log;
-use DB;
+use Illuminate\Support\Facades\DB;
 use App\Users_audit_trail;
 use App\Helpers\AuthChecker;
 
@@ -27,7 +27,7 @@ class AddSchemeToExistingUserController extends Controller
     public function index(Request $request)
     {
         $user_id = AuthChecker::getUserId();
-        $designation_id_old = Auth::user()->designation_id_old;
+        $designation_id = Auth::user()->designation_id;
         $dutys = Configduty::where('user_id', '=', $user_id)->where('is_active', 1)->get(); //first();
         foreach ($dutys as $duty) {
             if ($duty->is_active == 1) {
@@ -40,27 +40,27 @@ class AddSchemeToExistingUserController extends Controller
         if ($dutys->isEmpty()) {
             return redirect("/")->with('success', 'User Disabled');
         } else {
-            if ($designation_id_old != 'Approver' && $designation_id_old != 'HOD' &&  $designation_id_old != 'Admin') {
+            if ($designation_id != 'Approver' && $designation_id != 'HOD' &&  $designation_id != 'Admin') {
                 return redirect("/")->with('success', 'User Disabled');
             }
             if (request()->ajax()) { //DB::enableQueryLog();
                 if (!empty($request->filter_1)) {
-                    if (Auth::user()->designation_id_old == 'Approver') {
+                    if (Auth::user()->designation_id == 'Approver') {
                         $data = User::leftJoin('employees', 'employees.id', 'users.emp_id')
                             ->leftJoin('duty_assignement', 'duty_assignement.user_id', 'users.id')
                             ->where('duty_assignement.district_code', $dutys[0]->district_code)
                             ->where('mobile_no', $request->filter_1)->where('users.is_active', 1)->limit(1)
-                            ->get(['users.username as username', 'employees.firstname as firstname', 'employees.middlename as middlename', 'employees.lastname as lastname', 'users.designation_id_old as designation_id_old', 'users.email', 'users.mobile_no', 'users.id as userid', 'duty_assignement.district_code as district_code', 'duty_assignement.mapping_level as mapping_level', 'duty_assignement.urban_body_code as urban_body_code', 'duty_assignement.is_urban as is_urban', 'duty_assignement.taluka_code as taluka_code']);
+                            ->get(['users.username as username', 'employees.firstname as firstname', 'employees.middlename as middlename', 'employees.lastname as lastname', 'users.designation_id as designation_id', 'users.email', 'users.mobile_no', 'users.id as userid', 'duty_assignement.district_code as district_code', 'duty_assignement.mapping_level as mapping_level', 'duty_assignement.urban_body_code as urban_body_code', 'duty_assignement.is_urban as is_urban', 'duty_assignement.taluka_code as taluka_code']);
 
                         // New 06-07-2021
                         $all_map_scheme = DB::select(DB::raw("select distinct m.scheme_name from users u join duty_assignement d on u.id=d.user_id join m_scheme m on m.id=d.scheme_id 
                         where d.is_active=1 and m.is_active=1 and d.district_code=" . $dutys[0]->district_code . " and u.mobile_no='" . $request->filter_1 . "'"));
-                    } else if (Auth::user()->designation_id_old == 'HOD' || Auth::user()->designation_id_old == 'Admin') {
+                    } else if (Auth::user()->designation_id == 'HOD' || Auth::user()->designation_id == 'Admin') {
                         $data = User::leftJoin('employees', 'employees.id', 'users.emp_id')
                             ->leftJoin('duty_assignement', 'duty_assignement.user_id', 'users.id')
                             //->where('duty_assignement.district_code',$dutys[0]->district_code)
                             ->where('mobile_no', $request->filter_1)->where('users.is_active', 1)->limit(1)
-                            ->get(['users.username as username', 'employees.firstname as firstname', 'employees.middlename as middlename', 'employees.lastname as lastname', 'users.designation_id_old as designation_id_old', 'users.email', 'users.mobile_no', 'users.id as userid', 'duty_assignement.district_code as district_code', 'duty_assignement.mapping_level as mapping_level', 'duty_assignement.urban_body_code as urban_body_code', 'duty_assignement.is_urban as is_urban', 'duty_assignement.taluka_code as taluka_code']);
+                            ->get(['users.username as username', 'employees.firstname as firstname', 'employees.middlename as middlename', 'employees.lastname as lastname', 'users.designation_id as designation_id', 'users.email', 'users.mobile_no', 'users.id as userid', 'duty_assignement.district_code as district_code', 'duty_assignement.mapping_level as mapping_level', 'duty_assignement.urban_body_code as urban_body_code', 'duty_assignement.is_urban as is_urban', 'duty_assignement.taluka_code as taluka_code']);
 
                         // New 06-07-2021
                         $all_map_scheme = DB::select(DB::raw("select distinct m.scheme_name from users u join duty_assignement d on u.id=d.user_id join m_scheme m on m.id=d.scheme_id 
@@ -119,8 +119,8 @@ class AddSchemeToExistingUserController extends Controller
      */
     public function map(Request $request)
     {
-        $designation_id_old = Auth::user()->designation_id_old;
-        if ($designation_id_old != 'Approver' && $designation_id_old != 'HOD' &&  $designation_id_old != 'Admin') {
+        $designation_id = Auth::user()->designation_id;
+        if ($designation_id != 'Approver' && $designation_id != 'HOD' &&  $designation_id != 'Admin') {
             return redirect("/")->with('success', 'User Disabled');
         }
         $user_id = AuthChecker::getUserId();

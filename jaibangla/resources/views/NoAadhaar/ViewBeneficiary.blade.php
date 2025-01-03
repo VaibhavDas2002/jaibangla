@@ -335,7 +335,7 @@
 
 
                             </div>
-                            @if ($designation_id_old == 'Approver' && $row->aadhar_edit_role_id == 1)
+                            @if ($designation_id == 'Approver' && $row->aadhar_edit_role_id == 1)
                                 <div class="row">
                                     <div class="col-md-12" style="margin:10px 0px">
                                         <h3>{{ $doc_man->doc_name }}</h3>
@@ -373,7 +373,7 @@
                         
                         @endif
 
-                        @if ($designation_id_old == 'Verifier' || ($designation_id_old == 'Approver' && ($scheme_id == '8' || $scheme_id == '9')))
+                        @if ($designation_id == 'Verifier' || ($designation_id == 'Approver' && ($scheme_id == '8' || $scheme_id == '9')))
                             <form method="post" id="register_form" action="{{ url('noaadharPost') }}"
                                 enctype="multipart/form-data" class="submit-once" onsubmit="return client_validation()">
 

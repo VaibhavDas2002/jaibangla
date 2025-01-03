@@ -33,15 +33,15 @@ use App\Ward;
 use App\GP;
 use App\User;
 use Redirect;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
-use Config;
+use Illuminate\Support\Facades\Config;
 use App\SchemeCapacity;
 use App\Scheme;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
 use App\BankDetails;
 use App\Helpers\Helper;
@@ -83,7 +83,7 @@ class OAPFarmerformController extends Controller
     // $base_url=url('/');
     // echo $base_url.'/images/';exit;        
 
-    $roleArray = $request->session()->get('role');
+    $roleArray = Configduty::where('user_id', $user_id)->where('is_active', 1)->get()->toArray();;
     foreach ($roleArray as $roleObj) {
       if ($roleObj['scheme_id'] == $scheme_id) {
         $is_active = 1;
@@ -650,7 +650,7 @@ if(!empty($request->aadhar_no)){
     $id = $request->id;
     $scheme_id = (int) $request->scheme_id;
     // dd($scheme_id);
-    $designation_id_old = Auth::user()->designation_id_old;
+    $designation_id = Auth::user()->designation_id;
     if (!is_int($scheme_id)) {
       return redirect("/")->with('error', 'Scheme Code Not Valid');
     }
@@ -661,7 +661,7 @@ if(!empty($request->aadhar_no)){
 
     $is_active = 0;
     $mapping_level = NULL;
-    $roleArray = $request->session()->get('role');
+    $roleArray = Configduty::where('user_id', $user_id)->where('is_active', 1)->get()->toArray();;
     foreach ($roleArray as $roleObj) {
       if ($roleObj['scheme_id'] == $scheme_id) {
         $is_active = 1;
@@ -680,9 +680,9 @@ if(!empty($request->aadhar_no)){
       return redirect("/")->with('error', 'User Disabled');
     }
     $query = PensionOAPFarmer::where(['id' => $id, 'created_by_dist_code' => $distCode, 'scheme_id' => $scheme_id]);
-    if ($designation_id_old == 'Verifier') {
+    if ($designation_id == 'Verifier') {
       $query = $query->whereNull('next_level_role_id');
-    } else if ($designation_id_old == 'Approver') {
+    } else if ($designation_id == 'Approver') {
       $query = $query->where('is_verified',1)->where('is_approved',0)->where('is_rejected',0);
     } else {
       $query = $query->whereNull('next_level_role_id');
@@ -1090,7 +1090,7 @@ if(!empty($request->aadhar_no)){
             DB::commit();
             DB::connection('pgsql_encwrite')->commit();
             DB::connection('pgsql16')->commit();
-            if ($designation_id_old == 'Operator')
+            if ($designation_id == 'Operator')
                return redirect("application-list-read-only-edit?pr1=" . $scheme_schema)->with('success', 'Application Updated Successfully')
             ->with('id',   $id);
           else {
@@ -1101,7 +1101,7 @@ if(!empty($request->aadhar_no)){
             DB::connection('pgsql16')->rollback();
             DB::rollback();
             DB::connection('pgsql_encwrite')->rollback();
-            if ($designation_id_old == 'Operator')
+            if ($designation_id == 'Operator')
              return redirect("/application-edit?id=" . $request->id . "&scheme_id=" . $request->scheme_id)->with('errors', array('Some error.Please try again'));
             else {
               return redirect('/')->with('danger', 'Some error.Please try again');
@@ -1112,7 +1112,7 @@ if(!empty($request->aadhar_no)){
       DB::connection('pgsql16')->rollback();
       DB::rollback();
       DB::connection('pgsql_encwrite')->rollback();
-      if ($designation_id_old == 'Operator') {
+      if ($designation_id == 'Operator') {
         return redirect("application-list-read-only-edit?pr1=" . $scheme_schema)->with('error', 'Some error.Please try again')
           ->with('id',  $row->getBenidAttribute());
       } else {
@@ -1310,12 +1310,12 @@ if(!empty($request->aadhar_no)){
     // dd($request->all());
     $scheme_id =  $this->scheme_id;
     $user_id = AuthChecker::getUserId();
-    $designation_id_old = Auth::user()->designation_id_old;
-    if (!in_array($designation_id_old, array('Operator'))) {
+    $designation_id = Auth::user()->designation_id;
+    if (!in_array($designation_id, array('Operator'))) {
       return redirect("/")->with('error', 'Not Allowed');
     }
     $is_active = 0;
-    $roleArray = $request->session()->get('role');
+    $roleArray = Configduty::where('user_id', $user_id)->where('is_active', 1)->get()->toArray();;
     foreach ($roleArray as $roleObj) {
       if ($roleObj['scheme_id'] == $scheme_id) {
         $is_active = 1;
@@ -1500,12 +1500,12 @@ if(!empty($request->aadhar_no)){
 
     $scheme_id =  $this->scheme_id;
     $user_id = AuthChecker::getUserId();
-    $designation_id_old = Auth::user()->designation_id_old;
-    if (!in_array($designation_id_old, array('Operator'))) {
+    $designation_id = Auth::user()->designation_id;
+    if (!in_array($designation_id, array('Operator'))) {
       return redirect("/")->with('error', 'Not Allowed');
     }
     $is_active = 0;
-    $roleArray = $request->session()->get('role');
+    $roleArray = Configduty::where('user_id', $user_id)->where('is_active', 1)->get()->toArray();;
     foreach ($roleArray as $roleObj) {
       if ($roleObj['scheme_id'] == $scheme_id) {
         $is_active = 1;
@@ -1670,12 +1670,12 @@ if(!empty($request->aadhar_no)){
   {
     $scheme_id =  $this->scheme_id;
     $user_id = AuthChecker::getUserId();
-    $designation_id_old = Auth::user()->designation_id_old;
-    if (!in_array($designation_id_old, array('Operator'))) {
+    $designation_id = Auth::user()->designation_id;
+    if (!in_array($designation_id, array('Operator'))) {
       return redirect("/")->with('error', 'Not Allowed');
     }
     $is_active = 0;
-    $roleArray = $request->session()->get('role');
+    $roleArray = Configduty::where('user_id', $user_id)->where('is_active', 1)->get()->toArray();;
     foreach ($roleArray as $roleObj) {
       if ($roleObj['scheme_id'] == $scheme_id) {
         $is_active = 1;
@@ -2315,7 +2315,7 @@ if(!empty($request->aadhar_no)){
       }
     }
     $is_active = 0;
-    $roleArray = $request->session()->get('role');
+    $roleArray = Configduty::where('user_id', $user_id)->where('is_active', 1)->get()->toArray();;
     
     //echo "<pre>"; print_r($roleArray ); 
     foreach ($roleArray as $roleObj) {
@@ -2866,7 +2866,7 @@ if(!empty($request->aadhar_no)){
       }
     }
     $is_active = 0;
-    $roleArray = $request->session()->get('role');
+    $roleArray = Configduty::where('user_id', $user_id)->where('is_active', 1)->get()->toArray();;
     foreach ($roleArray as $roleObj) {
       if ($roleObj['scheme_id'] == $scheme_id) {
         $is_active = 1;
@@ -2947,7 +2947,7 @@ if(!empty($request->aadhar_no)){
       }
     }
     $is_active = 0;
-    $roleArray = $request->session()->get('role');
+    $roleArray = Configduty::where('user_id', $user_id)->where('is_active', 1)->get()->toArray();;
     foreach ($roleArray as $roleObj) {
       if ($roleObj['scheme_id'] == $scheme_id) {
         $is_active = 1;
@@ -2984,7 +2984,7 @@ if(!empty($request->aadhar_no)){
       $comments = $request->comments;
       $user_id = AuthChecker::getUserId();
       $duty = Configduty::where('user_id', '=', $user_id)->where('scheme_id', $scheme_id)->first();
-      $role = MapLavel::where('scheme_id', $scheme_id)->where('role_name', Auth::user()->designation_id_old)->where('stack_level', $duty->mapping_level)->first();
+      $role = MapLavel::where('scheme_id', $scheme_id)->where('role_name', Auth::user()->designation_id)->where('stack_level', $duty->mapping_level)->first();
 
       if ($_POST['submit'] == 'Verify') {
         $input = ['next_level_role_id_edit' => $role->parent_id, 'comments' => $comments];
@@ -3048,7 +3048,7 @@ if(!empty($request->aadhar_no)){
       }
     }
     $is_active = 0;
-    $roleArray = $request->session()->get('role');
+    $roleArray = Configduty::where('user_id', $user_id)->where('is_active', 1)->get()->toArray();;
     foreach ($roleArray as $roleObj) {
       if ($roleObj['scheme_id'] == $scheme_id) {
         $is_active = 1;
@@ -3086,7 +3086,7 @@ if(!empty($request->aadhar_no)){
 
       $user_id = AuthChecker::getUserId();
       $duty = Configduty::where('user_id', '=', $user_id)->where('scheme_id', $scheme_id)->first();
-      $role = MapLavel::where('scheme_id', $scheme_id)->where('role_name', Auth::user()->designation_id_old)->where('stack_level', $duty->mapping_level)->first();
+      $role = MapLavel::where('scheme_id', $scheme_id)->where('role_name', Auth::user()->designation_id)->where('stack_level', $duty->mapping_level)->first();
       if ($_POST['submit'] == 'Approve') {
         $input = ['unlock_status' => NULL, 'next_level_role_id_edit' => 0, 'comments' => $comments];
         $appPrefix = "App";
@@ -3148,7 +3148,7 @@ if(!empty($request->aadhar_no)){
       }
     }
     $is_active = 0;
-    $roleArray = $request->session()->get('role');
+    $roleArray = Configduty::where('user_id', $user_id)->where('is_active', 1)->get()->toArray();;
     foreach ($roleArray as $roleObj) {
       if ($roleObj['scheme_id'] == $scheme_id) {
         $is_active = 1;
@@ -3174,7 +3174,7 @@ if(!empty($request->aadhar_no)){
 
       $user_id = AuthChecker::getUserId();
       $duty = Configduty::where('user_id', '=', $user_id)->where('scheme_id', $scheme_id)->first();
-      $role = MapLavel::where('scheme_id', $scheme_id)->where('role_name', Auth::user()->designation_id_old)->where('stack_level', $duty->mapping_level)->first();
+      $role = MapLavel::where('scheme_id', $scheme_id)->where('role_name', Auth::user()->designation_id)->where('stack_level', $duty->mapping_level)->first();
       $inputs = request()->input('approvalcheck');
       $in_arr = array();
       foreach ($inputs as $input) {

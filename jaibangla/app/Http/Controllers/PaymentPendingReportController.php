@@ -36,10 +36,10 @@ class PaymentPendingReportController extends Controller
   public function index()
   {
     // echo 1;die;
-    $designation_id_old = Auth::user()->designation_id_old;
+    $designation_id = Auth::user()->designation_id;
     $user_id = AuthChecker::getUserId();
     $scheme = Configduty::select('scheme_id')->where('user_id', $user_id)->where('is_active', 1)->whereIn('scheme_id', [2,10,11])->get();
-    if ($designation_id_old == 'HOD') {
+    if ($designation_id == 'HOD') {
       return view('responsePaymentPending/index', ['schemes' => $scheme]);
     }
     else {
@@ -51,7 +51,7 @@ class PaymentPendingReportController extends Controller
   {
     if ($request->ajax()) {
       $user_id = AuthChecker::getUserId();
-      $designation = Auth::user()->designation_id_old;
+      $designation = Auth::user()->designation_id;
       $mapObj = Configduty::where('user_id', $user_id)->where('is_active', 1)->first();
       $scheme_id = $request->scheme_id;
       $from_date = $request->from_date;

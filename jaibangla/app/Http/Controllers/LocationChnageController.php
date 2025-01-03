@@ -11,9 +11,9 @@ use App\GP;
 use App\Scheme;
 use App\User;
 use Redirect;
-use Auth;
-use Config;
-use Validator;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
@@ -42,8 +42,8 @@ class LocationChnageController extends Controller
         }
         $scheme_id=$request->scheme_id;
         $user_id = AuthChecker::getUserId();
-        $designation_id_old = Auth::user()->designation_id_old;
-        if ($designation_id_old != 'Approver') {
+        $designation_id = Auth::user()->designation_id;
+        if ($designation_id != 'Approver') {
             return redirect('/')->with('error', 'Not Allowded');
         }
         $duty= Configduty::where('user_id', '=', $user_id)->where('is_active', 1)->where('scheme_id', $scheme_id)->first();
@@ -237,8 +237,8 @@ class LocationChnageController extends Controller
     public function update(Request $request)
     {
         //return redirect("/")->with('error', 'Not Allowded');
-        $designation_id_old = Auth::user()->designation_id_old;
-        if ($designation_id_old != 'Approver') {
+        $designation_id = Auth::user()->designation_id;
+        if ($designation_id != 'Approver') {
             return redirect('/')->with('error', 'Not Allowded');
         }
         $beneficiary_id=trim($request->beneficiary_id);

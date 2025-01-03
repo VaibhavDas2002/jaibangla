@@ -9,7 +9,7 @@ use App\Scheme;
 use App\Schemetype;
 use App\SchemeDocMap;
 use Carbon\Carbon;
-use Config;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Input;
 
 

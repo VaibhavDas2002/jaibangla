@@ -28,8 +28,8 @@
                 <label class="required-field">Bank Branch Name</label>
                 <input type="text" name="bank_branch" id="bank_branch" class="form-control"
                     placeholder="Bank Branch Name"
-                    value="{{$type == $op_type ? $row->branch_name : old('bank_branch') }}" maxlength="300"
-                    tabindex="2" readonly @if(in_array('first_name', $readonly)) readonly @endif />
+                    value="{{$type == $op_type ? $row->branch_name : old('bank_branch') }}" maxlength="300" tabindex="2"
+                    readonly @if(in_array('first_name', $readonly)) readonly @endif />
                 <span id="error_bank_branch" class="text-danger"></span>
             </div>
 
@@ -46,7 +46,8 @@
             <div class="form-group col-md-6">
                 <label class="required-field">Confirm Bank Account Number</label>
                 <input type="text" name="confirm_bank_account_number" id="confirm_bank_account_number"
-                    class="form-control NumOnly" placeholder="Confirm Bank Account No" value="" maxlength='16'
+                    class="form-control NumOnly" placeholder="Confirm Bank Account No"
+                    value="{{$type == $op_type ? $row->bank_code : old('bank_account_number_confirm') }}" maxlength='16'
                     tabindex="3" @if(in_array('first_name', $readonly)) readonly @endif />
                 <span id="error_confirm_bank_account_number" class="text-danger"></span>
             </div>

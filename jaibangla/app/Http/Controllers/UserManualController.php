@@ -4,9 +4,9 @@ namespace App\Http\Controllers;
 
 use App\District;
 use Illuminate\Http\Request;
-use Validator;
-use Auth;
-use Config;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use App\Scheme;
 use App\Designation;
@@ -44,7 +44,7 @@ class UserManualController extends Controller
     ini_set('memory_limit', '-1');
     ini_set('pcre.backtrack_limit', "10000000");
     ini_set('max_execution_time', 300);
-    $designation_id_old = Auth::user()->designation_id_old;
+    $designation_id = Auth::user()->designation_id;
     $code = 0;
     $fill_array = array();
     $old_files = array();
@@ -56,9 +56,9 @@ class UserManualController extends Controller
     $is_active = 0;
     $scheme_arr = Scheme::where('is_active', 1)->get();
     $designation_arr = Designation::get();
-    $designation_id_old = Auth::user()->designation_id_old;
+    $designation_id = Auth::user()->designation_id;
 
-    if (!in_array($designation_id_old, array('Admin'))) {
+    if (!in_array($designation_id, array('Admin'))) {
         return redirect("/")->with('error', 'Not Allowed');
     }
 
@@ -69,17 +69,17 @@ class UserManualController extends Controller
            // dd($scheme_ids);
         }
     
-        $designation_id_olds = $request->designation_id_old;
-        if (in_array('all', $designation_id_olds)) {
-            $designation_id_olds = $designation_arr->pluck('name')->toArray();
-            //dd($designation_id_olds);
+        $designation_ids = $request->designation_id;
+        if (in_array('all', $designation_ids)) {
+            $designation_ids = $designation_arr->pluck('name')->toArray();
+            //dd($designation_ids);
         }
 
         $fill_array['file_name'] = $request->file_name;
 
         $rules = [
             'scheme_id' => 'required|array',
-            'designation_id_old' => 'required|array',
+            'designation_id' => 'required|array',
             'file_name' => 'required|string',
             'uploaded_file' => 'required|mimetypes:application/pdf',
         ];
@@ -96,19 +96,19 @@ class UserManualController extends Controller
                 $file_profile = "user_manual_" . rand(10000, 99999) . '_' . time() . '.' . $doc_file->getClientOriginalExtension();
                 if ($doc_file->move($destinationPath, $file_profile)) {
                     foreach ($scheme_ids as $scheme_id) {
-                        foreach ($designation_id_olds as $designation_id_old) {
+                        foreach ($designation_ids as $designation_id) {
                             $issubmitted = 1;
-                            $count_data = UserManual::where('scheme_id', $scheme_id)->where('designation_id_old', $designation_id_old)->count();
+                            $count_data = UserManual::where('scheme_id', $scheme_id)->where('designation_id', $designation_id)->count();
                             try {
                                 if ($count_data > 0) {
                                     $input = [
                                         'is_active' => 0
                                     ];
-                                    UserManual::where('scheme_id', $scheme_id)->where('designation_id_old', $designation_id_old)->where("is_active", 1)->update($input);
+                                    UserManual::where('scheme_id', $scheme_id)->where('designation_id', $designation_id)->where("is_active", 1)->update($input);
                                 }
                                 $manual = new UserManual();
                                 $manual->scheme_id = $scheme_id;
-                                $manual->designation_id_old = $designation_id_old;
+                                $manual->designation_id = $designation_id;
                                 $manual->file_name = trim($fill_array['file_name']);
                                 $manual->uploaded_file = $file_profile;
                                 $manual->is_active = 1;
@@ -157,7 +157,7 @@ public function upload(Request $request)
     ini_set('memory_limit', '-1');
     ini_set('pcre.backtrack_limit', "10000000");
     ini_set('max_execution_time', 300);
-    $designation_id_old = Auth::user()->designation_id_old;
+    $designation_id = Auth::user()->designation_id;
     $code = 0;
     $fill_array = array();
     $old_files = array();
@@ -169,9 +169,9 @@ public function upload(Request $request)
     $is_active = 0;
     $scheme_arr = Scheme::where('is_active', 1)->get();
     $designation_arr = Designation::get();
-    $designation_id_old = Auth::user()->designation_id_old;
+    $designation_id = Auth::user()->designation_id;
 
-    if (!in_array($designation_id_old, array('Admin'))) {
+    if (!in_array($designation_id, array('Admin'))) {
         return redirect("/")->with('error', 'Not Allowed');
     }
 
@@ -183,16 +183,16 @@ public function upload(Request $request)
             $scheme_ids = $scheme_arr->pluck('id')->toArray();
         }
     
-        $designation_id_olds = $request->designation_id_old;
-        if (in_array('all', $designation_id_olds)) {
-            $designation_id_olds = $designation_arr->pluck('name')->toArray();
+        $designation_ids = $request->designation_id;
+        if (in_array('all', $designation_ids)) {
+            $designation_ids = $designation_arr->pluck('name')->toArray();
         }
 
         $fill_array['file_name'] = $request->file_name;
 
         $rules = [
             'scheme_id' => 'required|array',
-            'designation_id_old' => 'required|array',
+            'designation_id' => 'required|array',
             'file_name' => 'required|string',
             'uploaded_file' => 'required|mimetypes:application/pdf',
         ];
@@ -209,19 +209,19 @@ public function upload(Request $request)
                 $file_profile = "user_manual_" . rand(10000, 99999) . '_' . time() . '.' . $doc_file->getClientOriginalExtension();
                 if ($doc_file->move($destinationPath, $file_profile)) {
                     foreach ($scheme_ids as $scheme_id) {
-                        foreach ($designation_id_olds as $designation_id_old) {
+                        foreach ($designation_ids as $designation_id) {
                             $issubmitted = 1;
-                            $count_data = UserManual::where('scheme_id', $scheme_id)->where('designation_id_old', $designation_id_old)->count();
+                            $count_data = UserManual::where('scheme_id', $scheme_id)->where('designation_id', $designation_id)->count();
                             try {
                                 if ($count_data > 0) {
                                     $input = [
                                         'is_active' => 1
                                     ];
-                                    UserManual::where('scheme_id', $scheme_id)->where('designation_id_old', $designation_id_old)->where("is_active", 1)->update($input);
+                                    UserManual::where('scheme_id', $scheme_id)->where('designation_id', $designation_id)->where("is_active", 1)->update($input);
                                 }
                                 $manual = new UserManual();
                                 $manual->scheme_id = $scheme_id;
-                                $manual->designation_id_old = $designation_id_old;
+                                $manual->designation_id = $designation_id;
                                 $manual->file_name = trim($fill_array['file_name']);
                                 $manual->uploaded_file = $file_profile;
                                 $manual->is_active = 1;
@@ -268,7 +268,7 @@ public function upload(Request $request)
 
     function get(Request $request)
     {
-        $designation_id_old = Auth::user()->designation_id_old;
+        $designation_id = Auth::user()->designation_id;
         $user_id = AuthChecker::getUserId();
         $schemearray = array();
 		$report = DB::select(DB::raw("select id,scheme_name from public.m_scheme where id in (select scheme_id from public.duty_assignement where user_id=" . $user_id . " and is_active=1)"));
@@ -276,7 +276,7 @@ public function upload(Request $request)
 		foreach ($report as $reportVal) {
 			array_push($schemearray, $reportVal->id);
 		}
-        $userManuals = UserManual::where('designation_id_old', $designation_id_old)->where('is_active', 1)->whereIn('scheme_id', $schemearray)->get();
+        $userManuals = UserManual::where('designation_id', $designation_id)->where('is_active', 1)->whereIn('scheme_id', $schemearray)->get();
         $result = [];
         foreach ($userManuals as $userManual) {
             $scheme_id = $userManual->scheme_id;
@@ -306,8 +306,8 @@ public function upload(Request $request)
     
     public function downloadstaticpdf(Request $request)
     {
-        $designation_id_old = Auth::user()->designation_id_old;
-        if (!in_array($designation_id_old, array('Admin', 'Operator', 'Approver', 'Verifier','Corp'))) {
+        $designation_id = Auth::user()->designation_id;
+        if (!in_array($designation_id, array('Admin', 'Operator', 'Approver', 'Verifier','Corp'))) {
             return redirect("/")->with('error', 'Not Allowed');
         }
         $file_name = $request->file_name;
@@ -326,9 +326,9 @@ public function upload(Request $request)
 
     // function gettt(Request $request)
     // {
-    //     $designation_id_old = Auth::user()->designation_id_old;
+    //     $designation_id = Auth::user()->designation_id;
     //     $user_id = AuthChecker::getUserId();
-    //     $data = UserManual::where('designation_id_old', $designation_id_old)->where('is_active', 1)->get();
+    //     $data = UserManual::where('designation_id', $designation_id)->where('is_active', 1)->get();
     //     $result = array();
     //     $scheme_in = array();
     
@@ -368,9 +368,9 @@ public function upload(Request $request)
 
     // function get(Request $request)
     // {
-    //     $designation_id_old = Auth::user()->designation_id_old;
+    //     $designation_id = Auth::user()->designation_id;
     //     $user_id = AuthChecker::getUserId();
-    //     $data = UserManual::where('designation_id_old', $designation_id_old)->where('is_active', 1)->get();
+    //     $data = UserManual::where('designation_id', $designation_id)->where('is_active', 1)->get();
     //     $result = array();
     //     $scheme_in = array();
     //     $arrayData = array();
@@ -416,13 +416,13 @@ public function upload(Request $request)
     //     ini_set('memory_limit', '-1');
     //     ini_set('pcre.backtrack_limit', "10000000");
     //     ini_set('max_execution_time', 300);
-    //     $designation_id_old = Auth::user()->designation_id_old;
+    //     $designation_id = Auth::user()->designation_id;
 
     //     $code = 0;
     //     $fill_array = array();
     //     $old_files = array();
     //     $fill_array['scheme_id'] = '';
-    //     $fill_array['designation_id_old'] = '';
+    //     $fill_array['designation_id'] = '';
     //     $fill_array['file_name'] = '';
     //     $issubmitted = 0;
     //     $valid = 1;
@@ -431,8 +431,8 @@ public function upload(Request $request)
     //     $is_active = 0;
     //     $scheme_arr = Scheme::where('is_active', 1)->get();
     //     $designation_arr = Designation::get();
-    //     $designation_id_old = Auth::user()->designation_id_old;
-    //     if (!in_array($designation_id_old, array('Admin'))) {
+    //     $designation_id = Auth::user()->designation_id;
+    //     if (!in_array($designation_id, array('Admin'))) {
     //         return redirect("/")->with('error', 'Not Allowed');
     //     }
 
@@ -441,8 +441,8 @@ public function upload(Request $request)
     //         if (!empty($request->scheme_id)) {
     //             $fill_array['scheme_id'] = $request->scheme_id;
     //         }
-    //         if (!empty($request->designation_id_old)) {
-    //             $fill_array['designation_id_old'] = $request->designation_id_old;
+    //         if (!empty($request->designation_id)) {
+    //             $fill_array['designation_id'] = $request->designation_id;
     //         }
     //         if (!empty($request->file_name)) {
     //             $fill_array['file_name'] = $request->file_name;
@@ -450,14 +450,14 @@ public function upload(Request $request)
     //         $issubmitted = 1;
     //         $rules = [
     //             'scheme_id' => 'required|integer',
-    //             'designation_id_old' => 'required',
+    //             'designation_id' => 'required',
     //             'file_name' => 'required',
     //             'uploaded_file' => 'required|mimetypes:application/pdf'
     //         ];
     //         $attributes = array();
     //         $messages = array();
     //         $attributes['scheme_id'] = 'Scheme';
-    //         $attributes['designation_id_old'] = 'Designation';
+    //         $attributes['designation_id'] = 'Designation';
     //         $attributes['file_name'] = 'Manual Name';
     //         $attributes['uploaded_file'] = 'Upload File';
     //         $validator = Validator::make($request->all(), $rules, $messages, $attributes);
@@ -467,17 +467,17 @@ public function upload(Request $request)
     //                 $doc_file = $request->file('uploaded_file');
     //                 $file_profile = "user_manual_" . rand(10000, 99999) . '_' . time() . '.' . $doc_file->getClientOriginalExtension();
     //                 if ($doc_file->move($destinationPath, $file_profile)) {
-    //                     $count_data = UserManual::where('scheme_id', $request->scheme_id)->where('designation_id_old', $request->designation_id_old)->count();
+    //                     $count_data = UserManual::where('scheme_id', $request->scheme_id)->where('designation_id', $request->designation_id)->count();
     //                     try {
     //                         if ($count_data > 0) {
     //                             $input = [
     //                                 'is_active' => 0
     //                             ];
-    //                             $is_update1 =  UserManual::where('scheme_id', $request->scheme_id)->where('designation_id_old', $request->designation_id_old)->where("is_active", 1)->update($input);
+    //                             $is_update1 =  UserManual::where('scheme_id', $request->scheme_id)->where('designation_id', $request->designation_id)->where("is_active", 1)->update($input);
     //                         }
     //                         $manual = new UserManual();
     //                         $manual->scheme_id = $request->scheme_id;
-    //                         $manual->designation_id_old = $request->designation_id_old;
+    //                         $manual->designation_id = $request->designation_id;
     //                         $manual->file_name = trim($request->file_name);
     //                         $manual->uploaded_file = $file_profile;
     //                         $manual->is_active = 1;

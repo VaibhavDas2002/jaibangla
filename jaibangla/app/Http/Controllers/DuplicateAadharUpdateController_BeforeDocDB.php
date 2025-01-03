@@ -47,9 +47,9 @@ class DuplicateAadharUpdateController extends Controller
       if (empty($schema_name)) {
         $schema_name = 'pension';
       }
-      $table_name =  strtolower($schema_name) . '.beneficiary';
+      $table_name =  strtolower($schema_name) . '.beneficiaries';
     } else {
-      $table_name =  'pension.beneficiary';
+      $table_name =  'pension.beneficiaries';
     }
     return $table_name;
   }
@@ -58,8 +58,8 @@ class DuplicateAadharUpdateController extends Controller
   */
   public function index()
   {
-    $designation_id_old = Auth::user()->designation_id_old;
-    if ($designation_id_old == 'Operator') {
+    $designation_id = Auth::user()->designation_id;
+    if ($designation_id == 'Operator') {
       $is_active = 1;
     } else {
       $is_active = 0;
@@ -70,16 +70,16 @@ class DuplicateAadharUpdateController extends Controller
     $user_id = AuthChecker::getUserId();
     $mapObj = DB::table('public.duty_assignement')->where('user_id', $user_id)->where('is_active', 1)->first();
     $scheme = DB::select(DB::raw("select id,scheme_name from m_scheme where  id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . " and scheme_id in(2,10,11) )"));
-    if (Auth::user()->designation_id_old == "Operator") {
+    if (Auth::user()->designation_id == "Operator") {
       if (count($scheme) > 0) {
         if ($mapObj->is_urban == 1) {
           $urban_body_code = $mapObj->urban_body_code;
           $urban_bodys = UrbanBody::where('sub_district_code', $urban_body_code)->select('urban_body_code', 'urban_body_name')->get();
-          return view('DuplicateAadharUpdate/index_aadhar', ['schemes' => $scheme, 'mapLevel' => $mapObj->mapping_level . $designation_id_old, 'urban_bodys' => $urban_bodys]);
+          return view('DuplicateAadharUpdate/index_aadhar', ['schemes' => $scheme, 'mapLevel' => $mapObj->mapping_level . $designation_id, 'urban_bodys' => $urban_bodys]);
         } else {
           $taluka_code = $mapObj->taluka_code;
           $gps = GP::where('block_code', $taluka_code)->select('gram_panchyat_code', 'gram_panchyat_name')->get();
-          return view('DuplicateAadharUpdate/index_aadhar', ['schemes' => $scheme, 'mapLevel' => $mapObj->mapping_level . $designation_id_old, 'gps' => $gps]);
+          return view('DuplicateAadharUpdate/index_aadhar', ['schemes' => $scheme, 'mapLevel' => $mapObj->mapping_level . $designation_id, 'gps' => $gps]);
         }
       } else {
         return redirect("/")->with('success', 'User disabled. No scheme assign to this user');
@@ -102,10 +102,10 @@ class DuplicateAadharUpdateController extends Controller
         return redirect("/")->with('error', 'Scheme Not Valid');
       }
       $user_id = AuthChecker::getUserId();
-      $designation_id_old = Auth::user()->designation_id_old;
+      $designation_id = Auth::user()->designation_id;
       $errormsg = Config::get('constants.errormsg');
-      $roleArray = $request->session()->get('role');
-      $district_code = NULL;
+      $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+            $district_code = NULL;
       $urban_body_code = NULL;
       $mapping_level = NULL;
       $role_id = NULL;
@@ -124,7 +124,7 @@ class DuplicateAadharUpdateController extends Controller
           break;
         }
       }
-      if ($designation_id_old == 'Operator') {
+      if ($designation_id == 'Operator') {
         $is_active = 1;
       } else {
         $is_active = 0;
@@ -215,9 +215,9 @@ class DuplicateAadharUpdateController extends Controller
     try {
       $id = $request->id;
       $scheme_id = $request->scheme_id;
-      $designation_id_old = Auth::user()->designation_id_old;
-      $roleArray = $request->session()->get('role');
-      $district_code = NULL;
+      $designation_id = Auth::user()->designation_id;
+      $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+            $district_code = NULL;
       $urban_body_code = NULL;
       $mapping_level = NULL;
       $role_id = NULL;
@@ -236,7 +236,7 @@ class DuplicateAadharUpdateController extends Controller
           break;
         }
       }
-      if ($designation_id_old == 'Operator') {
+      if ($designation_id == 'Operator') {
         $is_active = 1;
       } else {
         $is_active = 0;
@@ -341,9 +341,9 @@ class DuplicateAadharUpdateController extends Controller
         $ben_id = $request->id;
         $old_aadhar_no = $request->old_aadhar_no;
         $remarks = $request->remarks;
-        $designation_id_old = Auth::user()->designation_id_old;
-        $roleArray = $request->session()->get('role');
-        $district_code = NULL;
+        $designation_id = Auth::user()->designation_id;
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                $district_code = NULL;
         $urban_body_code = NULL;
         $mapping_level = NULL;
         $role_id = NULL;
@@ -362,7 +362,7 @@ class DuplicateAadharUpdateController extends Controller
             break;
           }
         }
-        if ($designation_id_old == 'Operator') {
+        if ($designation_id == 'Operator') {
           $is_active = 1;
         } else {
           $is_active = 0;
@@ -559,9 +559,9 @@ class DuplicateAadharUpdateController extends Controller
     try {
       $id = $request->id;
       $scheme_id = $request->scheme_id;
-      $designation_id_old = Auth::user()->designation_id_old;
-      $roleArray = $request->session()->get('role');
-      $district_code = NULL;
+      $designation_id = Auth::user()->designation_id;
+      $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+            $district_code = NULL;
       $urban_body_code = NULL;
       $mapping_level = NULL;
       $role_id = NULL;
@@ -580,7 +580,7 @@ class DuplicateAadharUpdateController extends Controller
           break;
         }
       }
-      if ($designation_id_old == 'Operator') {
+      if ($designation_id == 'Operator') {
         $is_active = 1;
       } else {
         $is_active = 0;
@@ -666,9 +666,9 @@ class DuplicateAadharUpdateController extends Controller
         $old_mobile_no = $request->old_mobile_no;
         $new_mobile_no = $request->new_mobile_no;
         $remarks = $request->remarks;
-        $designation_id_old = Auth::user()->designation_id_old;
-        $roleArray = $request->session()->get('role');
-        $district_code = NULL;
+        $designation_id = Auth::user()->designation_id;
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                $district_code = NULL;
         $urban_body_code = NULL;
         $mapping_level = NULL;
         $role_id = NULL;
@@ -687,7 +687,7 @@ class DuplicateAadharUpdateController extends Controller
             break;
           }
         }
-        if ($designation_id_old == 'Operator') {
+        if ($designation_id == 'Operator') {
           $is_active = 1;
         } else {
           $is_active = 0;

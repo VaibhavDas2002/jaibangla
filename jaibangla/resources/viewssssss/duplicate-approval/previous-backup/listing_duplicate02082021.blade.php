@@ -10,7 +10,7 @@
         <th width="30%" class="sorting" tabindex="0" aria-controls="example2" rowspan="1" colspan="1" aria-label="Email: activate to sort column ascending">Voter ID Card</th>
         @endif
         <th width="30%" class="sorting" tabindex="0" aria-controls="example2" rowspan="1" colspan="1" aria-label="Email: activate to sort column ascending">No of Beneficiary</th>
-        @if(Auth::user()->designation_id_old == 'Approver')
+        @if(Auth::user()->designation_id == 'Approver')
         <th width="30%" class="sorting" tabindex="0" aria-controls="example2" rowspan="1" colspan="1" aria-label="Email: activate to sort column ascending">Action</th>
         @endif
       </tr>
@@ -28,7 +28,7 @@
           @endif
         </td>
         <td>{{$report->ben_no}}</td>
-        @if(Auth::user()->designation_id_old == 'Approver')
+        @if(Auth::user()->designation_id == 'Approver')
         <td>
           <form method="POST" action="{{ route('accept-one-approval') }}" id="table-form">
             {{ csrf_field() }}
@@ -55,7 +55,7 @@
         <th width="30%" rowspan="1" colspan="1">Voter Id Card</th>
         @endif
         <th width="30%" rowspan="1" colspan="1">No of Beneficiary</th>
-        @if(Auth::user()->designation_id_old == 'Approver')
+        @if(Auth::user()->designation_id == 'Approver')
         <th width="30%" rowspan="1" colspan="1">Action</th>
         @endif
       </tr>

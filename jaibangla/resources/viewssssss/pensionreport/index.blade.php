@@ -441,7 +441,7 @@ th.sorting_desc::after {
          <input type="hidden" name="_token" id="token" value="{{ csrf_token() }}">
          <input type="hidden" name="type" id="type" value="{{$type}}">
           <input type="hidden" name="scheme_id" id="scheme_id" value="{{$scheme}}">
-          <input type="hidden" name="designation" id="designation_id_old" value="{{$designation_id_old}}">
+          <input type="hidden" name="designation" id="designation_id" value="{{$designation_id}}">
          <input type="submit" name="submit" id="excel" class="btn btn-info" value="Export All Data to Excel"/>
         
         </form>  

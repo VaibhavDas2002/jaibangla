@@ -11,7 +11,7 @@ use App\User;
 use App\UrbanBody;
 use App\Taluka;
 use App\BeneficiaryPensions;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use Mail;
 use App\Mail\SendingToUser;
 

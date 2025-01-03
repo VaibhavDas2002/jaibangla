@@ -36,12 +36,12 @@
         
         
         @php
-        $designation_id_old = Auth::user()->designation_id_old;
+        $designation_id = Auth::user()->designation_id;
         @endphp
         
-        @if(Storage::exists('menu/'.$designation_id_old.".json"))
+        @if(Storage::exists('menu/'.$designation_id.".json"))
         @php
-        $menu_contents =json_decode(Storage::disk('local')->get('menu/'.$designation_id_old.'.json'),JSON_FORCE_OBJECT);
+        $menu_contents =json_decode(Storage::disk('local')->get('menu/'.$designation_id.'.json'),JSON_FORCE_OBJECT);
         @endphp 
         
         @foreach($menu_contents as $mymenu)

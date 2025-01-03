@@ -27,8 +27,8 @@ class DBTSchemeWiseMISController extends Controller
     }
     public function index(Request $request)
     {
-        $designation_id_old = Auth::user()->designation_id_old;
-        if ($designation_id_old == 'OSD' || $designation_id_old == 'Admin') {
+        $designation_id = Auth::user()->designation_id;
+        if ($designation_id == 'OSD' || $designation_id == 'Admin') {
             $c_time = Carbon::now();
             $year = $c_time->year;
             $user_id = AuthChecker::getUserId();

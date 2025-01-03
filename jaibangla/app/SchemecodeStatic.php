@@ -1,6 +1,6 @@
 <?php
 namespace App;
-use Config;
+use Illuminate\Support\Facades\Config;
 class SchemecodeStatic 
 {
     public static function getpr1ListPurohit()

@@ -62,9 +62,9 @@ class ValidationLotTransactionController extends Controller
     public function lotMasterValidation()
     {
         $user_id = AuthChecker::getUserId();
-        $designation_id_old = Auth::user()->designation_id_old;
-        // dd($designation_id_old);
-        if ($designation_id_old == 'DDO') {
+        $designation_id = Auth::user()->designation_id;
+        // dd($designation_id);
+        if ($designation_id == 'DDO') {
             $schemes = DB::select(DB::raw("select id,scheme_name from m_scheme where id  in (select scheme_id from duty_assignement where user_id=" . $user_id . " and is_active=1) and is_active=1 order by scheme_name"));
             return view('av-lot-transaction/av_lot_transaction_index', ['schemes' => $schemes]);
         } else {

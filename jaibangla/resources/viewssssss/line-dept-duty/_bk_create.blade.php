@@ -81,17 +81,17 @@
                   @endif
               </div>
 
-              <div class="form-group{{ $errors->has('designation_id_old') ? ' has-error' : '' }}">
+              <div class="form-group{{ $errors->has('designation_id') ? ' has-error' : '' }}">
                   <label class="col-md-4 control-label">Role</label>
                   <div class="col-md-6">
-                      <select class="form-control" name="designation_id_old" required>
+                      <select class="form-control" name="designation_id" required>
                           @foreach ($designations as $designation)
                               <option value="{{$designation->id}}">{{$designation->name}}</option>
                           @endforeach
                       </select>
-                       @if ($errors->has('designation_id_old'))
+                       @if ($errors->has('designation_id'))
                           <span class="help-block">
-                              <strong>{{ $errors->first('designation_id_old') }}</strong>
+                              <strong>{{ $errors->first('designation_id') }}</strong>
                           </span>
                       @endif
                   </div>

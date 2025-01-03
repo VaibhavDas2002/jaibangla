@@ -8,10 +8,10 @@ use Carbon\Carbon;
 use DateTime;
 use Illuminate\Support\Facades\Log;
 use App\Configduty;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use App\Policestation;
 use App\Dailysitrep;
-use DB;
+use Illuminate\Support\Facades\DB;
 use App\SitrepConfiguration;
 use App\ExciseAct;
 use App\CompoundSlip;
@@ -50,7 +50,7 @@ class SitationreportController extends Controller
 		])->get();
     	return view('arrestSeizure')->with('arrestSeizureData',$arrestSeizureData);
     }
-    public function arrestSeizurePost(){
+    public function arrestSeizurePost(Request $request){
 
 
     		$arrestSeizure = Sitationreport::where([

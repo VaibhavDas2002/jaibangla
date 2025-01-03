@@ -99,7 +99,7 @@
       columns: [        
         { "data": "emp_name" },
         { "data": "username"},
-        { "data": "designation_id_old" },
+        { "data": "designation_id" },
         { "data": "mobile_no" },
         { "data": "email" },
         { "data": "scheme_list"},

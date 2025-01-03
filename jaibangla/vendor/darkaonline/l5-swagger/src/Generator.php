@@ -3,7 +3,7 @@
 namespace L5Swagger;
 
 use File;
-use Config;
+use Illuminate\Support\Facades\Config;
 
 class Generator
 {

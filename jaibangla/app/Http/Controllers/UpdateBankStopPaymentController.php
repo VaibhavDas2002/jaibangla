@@ -49,7 +49,7 @@ class UpdateBankStopPaymentController extends Controller
   public function index()
   {
     $user_id = AuthChecker::getUserId();
-    $designation = Auth::user()->designation_id_old;
+    $designation = Auth::user()->designation_id;
     if (AuthChecker::ApproverChecker() || AuthChecker::VerifierChecker()) {
       $mapObj = Configduty::where('user_id', $user_id)->where('is_active', 1)->first();
       if (AuthChecker::ApproverChecker()) {
@@ -73,7 +73,7 @@ class UpdateBankStopPaymentController extends Controller
     // dd($request);
     if ($request->ajax()) {
       $user_id = AuthChecker::getUserId();
-      $designation = Auth::user()->designation_id_old;
+      $designation = Auth::user()->designation_id;
       $mapObj = Configduty::where('user_id', $user_id)->where('is_active', 1)->first();
       $dist_code = $mapObj->district_code;
 
@@ -325,7 +325,7 @@ class UpdateBankStopPaymentController extends Controller
   {
     $user_id = AuthChecker::getUserId();
     $scheme_id = $request->scheme_id;
-    $roleArray = $request->session()->get('role');
+    $roleArray = Configduty::where('user_id', $user_id)->where('is_active', 1)->get()->toArray();;
     $district_code = NULL;
     $urban_body_code = NULL;
     $mapping_level = NULL;
@@ -778,7 +778,7 @@ class UpdateBankStopPaymentController extends Controller
       $validator = Validator::make($request->all(), $rules, $messages, $attributes);
       if ($validator->passes()) {
         $scheme_id = $request->scheme_id;
-        $designation = Auth::user()->designation_id_old;
+        $designation = Auth::user()->designation_id;
         $user_id = AuthChecker::getUserId();
         // dd($scheme_id);
         $table = $this->getSchemaName($scheme_id);
@@ -787,8 +787,8 @@ class UpdateBankStopPaymentController extends Controller
 
 
         $user_id = AuthChecker::getUserId();
-        $roleArray = $request->session()->get('role');
-        $district_code = NULL;
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                $district_code = NULL;
         $urban_body_code = NULL;
         $mapping_level = NULL;
         $role_id = NULL;
@@ -1301,7 +1301,7 @@ class UpdateBankStopPaymentController extends Controller
   {
     $scheme_id = $request->scheme_id;
     $is_active = 0;
-    $roleArray = $request->session()->get('role');
+    $roleArray = Configduty::where('user_id', $user_id)->where('is_active', 1)->get()->toArray();
     foreach ($roleArray as $roleObj) {
       if ($roleObj['scheme_id'] == $scheme_id) {
         $is_active = 1;

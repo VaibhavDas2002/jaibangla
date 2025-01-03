@@ -7,13 +7,13 @@ use App\User;
 use App\District;
 use App\Scheme;
 use Redirect;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 use DateTime;
-use Config;
+use Illuminate\Support\Facades\Config;
 use App\Configduty;
 use Maatwebsite\Excel\Facades\Excel;
 use App\DataSourceCommon;
@@ -52,9 +52,9 @@ class BanfailurelongpenController extends Controller
     public function shemeSelection(Request $request)
     {
       try{
-      $designation_id_old = Auth::user()->designation_id_old;
+      $designation_id = Auth::user()->designation_id;
       $user_id = AuthChecker::getUserId();
-      if ($designation_id_old == 'Approver') {
+      if ($designation_id == 'Approver') {
         $schemes = DB::select(DB::raw("select id,scheme_name,display_name,is_active from m_scheme where  id IN (1,3,19) and  id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . ") order by rank"));
         //dd($schemes);
         return view(
@@ -75,8 +75,8 @@ class BanfailurelongpenController extends Controller
     public function list(Request $request)
     {
       $this->middleware('auth');
-      $designation_id_old = Auth::user()->designation_id_old;
-      //dd($designation_id_old);
+      $designation_id = Auth::user()->designation_id;
+      //dd($designation_id);
       $user_id = AuthChecker::getUserId();
   
       $scheme_id = $request->scheme_id;
@@ -144,7 +144,7 @@ class BanfailurelongpenController extends Controller
         //dd($process_type);
         $query = DB::table($schema . '.beneficiaries')
           ->where('bank_edited',0)->whereIn('lot_generated',[-1,-2,-3])->where('created_by_dist_code', $district_code)->where('next_level_role_id',0);
-          if ($designation_id_old == 'Verifier') {
+          if ($designation_id == 'Verifier') {
             $query = $query->where('created_by_local_body_code', $created_by_local_body_code);
             if (!empty($application_type)) {
             }
@@ -158,7 +158,7 @@ class BanfailurelongpenController extends Controller
         if (!empty($request->gp_ward_code)) {
           $query = $query->where('gp_ward_code', $request->gp_ward_code);
         }
-        if ($designation_id_old == 'Approver') {
+        if ($designation_id == 'Approver') {
           
         
         }
@@ -214,7 +214,7 @@ class BanfailurelongpenController extends Controller
             $app_id ='';
   
             return $app_id;
-          })->addColumn('view', function ($data) use ($scheme_id, $designation_id_old) {
+          })->addColumn('view', function ($data) use ($scheme_id, $designation_id) {
            
            
              
@@ -229,7 +229,7 @@ class BanfailurelongpenController extends Controller
               
 
             return $action;
-          })->addColumn('check', function ($data) use ($designation_id_old) {
+          })->addColumn('check', function ($data) use ($designation_id) {
             
              
                 return '<input type="checkbox" name="approvalcheck[]" onClick="controlCheckBox()" value="' . $data->id . '">';
@@ -269,7 +269,7 @@ class BanfailurelongpenController extends Controller
       return view(
         'longpenbankfailure.linelisting',
         [
-          'designation_id_old' => $designation_id_old,
+          'designation_id' => $designation_id,
           'verifier_type' => $verifier_type,
           'created_by_local_body_code' => $created_by_local_body_code,
           'is_rural' => $is_rural,
@@ -289,7 +289,7 @@ class BanfailurelongpenController extends Controller
       //dd('ok');
     try{
       $this->middleware('auth');
-      $designation_id_old = Auth::user()->designation_id_old;
+      $designation_id = Auth::user()->designation_id;
       $user_id = AuthChecker::getUserId();
       $id = $request->id;
      // dd($id);
@@ -400,7 +400,7 @@ class BanfailurelongpenController extends Controller
       return view(
         'longpenbankfailure.ViewBeneficiary',
         [
-          'designation_id_old' => $designation_id_old,
+          'designation_id' => $designation_id,
           'row' => $row,
           'id' => $id,
           'district_name' => $district_name,
@@ -430,8 +430,8 @@ class BanfailurelongpenController extends Controller
       try{
       
       $this->middleware('auth');
-      $designation_id_old = Auth::user()->designation_id_old;
-      if ($designation_id_old!='Approver') {
+      $designation_id = Auth::user()->designation_id;
+      if ($designation_id!='Approver') {
         return redirect("/")->with('error', 'Not Allowed');
       }
       $user_id = AuthChecker::getUserId();
@@ -524,8 +524,7 @@ class BanfailurelongpenController extends Controller
     $this->middleware('auth');
         
       $application_id=$request->application_id;
-        $roleArray = $request->session()->get('role');
-        $designation_id_old = Auth::user()->designation_id_old;
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray()        $designation_id = Auth::user()->designation_id;
         $user_id = AuthChecker::getUserId();
     //$user_id = AuthChecker::getUserId();
     $duty_obj = Configduty::where('user_id', $user_id)->first();
@@ -630,8 +629,7 @@ class BanfailurelongpenController extends Controller
       $c_time = Carbon::now();
       $c_date = $c_time->format("Y-m-d");
       $is_active = 0;
-      $roleArray = $request->session()->get('role');
-      $designation_id_old = Auth::user()->designation_id_old;
+      $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray()      $designation_id = Auth::user()->designation_id;
       $district_visible = $is_urban_visible = $block_visible = 1;
       $municipality_visible = 0;
       $gp_ward_visible = 0;
@@ -644,9 +642,9 @@ class BanfailurelongpenController extends Controller
         array_push($scheme_code_in,$scheme_item->id);
 
       }
-      if ($designation_id_old == 'Admin' || $designation_id_old == 'HOD' || $designation_id_old == 'HOP' || $designation_id_old == 'MisState' ||  $designation_id_old == 'Dashboard') {
+      if ($designation_id == 'Admin' || $designation_id == 'HOD' || $designation_id == 'HOP' || $designation_id == 'MisState' ||  $designation_id == 'Dashboard') {
           $district_visible = $is_urban_visible = $block_visible = 1;
-      } else if ($designation_id_old == 'Approver' || $designation_id_old == 'Verifier') {
+      } else if ($designation_id == 'Approver' || $designation_id == 'Verifier') {
         $district_code = NULL;
         $is_urban = NULL;
         $blockCode = NULL;
@@ -716,7 +714,7 @@ class BanfailurelongpenController extends Controller
               'c_date' => $c_date,
               'gpList' => $gpList,
               'muncList' => $muncList,
-              'designation_id_old' => $designation_id_old,
+              'designation_id' => $designation_id,
           ]
       );
     }

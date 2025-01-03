@@ -119,7 +119,7 @@
                         <div class="form-group">
                             <label class="col-md-4 control-label required-field">Role</label>
                             <div class="col-md-6">
-                                <select class="form-control" name="designation_id_old" id="designation_id_old" >
+                                <select class="form-control" name="designation_id" id="designation_id" >
                                     <option value="">--Select Role--</option>
                                     @foreach($roles as $role)
                                    <option value="{{$role->name}}" @if($selected_role==$role->name) selected @endif>{{$role->name}}</option>
@@ -132,15 +132,15 @@
                         <div class="form-group">
                             <label class="col-md-4 control-label required-field">Role</label>
                             <div class="col-md-6">
-                                <select class="form-control" name="designation_id_old_dis" id="designation_id_old_dis" disabled>
+                                <select class="form-control" name="designation_id_dis" id="designation_id_dis" disabled>
                                    
                                     
-                                   <option value="{{$designation_id_old}}">{{$designation_id_old_sel}}</option>
+                                   <option value="{{$designation_id}}">{{$designation_id_sel}}</option>
                                 </select>
                                 
                             </div>
                         </div> 
-                    <input type="hidden" name="designation_id_old" id="designation_id_old" value="{{$designation_id_old_sel}}"/>
+                    <input type="hidden" name="designation_id" id="designation_id" value="{{$designation_id_sel}}"/>
                   @endif 
                         <div class="form-group">
                             <label class="col-md-4 control-label required-field">Scheme</label>
@@ -221,7 +221,7 @@
 <script src="{{ URL::asset('js/master-data-v2.js') }}"></script>
 <script>
 $(document).ready(function(){
-    var role_id=$('#designation_id_old').val();
+    var role_id=$('#designation_id').val();
     if(role_id=='Approver'){
         $('#block_code').html('<option value="">--All --</option>'); 
         $("#is_urban_div").hide();
@@ -245,28 +245,28 @@ $(document).ready(function(){
                 event.preventDefault();
             }
     }); 
-    $('#designation_id_old').change(function() {
-        var designation_id_old=$(this).val();
-        if(designation_id_old=='HOD'){
+    $('#designation_id').change(function() {
+        var designation_id=$(this).val();
+        if(designation_id=='HOD'){
             $('#block_code').html('<option value="">--Please Select--</option>'); 
             $("#district_div").hide();
             $("#is_urban_div").hide();
             $("#block_code_div").hide();
         }
-        else if(designation_id_old=='Approver'){
+        else if(designation_id=='Approver'){
             $('#dist_code').val(''); 
             $("#district_div").show();
             $("#is_urban_div").hide();
             $("#block_code_div").hide();
         }
-        else if(designation_id_old=='Verifier'){
+        else if(designation_id=='Verifier'){
             //$('#dist_code').val(''); 
             $('#block_code').html('<option value="">--Please Select--</option>'); 
             $("#district_div").show();
             $("#is_urban_div").show();
             $("#block_code_div").show();
         }
-        else if(designation_id_old=='Operator'){
+        else if(designation_id=='Operator'){
            // $('#dist_code').val(''); 
             $('#block_code').html('<option value="">--Please Select--</option>'); 
             $("#district_div").show();

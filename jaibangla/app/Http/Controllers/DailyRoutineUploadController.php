@@ -33,7 +33,7 @@ class DailyRoutineUploadController extends Controller
     public function getDataUpload(Request $request)
     {
         // dd($request->all());
-        $designation = Auth::user()->designation_id_old;
+        $designation = Auth::user()->designation_id;
         if ($request->ajax()) {
             $category = strtoUpper(trim($request->category));
             $comunication_type= $request->comun_type;

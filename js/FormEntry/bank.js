@@ -1,7 +1,9 @@
 $(document).ready(function () {
   var scheme_id = $("#scheme_id").val();
   var error_bank = 0;
-
+  $('#confirm_bank_account_number').on('copy paste cut', function(e) {
+    e.preventDefault();
+});
   $("#btn_bank_details").click(function () {
       error_bank = 0;
 

@@ -183,13 +183,13 @@ href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,30
        
       <input type="hidden" name="action_type" id="action_type" value="1"/>
         <input type="hidden" name="dist_code" id="dist_code" value="{{ $district_code }}" class="js-district_1">
-        @if($designation_id_old=='Verifier' || $designation_id_old=='Approver')
+        @if($designation_id=='Verifier' || $designation_id=='Approver')
          <div class="row" style="">
          
          <div class="form-group col-md-4">
                  <label class="required-field">Application Type</label>
                  <select name="application_type" id="application_type" class="form-control"  >
-                  @if($designation_id_old=='Verifier')
+                  @if($designation_id=='Verifier')
                  <option value="1" selected>Pending</option>
 
                   @endif
@@ -236,7 +236,7 @@ href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,30
           <input type="hidden" name="rural_urban_code"  id="rural_urban_code" value="{{$is_rural}}">
           <input value="{{$created_by_local_body_code}}" type="hidden" name="created_by_local_body_code"  id="created_by_local_body_code">
            @endif
-           @if($designation_id_old=='Approver')
+           @if($designation_id=='Approver')
          
            
         <div class="form-group col-md-3">
@@ -480,7 +480,7 @@ href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,30
         var gp_ward_code = $('#gp_ward_code').val();
         var application_type = $('#application_type').val();
         var process_type = $('#process_type').val();
-        var designation_id_old = $('#designation_id_old').val();
+        var designation_id = $('#designation_id').val();
         var error_application_type='';
         var error_process_type='';
         if(application_type=='')
@@ -495,7 +495,7 @@ href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,30
           $('#error_application_type').text(error_application_type);
           $('#application_type').removeClass('has-error');
         }
-        if(designation_id_old=='Approver'){
+        if(designation_id=='Approver'){
         if(process_type=='')
         {
           error_process_type = 'Process Type is required';

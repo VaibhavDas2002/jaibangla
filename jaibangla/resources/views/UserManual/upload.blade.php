@@ -261,23 +261,23 @@ desired effect
                                                     <div class="col-md-4">
                                                         <div class="form-group" id="">
                                                             <label class="required-field">Designation</label>
-                                                            <select name="designation_id_old[]" id="designation_id_old"
+                                                            <select name="designation_id[]" id="designation_id"
                                                                 class="form-control" multiple tabindex="2" required>
                                                                 <option value="">--Select--</option>
                                                                 <option value="all"
-                                                                    @if (isset($fill_array['designation_id_old']) && in_array('all', $fill_array['designation_id_old'])) selected @endif>
+                                                                    @if (isset($fill_array['designation_id']) && in_array('all', $fill_array['designation_id'])) selected @endif>
                                                                     Select All
                                                                 </option>
                                                                 @foreach ($designation_arr as $designation)
                                                                     <option value="{{ $designation->name }}"
-                                                                        @if (isset($fill_array['designation_id_old']) &&
-                                                                                is_array($fill_array['designation_id_old']) &&
-                                                                                in_array($designation->name, $fill_array['designation_id_old'])) selected @endif>
+                                                                        @if (isset($fill_array['designation_id']) &&
+                                                                                is_array($fill_array['designation_id']) &&
+                                                                                in_array($designation->name, $fill_array['designation_id'])) selected @endif>
                                                                         {{ $designation->name }}
                                                                     </option>
                                                                 @endforeach
                                                             </select>
-                                                            <span id="error_designation_id_old" class="text-danger"></span>
+                                                            <span id="error_designation_id" class="text-danger"></span>
                                                         </div>
 
                                                     </div>
@@ -499,7 +499,7 @@ desired effect
         </script>
         <script>
             $(document).ready(function() {
-                $('#designation_id_old').select2({
+                $('#designation_id').select2({
                     placeholder: "--Select--"
                 });
                 $('#scheme_id').select2({

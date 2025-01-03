@@ -83,8 +83,7 @@ class SchemeOnboardingController extends Controller
 
     public function workflowListView(Request $request)
     {
-        // Validate scheme_id from the request
-       
+        // Validate scheme_id from the request       
         $scheme_id = $request->scheme_id;
     
         // Fetch leaf nodes with their parent

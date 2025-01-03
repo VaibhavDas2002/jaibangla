@@ -7,13 +7,13 @@ use App\User;
 use App\District;
 use App\Scheme;
 use Redirect;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 use DateTime;
-use Config;
+use Illuminate\Support\Facades\Config;
 use App\Configduty;
 use Maatwebsite\Excel\Facades\Excel;
 use App\DataSourceCommon;
@@ -62,9 +62,9 @@ class NoAadharChangeController extends Controller
   public function shemeSelection(Request $request)
   {
     try {
-      $designation_id_old = Auth::user()->designation_id_old;
+      $designation_id = Auth::user()->designation_id;
       $user_id = AuthChecker::getUserId();
-      if ($designation_id_old == 'Operator' || $designation_id_old == 'Verifier' || $designation_id_old == 'Approver' || $designation_id_old == 'HOD' || $designation_id_old == 'DASHBOARD') {
+      if ($designation_id == 'Operator' || $designation_id == 'Verifier' || $designation_id == 'Approver' || $designation_id == 'HOD' || $designation_id == 'DASHBOARD') {
         $schemes = DB::select(DB::raw("select id,scheme_name,display_name,is_active from m_scheme where  id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . ") order by rank"));
         //dd($schemes);
         return view(
@@ -85,8 +85,8 @@ class NoAadharChangeController extends Controller
   public function list(Request $request)
   {
     $this->middleware('auth');
-    $designation_id_old = Auth::user()->designation_id_old;
-    //dd($designation_id_old);
+    $designation_id = Auth::user()->designation_id;
+    //dd($designation_id);
     $user_id = AuthChecker::getUserId();
 
     $scheme_id = $request->scheme_id;
@@ -156,7 +156,7 @@ class NoAadharChangeController extends Controller
       $process_type = $request->process_type;
       $query = DB::table($schema . '.beneficiaries')
         ->where('no_aadhar', 1)->where('created_by_dist_code', $district_code)->where('next_level_role_id', 0);
-      if (($designation_id_old == 'Verifier')) {
+      if (($designation_id == 'Verifier')) {
         $query = $query->where('created_by_local_body_code', $created_by_local_body_code);
         if (!empty($application_type)) {
           if ($application_type == 1)
@@ -167,7 +167,7 @@ class NoAadharChangeController extends Controller
             $query = $query->where('aadhar_edit_role_id', 2);
         }
       }
-      if (($designation_id_old == 'Approver' && ($scheme_id == 8 || $scheme_id == 9))) {
+      if (($designation_id == 'Approver' && ($scheme_id == 8 || $scheme_id == 9))) {
 
         if (!empty($application_type)) {
           if ($application_type == 1)
@@ -188,7 +188,7 @@ class NoAadharChangeController extends Controller
       if (!empty($request->gp_ward_code)) {
         $query = $query->where('gp_ward_code', $request->gp_ward_code);
       }
-      if ($designation_id_old == 'Approver' && ($scheme_id != '8' && $scheme_id != '9')) {
+      if ($designation_id == 'Approver' && ($scheme_id != '8' && $scheme_id != '9')) {
         if ($application_type != '') {
           if ($application_type == 1)
             $query = $query->where('aadhar_edit_role_id', 1);
@@ -299,7 +299,7 @@ class NoAadharChangeController extends Controller
           $app_id = '';
 
           return $app_id;
-        })->addColumn('view', function ($data) use ($scheme_id, $designation_id_old) {
+        })->addColumn('view', function ($data) use ($scheme_id, $designation_id) {
 
           if ($scheme_id == '8' || $scheme_id == '9') {
 
@@ -310,7 +310,7 @@ class NoAadharChangeController extends Controller
               $action = 'Approved';
             }
           }
-          if ($designation_id_old == 'Verifier') {
+          if ($designation_id == 'Verifier') {
             $action = '';
             if (is_null($data->aadhar_edit_role_id)) {
               if ($data->payment_suspended == 1) {
@@ -325,7 +325,7 @@ class NoAadharChangeController extends Controller
             }
           }
 
-          if ($designation_id_old == 'Approver' && ($scheme_id != '8' && $scheme_id != '9')) {
+          if ($designation_id == 'Approver' && ($scheme_id != '8' && $scheme_id != '9')) {
 
             $action = '';
 
@@ -337,8 +337,8 @@ class NoAadharChangeController extends Controller
           }
 
           return $action;
-        })->addColumn('check', function ($data) use ($designation_id_old) {
-          if ($designation_id_old == 'Approver') {
+        })->addColumn('check', function ($data) use ($designation_id) {
+          if ($designation_id == 'Approver') {
             if ($data->aadhar_edit_role_id == 1) {
               return '<input type="checkbox" name="approvalcheck[]" onClick="controlCheckBox()" value="' . $data->id . '">';
             } else
@@ -381,7 +381,7 @@ class NoAadharChangeController extends Controller
     return view(
       'NoAadhaar.linelisting',
       [
-        'designation_id_old' => $designation_id_old,
+        'designation_id' => $designation_id,
         'verifier_type' => $verifier_type,
         'created_by_local_body_code' => $created_by_local_body_code,
         'is_rural' => $is_rural,
@@ -401,7 +401,7 @@ class NoAadharChangeController extends Controller
     //dd('ok');
     try {
       $this->middleware('auth');
-      $designation_id_old = Auth::user()->designation_id_old;
+      $designation_id = Auth::user()->designation_id;
       $user_id = AuthChecker::getUserId();
       $id = $request->id;
       // dd($id);
@@ -440,7 +440,7 @@ class NoAadharChangeController extends Controller
         return redirect("/")->with('danger', 'Not Allowed');
       }
       //dd($row->aadhar_no);
-      if ($designation_id_old == 'Verifier') {
+      if ($designation_id == 'Verifier') {
         if (!empty($row->aadhar_no) && trim($row->aadhar_no) != '') {
           $old_aadhar = $row->aadhar_no;
           $new_aadhar = '';
@@ -457,7 +457,7 @@ class NoAadharChangeController extends Controller
         $new_aadhar = $row->aadhar_no;
         //dd($new_aadhar);
       }
-      if (($designation_id_old == 'Approver') && ($scheme_id == '8' || $scheme_id == '9')) {
+      if (($designation_id == 'Approver') && ($scheme_id == '8' || $scheme_id == '9')) {
         if (!empty($row->aadhar_no) && trim($row->aadhar_no) != '') {
           $old_aadhar = $row->aadhar_no;
           $new_aadhar = '';
@@ -551,7 +551,7 @@ class NoAadharChangeController extends Controller
       return view(
         'NoAadhaar.ViewBeneficiary',
         [
-          'designation_id_old' => $designation_id_old,
+          'designation_id' => $designation_id,
           'row' => $row,
           'id' => $id,
           'district_name' => $district_name,
@@ -582,7 +582,7 @@ class NoAadharChangeController extends Controller
     try {
       $this->middleware('auth');
       $doc_type_id = $this->doc_type_id;
-      $designation_id_old = Auth::user()->designation_id_old;
+      $designation_id = Auth::user()->designation_id;
       $user_id = AuthChecker::getUserId();
       if (empty($request->id)) {
         return redirect("/")->with('danger', 'Beneficiary ID Not Found');
@@ -616,7 +616,7 @@ class NoAadharChangeController extends Controller
       $condition['id'] = $request->id;
       $district_code = $duty_obj->district_code;
 
-      if ($designation_id_old == 'Verifier') {
+      if ($designation_id == 'Verifier') {
         if ($duty_obj->mapping_level == "Subdiv") {
           $created_by_local_body_code = $duty_obj->urban_body_code;
         }
@@ -625,7 +625,7 @@ class NoAadharChangeController extends Controller
         }
         $condition['created_by_local_body_code'] = $created_by_local_body_code;
       }
-      if ($designation_id_old == 'Approver') {
+      if ($designation_id == 'Approver') {
         $condition['created_by_dist_code'] = $district_code;
       }
 
@@ -788,7 +788,7 @@ class NoAadharChangeController extends Controller
             $enc_details['created_by'] = $user_id;
             $enc_details['ip_address'] = $request->ip();
             $enc_details['created_by_dist_code'] = $district_code;
-            if ($designation_id_old == 'Verifier') {
+            if ($designation_id == 'Verifier') {
               $enc_details['created_by_local_body_code'] = $created_by_local_body_code;
             }
             $enc_status = $pension_details_encloser2->insert($enc_details);
@@ -798,10 +798,10 @@ class NoAadharChangeController extends Controller
 
 
           $inputMain = array();
-          if ($designation_id_old == 'Verifier') {
+          if ($designation_id == 'Verifier') {
             $inputMain['aadhar_edit_role_id'] = 1;
           }
-          if ($designation_id_old == 'Approver' && ($scheme_id == 8 || $scheme_id == 9)) {
+          if ($designation_id == 'Approver' && ($scheme_id == 8 || $scheme_id == 9)) {
             $inputMain['aadhar_edit_role_id'] = 2;
             $inputMain['no_aadhar'] = 0;
           }
@@ -905,8 +905,8 @@ class NoAadharChangeController extends Controller
     try {
       //dd('ok');
       $this->middleware('auth');
-      $designation_id_old = Auth::user()->designation_id_old;
-      if ($designation_id_old != 'Approver') {
+      $designation_id = Auth::user()->designation_id;
+      if ($designation_id != 'Approver') {
         return redirect("/")->with('error', 'Not Allowed');
       }
       $user_id = AuthChecker::getUserId();
@@ -1023,8 +1023,8 @@ class NoAadharChangeController extends Controller
       $this->middleware('auth');
 
       $application_id = $request->application_id;
-      $roleArray = $request->session()->get('role');
-      $designation_id_old = Auth::user()->designation_id_old;
+      $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+            $designation_id = Auth::user()->designation_id;
       $user_id = AuthChecker::getUserId();
       //$user_id = AuthChecker::getUserId();
       $duty_obj = Configduty::where('user_id', $user_id)->first();
@@ -1128,8 +1128,8 @@ class NoAadharChangeController extends Controller
     $c_time = Carbon::now();
     $c_date = $c_time->format("Y-m-d");
     $is_active = 0;
-    $roleArray = $request->session()->get('role');
-    $designation_id_old = Auth::user()->designation_id_old;
+    $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();;
+    $designation_id = Auth::user()->designation_id;
     $district_visible = $is_urban_visible = $block_visible = 1;
     $municipality_visible = 0;
     $gp_ward_visible = 0;
@@ -1141,9 +1141,9 @@ class NoAadharChangeController extends Controller
     foreach ($scheme_list as $scheme_item) {
       array_push($scheme_code_in, $scheme_item->id);
     }
-    if ($designation_id_old == 'Admin' || $designation_id_old == 'HOD' || $designation_id_old == 'HOP' || $designation_id_old == 'MisState' || $designation_id_old == 'Dashboard') {
+    if ($designation_id == 'Admin' || $designation_id == 'HOD' || $designation_id == 'HOP' || $designation_id == 'MisState' || $designation_id == 'Dashboard') {
       $district_visible = $is_urban_visible = $block_visible = 1;
-    } else if ($designation_id_old == 'Approver' || $designation_id_old == 'Verifier') {
+    } else if ($designation_id == 'Approver' || $designation_id == 'Verifier') {
       $district_code = NULL;
       $is_urban = NULL;
       $blockCode = NULL;
@@ -1213,7 +1213,7 @@ class NoAadharChangeController extends Controller
         'c_date' => $c_date,
         'gpList' => $gpList,
         'muncList' => $muncList,
-        'designation_id_old' => $designation_id_old,
+        'designation_id' => $designation_id,
       ]
     );
   }
@@ -1361,11 +1361,11 @@ class NoAadharChangeController extends Controller
         $heading_msg = $heading_msg . " of the " . $ds_phase_list[$ds_phase];
       }
       if (!empty($from_date)) {
-        $form_date_formatted = \Carbon\Carbon::parse($from_date)->format('d-m-Y');
+        $form_date_formatted = Carbon::parse($from_date)->format('d-m-Y');
         $heading_msg = $heading_msg . " from " . $form_date_formatted;
       }
       if (!empty($to_date)) {
-        $to_date_formatted = \Carbon\Carbon::parse($to_date)->format('d-m-Y');
+        $to_date_formatted = Carbon::parse($to_date)->format('d-m-Y');
         $heading_msg = $heading_msg . " to  " . $to_date_formatted;
       }
     } else {
@@ -1517,9 +1517,9 @@ class NoAadharChangeController extends Controller
       } else {
         $schema = "pension";
       }
-      $designation_id_old = Auth::user()->designation_id_old;
+      $designation_id = Auth::user()->designation_id;
       $condition = " created_by_dist_code=" . $district_code . " ";
-      if ($designation_id_old == 'Verifier') {
+      if ($designation_id == 'Verifier') {
         if ($duty_obj->mapping_level == "Subdiv") {
           $created_by_local_body_code = $duty_obj->urban_body_code;
         }
@@ -1538,7 +1538,7 @@ class NoAadharChangeController extends Controller
       $result = DB::connection('pgsql_mis')->select($query);
       //dd($result);
       $filename = 'NoAadhaar Beneficiary List_' . $district_code;
-      if ($designation_id_old == 'Verifier') {
+      if ($designation_id == 'Verifier') {
         $filename = $filename . '_' . $created_by_local_body_code;
       }
       $filename = $filename . "-" . date('d/m/Y') . '-' . time() . ".xls";

@@ -8,7 +8,7 @@ use App\applicationModel;
 use App\User;
 use App\Policestation;
 use App\Designation;
-use DB;
+use Illuminate\Support\Facades\DB;
 use App\Configduty;
 use Illuminate\Support\Facades\Log;
 

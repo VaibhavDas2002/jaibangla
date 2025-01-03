@@ -15,8 +15,8 @@ use App\Taluka;
 use App\Ward;
 use App\UrbanBody;
 use App\GP;
-use Auth;
-use DB;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 use App\BenDocsSc;
 use App\BenDocsSt;
@@ -126,7 +126,7 @@ class ExchangeDataController extends Controller
       $user_id = AuthChecker::getUserId();
 
       //$duty = Configduty::where('user_id','=',$user_id)->where('scheme_id',$scheme_id)->first();
-      //$role=MapLavel::where('scheme_id',$scheme_id)->where('role_name',Auth::user()->designation_id_old)->where('stack_level',$duty->mapping_level)->first();
+      //$role=MapLavel::where('scheme_id',$scheme_id)->where('role_name',Auth::user()->designation_id)->where('stack_level',$duty->mapping_level)->first();
   //dd($role);
 
       if($is_first){   // First Level Verifier    
@@ -570,7 +570,7 @@ public function MassEmployeeApproval(Request $request){
         //$scheme_id = 3;
       $user_id = AuthChecker::getUserId();      
       $duty = Configduty::where('user_id','=',$user_id)->where('scheme_id',$scheme_id)->first();
-      $role=MapLavel::where('scheme_id',$scheme_id)->where('role_name',Auth::user()->designation_id_old)->where('stack_level',$duty->mapping_level)->first();
+      $role=MapLavel::where('scheme_id',$scheme_id)->where('role_name',Auth::user()->designation_id)->where('stack_level',$duty->mapping_level)->first();
 
         $inputs = request()->input('approvalcheck');
        
@@ -865,7 +865,7 @@ public function verifydata(Request $request)
         //$scheme_id = 3;
       $user_id = AuthChecker::getUserId();      
       $duty = Configduty::where('user_id','=',$user_id)->where('scheme_id',$scheme_id)->first();
-      $role=MapLavel::where('scheme_id',$scheme_id)->where('role_name',Auth::user()->designation_id_old)->where('stack_level',$duty->mapping_level)->first();
+      $role=MapLavel::where('scheme_id',$scheme_id)->where('role_name',Auth::user()->designation_id)->where('stack_level',$duty->mapping_level)->first();
 
       /*echo "<pre>";
         echo $id;
@@ -920,7 +920,7 @@ public function verifydata(Request $request)
         //$scheme_id = 3;
         $user_id = AuthChecker::getUserId();        
         $duty = Configduty::where('user_id','=',$user_id)->where('scheme_id',$scheme_id)->first();
-        $role=MapLavel::where('scheme_id',$scheme_id)->where('role_name',Auth::user()->designation_id_old)->where('stack_level',$duty->mapping_level)->first();
+        $role=MapLavel::where('scheme_id',$scheme_id)->where('role_name',Auth::user()->designation_id)->where('stack_level',$duty->mapping_level)->first();
 
         /*echo "<pre>";
         echo $id;

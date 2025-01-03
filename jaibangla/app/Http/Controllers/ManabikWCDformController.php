@@ -15,15 +15,15 @@ use App\Ward;
 use App\GP;
 use App\User;
 use Redirect;
-use Auth;
-use Config;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use App\SchemeCapacity;
 use App\Scheme;
 use Illuminate\Support\Facades\Schema;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
 use App\BankDetails;
 use App\Helpers\Helper;
@@ -39,12 +39,17 @@ use App\Traits\TraitLifeCertificateValidate;
 use Illuminate\Support\Facades\Session;
 use App\Helpers\AuthChecker;
 use Illuminate\Support\Facades\Route;
+use App\PensionSc;
 
 class ManabikWCDformController extends Controller
 {
     use TraitCasteCertificateValidate;
     use TraitLifeCertificateValidate;
     use TraitAadharValidate;
+
+    protected $state_login_next_level_role_id_arr;
+    protected $scheme_id;
+    protected $base_dob_chk_date;
     public function __construct()
     {
         $this->middleware('auth');
@@ -62,7 +67,7 @@ class ManabikWCDformController extends Controller
     {
         $scheme_id = 2;
         $is_active = 0;
-        $roleArray = $request->session()->get('role');
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
         foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == $scheme_id) {
                 $is_active = 1;
@@ -223,7 +228,7 @@ class ManabikWCDformController extends Controller
         $uploaded_doc = array();
         $destinationPath = storage_path('app/keep_manabik/');
         $scheme_id = $request->scheme_id;
-        $roleArray = $request->session()->get('role');
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
         $is_active = 0;
         foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == $scheme_id) {
@@ -824,7 +829,7 @@ class ManabikWCDformController extends Controller
 
         $scheme_id = (int) $request->scheme_id;
 
-        $designation_id_old = Auth::user()->designation_id_old;
+        $designation_id = Auth::user()->designation_id;
 
         if (!is_int($scheme_id)) {
             return redirect("/")->with('danger', 'Scheme Code Not Valid');
@@ -835,7 +840,8 @@ class ManabikWCDformController extends Controller
         $created_by = Auth::user()->id;
         $is_active = 0;
         $mapping_level = NULL;
-        $roleArray = $request->session()->get('role');
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+
         foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == $scheme_id) {
                 $is_active = 1;
@@ -871,13 +877,13 @@ class ManabikWCDformController extends Controller
         } else {
             $query = PensionManabikWCD::where(['id' => $id, 'created_by_dist_code' => $distCode, 'scheme_id' => $scheme_id]);
         }
-        if ($designation_id_old == 'Verifier') {
+        if ($designation_id == 'Verifier') {
             if ($is_state_login) {
                 $query = $query->where('next_level_role_id', $this->state_login_next_level_role_id_arr['entry']);
             } else {
                 $query = $query->whereNull('next_level_role_id');
             }
-        } else if ($designation_id_old == 'Approver') {
+        } else if ($designation_id == 'Approver') {
             if ($is_state_login) {
                 $query = $query->where('next_level_role_id', $this->state_login_next_level_role_id_arr['verified']);
             } else {
@@ -932,9 +938,9 @@ class ManabikWCDformController extends Controller
         $assembly_name = $assembly->ac_name;
 
         if (trim($request->marital_status) != "Married") {
-            $request->spouse_first_name = "";
-            $request->spouse_middle_name = "";
-            $request->spouse_last_name = "";
+            $request->merge(['spouse_first_name' => '']);
+            $request->merge(['spouse_middle_name' => '']);
+            $request->merge(['spouse_last_name' => '']);
         }
 
         if (trim($request->aadhar_exits) == 1) {
@@ -1123,7 +1129,9 @@ class ManabikWCDformController extends Controller
             'is_clean' => 1
         ];
         if (!empty(trim($request->caste_certificate_no))) {
-            $pension_details->caste_certificate_no = $request->caste_certificate_no;
+            $input[
+                'caste_certificate_no'
+            ] = $request->caste_certificate_no;
         }
         if (trim($request->aadhar_exits) == 1) {
             $input['aadhar_no'] = trim($request->aadhar_no);
@@ -1287,7 +1295,7 @@ class ManabikWCDformController extends Controller
             if ($arch_status && $is_update && $doc_inserted_arch && $doc_inserted_del && $doc_inserted && $is_saved_log) {
                 DB::commit();
                 DB::connection('pgsql_encwrite')->commit();
-                if ($designation_id_old == 'Operator')
+                if ($designation_id == 'Operator')
                     return redirect("application-list-read-only-edit?pr1=" . $scheme_schema)->with('success', 'Application Updated Successfully')
                         ->with('id', $row->getBenidAttribute());
                 else {
@@ -1296,7 +1304,7 @@ class ManabikWCDformController extends Controller
             } else {
                 DB::connection('pgsql_encwrite')->rollback();
                 DB::rollback();
-                if ($designation_id_old == 'Operator')
+                if ($designation_id == 'Operator')
                     return redirect("/application-edit?id=" . $request->id . "&scheme_id=" . $request->scheme_id)->with('errors', array('Some error.Please try again'));
                 else {
                     return redirect('/')->with('danger', 'Some error.Please try again');
@@ -1307,7 +1315,7 @@ class ManabikWCDformController extends Controller
             //dd($e);
             DB::connection('pgsql_encwrite')->rollback();
             DB::rollback();
-            if ($designation_id_old == 'Operator')
+            if ($designation_id == 'Operator')
                 return redirect("/application-edit?id=" . $request->id . "&scheme_id=" . $request->scheme_id)->with('errors', array('Some error.Please try again'));
             else {
                 return redirect('/')->with('danger', 'Some error.Please try again');
@@ -1546,12 +1554,12 @@ class ManabikWCDformController extends Controller
     {
         $scheme_id = $this->scheme_id;
         $user_id = AuthChecker::getUserId();
-        $designation_id_old = Auth::user()->designation_id_old;
-        if (!in_array($designation_id_old, array('Operator'))) {
+        $designation_id = Auth::user()->designation_id;
+        if (!in_array($designation_id, array('Operator'))) {
             return redirect("/")->with('error', 'Not Allowed');
         }
         $is_active = 0;
-        $roleArray = $request->session()->get('role');
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
         foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == $scheme_id) {
                 $is_active = 1;
@@ -1828,12 +1836,12 @@ class ManabikWCDformController extends Controller
     {
         $scheme_id = $this->scheme_id;
         $user_id = AuthChecker::getUserId();
-        $designation_id_old = Auth::user()->designation_id_old;
-        if (!in_array($designation_id_old, array('Operator'))) {
+        $designation_id = Auth::user()->designation_id;
+        if (!in_array($designation_id, array('Operator'))) {
             return redirect("/")->with('error', 'Not Allowed');
         }
         $is_active = 0;
-        $roleArray = $request->session()->get('role');
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
         foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == $scheme_id) {
                 $is_active = 1;
@@ -2022,12 +2030,12 @@ class ManabikWCDformController extends Controller
     {
         $scheme_id = $this->scheme_id;
         $user_id = AuthChecker::getUserId();
-        $designation_id_old = Auth::user()->designation_id_old;
-        if (!in_array($designation_id_old, array('Operator'))) {
+        $designation_id = Auth::user()->designation_id;
+        if (!in_array($designation_id, array('Operator'))) {
             return redirect("/")->with('error', 'Not Allowed');
         }
         $is_active = 0;
-        $roleArray = $request->session()->get('role');
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
         foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == $scheme_id) {
                 $is_active = 1;

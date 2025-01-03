@@ -188,7 +188,7 @@ desired effect
             <form method="post" id="register_form"   class="submit-once" >
               {{ csrf_field() }}
         
-            <input type="hidden" name="desgisnation_id" id="desgisnation_id" value="{{$designation_id_old}}"/>
+            <input type="hidden" name="desgisnation_id" id="desgisnation_id" value="{{$designation_id}}"/>
      
 
 
@@ -320,7 +320,7 @@ $(document).ready(function(){
   $('.sidebar-menu #lk-main').addClass("active"); 
   $('.sidebar-menu #dupBankmis').addClass("active"); 
   $('.modal-search').on('click',function(){
-  var designation_id_old=$("#desgisnation_id").val();
+  var designation_id=$("#desgisnation_id").val();
   var scheme_id=$("#scheme_id").val();
   if($.trim($('#scheme_id').val()).length == 0)
   {
@@ -335,16 +335,16 @@ $(document).ready(function(){
     $('#error_scheme_id').text(error_scheme_id);
     $('#scheme_id').removeClass('has-error');
     var src='';
-    if(designation_id_old=='HOD'){
+    if(designation_id=='HOD'){
       src='drilldownwbpdsdistrictwise';
 
     }
-    else if(designation_id_old=='Approver'){
+    else if(designation_id=='Approver'){
       src='drilldownwbpdsbloksubwise';
 
 
     }
-    else if(designation_id_old=='Verifier'){
+    else if(designation_id=='Verifier'){
       src='wbpdsapplicantreport';
 
     }

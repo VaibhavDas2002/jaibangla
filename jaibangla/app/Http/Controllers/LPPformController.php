@@ -19,12 +19,12 @@ use App\Ward;
 use App\GP;
 use App\User;
 use Redirect;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use App\Scheme;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
 use App\BankDetails;
 use App\Helpers\Helper;
@@ -77,7 +77,7 @@ class LPPformController extends Controller
     public function index(Request $request)
     {
         $this->middleware('auth');
-        //dd($designation_id_old);
+        //dd($designation_id);
         $user_id = AuthChecker::getUserId();
 
         $scheme_id = $request->scheme_id;

@@ -43,7 +43,7 @@
                    
                     <tr role="row" class="odd">
                       <td >{{ $map->duty_loc }}</td>
-                      <td id="con_set_user">{{$map->designation_id_old}}</td>                      
+                      <td id="con_set_user">{{$map->designation_id}}</td>                      
                       <td id="con_set_user">{{$map->username}}</td>
                       <td>{{ $map->mobile_no }}</td>
                       <td>{{ $map->display_scheme }}</td>

@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use DB;
+use Illuminate\Support\Facades\DB;
 use App\PaymentTransaction;
 use App\applicationModel;
 use App\Http\Controllers\SmsSendController;

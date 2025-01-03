@@ -433,7 +433,7 @@ desired effect
                        
                         </div>
                      </div>
-                      @if($row->doc_imported==1 && $designation_id_old=='Verifier')
+                      @if($row->doc_imported==1 && $designation_id=='Verifier')
                      <div class="row">
                           <div class="col-md-12 color1"  style="margin:10px 0px"><h3>New Details</h3></div>
                       </div>
@@ -504,8 +504,8 @@ desired effect
                                     
                                     <div class="form-group col-md-4">
                                    
-                                    <label class="fileLable_{{$doc_all['id']}} {{$doc_all['required']==1 && $designation_id_old=='Verifier'?'required-field':''}}">{{ $doc_all['doc_name'] }}</label>
-                                    @if($designation_id_old=='Verifier')
+                                    <label class="fileLable_{{$doc_all['id']}} {{$doc_all['required']==1 && $designation_id=='Verifier'?'required-field':''}}">{{ $doc_all['doc_name'] }}</label>
+                                    @if($designation_id=='Verifier')
                                     <div class="imageSize">(Image type must be {{ $doc_all['doc_type'] }} and image size max {{ $doc_all['doc_size_kb'] }}KB)</div>
                                     <button type="button" id="doc_{{ $doc_all['id'] }}" name="encolerModal" class="btn btn-info encloserModal btnEnc" >Upload</button>
                                     @endif
@@ -516,7 +516,7 @@ desired effect
                                     </div>
                                    
                                     @endforeach  
-                                    @if($designation_id_old=='Approver')
+                                    @if($designation_id=='Approver')
                                     @if($row->back_lb==1)
                                     <div class="form-group col-md-4">
                                    
@@ -556,37 +556,37 @@ desired effect
                 <button type="button" class="btnJb btn btn-info confirmBtn" id="import_verify" value="5" op_text="Verify and Send it to Approver for Approval">Import & Verify</button>
                 @endif
                 @if($back_to_lb==1)
-                <button type="button" class="btnJb btn btn-danger confirmBtn" id="back_to_lb" value="7" op_text="@if($designation_id_old=='Verifier') Send Request to Approver for Back to LB @elseif($designation_id_old=='Approver') Approved request for Back to LB @endif"> 
-                  @if($designation_id_old=='Verifier')
+                <button type="button" class="btnJb btn btn-danger confirmBtn" id="back_to_lb" value="7" op_text="@if($designation_id=='Verifier') Send Request to Approver for Back to LB @elseif($designation_id=='Approver') Approved request for Back to LB @endif"> 
+                  @if($designation_id=='Verifier')
                   Request for Back to LB
-                  @elseif($designation_id_old=='Approver')
+                  @elseif($designation_id=='Approver')
                   Approve Request for Back to LB
                   @endif</button>
                 @endif
                 @if($can_approve==1)
-                <button type="button" class="btnJb btn btn-success confirmBtn" id="back_to_lb" value="50" op_text="@if($designation_id_old=='Verifier') Send Request to Approver for Approval @elseif($designation_id_old=='Approver') Approved @endif">Approve</button>
+                <button type="button" class="btnJb btn btn-success confirmBtn" id="back_to_lb" value="50" op_text="@if($designation_id=='Verifier') Send Request to Approver for Approval @elseif($designation_id=='Approver') Approved @endif">Approve</button>
                 @endif
                 @if($transfer_st==1)
-                <button type="button" class="btnJb btn btn-primary confirmBtn" id="back_to_st" value="70" op_text="@if($designation_id_old=='Verifier') Send Request to Approver for Transfer to Jai Johar @elseif($designation_id_old=='Approver') Approved request for Transfer to Jai Johar @endif">
-                 @if($designation_id_old=='Verifier')
+                <button type="button" class="btnJb btn btn-primary confirmBtn" id="back_to_st" value="70" op_text="@if($designation_id=='Verifier') Send Request to Approver for Transfer to Jai Johar @elseif($designation_id=='Approver') Approved request for Transfer to Jai Johar @endif">
+                 @if($designation_id=='Verifier')
                   Request for Transfer to Jai Johar
-                  @elseif($designation_id_old=='Approver')
+                  @elseif($designation_id=='Approver')
                  Approve Request for Transfer to Jai Johar
                   @endif
                  </button>
                 @endif
                 @if($transfer_sc==1)
-                <button type="button" class="btnJb btn btn-primary confirmBtn" id="back_to_sc" value="75" op_text="@if($designation_id_old=='Verifier') Send Request to Approver for Transfer to Bandhu @elseif($designation_id_old=='Approver') Approved request for Transfer to Bandhu @endif"> 
-                  @if($designation_id_old=='Verifier')
+                <button type="button" class="btnJb btn btn-primary confirmBtn" id="back_to_sc" value="75" op_text="@if($designation_id=='Verifier') Send Request to Approver for Transfer to Bandhu @elseif($designation_id=='Approver') Approved request for Transfer to Bandhu @endif"> 
+                  @if($designation_id=='Verifier')
                   Request for Transfer to  Bandhu
-                  @elseif($designation_id_old=='Approver')
+                  @elseif($designation_id=='Approver')
                  Approve Request for Transfer to Bandhu
                   @endif</button>
                 @endif
                 @if($transfer_oap==1)
-                <button type="button" class="btnJb btn btn-primary confirmBtn" id="back_to_oap" value="80" op_text="@if($designation_id_old=='Verifier') Send Request to Approver for Transfer to OAP @elseif($designation_id_old=='Approver') Approved request for Transfer to OAP @endif">@if($designation_id_old=='Verifier')
+                <button type="button" class="btnJb btn btn-primary confirmBtn" id="back_to_oap" value="80" op_text="@if($designation_id=='Verifier') Send Request to Approver for Transfer to OAP @elseif($designation_id=='Approver') Approved request for Transfer to OAP @endif">@if($designation_id=='Verifier')
                   Request for Transfer to  OAP
-                  @elseif($designation_id_old=='Approver')
+                  @elseif($designation_id=='Approver')
                  Approve Request for Transfer to OAP
                   @endif</button>
                 @endif
@@ -636,7 +636,7 @@ desired effect
       <form method="post" id="commonfield"  action="{{url('lbapplicationVerify')}}"  class="submit-once" enctype="multipart/form-data">
               {{ csrf_field() }}
         
-              <input type="hidden" name="designation_id_old" id="designation_id_old" value="{{$designation_id_old}}"/>
+              <input type="hidden" name="designation_id" id="designation_id" value="{{$designation_id}}"/>
               <input type="hidden" name="id" id="id" value="{{$row->id}}"/>
               <input type="hidden" name="scheme_id" id="scheme_id" value="{{$row->scheme_id}}"/>
               <input type="hidden" name="action_type" id="action_type" value=""/>
@@ -779,7 +779,7 @@ $(document).ready(function(){
                   }
   }); 
   $('.confirmBtn').click(function(){
-    var designation_id_old=$("#designation_id_old").val();
+    var designation_id=$("#designation_id").val();
       var ButtonText = $(this).text();
       var clickval = $(this).val();
      // alert(clickval);
@@ -789,7 +789,7 @@ $(document).ready(function(){
       $('#op_text').text(op_text);
       $('#action_msg').val(op_text);
       // alert(op_text);
-      if(designation_id_old=='Verifier' && clickval==5){
+      if(designation_id=='Verifier' && clickval==5){
         $("#action_type").val(clickval);
         var error_new_mobile_no='';
         var error_new_aadhar_no='';
@@ -846,7 +846,7 @@ $(document).ready(function(){
         }
       }
       $("#action_type").val(clickval);
-      if(designation_id_old=='Verifier'){
+      if(designation_id=='Verifier'){
       if(clickval==70 || clickval==75){
         $("#note_sc_st").show();
       }

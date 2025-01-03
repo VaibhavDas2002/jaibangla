@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Schemetype;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use App\Helpers\AuthChecker;
 
 class SchemeTypeController extends Controller

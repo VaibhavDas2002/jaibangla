@@ -13,9 +13,9 @@ use App\Ward;
 use App\GP;
 use App\User;
 use Redirect;
-// use Auth;
+// use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 use DateTime;
 use App\Scheme;
 use Carbon\Carbon;
@@ -37,8 +37,8 @@ class DBTdataPushedController extends Controller
     public function index()
     {
         $user_id = AuthChecker::getUserId();
-        $designation_id_old = Auth::user()->designation_id_old;
-        if ($designation_id_old == 'Admin') {
+        $designation_id = Auth::user()->designation_id;
+        if ($designation_id == 'Admin') {
             $schemes = Scheme::where('is_active', 1)->get();
             $monthVals = Config::get('constants.monthval');
             $finYears = Config::get('constants.academic_year');

@@ -29,14 +29,14 @@ use App\Ward;
 use App\GP;
 use App\User;
 use Redirect;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
-use Config;
+use Illuminate\Support\Facades\Config;
 use App\SchemeCapacity;
 use App\Scheme;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
 use App\BankDetails;
 use App\Helpers\Helper;
@@ -60,6 +60,10 @@ use Illuminate\Support\Facades\Session;
 class LifeCertificateCheckController extends Controller
 {
     use TraitLifeCertificateValidate;
+    protected $base_dob_chk_date;
+    protected $max_dob;
+    protected $state_login_next_level_role_id_arr;
+    
     public function __construct()
     {
         $this->middleware('auth');
@@ -88,7 +92,7 @@ class LifeCertificateCheckController extends Controller
     public function listBioAuth(Request $request)
     {
       $this->middleware('auth');
-      $designation_id_old = Auth::user()->designation_id_old;
+      $designation_id = Auth::user()->designation_id;
       $user_id = AuthChecker::getUserId();
       $scheme_id = (int)$request->scheme_id;
       $scheme_obj = Scheme::where('id', $scheme_id)->where('is_active', 1)->first();
@@ -226,7 +230,7 @@ class LifeCertificateCheckController extends Controller
       // dd($data);
       return datatables()->of($data)
           ->addIndexColumn()
-          ->addColumn('action', function ($data) use ($scheme_id, $designation_id_old,$next_level_role_id) {
+          ->addColumn('action', function ($data) use ($scheme_id, $designation_id,$next_level_role_id) {
                 $action = '';
                 if(is_null($data->life_certificate_checked) && is_null($data->life_certificate_pass)){
            
@@ -281,7 +285,7 @@ class LifeCertificateCheckController extends Controller
         return view(
           'BioAuthLifeCertificate.list',
           [
-            'designation_id_old' => $designation_id_old,
+            'designation_id' => $designation_id,
             'verifier_type' => $verifier_type,
             'created_by_local_body_code' => $created_by_local_body_code,
             'is_rural' => $is_rural,
@@ -299,8 +303,8 @@ class LifeCertificateCheckController extends Controller
       
       $this->middleware('auth');
       $scheme_id = (int)$request->scheme_id;
-      $roleArray = $request->session()->get('role');
-      $is_active = 0;
+      $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+            $is_active = 0;
       foreach ($roleArray as $roleObj) {
         if ($roleObj['scheme_id'] == $scheme_id) {
             $is_active = 1;

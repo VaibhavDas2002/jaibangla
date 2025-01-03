@@ -110,24 +110,24 @@
                       
                         
                         
-                        <div class="form-group{{ $errors->has('designation_id_old') ? ' has-error' : '' }}">
+                        <div class="form-group{{ $errors->has('designation_id') ? ' has-error' : '' }}">
                             <label class="col-md-4 control-label required-field">Role</label>
                             <div class="col-md-6">
-                                <select class="form-control select2" name="designation_id_old" required>
+                                <select class="form-control select2" name="designation_id" required>
                                     <option value="">--Select Role--</option>
                                     @foreach ($designations as $designation)
                                         <option value="{{$designation->id}}">{{$designation->name}}</option>
                                     @endforeach
                                 </select>
-                                 @if ($errors->has('designation_id_old'))
+                                 @if ($errors->has('designation_id'))
                                     <span class="help-block">
-                                        <strong>{{ $errors->first('designation_id_old') }}</strong>
+                                        <strong>{{ $errors->first('designation_id') }}</strong>
                                     </span>
                                 @endif
                             </div>
                         </div> 
 
-                        <div class="form-group{{ $errors->has('designation_id_old') ? ' has-error' : '' }}">
+                        <div class="form-group{{ $errors->has('designation_id') ? ' has-error' : '' }}">
                             <label class="col-md-4 control-label required-field">Scheme</label>
                             <div class="col-md-6">
                                 <select  id="scheme" class="form-control select2" name="schemelist[]" 
@@ -146,7 +146,7 @@
                         </div>
                         <input type="hidden" name="dist_code" value="{{ $dist_code }}" class="js-district">
 
-                        <div class="form-group{{ $errors->has('designation_id_old') ? ' has-error' : '' }}">
+                        <div class="form-group{{ $errors->has('designation_id') ? ' has-error' : '' }}">
                             <label class="col-md-4 control-label required-field">Urban/Rural</label>
                             <div class="col-md-6">
                                 <select name="urban_code" id="urban_code" class="form-control select2 js-block-subdiv" >

@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\District;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use App\Configduty;
 
 use App\UrbanBody;
@@ -19,13 +19,19 @@ use Illuminate\Support\Facades\Input;
 use App\PensionOAPFarmer;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 use App\BankDetails;
 use DateTime;
 use App\Helpers\AuthChecker;
 
 class SingleStepVerificationFarmer extends Controller
 {
+  protected $scheme_id;
+  protected $scheme_name;
+  protected $model_name;
+  protected $district_code;
+  
+
   public function __construct()
   {
     $this->middleware('auth');
@@ -36,8 +42,8 @@ class SingleStepVerificationFarmer extends Controller
       $app_type = $request->app_type;
       //dd($app_type);
       $this->app_type = $app_type;
-      $roleArray = $request->session()->get('role');
-      if (!empty($roleArray)) {
+      $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+            if (!empty($roleArray)) {
         foreach ($roleArray as $roleObj) {
           if ($roleObj['scheme_id'] == $this->scheme_id) {
             $is_active = 1;
@@ -63,8 +69,8 @@ class SingleStepVerificationFarmer extends Controller
         $this->district_code = $district_code;
         $this->is_urban = $is_urban;
         $this->created_by_local_body_code = $created_by_local_body_code;
-        $designation_id_old = Auth::user()->designation_id_old;
-        $this->designation_id_old = $designation_id_old;
+        $designation_id = Auth::user()->designation_id;
+        $this->designation_id = $designation_id;
         $user_id = AuthChecker::getUserId();
         $this->user_id = $user_id;
       }
@@ -76,14 +82,14 @@ class SingleStepVerificationFarmer extends Controller
     $app_type =  $this->app_type;
     $scheme_id =  $this->scheme_id;
     $scheme_name =  $this->scheme_name;
-    $designation_id_old = $this->designation_id_old;
+    $designation_id = $this->designation_id;
     $district_code = $this->district_code;
     $is_urban = $this->is_urban;
     $created_by_local_body_code = $this->created_by_local_body_code;
     $is_subdiv = 0;
     $scheme_name =  $this->scheme_name;
-    $designation_id_old = $this->designation_id_old;
-    if ($designation_id_old != 'Verifier') {
+    $designation_id = $this->designation_id;
+    if ($designation_id != 'Verifier') {
       return redirect('/')->with('error', 'Not Authorized for the scheme ' . $this->scheme_name);
     }
 
@@ -114,11 +120,11 @@ class SingleStepVerificationFarmer extends Controller
     $app_type =  $this->app_type;
     $scheme_id =  $this->scheme_id;
     $scheme_name =  $this->scheme_name;
-    $designation_id_old = $this->designation_id_old;
+    $designation_id = $this->designation_id;
     $district_code = $this->district_code;
     $is_urban = $this->is_urban;
     $created_by_local_body_code = $this->created_by_local_body_code;
-    if ($designation_id_old == 'Verifier' && !empty($district_code) && !empty($created_by_local_body_code)) {
+    if ($designation_id == 'Verifier' && !empty($district_code) && !empty($created_by_local_body_code)) {
       $serachvalue = $request->search['value'];
 
       $model_name = $this->model_name;
@@ -277,11 +283,11 @@ class SingleStepVerificationFarmer extends Controller
     ini_set('max_execution_time', 180);
     $scheme_id =  $this->scheme_id;
     $scheme_name =  $this->scheme_name;
-    $designation_id_old = $this->designation_id_old;
+    $designation_id = $this->designation_id;
     $district_code = $this->district_code;
     $is_urban = $this->is_urban;
     $created_by_local_body_code = $this->created_by_local_body_code;
-    if ($designation_id_old == 'Verifier') {
+    if ($designation_id == 'Verifier') {
 
       $return_status = 0;
       $return_msg = '';
@@ -330,14 +336,14 @@ class SingleStepVerificationFarmer extends Controller
     $app_type =  $this->app_type;
     $scheme_id =  $this->scheme_id;
     $scheme_name =  $this->scheme_name;
-    $designation_id_old = $this->designation_id_old;
+    $designation_id = $this->designation_id;
     $district_code = $this->district_code;
     $is_urban = $this->is_urban;
     $created_by_local_body_code = $this->created_by_local_body_code;
     $return_status = 0;
     $return_msg = '';
 
-    if ($designation_id_old == 'Verifier') {
+    if ($designation_id == 'Verifier') {
       $ben_id = $request->ben_id;
       $revert_reject = $request->revert_reject;
       if ($revert_reject == 1)
@@ -414,7 +420,7 @@ class SingleStepVerificationFarmer extends Controller
 
       $scheme_id =  $this->scheme_id;
       $scheme_name =  $this->scheme_name;
-      $designation_id_old = $this->designation_id_old;
+      $designation_id = $this->designation_id;
       $district_code = $this->district_code;
       $is_urban = $this->is_urban;
       $created_by_local_body_code = $this->created_by_local_body_code;
@@ -505,7 +511,7 @@ class SingleStepVerificationFarmer extends Controller
 
         $scheme_id =  $this->scheme_id;
         $scheme_name =  $this->scheme_name;
-        $designation_id_old = $this->designation_id_old;
+        $designation_id = $this->designation_id;
         $district_code = $this->district_code;
         $is_urban = $this->is_urban;
         $created_by_local_body_code = $this->created_by_local_body_code;
@@ -688,14 +694,14 @@ class SingleStepVerificationFarmer extends Controller
   {
     $scheme_id =  $this->scheme_id;
     $scheme_name =  $this->scheme_name;
-    $designation_id_old = $this->designation_id_old;
+    $designation_id = $this->designation_id;
     $district_code = $this->district_code;
     $is_urban = $this->is_urban;
     $created_by_local_body_code = $this->created_by_local_body_code;
     $is_subdiv = 0;
     $scheme_name =  $this->scheme_name;
-    $designation_id_old = $this->designation_id_old;
-    if ($designation_id_old != 'Verifier') {
+    $designation_id = $this->designation_id;
+    if ($designation_id != 'Verifier') {
       return redirect('/')->with('error', 'Not Authorized for the scheme ' . $this->scheme_name);
     }
 
@@ -722,11 +728,11 @@ class SingleStepVerificationFarmer extends Controller
   {
     $scheme_id =  $this->scheme_id;
     $scheme_name =  $this->scheme_name;
-    $designation_id_old = $this->designation_id_old;
+    $designation_id = $this->designation_id;
     $district_code = $this->district_code;
     $is_urban = $this->is_urban;
     $created_by_local_body_code = $this->created_by_local_body_code;
-    if ($designation_id_old == 'Verifier' && !empty($district_code) && !empty($created_by_local_body_code)) {
+    if ($designation_id == 'Verifier' && !empty($district_code) && !empty($created_by_local_body_code)) {
       $serachvalue = $request->search['value'];
 
       $model_name = $this->model_name;

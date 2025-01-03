@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use App\Taluka;
 use App\District;
 use App\BeneficiaryPensions;
-// use Auth;
+// use Illuminate\Support\Facades\Auth;
 use App\Configduty;
 use App\Scheme;
 use App\lot_master;
@@ -49,14 +49,14 @@ class lotWiseBenCountController extends Controller
     public function index()
     {
         $user_id = AuthChecker::getUserId();
-        $designation_id_old = Auth::user()->designation_id_old;
-        // echo $designation_id_old;die;
+        $designation_id = Auth::user()->designation_id;
+        // echo $designation_id;die;
         $duty = Configduty::where('user_id', '=', $user_id)->first();
         // $schemes = Scheme::where('is_active', 1)->where('id', 5)->get(['scheme_name as name', 'id as id']);
         $schemes = DB::select(DB::raw("select id,scheme_name as name from m_scheme where  id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . " and scheme_id in(5) )"));
         // echo $schemes;die;
         if (count($schemes) > 0) {
-            if ($designation_id_old == 'DDO' || $designation_id_old == 'Admin' || $designation_id_old == 'HOD') {
+            if ($designation_id == 'DDO' || $designation_id == 'Admin' || $designation_id == 'HOD') {
                 return view('lot-wise-benficiary-count/lot-wise-ben-count', ['schemes' => $schemes]);
             } else {
                 return redirect("/")->with('success', 'User Disabled. ');

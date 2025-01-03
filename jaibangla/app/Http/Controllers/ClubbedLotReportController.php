@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\User;
 use App\Configduty;
-use DB;
-use Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use App\lot_master;
 
 use App\Scheme;
@@ -61,7 +61,7 @@ class ClubbedLotReportController extends Controller
   public function index(Request $request)
   {
     $consolitated = 1;
-    if (Auth::user()->designation_id_old == 'DDO' || Auth::user()->designation_id_old == 'HOD') {
+    if (Auth::user()->designation_id == 'DDO' || Auth::user()->designation_id == 'HOD') {
       $user_id = AuthChecker::getUserId();
       $schemes = Configduty::where('user_id', '=', $user_id)->where('is_active', 1)->get();
 

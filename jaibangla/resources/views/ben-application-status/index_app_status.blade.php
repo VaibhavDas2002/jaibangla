@@ -123,7 +123,7 @@
                           <input type="text" name="ben_id" id="ben_id" class="form-control" onkeypress="if ( isNaN(String.fromCharCode(event.keyCode) )) return false;">
                           <span class="text-danger" id="error_ben_id"></span>
                         </div>
-		        @if(Auth::user()->designation_id_old != "Admin")
+		        @if(Auth::user()->designation_id != "Admin")
                         <div class="@if($mapping_level=="Department"||$mapping_level=="State") col-md-6 @else col-md-3 @endif">
                           <label class=" control-label">Scheme</label>
                           <select class="form-control select2" name="scheme_type" id='scheme_type' required>
@@ -156,7 +156,7 @@
                     </div>
                     <br/>
                     <div class="row">
-                      <div class="@if(Auth::user()->designation_id_old=="Admin") col-md-6 @else col-md-12 @endif" align="center">
+                      <div class="@if(Auth::user()->designation_id=="Admin") col-md-6 @else col-md-12 @endif" align="center">
                         <button class="btn btn-primary" id="submit_btn" type="button" style="width: 200px;" disabled><i class="fa fa-search"></i> Search</button>
                       </div>
                     </div>

@@ -438,7 +438,7 @@ desired effect
                                     
                                     <div class="form-group col-md-4">
                                    
-                                    <label class="fileLable_{{$doc_all['id']}} {{$doc_all['required']==1 && $designation_id_old=='Verifier'?'required-field':''}}">{{ $doc_all['doc_name'] }}</label>
+                                    <label class="fileLable_{{$doc_all['id']}} {{$doc_all['required']==1 && $designation_id=='Verifier'?'required-field':''}}">{{ $doc_all['doc_name'] }}</label>
                                    
                                     <div class="imageSize">(Image type must be {{ $doc_all['doc_type'] }} and image size max {{ $doc_all['doc_size_kb'] }}KB)</div>
                                     <button type="button" id="doc_{{ $doc_all['id'] }}" name="encolerModal" class="btn btn-info encloserModal btnEnc" >Upload</button>
@@ -512,7 +512,7 @@ desired effect
       </div>
             <form id="uploadForm" enctype="multipart/form-data">
             <input type="hidden" name="document_type" id="document_type"/>
-            <input type="hidden" name="designation_id_old" id="designation_id_old" value="{{$designation_id_old}}"/>
+            <input type="hidden" name="designation_id" id="designation_id" value="{{$designation_id}}"/>
             <input type="hidden" name="id" id="id" value="{{$row->id}}"/>
             <input type="hidden" name="scheme_id" id="scheme_id" value="{{$row->scheme_id}}"/>
             <input type="hidden" name="action_type" id="action_type" value=""/>
@@ -581,7 +581,7 @@ $(document).ready(function(){
                   }
   }); 
   $('.confirmBtn').click(function(){
-    var designation_id_old=$("#designation_id_old").val();
+    var designation_id=$("#designation_id").val();
       var ButtonText = $(this).text();
       var clickval = $(this).val();
      // alert(clickval);
@@ -591,7 +591,7 @@ $(document).ready(function(){
       $('#op_text').text(op_text);
       $('#action_msg').val(op_text);
       // alert(op_text);
-      if(designation_id_old=='Verifier' && clickval==5){
+      if(designation_id=='Verifier' && clickval==5){
         $("#action_type").val(clickval);
         var error_new_mobile_no='';
         var error_new_aadhar_no='';
@@ -648,7 +648,7 @@ $(document).ready(function(){
         }
       }
       $("#action_type").val(clickval);
-      if(designation_id_old=='Verifier'){
+      if(designation_id=='Verifier'){
       if(clickval==70 || clickval==75){
         $("#note_sc_st").show();
       }

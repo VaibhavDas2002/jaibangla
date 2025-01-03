@@ -9,8 +9,8 @@ use App\Employee;
 use App\Designation;
 use App\Schemetype;
 use App\Scheme;
-use Auth;
-use Validator;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 use App\Users_audit_trail_admin;
 class AdminController extends Controller
 {
@@ -45,7 +45,7 @@ class AdminController extends Controller
         ini_set('memory_limit', '-1');
         ini_set('pcre.backtrack_limit', "10000000");
         ini_set('max_execution_time', 300);
-        $designation_id_old = Auth::user()->designation_id_old;
+        $designation_id = Auth::user()->designation_id;
 
         $code = 0;
         $fill_array = array();
@@ -62,8 +62,8 @@ class AdminController extends Controller
         $is_active = 0;
         $scheme_arr = Scheme::where('is_active', 1)->get();
         $designation_arr = Designation::get();
-        $designation_id_old = Auth::user()->designation_id_old;
-        if (!in_array($designation_id_old, array('Admin'))) {
+        $designation_id = Auth::user()->designation_id;
+        if (!in_array($designation_id, array('Admin'))) {
             return redirect("/")->with('error', 'Not Allowed');
         }
 

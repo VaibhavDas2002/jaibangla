@@ -50,9 +50,9 @@ class BankDetailsEditSBIController extends Controller
      die();*/
     $user_id = AuthChecker::getUserId();
     $report = DB::connection('pgsql_mis')->select("select id,scheme_name from m_scheme where id in (select scheme_id from duty_assignement where user_id=" . $user_id . " and is_active=1)");
-    if (Auth::user()->designation_id_old == "Approver") {
+    if (Auth::user()->designation_id == "Approver") {
       return view('scheme-selection-bank-sbi-edit/main', compact('report'));
-    } elseif (Auth::user()->designation_id_old == "Verifier") {      // 29-07-2020
+    } elseif (Auth::user()->designation_id == "Verifier") {      // 29-07-2020
       return view('scheme-selection-bank-sbi-edit/main', compact('report'));   // 29-07-2020
     } else {
       return redirect("/")->with('success', 'UnAuthorized');
@@ -103,7 +103,7 @@ class BankDetailsEditSBIController extends Controller
     }
 
     $is_active = 0;
-    $roleArray = $request->session()->get('role');
+    $roleArray = Configduty::where('user_id', $user_id)->where('is_active', 1)->get()->toArray();;
     /*echo "<pre>";  
                 print_r($roleArray);
                 echo "</pre>";
@@ -533,7 +533,7 @@ if(!empty($query_res[0]->description)){
     //$scheme_id = 3;
     $user_id = AuthChecker::getUserId();
     $duty = Configduty::where('user_id', '=', $user_id)->where('scheme_id', $scheme_id)->first();
-    $role = MapLavel::where('scheme_id', $scheme_id)->where('role_name', Auth::user()->designation_id_old)->where('stack_level', $duty->mapping_level)->first();
+    $role = MapLavel::where('scheme_id', $scheme_id)->where('role_name', Auth::user()->designation_id)->where('stack_level', $duty->mapping_level)->first();
 
     $this->validateInput($request);
     if ($_POST['submit'] == 'Update') {

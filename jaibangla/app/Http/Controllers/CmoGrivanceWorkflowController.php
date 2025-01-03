@@ -373,7 +373,7 @@ class CmoGrivanceWorkflowController extends Controller
     {
         if ($request->ajax()) {
             $user_id = AuthChecker::getUserId();
-            $designation = Auth::user()->designation_id_old;
+            $designation = Auth::user()->designation_id;
             $scheme_id = $request->scheme_id;
             $grivence_mobile = $request->grivence_mobile;
             $grievance_id = $request->grievance_id;
@@ -518,10 +518,10 @@ class CmoGrivanceWorkflowController extends Controller
             if ($validator->passes()) {
                 $user_id = AuthChecker::getUserId();
                 $scheme_id = $request->scheme_id;
-                $designation = Auth::user()->designation_id_old;
+                $designation = Auth::user()->designation_id;
                 $duty_obj = Configduty::where('user_id', $user_id)->where('scheme_id', $scheme_id)->first();
                
-                $next_level_role_id = Workflow::getParentId($scheme_id , Auth::user()->designation_id_old);
+                $next_level_role_id = Workflow::getParentId($scheme_id , Auth::user()->designation_id);
                 $ben_id = $request->ben_id;
                 $grievance_id = $request->grievance_id;
                 $grievance_mobile_no = $request->grievance_mobile_no;
@@ -721,7 +721,7 @@ class CmoGrivanceWorkflowController extends Controller
     public function opListCmo()
     {
         $user_id = AuthChecker::getUserId();
-        $designation = Auth::user()->designation_id_old;
+        $designation = Auth::user()->designation_id;
         $mapObj = DB::connection('pgsql_mis')
             ->table('public.duty_assignement')
             ->where('user_id', $user_id)
@@ -829,9 +829,9 @@ class CmoGrivanceWorkflowController extends Controller
     public function hodIndex(Request $request)
     {
         $is_active = 0;
-        $roleArray = $request->session()->get('role');
-        // echo '<pre>'; print_r($roleArray);die();
-        $designation_id_old = Auth::user()->designation_id_old;
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                // echo '<pre>'; print_r($roleArray);die();
+        $designation_id = Auth::user()->designation_id;
         $user_id = AuthChecker::getUserId();
         $district_visible = $is_urban_visible = $block_visible = 1;
         $municipality_visible = 0;
@@ -841,7 +841,7 @@ class CmoGrivanceWorkflowController extends Controller
         $duty = Configduty::where('user_id', '=', $user_id)->first();
         $schemes = DB::select(DB::raw("select id,scheme_name,pr1_code,entry_url,display_name from m_scheme where id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . ") AND id = 10 order by rank"));
         // echo '<pre>';print_r($schemes);die();
-        if ($designation_id_old == 'Admin' || $designation_id_old == 'HOD') {
+        if ($designation_id == 'Admin' || $designation_id == 'HOD') {
             $district_visible = $is_urban_visible = $block_visible = 1;
         } else if (AuthChecker::ApproverChecker()) {
             // echo 1;die();
@@ -849,7 +849,7 @@ class CmoGrivanceWorkflowController extends Controller
             $is_urban = NULL;
             $blockCode = NULL;
             foreach ($roleArray as $roleObj) {
-                // echo $designation_id_old;die();
+                // echo $designation_id;die();
                 if ($roleObj['scheme_id']) { // == 11 || $roleObj['scheme_id'] == 13
                     $is_urban = $roleObj['is_urban'];
                     $district_code = $roleObj['district_code'];
@@ -915,7 +915,7 @@ class CmoGrivanceWorkflowController extends Controller
     {
         //   dd($request->all());
         $user_id = AuthChecker::getUserId();
-        $designation_id_old = Auth::user()->designation_id_old;
+        $designation_id = Auth::user()->designation_id;
         $scheme_code = $request->scheme_code;
         $district = $request->district;
         $operation_type = $request->operation_type;
@@ -1388,8 +1388,8 @@ class CmoGrivanceWorkflowController extends Controller
         $c_time = Carbon::now();
         $c_date = $c_time->format("Y-m-d");
         $is_active = 0;
-        $roleArray = $request->session()->get('role');
-        $designation_id_old = AuthChecker::getDesignationId();
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                $designation_id = AuthChecker::getDesignationId();
         $userId = AuthChecker::getUserId();
         $district_visible = $is_urban_visible = $block_visible = 1;
         $municipality_visible = 0;

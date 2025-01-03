@@ -278,12 +278,12 @@ href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,30
         
        
        
-        @if($verifier_type=='District' || ($designation_id_old=='Verifier'))
+        @if($verifier_type=='District' || ($designation_id=='Verifier'))
         <form class="row" method="POST" action="{{ route('lbapplicationbulkApprove') }}" class="submit-once">
         <input type="hidden" name="_token" id="token" value="{{ csrf_token() }}">
         <input type="hidden" id="scheme_id" name="scheme_id" value="{{ $scheme_id }}">
         <input type="hidden" name="dist_code" id="dist_code" value="{{ $district_code }}" >
-        @if($designation_id_old=='Verifier')
+        @if($designation_id=='Verifier')
         <input type="hidden" name="approve_verification_type" id="approve_verification_type" value="2" >
         @else
         <input type="hidden" name="approve_verification_type" id="approve_verification_type" value="1" >
@@ -291,7 +291,7 @@ href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,30
         <br/><br/>
        <div>
               <button  style="border:1px solid black ;margin: 0% 0% 2% 0%;" type="submit" name="bulk_approve" id="bulk_approve" value="approve" class="btn btn-info col-sm-3 col-xs-5 btn-margin" disabled>
-                        @if($designation_id_old=='Verifier') Verifiy @else Approve @endif
+                        @if($designation_id=='Verifier') Verifiy @else Approve @endif
               </button></div>
         @endif
        

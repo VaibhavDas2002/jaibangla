@@ -15,7 +15,7 @@ use App\SubDistrict;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 use App\Helpers\AuthChecker;
 
 
@@ -1141,17 +1141,17 @@ class BlockDrillDownReport extends Controller
         $date = Carbon::createFromFormat('F j, Y g:i:a', date('F j, Y g:i:a'));
         $date = $date->format('F j, Y g:i:a');
         $is_active = 0;
-        $roleArray = $request->session()->get('role');
-        $designation_id_old = Auth::user()->designation_id_old;
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                $designation_id = Auth::user()->designation_id;
         $user_id = AuthChecker::getUserId();
         $district_visible = $is_urban_visible = $block_visible = 1;
         $scheme_arr = array();
         $schemes = DB::select(DB::raw("select id,scheme_name from m_scheme where  id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . ")"));
 
-        if ($designation_id_old == 'Admin' || $designation_id_old == 'HOD' ||  $designation_id_old == 'Dashboard'|| $designation_id_old == 'DDO') {
+        if ($designation_id == 'Admin' || $designation_id == 'HOD' ||  $designation_id == 'Dashboard'|| $designation_id == 'DDO') {
             $district_visible = $is_urban_visible = $block_visible = 1;
             $scheme_arr = array(10, 11);
-        } else if ($designation_id_old == 'Approver' || $designation_id_old == 'Verifier' || $designation_id_old == 'StatusCheckerDistrict' || $designation_id_old == 'StatusCheckerField') {
+        } else if ($designation_id == 'Approver' || $designation_id == 'Verifier' || $designation_id == 'StatusCheckerDistrict' || $designation_id == 'StatusCheckerField') {
             $district_code = NULL;
             $is_urban = NULL;
             $blockCode = NULL;

@@ -22,7 +22,7 @@ use App\BankDetails;
 use App\DataSourceCommon;
 use Maatwebsite\Excel\Facades\Excel;
 use App\DocumentType;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 use App\Helpers\Helper;
 use Carbon\Carbon;
 use App\District;
@@ -47,8 +47,7 @@ class BenValidationFailedController extends Controller
     function selectscheme(Request $request)
     {
         $this->middleware('auth');
-        $roleArray = $request->session()->get('role');
-        $designation_id_old = Auth::user()->designation_id_old;
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray()        $designation_id = Auth::user()->designation_id;
         $userId = Auth::user()->id;
         $type = $request->type;
         if(!in_array($type,array(1,2))){
@@ -60,14 +59,14 @@ class BenValidationFailedController extends Controller
             'ben-acc-name-validation-failed.selectScheme',
             [
                 'scheme_list' => $scheme_list,
-                'designation_id_old' => $designation_id_old,
+                'designation_id' => $designation_id,
                 'type' => $type
             ]
         );
     }
     public function benaccnamefaliledlist(Request $request)
     {
-      $designation_id_old = Auth::user()->designation_id_old;
+      $designation_id = Auth::user()->designation_id;
       $user_id = AuthChecker::getUserId();
   
       $scheme_id = $request->scheme_id;
@@ -143,7 +142,7 @@ class BenValidationFailedController extends Controller
         //dd($process_type);
         $query = DB::table($schema . '.beneficiaries')
           ->where('created_by_dist_code', $district_code)->whereIn('next_level_role_id',array(0,-53));
-          if ($designation_id_old == 'Verifier') {
+          if ($designation_id == 'Verifier') {
             $query = $query->where('created_by_local_body_code', $created_by_local_body_code);
             if (!empty($application_type)) {
               if($application_type==1)
@@ -175,7 +174,7 @@ class BenValidationFailedController extends Controller
         if (!empty($request->gp_ward_code)) {
           $query = $query->where('gp_ward_code', $request->gp_ward_code);
         }
-        if ($designation_id_old == 'Approver') {
+        if ($designation_id == 'Approver') {
           if ($application_type!='') {
             if($application_type==1)
              $query = $query->where('next_level_role_id_validation', 1);
@@ -277,9 +276,9 @@ class BenValidationFailedController extends Controller
             $app_id = $data->created_by_dist_code . substr('0' . $data->scheme_id, -$scheme_length) . substr('0000000' . $data->id, -$id_length);
   
             return $app_id;
-          })->addColumn('view', function ($data) use ($scheme_id, $designation_id_old,$type) {
+          })->addColumn('view', function ($data) use ($scheme_id, $designation_id,$type) {
            
-            if ($designation_id_old == 'Verifier') {
+            if ($designation_id == 'Verifier') {
                 if($data->process_acc_validated==-53){
                  $action ='Rejected';
                 }
@@ -294,7 +293,7 @@ class BenValidationFailedController extends Controller
                 }
               
             }
-            if ($designation_id_old == 'Approver') {
+            if ($designation_id == 'Approver') {
               if($data->next_level_role_id_validation==-53){
                 $action ='Rejected';
                }
@@ -313,8 +312,8 @@ class BenValidationFailedController extends Controller
            
   
             return $action;
-          })->addColumn('check', function ($data) use ($designation_id_old) {
-            if ($designation_id_old == 'Approver') {
+          })->addColumn('check', function ($data) use ($designation_id) {
+            if ($designation_id == 'Approver') {
               if ($data->next_level_role_id_validation == 1) {
                 return '<input type="checkbox" name="approvalcheck[]" onClick="controlCheckBox()" value="' . $data->id . '">';
               } else
@@ -382,7 +381,7 @@ class BenValidationFailedController extends Controller
       return view(
         'ben-acc-name-validation-failed.linelistingfailed',
         [
-          'designation_id_old' => $designation_id_old,
+          'designation_id' => $designation_id,
           'verifier_type' => $verifier_type,
           'created_by_local_body_code' => $created_by_local_body_code,
           'is_rural' => $is_rural,
@@ -400,7 +399,7 @@ class BenValidationFailedController extends Controller
     public function ViewFailedbenAccName(Request $request)
     {
       
-      $designation_id_old = Auth::user()->designation_id_old;
+      $designation_id = Auth::user()->designation_id;
       $user_id = AuthChecker::getUserId();
   
       $scheme_id = $request->scheme_id;
@@ -504,7 +503,7 @@ class BenValidationFailedController extends Controller
       $row->gp_name = $gp_name;
       $doc_type_id = $this->bank_doc_type_id;
       $docs = DB::table($schema . '.ben_docs')->where('ben_id', $request->id)->where('doc_type_id', $doc_type_id)->first();
-      if($designation_id_old=='Approver'){
+      if($designation_id=='Approver'){
       $docs_new = DB::table($schema . '.ben_docs')->where('ben_id', $request->id)->where('new_doc_type_id', $doc_type_id)->first();
       }
       else{
@@ -516,7 +515,7 @@ class BenValidationFailedController extends Controller
       return view(
         'ben-acc-name-validation-failed.ViewbenAccName',
         [
-          'designation_id_old' => $designation_id_old,
+          'designation_id' => $designation_id,
           'scheme_id' => $scheme_id,
           'row' => $row,
           'district_name' => $district_name,
@@ -535,7 +534,7 @@ class BenValidationFailedController extends Controller
     {
       //dd('ok2');
       $bank_doc_type_id = $this->bank_doc_type_id;
-      $designation_id_old = Auth::user()->designation_id_old;
+      $designation_id = Auth::user()->designation_id;
       $user_id = AuthChecker::getUserId();
       $id = $request->id;
       //dd($request->id);
@@ -597,7 +596,7 @@ class BenValidationFailedController extends Controller
       $condition = array();
       $condition['id'] = $request->id;
       $district_code = $duty_obj->district_code;
-      if ($designation_id_old == 'Verifier') {
+      if ($designation_id == 'Verifier') {
         if ($duty_obj->mapping_level == "Subdiv") {
           $created_by_local_body_code = $duty_obj->urban_body_code;
         }
@@ -677,7 +676,7 @@ class BenValidationFailedController extends Controller
       else{
         $sp_mobile=0;  
       }
-      if ($designation_id_old == 'Verifier') {
+      if ($designation_id == 'Verifier') {
         $inputMain = [
           'failed_process_type' => $process_type,
           'failed_process_type' => $process_type,
@@ -857,8 +856,8 @@ class BenValidationFailedController extends Controller
     public function bulkApprove(Request $request)
     {
       //dd('ok');
-      $designation_id_old = Auth::user()->designation_id_old;
-      if ($designation_id_old!='Approver') {
+      $designation_id = Auth::user()->designation_id;
+      if ($designation_id!='Approver') {
         return redirect("/")->with('error', 'Not Allowed');
       }
       $user_id = AuthChecker::getUserId();
@@ -1081,17 +1080,16 @@ class BenValidationFailedController extends Controller
       $c_time = Carbon::now();
       $c_date = $c_time->format("Y-m-d");
       $is_active = 0;
-      $roleArray = $request->session()->get('role');
-      $designation_id_old = Auth::user()->designation_id_old;
+      $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray()      $designation_id = Auth::user()->designation_id;
       $userId = Auth::user()->id;
       $district_visible = $is_urban_visible = $block_visible = 1;
       $municipality_visible = 0;
       $gp_ward_visible = 0;
       $muncList = collect([]);
       $gpList = collect([]);
-      if ($designation_id_old == 'Admin' || $designation_id_old == 'HOD' || $designation_id_old == 'HOP' ||  $designation_id_old == 'Dashboard' || $designation_id_old == 'MisState' || $designation_id_old == 'DDO') {
+      if ($designation_id == 'Admin' || $designation_id == 'HOD' || $designation_id == 'HOP' ||  $designation_id == 'Dashboard' || $designation_id == 'MisState' || $designation_id == 'DDO') {
           $district_visible = $is_urban_visible = $block_visible = 1;
-      } else if ($designation_id_old == 'Approver' || $designation_id_old == 'Verifier') {
+      } else if ($designation_id == 'Approver' || $designation_id == 'Verifier') {
           $district_code = NULL;
           $is_urban = NULL;
           $blockCode = NULL;

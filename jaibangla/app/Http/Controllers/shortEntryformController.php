@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Exception;
 use App\District;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use App\Scheme;
 use App\PensionSc;
 use App\PensionSt;
@@ -20,15 +20,17 @@ use App\SchemeDocMap;
 use App\Assembly;
 use App\BenDocsSc;
 use App\BenDocsSt;
-use Config;
+use Illuminate\Support\Facades\Config;
 use Carbon\Carbon;
 use App\DSRejecedApplicationSc;
 use App\DSRejecedApplicationSt;
 use App\Helpers\AuthChecker;
+use App\Configduty;
 
 
 class shortEntryformController extends Controller
 {
+  protected $base_dob_chk_date;
   public function __construct()
   {
     $this->middleware('auth');
@@ -52,7 +54,7 @@ class shortEntryformController extends Controller
     $scheme_id = $scheme_row->id;
     $scheme_name = $scheme_row->scheme_name;
     $is_active = 0;
-    $roleArray = $request->session()->get('role');
+    $roleArray = Configduty::where('user_id', $user_id)->where('is_active', 1)->get()->toArray();;
     foreach ($roleArray as $roleObj) {
       if ($roleObj['scheme_id'] == $scheme_id) {
         $is_active = 1;
@@ -101,7 +103,7 @@ class shortEntryformController extends Controller
     $scheme_id = $scheme_row->id;
     $scheme_name = $scheme_row->scheme_name;
     $is_active = 0;
-    $roleArray = $request->session()->get('role');
+    $roleArray = Configduty::where('user_id', $user_id)->where('is_active', 1)->get()->toArray();;
     foreach ($roleArray as $roleObj) {
       if ($roleObj['scheme_id'] == $scheme_id) {
         $is_active = 1;
@@ -222,7 +224,7 @@ class shortEntryformController extends Controller
     $scheme_id = $scheme_row->id;
     $scheme_name = $scheme_row->scheme_name;
     $is_active = 0;
-    $roleArray = $request->session()->get('role');
+    $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
     foreach ($roleArray as $roleObj) {
       if ($roleObj['scheme_id'] == $scheme_id) {
         $is_active = 1;
@@ -349,11 +351,11 @@ class shortEntryformController extends Controller
   }
   public function view(Request $request)
   {
-    $user_id = AuthChecker::getUserId();serId();
+    $user_id = AuthChecker::getUserId();
     $id = $request->id;
     $scheme_id = (int) $request->scheme_id;
     // dd($scheme_id);
-    $designation_id_old = Auth::user()->designation_id_old;
+    $designation_id = Auth::user()->designation_id;
 
     if (!is_int($scheme_id)) {
       return redirect("/")->with('error', 'Scheme Code Not Valid');
@@ -376,7 +378,7 @@ class shortEntryformController extends Controller
       $model_name = 'App\\PensionSt';
     }
     $is_active = 0;
-    $roleArray = $request->session()->get('role');
+    $roleArray = Configduty::where('user_id', $user_id)->where('is_active', 1)->get()->toArray();;
     foreach ($roleArray as $roleObj) {
       if ($roleObj['scheme_id'] == $scheme_id) {
         $is_active = 1;
@@ -444,7 +446,7 @@ class shortEntryformController extends Controller
     $id = $request->id;
     $scheme_id = (int) $request->scheme_id;
     //dd($scheme_id);
-    $designation_id_old = Auth::user()->designation_id_old;
+    $designation_id = Auth::user()->designation_id;
 
     if (!is_int($scheme_id)) {
       return redirect("/")->with('error', 'Scheme Code Not Valid');
@@ -455,7 +457,7 @@ class shortEntryformController extends Controller
     $created_by = Auth::user()->id;
     $is_active = 0;
     $mapping_level = NULL;
-    $roleArray = $request->session()->get('role');
+    $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();;
     foreach ($roleArray as $roleObj) {
       if ($roleObj['scheme_id'] == $scheme_id) {
         $is_active = 1;
@@ -683,9 +685,9 @@ class shortEntryformController extends Controller
     $id = $request->application_id;
     $rejection_cause = $request->rejection_cause;
     $scheme_id = (int) $request->scheme;
-    $designation_id_old = Auth::user()->designation_id_old;
+    $designation_id = Auth::user()->designation_id;
     $user_id = AuthChecker::getUserId();
-    if ($designation_id_old != 'Operator') {
+    if ($designation_id != 'Operator') {
       $return_status = 0;
       $return_text = 'Not Allowed';
       $return_msg = array("" . $return_text);
@@ -722,7 +724,7 @@ class shortEntryformController extends Controller
       return response()->json(['return_status' => $return_status, 'return_msg' => $return_msg]);
     }
     $is_active = 0;
-    $roleArray = $request->session()->get('role');
+    $roleArray = Configduty::where('user_id', $user_id)->where('is_active', 1)->get()->toArray();;
     foreach ($roleArray as $roleObj) {
       if ($roleObj['scheme_id'] == $scheme_id) {
         $is_active = 1;

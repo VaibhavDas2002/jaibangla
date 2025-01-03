@@ -27,7 +27,7 @@ class RevertBackController extends Controller
      echo "</pre>";
      die();*/
 
-     if(Auth::user()->designation_id_old == "Verifier"){
+     if(Auth::user()->designation_id == "Verifier"){
         return view('scheme-selection-revert/main');
      }else{
         return redirect("/")->with('success', 'UnAuthorized');
@@ -447,7 +447,7 @@ class RevertBackController extends Controller
         //$scheme_id = 3;
     	$user_id = AuthChecker::getUserId();    	
     	$duty = Configduty::where('user_id','=',$user_id)->where('scheme_id',$scheme_id)->first();
-    	$role=MapLavel::where('scheme_id',$scheme_id)->where('role_name',Auth::user()->designation_id_old)->where('stack_level',$duty->mapping_level)->first();
+    	$role=MapLavel::where('scheme_id',$scheme_id)->where('role_name',Auth::user()->designation_id)->where('stack_level',$duty->mapping_level)->first();
 
     	$this->validateInput($request);
     	if ($_POST['submit'] == 'Update') {

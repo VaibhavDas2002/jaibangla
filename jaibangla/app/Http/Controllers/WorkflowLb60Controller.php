@@ -1353,7 +1353,7 @@ class WorkflowLb60Controller extends Controller
         }
       } else if ($action_type == 50) {
 
-        // dd($designation_id_old);
+        // dd($designation_id);
         //For Approve
         if (!AuthChecker::ApproverChecker()) {
           return redirect("/")->with('danger', 'Not Allowed');
@@ -1732,7 +1732,7 @@ class WorkflowLb60Controller extends Controller
           $accept_reject_model->user_id = $user_id;
 
           $accept_reject_model->ip_address = request()->ip();
-          //dd($designation_id_old);
+          //dd($designation_id);
           if (AuthChecker::ApproverChecker()) {
             $accept_reject_model->op_type = class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod().'@LRA';
             $reject_dup_adjustment = 1;
@@ -1770,7 +1770,7 @@ class WorkflowLb60Controller extends Controller
         }
 
       } else if ($action_type == 85) {
-        // dd($designation_id_old);
+        // dd($designation_id);
         //For Approve
         if (AuthChecker::ApproverChecker()) {
           return redirect("/")->with('danger', 'Not Allowed');
@@ -1859,7 +1859,7 @@ class WorkflowLb60Controller extends Controller
         //return redirect("/")->with('error',  $return_text);
       }
       $user_id = AuthChecker::getUserId();
-      // $designation_id_old = Auth::user()->designation_id_old;
+      // $designation_id = Auth::user()->designation_id;
       $scheme_obj = Scheme::where('id', $scheme_id)->where('is_active', 1)->first();
       if (empty($scheme_obj)) {
         $return_status = 0;
@@ -2027,7 +2027,7 @@ class WorkflowLb60Controller extends Controller
   public function lbapplicationbulkApprove(Request $request)
   {
 
-    // $designation_id_old = Auth::user()->designation_id_old;
+    // $designation_id = Auth::user()->designation_id;
     $user_id = AuthChecker::getUserId();
     if (AuthChecker::ApproverChecker()) {
       //dd('ok');
@@ -2167,8 +2167,9 @@ class WorkflowLb60Controller extends Controller
       $c_time = Carbon::now();
       $c_date = $c_time->format("Y-m-d");
       $is_active = 0;
-      $roleArray = $request->session()->get('role');
-      // $designation_id_old = Auth::user()->designation_id_old;
+      $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+      
+    // $designation_id = Auth::user()->designation_id;
       $userId = Auth::user()->id;
       $district_visible = $is_urban_visible = $block_visible = 1;
       $municipality_visible = 0;
@@ -2697,7 +2698,7 @@ class WorkflowLb60Controller extends Controller
         $scheme_length = NULL;
         $id_length = NULL;
       }
-      // $designation_id_old = Auth::user()->designation_id_old;
+      // $designation_id = Auth::user()->designation_id;
       $scheme_name_row = Scheme::where('id', $scheme_id)->first();
       $scheme_name = $scheme_name_row->scheme_name;
       $report_type = $request->report_type;

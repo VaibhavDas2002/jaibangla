@@ -70,15 +70,26 @@ use App\Ward;
 use App\GP;
 use App\MapLavel;
 use Redirect;
-use Auth;
-use Validator;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Config;
+use App\BenDocsPrachesta;
 
 class AadharUpdateController extends Controller
 {
+    protected $monthlySlug;
+    protected $monthlySchemeCode;
+    protected $monthlyMainTable;
+    protected $monthlyDocTable;
+    protected $monthlyDocArchTable;
+    protected $housingSlug;
+    protected $housingSchemeCode;
+    protected $housingMainTable;
+    protected $housingDocTable;
+    protected $housingDocArchTable;
 
     public function __construct()
     {
@@ -120,8 +131,8 @@ class AadharUpdateController extends Controller
         // $base_url=url('/');
         // echo $base_url.'/images/';exit;        
 
-        $roleArray = $request->session()->get('role');
-        foreach ($roleArray as $roleObj) {
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == $scheme_id) {
                 $is_active = 1;
                 $request->session()->put('level', $roleObj['mapping_level']);
@@ -166,20 +177,20 @@ class AadharUpdateController extends Controller
     public function schemeList(Request $request)
     {
         $user_id = AuthChecker::getUserId();
-        $designation_id_old = Auth::user()->designation_id_old;
+        $designation_id = Auth::user()->designation_id;
         $scheme_id = (int) $request->scheme_id;
-        if ($designation_id_old != 'Operator') {
+        if ($designation_id != 'Operator') {
             return redirect("/")->with('error', 'Not Allowed');
         }
-        $query = "select d.user_id,u.designation_id_old,d.scheme_id,s.scheme_name from public.duty_assignement d 
+        $query = "select d.user_id,u.designation_id,d.scheme_id,s.scheme_name from public.duty_assignement d 
                 join m_scheme s on d.scheme_id = s.id 
                 join users u on u.id = d.user_id 
                 where d.user_id = " . $user_id . "
-                group by d.user_id,u.designation_id_old,d.scheme_id,s.scheme_name
+                group by d.user_id,u.designation_id,d.scheme_id,s.scheme_name
                 order by s.scheme_name";
         $userObj = DB::connection('pgsql_mis')->select($query);
         if (count($userObj) > 0) {
-            return view('portal.scheme_aadhar_update', ['user_id' => $user_id, 'designation_id_old' => $designation_id_old, 'scheme_id' => $scheme_id, 'userObj' => $userObj]);
+            return view('portal.scheme_aadhar_update', ['user_id' => $user_id, 'designation_id' => $designation_id, 'scheme_id' => $scheme_id, 'userObj' => $userObj]);
         } else {
             return redirect("/")->with('error', 'Scheme Code Not Valid');
         }
@@ -188,13 +199,13 @@ class AadharUpdateController extends Controller
     {
 
         $user_id = AuthChecker::getUserId();
-        $designation_id_old = Auth::user()->designation_id_old;
+        $designation_id = Auth::user()->designation_id;
         $scheme_id = (int) $request->scheme_id;
         if (!is_int($scheme_id)) {
             return redirect("/")->with('error', 'Scheme Code Not Valid');
         }
-        //dd($designation_id_old);
-        if ($designation_id_old != 'Operator') {
+        //dd($designation_id);
+        if ($designation_id != 'Operator') {
             return redirect("/")->with('error', 'Not Allowed');
         }
 
@@ -233,8 +244,8 @@ class AadharUpdateController extends Controller
                 return redirect("/")->with('success', 'User Disabled');
             }
             $is_active = 0;
-            $roleArray = $request->session()->get('role');
-            foreach ($roleArray as $roleObj) {
+            $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                        foreach ($roleArray as $roleObj) {
                 if ($roleObj['scheme_id'] == $scheme_id) {
                     $is_active = 1;
                     $mapping_level = $roleObj['mapping_level'];
@@ -283,7 +294,7 @@ class AadharUpdateController extends Controller
         //dd($user_id);
         $scheme_id = (int) $request->scheme_id;
 
-        $designation_id_old = Auth::user()->designation_id_old;
+        $designation_id = Auth::user()->designation_id;
 
         if (!is_int($scheme_id)) {
             return redirect("/")->with('error', 'Scheme Code Not Valid');
@@ -327,8 +338,8 @@ class AadharUpdateController extends Controller
             $model_name = 'App\\PensionPurohitHousingICAD';
         }
         $is_active = 0;
-        $roleArray = $request->session()->get('role');
-        foreach ($roleArray as $roleObj) {
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == $scheme_id) {
                 $is_active = 1;
                 $mapping_level = $roleObj['mapping_level'];
@@ -401,7 +412,7 @@ class AadharUpdateController extends Controller
 
         //echo $id.'/'.$scheme_id; 
         //dd($scheme_id);
-        $designation_id_old = Auth::user()->designation_id_old;
+        $designation_id = Auth::user()->designation_id;
         if (!is_int($scheme_id)) {
 
             return redirect("/")->with('error', 'Scheme Code Not Valid');
@@ -413,9 +424,7 @@ class AadharUpdateController extends Controller
         $created_by = Auth::user()->id;
         $is_active = 0;
         $mapping_level = NULL;
-        $roleArray = $request->session()->get('role');
-
-        //echo "<pre>"; print_r($roleArray);exit;
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();        //echo "<pre>"; print_r($roleArray);exit;
         foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == $scheme_id) {
                 $is_active = 1;
@@ -502,9 +511,9 @@ class AadharUpdateController extends Controller
         }
         // echo $model_name;exit;
         $query = $model_name::where(['id' => $id, 'created_by_dist_code' => $distCode, 'scheme_id' => $scheme_id]);
-        // if ($designation_id_old == 'Verifier') {
+        // if ($designation_id == 'Verifier') {
         //     $query = $query->whereNull('next_level_role_id');
-        // } else if ($designation_id_old == 'Approver') {
+        // } else if ($designation_id == 'Approver') {
         //     $query = $query->where('next_level_role_id', '>', 0);
         // } else {
         //     $query = $query->whereNull('next_level_role_id');
@@ -609,7 +618,7 @@ class AadharUpdateController extends Controller
                 $ben_docs->save();
             } catch (\Exception $e) {
                 DB::rollback();
-                if ($designation_id_old == 'Operator')
+                if ($designation_id == 'Operator')
                     return redirect("application-list-aadhar-update?" . $scheme_id)->with('error', 'Some error.Please try again')
                         ->with('id',   $row->getBenidAttribute());
                 else {
@@ -617,7 +626,7 @@ class AadharUpdateController extends Controller
                 }
             }
             DB::commit();
-            if ($designation_id_old == 'Operator')
+            if ($designation_id == 'Operator')
                 return redirect("application-list-aadhar-update?scheme_id=" . $scheme_id)->with('success', 'Application Updated Successfully')
                     ->with('id',   $row->getBenidAttribute());
             else {
@@ -683,18 +692,18 @@ class AadharUpdateController extends Controller
     public function shemeSelectionAadharUpdateVerifier(Request $request)
     {
         $user_id = AuthChecker::getUserId();
-        $designation_id_old = Auth::user()->designation_id_old;
+        $designation_id = Auth::user()->designation_id;
         $scheme_id = (int) $request->scheme_id;
-        if ($designation_id_old != 'Verifier') {
+        if ($designation_id != 'Verifier') {
             return redirect("/")->with('error', 'Not Allowed');
         }
-        $query = "select d.user_id,u.designation_id_old,d.scheme_id,s.scheme_name from        public.duty_assignement d 
+        $query = "select d.user_id,u.designation_id,d.scheme_id,s.scheme_name from        public.duty_assignement d 
                     join m_scheme s on d.scheme_id = s.id 
                     join users u on u.id = d.user_id 
                     where d.user_id =" . $user_id . " order by scheme_id";
         $verifierObj = DB::connection('pgsql_mis')->select($query);
         if (count($verifierObj) > 0) {
-            return view('portal/scheme_aadhar_update_verifier', ['user_id' => $user_id, 'designation_id_old' => $designation_id_old, 'scheme_id' => $scheme_id, 'verifierObj' => $verifierObj]);
+            return view('portal/scheme_aadhar_update_verifier', ['user_id' => $user_id, 'designation_id' => $designation_id, 'scheme_id' => $scheme_id, 'verifierObj' => $verifierObj]);
         } else {
             return redirect("/")->with('error', 'Scheme Code Not Valid');
         }
@@ -704,14 +713,14 @@ class AadharUpdateController extends Controller
     {
 
         $user_id = AuthChecker::getUserId();
-        $designation_id_old = Auth::user()->designation_id_old;
+        $designation_id = Auth::user()->designation_id;
         $scheme_id = (int) $request->scheme_id;
         if (!is_int($scheme_id)) {
 
             return redirect("/")->with('error', 'Scheme Code Not Valid');
         }
 
-        if ($designation_id_old != 'Verifier') {
+        if ($designation_id != 'Verifier') {
 
             return redirect("/")->with('error', 'Not Allowed');
         }
@@ -752,8 +761,8 @@ class AadharUpdateController extends Controller
                 return redirect("/")->with('success', 'User Disabled');
             }
             $is_active = 0;
-            $roleArray = $request->session()->get('role');
-            foreach ($roleArray as $roleObj) {
+            $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                        foreach ($roleArray as $roleObj) {
                 if ($roleObj['scheme_id'] == $scheme_id) {
                     $is_active = 1;
                     $mapping_level = $roleObj['mapping_level'];
@@ -784,13 +793,13 @@ class AadharUpdateController extends Controller
     {
 
         $user_id = AuthChecker::getUserId();
-        $designation_id_old = Auth::user()->designation_id_old;
+        $designation_id = Auth::user()->designation_id;
         $scheme_id = (int) $request->scheme_id;
         $id = $request->id;
         if (!is_int($scheme_id)) {
             return redirect("/")->with('error', 'Scheme Code Not Valid');
         }
-        if ($designation_id_old != 'Verifier') {
+        if ($designation_id != 'Verifier') {
             return redirect("/")->with('error', 'Not Allowed');
         }
 
@@ -853,8 +862,8 @@ class AadharUpdateController extends Controller
         }
 
         $is_active = 0;
-        $roleArray = $request->session()->get('role');
-        foreach ($roleArray as $roleObj) {
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == $scheme_id) {
                 $is_active = 1;
                 $mappingLevel = $roleObj['mapping_level'];
@@ -992,7 +1001,7 @@ class AadharUpdateController extends Controller
         $user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id', '=', $user_id)->where('scheme_id', $scheme_id)->first();
 
-        $role = MapLavel::where(column: 'scheme_id', $scheme_id)->where('role_name', Auth::user()->designation_id_old)->where('stack_level', $duty->mapping_level)->first();
+        $role = MapLavel::where( 'scheme_id', $scheme_id)->where('role_name', Auth::user()->designation_id)->where('stack_level', $duty->mapping_level)->first();
 
         if ($_POST['submit'] == 'Verify') {
             $input = ['aadhar_edit_role_id' => 2, 'aadhar_edit_comments' => $comments];
@@ -1030,18 +1039,18 @@ class AadharUpdateController extends Controller
     public function shemeSelectionAadharUpdateApprover(Request $request)
     {
         $user_id = AuthChecker::getUserId();
-        $designation_id_old = Auth::user()->designation_id_old;
+        $designation_id = Auth::user()->designation_id;
         $scheme_id = (int) $request->scheme_id;
-        if ($designation_id_old != 'Approver') {
+        if ($designation_id != 'Approver') {
             return redirect("/")->with('error', 'Not Allowed');
         }
-        $query = "select d.user_id,u.designation_id_old,d.scheme_id,s.scheme_name from        public.duty_assignement d 
+        $query = "select d.user_id,u.designation_id,d.scheme_id,s.scheme_name from        public.duty_assignement d 
                     join m_scheme s on d.scheme_id = s.id 
                     join users u on u.id = d.user_id 
                     where d.user_id =" . $user_id . " order by scheme_id";
         $approverObj = DB::connection('pgsql_mis')->select($query);
         if (count($approverObj) > 0) {
-            return view('portal/scheme_aadhar_update_approver', ['user_id' => $user_id, 'designation_id_old' => $designation_id_old, 'scheme_id' => $scheme_id, 'approverObj' => $approverObj]);
+            return view('portal/scheme_aadhar_update_approver', ['user_id' => $user_id, 'designation_id' => $designation_id, 'scheme_id' => $scheme_id, 'approverObj' => $approverObj]);
         } else {
             return redirect("/")->with('error', 'Scheme Code Not Valid');
         }
@@ -1052,13 +1061,13 @@ class AadharUpdateController extends Controller
     {
 
         $user_id = AuthChecker::getUserId();
-        $designation_id_old = Auth::user()->designation_id_old;
+        $designation_id = Auth::user()->designation_id;
         $scheme_id = (int) $request->scheme_id;
         if (!is_int($scheme_id)) {
             return redirect("/")->with('error', 'Scheme Code Not Valid');
         }
-        //dd($designation_id_old);
-        if ($designation_id_old != 'Approver') {
+        //dd($designation_id);
+        if ($designation_id != 'Approver') {
             return redirect("/")->with('error', 'Not Allowed');
         }
 
@@ -1098,8 +1107,8 @@ class AadharUpdateController extends Controller
                 return redirect("/")->with('success', 'User Disabled');
             }
             $is_active = 0;
-            $roleArray = $request->session()->get('role');
-            foreach ($roleArray as $roleObj) {
+            $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                        foreach ($roleArray as $roleObj) {
                 if ($roleObj['scheme_id'] == $scheme_id) {
                     $is_active = 1;
                     $mapping_level = $roleObj['mapping_level'];
@@ -1130,14 +1139,14 @@ class AadharUpdateController extends Controller
     {
 
         $user_id = AuthChecker::getUserId();
-        $designation_id_old = Auth::user()->designation_id_old;
+        $designation_id = Auth::user()->designation_id;
         $scheme_id = (int) $request->scheme_id;
         $id = $request->id;
         if (!is_int($scheme_id)) {
             return redirect("/")->with('error', 'Scheme Code Not Valid');
         }
-        //dd($designation_id_old);
-        if ($designation_id_old != 'Approver') {
+        //dd($designation_id);
+        if ($designation_id != 'Approver') {
             return redirect("/")->with('error', 'Not Allowed');
         }
 
@@ -1200,8 +1209,8 @@ class AadharUpdateController extends Controller
         }
 
         $is_active = 0;
-        $roleArray = $request->session()->get('role');
-        foreach ($roleArray as $roleObj) {
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == $scheme_id) {
                 $is_active = 1;
                 $mappingLevel = $roleObj['mapping_level'];
@@ -1339,7 +1348,7 @@ class AadharUpdateController extends Controller
         $duty = Configduty::where('user_id', '=', $user_id)->where('scheme_id', $scheme_id)->first();
 
         //dd($duty);
-        $role = MapLavel::where('scheme_id', $scheme_id)->where('role_name', Auth::user()->designation_id_old)->where('stack_level', $duty->mapping_level)->first();
+        $role = MapLavel::where('scheme_id', $scheme_id)->where('role_name', Auth::user()->designation_id)->where('stack_level', $duty->mapping_level)->first();
 
         if ($_POST['submit'] == 'Approve') {
 
@@ -1375,18 +1384,18 @@ class AadharUpdateController extends Controller
     public function countListIndex(Request $request)
     {
         $user_id = AuthChecker::getUserId();
-        $designation_id_old = Auth::user()->designation_id_old;
+        $designation_id = Auth::user()->designation_id;
         $scheme_id = (int) $request->scheme_id;
-        if ($designation_id_old != 'Approver') {
+        if ($designation_id != 'Approver') {
             return redirect("/")->with('error', 'Not Allowed');
         }
-        $query = "select d.user_id,u.designation_id_old,d.scheme_id,s.scheme_name from        public.duty_assignement d 
+        $query = "select d.user_id,u.designation_id,d.scheme_id,s.scheme_name from        public.duty_assignement d 
                     join m_scheme s on d.scheme_id = s.id 
                     join users u on u.id = d.user_id 
                     where d.user_id =" . $user_id;
         $userObj = DB::connection('pgsql_mis')->select($query);
         if (count($userObj) > 0) {
-            return view('aadhar-update/count_list_aadhar_update_approver', ['user_id' => $user_id, 'designation_id_old' => $designation_id_old, 'scheme_id' => $scheme_id, 'userObj' => $userObj]);
+            return view('aadhar-update/count_list_aadhar_update_approver', ['user_id' => $user_id, 'designation_id' => $designation_id, 'scheme_id' => $scheme_id, 'userObj' => $userObj]);
         } else {
             return redirect("/")->with('error', 'Scheme Code Not Valid');
         }
@@ -1529,19 +1538,19 @@ class AadharUpdateController extends Controller
     public function countListIndexforHod(Request $request)
     {
         $user_id = AuthChecker::getUserId();
-        $designation_id_old = Auth::user()->designation_id_old;
+        $designation_id = Auth::user()->designation_id;
         $scheme_id = (int) $request->scheme_id;
         $district_name = District::get();
-        if ($designation_id_old != 'HOD') {
+        if ($designation_id != 'HOD') {
             return redirect("/")->with('error', 'Not Allowed');
         }
-        $query = "select d.user_id,u.designation_id_old,d.scheme_id,s.scheme_name from        public.duty_assignement d 
+        $query = "select d.user_id,u.designation_id,d.scheme_id,s.scheme_name from        public.duty_assignement d 
                     join m_scheme s on d.scheme_id = s.id 
                     join users u on u.id = d.user_id 
                     where d.user_id =" . $user_id;
         $userObj = DB::connection('pgsql_mis')->select($query);
         if (count($userObj) > 0) {
-            return view('aadhar-update/count_list_aadhar_update_hod', ['user_id' => $user_id, 'designation_id_old' => $designation_id_old, 'scheme_id' => $scheme_id, 'userObj' => $userObj, 'district_name' => $district_name]);
+            return view('aadhar-update/count_list_aadhar_update_hod', ['user_id' => $user_id, 'designation_id' => $designation_id, 'scheme_id' => $scheme_id, 'userObj' => $userObj, 'district_name' => $district_name]);
         } else {
             return redirect("/")->with('error', 'Scheme Code Not Valid');
         }
