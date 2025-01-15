@@ -61,6 +61,16 @@ class NoAadharChangeController extends Controller
   }
   public function shemeSelection(Request $request)
   {
+    if(AuthChecker::VerifierChecker())
+    {
+      return redirect()->route('noDupBeneficiariesList', ['type' => 4]);
+
+    }
+    if(AuthChecker::ApproverPermission())
+    {
+      return redirect()->route('no-dup-verified-beneficiaries-list', ['type' => 2]);
+    }
+
     try {
       $designation_id = Auth::user()->designation_id;
       $user_id = AuthChecker::getUserId();

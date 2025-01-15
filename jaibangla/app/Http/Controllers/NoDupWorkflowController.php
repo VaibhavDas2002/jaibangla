@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
-
+use App\AcceptRejectInfo;
+use App\BenFailedPaymentDetails;
+use App\BenPaymentDetails;
 use Illuminate\Http\Request;
 use Carbon;
 use App\DupliacteApproveReject;
@@ -21,7 +23,10 @@ use App\SubDistrict;
 use App\Taluka;
 use App\Ward;
 use App\BankDetails;
+use App\BenDupBankCodePayemntDetails;
 use App\BenEntry;
+use App\BenFailedPaymentDeatils;
+use App\BenPaymentDeatils;
 use App\Helpers\AuthChecker;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
@@ -38,26 +43,37 @@ use Hamcrest\Core\IsSame;
 
 class NoDupWorkflowController extends Controller
 {
-  private $aadhar_doc_type_id;
-  private $bank_doc_type_id;
+  // private $aadhar_doc_type_id;
+  // private $bank_doc_type_id;
+
+  private $aadhar_doc; // For Aadhar Document
+  private $bank_doc; // For Bank Document
+  private $disability_doc; // For Disability Document
+  private $caste_doc; // For caste Document
+  private $epic_doc; // For EPIC Document
+  private $ration_doc; // For Ration Document
+  private $husband_doc; // For Husband Death Certificate Document
   public function __construct()
   {
     set_time_limit(120);
     $this->middleware('auth');
     date_default_timezone_set('Asia/Kolkata');
-    $this->aadhar_doc_type_id = 6;
-    $this->bank_doc_type_id = 10;
+    $this->aadhar_doc = 6;
+    $this->bank_doc = 10;
+    $this->disability_doc = 4;
+    $this->caste_doc = 3;
+    $this->epic_doc = 7;
+    $this->ration_doc = 5;
+    $this->husband_doc = 105;
   }
-  /*
- Get Schema name using the scheme id
- */
-
-
-  public function index()
+  public function index(Request $request)
   {
-    
+    // dd($request->all()); 
+    // dd($type);
+    $type = $request->has('type') ? (int) $request->type : null;
+    // var_dump($type);
     // $designation_id = Auth::user()->designation_id;
-    if (AuthChecker::VerifierChecker()) {
+    if (AuthChecker::VerifierPermission()) {
       $is_active = 1;
     } else {
       $is_active = 0;
@@ -70,7 +86,7 @@ class NoDupWorkflowController extends Controller
     $scheme = DB::select(DB::raw("select id,scheme_name from m_scheme where  id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . " )"));
     $incomplete_types = DB::table('public.m_incomplete_type')->where('is_active', true)->get();
     // dd($incpmplete_types);
-    if (AuthChecker::VerifierChecker()) {
+    if (AuthChecker::VerifierPermission()) {
       if (count($scheme) > 0) {
         $municipality_visible = 0;
         $gp_ward_visible = 1;
@@ -88,9 +104,10 @@ class NoDupWorkflowController extends Controller
             'rural_urban_fk' => $mapObj->is_urban,
             'municipality_visible' => $municipality_visible,
             'block_munc_corp_code_fk' => $urban_body_code,
-            'district_code_fk' => $mapObj->district_code,
+            'dist_code' => $mapObj->district_code,
             'gp_ward_visible' => $gp_ward_visible,
-            'incomplete_types' => $incomplete_types
+            'incomplete_types' => $incomplete_types,
+            'type_id' => $type
           ]);
         } else {
           $taluka_code = $mapObj->taluka_code;
@@ -103,9 +120,10 @@ class NoDupWorkflowController extends Controller
             'rural_urban_fk' => $mapObj->is_urban,
             'block_munc_corp_code_fk' => $taluka_code,
             'municipality_visible' => $municipality_visible,
-            'district_code_fk' => $mapObj->district_code,
+            'dist_code' => $mapObj->district_code,
             'gp_ward_visible' => $gp_ward_visible,
-            'incomplete_types' => $incomplete_types
+            'incomplete_types' => $incomplete_types,
+            'type_id' => $type
           ]);
         }
       } else {
@@ -119,21 +137,26 @@ class NoDupWorkflowController extends Controller
   public function getNoDupList(Request $request)
   {
     if ($request->ajax()) {
+      // dd($request->all());
       $scheme_id = $request->scheme_id;
       $filter_type = $request->filter_type;
-      if (empty($scheme_id)) {
-        return redirect("/")->with('error', 'Scheme Not Valid');
-      }
-      if (!ctype_digit($scheme_id)) {
-        return redirect("/")->with('error', 'Scheme Not Valid');
-      }
-      $user_id = AuthChecker::getUserId();
+      $pay_validated = $request->pay_validated;
 
-      // $roleArray = Configduty::where('user_id', $user_id)->where('is_active', 1)->get()->toArray();;
-      $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();      $district_code = NULL;
-      $urban_body_code = NULL;
-      $mapping_level = NULL;
-      $role_id = NULL;
+      if (empty($scheme_id) || !ctype_digit($scheme_id)) {
+        return redirect("/")->with('error', 'Scheme Not Valid');
+      }
+
+      $user_id = AuthChecker::getUserId();
+      $roleArray = Configduty::where('user_id', Auth::user()->id)
+        ->where('is_active', 1)
+        ->get()
+        ->toArray();
+
+      $district_code = null;
+      $urban_body_code = null;
+      $mapping_level = null;
+      $role_id = null;
+
       foreach ($roleArray as $roleObj) {
         if ($roleObj['scheme_id'] == $scheme_id) {
           $is_active = 1;
@@ -141,174 +164,183 @@ class NoDupWorkflowController extends Controller
           $district_code = $roleObj['district_code'];
           $mapping_level = $roleObj['mapping_level'];
           $role_id = $roleObj['id'];
-          if ($roleObj['is_urban'] == 1) {
-            $urban_body_code = $roleObj['urban_body_code'];
-          } else {
-            $urban_body_code = $roleObj['taluka_code'];
-          }
+          $urban_body_code = $is_urban == 1 ? $roleObj['urban_body_code'] : $roleObj['taluka_code'];
           break;
         }
       }
-     
 
-
-
-
-      // dd($urban_body_code);
-      if (AuthChecker::VerifierChecker()) {
+      if (AuthChecker::VerifierPermission()) {
         $is_active = 1;
       } else {
         $is_active = 0;
       }
+
       if ($is_active == 0 || (empty($district_code) && empty($urban_body_code)) || empty($mapping_level)) {
-        // return redirect("/")->with('error', 'User Disabled. ');
-        return $response = array(
+        return [
           'status' => 0,
-          'msg' => array("User Disabled."),
+          'msg' => ["User Disabled."],
           'type' => 'red',
           'icon' => 'fa fa-warning',
-          'title' => 'Warning!!'
-        );
+          'title' => 'Warning!!',
+        ];
       }
-      if ($mapping_level == 'Block') {
-        $query = '';
-        $query = "SELECT * FROM pension.beneficiaries WHERE scheme_id = " . $scheme_id . "  AND next_level_clean_id IS null AND created_by_local_body_code = " . $urban_body_code . " AND created_by_dist_code = " . $district_code . " ";
-        if ($filter_type == 0) {
-          $query .= "AND is_incomplete = 1";
-        }
-        if ($filter_type == 1) {
-          $query .= "AND dup_aadhar = 1";
-        }
-        if ($filter_type == 2) {
-          $query .= "AND no_aadhar = 1";
-        }
-        if ($filter_type == 3) {
-          $query .= "AND dup_bank = 1";
-        }
-        if ($filter_type == 4) {
-          $query .= "AND dup_mobile = 1";
-        }
-        if ($filter_type == 5) {
-          $query .= "AND no_mobile = 1";
-        }
-        if ($filter_type == 6) {
-          $query .= "AND is_bank_failed = 1";
-        }
-        if ($filter_type == 7) {
-          $query .= "AND is_bank_failed = 2";
-        }
-        if ($filter_type == 8) {
-          $query .= "AND is_bank_failed = 3";
-        }
 
-        if ($request->gp_ward) {
-          $query .= " AND gp_ward_code = " . $request->gp_ward . "";
-        }
-        $query .= " ORDER BY id";
-        // dd($query);
-        $data = DB::connection('pgsql')->select($query);
-      } elseif ($mapping_level == 'Subdiv') {
+      if ($mapping_level == 'Block' || $mapping_level == 'Subdiv') {
         $query = '';
-        $query = "SELECT * FROM pension.beneficiaries WHERE scheme_id = " . $scheme_id . "  AND created_by_local_body_code = " . $urban_body_code . " AND created_by_dist_code = " . $district_code . " ";
+        $query = "SELECT * FROM pension.beneficiaries WHERE scheme_id = " . $scheme_id . " AND next_level_clean_id IS NULL AND created_by_local_body_code = " . $urban_body_code . " AND created_by_dist_code = " . $district_code . " ";
+
         if ($filter_type == 0) {
-          $query .= "AND is_incomplete = 1";
+          $query .= "AND is_incomplete = 1 ";
         }
         if ($filter_type == 1) {
-          $query .= "AND dup_aadhar = 1";
+          $query .= "AND dup_aadhar = 1 ";
         }
         if ($filter_type == 2) {
-          $query .= "AND no_aadhar = 1";
+          $query .= "AND no_aadhar = 1 ";
         }
         if ($filter_type == 3) {
-          $query .= "AND dup_bank = 1";
+          $query .= "AND dup_bank = 1 ";
         }
         if ($filter_type == 4) {
-          $query .= "AND dup_mobile = 1";
+          $query .= "AND dup_mobile = 1 ";
         }
         if ($filter_type == 5) {
-          $query .= "AND no_mobile = 1";
+          $query .= "AND no_mobile = 1 ";
         }
         if ($filter_type == 6) {
-          $query .= "AND is_bank_failed = 1";
-        }
-        if ($filter_type == 7) {
-          $query .= "AND is_bank_failed = 2";
+          $query .= "AND no_ration_card = 1 ";
         }
         if ($filter_type == 8) {
-          $query .= "AND is_bank_failed = 3";
+          $query .= "AND no_epic_voter = 1 ";
         }
-        if ($request->muncid) {
-          $query .= " AND gp_ward_code = " . $request->muncid . "";
+        if ($filter_type == 10) {
+          $query .= "AND is_bank_failed = 1 ";
         }
-        $query .= " ORDER BY id";
-        $data = DB::connection('pgsql')->select($query);
-      }
-      return datatables()->of($data)
-        ->addColumn('view', function ($data) {
-          $btn = '';
-          $btn = '<a href="' . route('editApplicantDetails', ['id' => $data->id, 'scheme_id' => $data->scheme_id]) . '" class="btn btn-primary btn-xs"><i class="glyphicon glyphicon-edit"></i> Edit </a>';
-          return $btn;
-        })
-        ->addColumn('name', function ($data) {
-          // return $data->getName();
-          return $data->ben_fname . ' ' . $data->ben_mname . ' ' . $data->ben_lname;
-        })
-        ->addColumn('aadhar_no', function ($data) {
-          $mask_aadhar = '';
-          $aadhar = trim($data->aadhar_no);
-          if (strlen($aadhar) >= 12 && strlen($aadhar) != '') {
-            $mask_aadhar = '********' . substr($aadhar, 8, 4);
-          } else {
-            $mask_aadhar = $aadhar;
-          }
-          return $mask_aadhar;
-        })
-        ->addColumn('status', function ($data) {
-          $sl = 1;
-          // $sl++;
-          $status = '';
-          if ($data->dup_aadhar == 1) {
-            $status .= '<span class="text text-info" style="font-size: 12px;"><b>' . $sl++ . '. Duplicate Aadhar</b></span> <br>';
-          }
-          if ($data->dup_mobile == 1) {
-            $status .= '<span class="text text-info" style="font-size: 12px;"><b>' . $sl++ . '. Duplicate Mobile</b></span> <br>';
-          }
-          if ($data->dup_bank == 1) {
-            $status .= '<span class="text text-info" style="font-size: 12px;"><b>' . $sl++ . '. Duplicate Bank</b></span> <br>';
-          }
-          if ($data->no_aadhar == 1) {
-            $status .= '<span class="text text-info" style="font-size: 12px;"><b>' . $sl++ . '. No Aadhar</b></span> <br>';
-          }
-          if ($data->no_mobile == 1) {
-            $status .= '<span class="text text-info" style="font-size: 12px;"><b>' . $sl++ . '. No Mobile</b></span> <br>';
-          }
-          if ($data->is_incomplete == 1) {
-            $status .= '<span class="text text-info" style="font-size: 12px;"><b>' . $sl++ . '. Incomplete Details</b></span> <br>';
-          }
-          if ($data->is_bank_failed == 1) {
-            if ($data->pay_validated == 3) {
-              $status .= '<span class="text text-info" style="font-size: 12px;"><b>' . $sl++ . '. Payment Failure SBI</b></span>';
-            } elseif ($data->pay_validated == 4) {
-              $status .= '<span class="text text-info" style="font-size: 12px;"><b>' . $sl++ . '. Payment Failure RBI</b></span>';
+        if ($filter_type == 11) {
+          $query .= "AND is_bank_failed = 2 ";
+        }
+        if ($filter_type == 12) {
+          $query .= "AND is_bank_failed = 3 ";
+        }
+        if ($filter_type == 10 && isset($pay_validated)) {
+          $query .= "AND id IN (";
+          if ($pay_validated == 3) {
+            $subQuery = DB::connection('pgsql_paywrite')->select("SELECT ben_id FROM payment.ben_payment_details WHERE pay_validated = 3");
+            $subQueryIds = array_column($subQuery, 'ben_id');
+            if (!empty($subQueryIds)) {
+              $query .= implode(',', $subQueryIds);
             } else {
-              $status .= '<span class="text text-info" style="font-size: 12px;"><b>' . $sl++ . '. Payment Failure IFMS</b></span>';
+              $query .= "NULL";
             }
           }
-          // $sl++;
-          return $status;
-        })
-        ->rawColumns(['view', 'name', 'aadhar_no', 'status'])
-        ->make(true);
+          if ($pay_validated == 4) {
+            $subQuery = DB::connection('pgsql_paywrite')->select("SELECT ben_id FROM payment.ben_payment_details WHERE pay_validated = 4");
+            $subQueryIds = array_column($subQuery, 'ben_id');
+            if (!empty($subQueryIds)) {
+              $query .= implode(',', $subQueryIds);
+            } else {
+              $query .= "NULL";
+            }
+          }
+          if ($pay_validated == 5) {
+            $subQuery = DB::connection('pgsql_paywrite')->select("SELECT ben_id FROM payment.ben_payment_details WHERE pay_validated = 5");
+            $subQueryIds = array_column($subQuery, 'ben_id');
+            if (!empty($subQueryIds)) {
+              $query .= implode(',', $subQueryIds);
+            } else {
+              $query .= "NULL";
+            }
+          }
+          $query .= ") ";
+        }
+        if ($request->blk_ulb_code) {
+          $query .= "AND created_by_local_body_code = " . $request->blk_ulb_code . " ";
+        }
+
+        $query .= "ORDER BY id";
+        $data = DB::connection('pgsql')->select($query);
+        // dd($query);
+        $data = collect($data)->map(function ($item) use ($scheme_id) {
+          $pay_validation = DB::connection('pgsql_paywrite')
+            ->table('payment.ben_payment_details')
+            ->where('ben_id', $item->id)
+            ->where('scheme_id', $scheme_id)
+            ->select('pay_validated')
+            ->first();
+
+          $item->pay_validated = $pay_validation->pay_validated ?? null;
+          return $item;
+        });
+
+        return datatables()->of($data)
+          ->addColumn('view', function ($data) {
+            return '<a href="' . route('editApplicantDetails', ['id' => $data->id, 'scheme_id' => $data->scheme_id]) . '" class="btn btn-primary btn-xs"><i class="glyphicon glyphicon-edit"></i> Edit </a>';
+          })
+          ->addColumn('name', function ($data) {
+            return $data->ben_fname . ' ' . $data->ben_mname . ' ' . $data->ben_lname;
+          })
+          ->addColumn('aadhar_no', function ($data) {
+            $aadhar = trim($data->aadhar_no);
+            return strlen($aadhar) >= 12 ? '********' . substr($aadhar, 8, 4) : $aadhar;
+          })
+          ->addColumn('status', function ($data) {
+            $sl = 1;
+            $status = '';
+            if ($data->dup_aadhar == 1) {
+              $status .= '<span class="text text-info" style="font-size: 12px;"><b>' . $sl++ . '. Duplicate Aadhar</b></span> <br>';
+            }
+            if ($data->dup_mobile == 1) {
+              $status .= '<span class="text text-info" style="font-size: 12px;"><b>' . $sl++ . '. Duplicate Mobile</b></span> <br>';
+            }
+            if ($data->dup_bank == 1) {
+              $status .= '<span class="text text-info" style="font-size: 12px;"><b>' . $sl++ . '. Duplicate Bank</b></span> <br>';
+            }
+            if ($data->no_aadhar == 1) {
+              $status .= '<span class="text text-info" style="font-size: 12px;"><b>' . $sl++ . '. No Aadhar</b></span> <br>';
+            }
+            if ($data->no_mobile == 1) {
+              $status .= '<span class="text text-info" style="font-size: 12px;"><b>' . $sl++ . '. No Mobile</b></span> <br>';
+            }
+            if ($data->is_incomplete == 1) {
+              $status .= '<span class="text text-info" style="font-size: 12px;"><b>' . $sl++ . '. Incomplete Details</b></span> <br>';
+            }
+            // if ($data->is_bank_failed == 1) {
+            //   $status .= '<span class="text text-info" style="font-size: 12px;"><b>' . $sl++ . '. Payment / Transaction Failure </b></span> <br>';
+            // }
+            if ($data->is_bank_failed == 1) {
+              if ($data->pay_validated == 3) {
+                $status .= '<span class="text text-info" style="font-size: 12px;"><b>' . $sl++ . '. Payment Failure SBI</b></span>';
+              } elseif ($data->pay_validated == 4) {
+                $status .= '<span class="text text-info" style="font-size: 12px;"><b>' . $sl++ . '. Payment Failure RBI</b></span>';
+              } elseif ($data->pay_validated == 5) {
+                $status .= '<span class="text text-info" style="font-size: 12px;"><b>' . $sl++ . '. Payment Failure IFMS</b></span>';
+              }
+            }
+
+            if ($data->is_bank_failed == 2) {
+              $status .= '<span class="text text-info" style="font-size: 12px;"><b>' . $sl++ . '. Name Validation Failure</b></span> <br>';
+            }
+            if ($data->is_bank_failed == 3) {
+              $status .= '<span class="text text-info" style="font-size: 12px;"><b>' . $sl++ . '. A/c Validation Failure</b></span> <br>';
+            }
+
+
+            return $status;
+          })
+          ->rawColumns(['view', 'name', 'aadhar_no', 'status'])
+          ->make(true);
+      }
     }
   }
+
 
   public function editApplicantDetails(Request $request)
   {
     try {
       $is_verifier = AuthChecker::VerifierChecker();
       $user_id = AuthChecker::getUserId();
-      $doc_type_id_arr = array($this->aadhar_doc_type_id, $this->bank_doc_type_id);
-      $supporting = DocumentType::select('id', 'doc_size_kb', 'doc_name', 'doc_type', 'doucument_group')->whereIn("id", $doc_type_id_arr)->get();
+      // $doc_type_id_arr = array($this->aadhar_doc_type_id, $this->bank_doc_type_id);
+      // $supporting = DocumentType::select('id', 'doc_size_kb', 'doc_name', 'doc_type', 'doucument_group')->whereIn("id", $doc_type_id_arr)->get();
       $user_id = AuthChecker::getUserId();
       $scheme_id = $request->scheme_id;
       $ben_id = $request->id;
@@ -395,7 +427,9 @@ class NoDupWorkflowController extends Controller
       $getEpicDoc = DB::connection('pgsql_encwrite')->table('jb_doc.ben_attach_documents')->where('beneficiary_id', $ben_id)->where('scheme_id', $scheme_id)->where('document_type', 7)->count();
       $getRationDoc = DB::connection('pgsql_encwrite')->table('jb_doc.ben_attach_documents')->where('beneficiary_id', $ben_id)->where('scheme_id', $scheme_id)->where('document_type', 5)->count();
       // dd($getBankDoc);
+
       $PaymentErrorType = DB::connection('pgsql_paywrite')->table('payment.ben_payment_details')->where('ben_id', $ben_id)->where('scheme_id', $scheme_id)->first();
+      // var_dump($PaymentErrorType);
       $enable_validation = array();
       $enableArr = [];
       if ($row->dup_bank == 1) {
@@ -419,28 +453,142 @@ class NoDupWorkflowController extends Controller
       $sc_visible = 0;
       $st_visible = 0;
       $farmer_visible = 0;
-      $wcd_wp_visible = DB::connection('pgsql_main')->table('pension.mandatory_field')->where('ben_id', $ben_id)->where('scheme_id', 10)->where('process_code', 1)->count();
-      $manabilk_visible = DB::connection('pgsql_main')->table('pension.mandatory_field')->where('ben_id', $ben_id)->where('scheme_id', 2)->where('process_code', 1)->count();
-      $sc_visible = DB::connection('pgsql_main')->table('pension.mandatory_field')->where('ben_id', $ben_id)->where('scheme_id', 3)->where('process_code', 1)->count();
-      $st_visible = DB::connection('pgsql_main')->table('pension.mandatory_field')->where('ben_id', $ben_id)->where('scheme_id', 1)->where('process_code', 1)->count();
-      $farmer_visible = DB::connection('pgsql_main')->table('pension.mandatory_field')->where('ben_id', $ben_id)->where('scheme_id', 13)->where('process_code', 1)->count();
-      // dd($scheme_id);
+      $wcd_wp_visible = DB::connection('pgsql_main')->table('pension.beneficiaries')->where('id', $ben_id)->where('scheme_id', 10)->where('is_incomplete', 1)->count();
+      $manabilk_visible = DB::connection('pgsql_main')->table('pension.beneficiaries')->where('id', $ben_id)->where('scheme_id', 2)->where('is_incomplete', 1)->count();
+      $sc_visible = DB::connection('pgsql_main')->table('pension.beneficiaries')->where('id', $ben_id)->where('scheme_id', 3)->where('is_incomplete', 1)->count();
+      $st_visible = DB::connection('pgsql_main')->table('pension.beneficiaries')->where('id', $ben_id)->where('scheme_id', 1)->where('is_incomplete', 1)->count();
+      // $farmer_visible = DB::connection('pgsql_main')->table('pension.beneficiaires')->where('id', $ben_id)->where('scheme_id', 13)->where('process_code', 1)->count();
 
       $field_arrays = array();
-      // DB::connection('pgsql_main')->table('pension.mandatory_field')->where('ben_id', $ben_id)->where('scheme_id', $scheme_id)->where('process_code', 1)->value('')
-      $field_names = DB::connection('pgsql')
-        ->table('public.m_required_field')
-        ->whereIn('id', function ($query) use ($ben_id, $scheme_id) {
-          $query->select('field_id')
-            ->from('pension.mandatory_field')
-            ->where('ben_id', $ben_id)
-            ->where('scheme_id', $scheme_id)
-            ->where('process_code', 1);
-        })
-        ->get();
-      foreach ($field_names as $field) {
-        $field_arrays[] = $field->name;
+      $field_arrays_payment = array();
+
+      $query = "SELECT id, scheme_id, is_incomplete, dup_aadhar, no_aadhar, dup_bank, dup_mobile, no_mobile, is_bank_failed, no_ration_card, no_epic_voter
+      FROM pension.beneficiaries 
+      WHERE id = ? AND scheme_id = ?";
+
+      // Execute the query with parameterized bindings
+      $data = DB::connection('pgsql')->select($query, [$row->id, $row->scheme_id]);
+      $data = $data[0];
+      if ($data->dup_aadhar == 1) {
+        array_push($field_arrays, 'Duplicate Aadhar');
       }
+      if ($data->no_aadhar == 1) {
+        array_push($field_arrays, 'No Aadhar');
+      }
+      if ($data->dup_bank == 1) {
+        array_push($field_arrays, 'Duplicate Bank Account Number');
+      }
+      if ($data->dup_mobile == 1) {
+        array_push($field_arrays, 'Duplicate Mobile Number');
+      }
+      if ($data->no_mobile == 1) {
+        array_push($field_arrays, 'No Mobile Number');
+      }
+      if ($data->is_bank_failed == 1) {
+        array_push($field_arrays, 'Bank Transaction Failed');
+      }
+      if ($data->is_bank_failed == 2) {
+        array_push($field_arrays, 'Name Validation Failed');
+      }
+      if ($data->is_bank_failed == 3) {
+        array_push($field_arrays, 'A/c Validation Failed');
+      }
+      if ($data->no_ration_card == 1) {
+        array_push($field_arrays, 'No Ration Card');
+      }
+      if ($data->no_epic_voter == 1) {
+        array_push($field_arrays, 'No Epic Voter Card');
+      }
+
+      if ($data->is_incomplete == 1 && ($data->scheme_id == 1 || $data->scheme_id == 3)) {
+        // Adding fields to the array
+        array_push($field_arrays, 'Caste Category');
+        array_push($field_arrays, 'Caste Certificate Number');
+        array_push($field_arrays, 'Caste Certificate Document');
+      }
+      if ($data->is_incomplete == 1 && ($data->scheme_id == 2)) {
+        array_push($field_arrays, 'Disability Type');
+        array_push($field_arrays, 'Percentage of Disability');
+        array_push($field_arrays, 'Authority Name');
+        array_push($field_arrays, 'Authority Designation');
+        array_push($field_arrays, 'Disability Certificate from Appropriate Authority');
+      }
+      if ($data->is_incomplete == 1 && ($data->scheme_id == 11)) {
+        array_push($field_arrays, 'Husband Death Document');
+        array_push($field_arrays, 'Husband Name');
+      }
+      $failed_type_id = 0;
+      // dd($row);
+      // if($row->is_bank_failed == 2 || $row->is_bank_failed == 3)
+      // {
+      if ($PaymentErrorType) {
+        $failed_type_id = $PaymentErrorType->pay_validated;
+      } else {
+        $failed_type_id = null;
+      }
+
+      $invalid_status = '';
+
+      if ($row->is_bank_failed == 1 || $row->is_bank_failed == 2 || $row->is_bank_failed == 3) {
+        $ben_details = DB::connection('pgsql_paywrite')->table(DB::raw('payment.failed_payment_details as f'))
+          ->join('payment.ben_payment_details as ben', 'f.ben_id', '=', 'ben.ben_id')
+          ->where('f.failed_type', $failed_type_id)->where('f.edited_status', 0)->where('ben.is_eligible', true)
+          ->where('ben.ben_status', 1)->where('f.scheme_id', $scheme_id)
+          ->where('f.ben_id', $row->id)
+          ->first();
+        // dd($ben_details);
+        // dd($bank_details);
+
+        // dd($ben_details->remarks);
+        if ($failed_type_id == 4 || $failed_type_id == 5) {
+          $invalid_status = $ben_details->remarks;
+        } elseif ($failed_type_id == 3) {
+          $remarks = DB::connection('pgsql_paywrite')->table('sbi.credit_transaction_code')->where(
+            'code',
+            trim($ben_details->status_code)
+          )->get(['description'])
+            ->first();
+          $invalid_status = $remarks->description;
+        }
+      }
+      $av_name_response = null;
+
+      if ($row->is_bank_failed == 2) {
+        $response = DB::connection('pgsql_paywrite')
+          ->table('payment.failed_payment_details')
+          ->where('ben_id', $ben_id)
+          ->where('edited_status', 0)
+          ->select('av_name_response')
+          ->first();
+
+        // Check if response exists and assign the value
+        if ($response) {
+          $av_name_response = $response->av_name_response;
+        }
+      }
+
+
+      // dd($av_name_reposnse);
+      // }
+      // else {
+      //   $invalid_status = null;
+      // }
+      $required_fields = DB::table('public.m_fields')
+        ->where('is_active', 1)
+        ->pluck('id')
+        ->toArray();
+
+      $name_opts = DB::table('public.m_scheme_gen_setting')
+        ->where('scheme_id', $scheme_id)
+        ->pluck('name_valid_opt');
+      $name_opts = $name_opts->first();
+      $array = explode(',', trim($name_opts, '{}'));
+      $array = array_map('intval', $array);
+      // dd($array); 
+      $name_options = DB::table('public.m_name_valid_option')->wherein('id', $array)->get();
+      // dd($name_options);
+
+
 
       return view(
         'No-Duplicate-Update.ben_details_update_verifier',
@@ -451,7 +599,6 @@ class NoDupWorkflowController extends Controller
           'block_name' => $block_name,
           'gp_name' => $gp_name,
           'district_code' => $district_code,
-          // 'designation_id' => $designation_id,
           'enable_validation' => $enable_validation,
           'getAadharDoc' => $getAadharDoc,
           'getBankDoc' => $getBankDoc,
@@ -460,6 +607,9 @@ class NoDupWorkflowController extends Controller
           'getCasteDoc' => $getCasteDoc,
           'getEpicDoc' => $getEpicDoc,
           'getRationDoc' => $getRationDoc,
+          'invalid_status' => $invalid_status,
+          'name_options' => $name_options,
+          'av_name_response' => $av_name_response,
           // 'fetch_list' => $fetch_list,
           // 'fetch_lb_status' => $fetch_lb_status,
           // 'encloser_list' => $encloser_list,
@@ -475,15 +625,12 @@ class NoDupWorkflowController extends Controller
           // 'age_supporting' => $age_supporting,
           // 'reason_order' => $reason_order,
           'is_verifier' => $is_verifier,
-          'manabik_visible' => $manabilk_visible,
           'type' => $type,
           'op_type' => $op_type,
           'getDisabilityDoc' => $getDisabilityDoc,
-          'wcd_wp_visible' => $wcd_wp_visible,
-          'sc_visible' => $sc_visible,
-          'st_visible' => $st_visible,
-          'farmer_visible' => $farmer_visible,
           'field_arrays' => $field_arrays,
+          'field_arrays_payment' => $field_arrays_payment,
+          'required_fields' => $required_fields
 
         ]
       );
@@ -495,75 +642,19 @@ class NoDupWorkflowController extends Controller
 
   public function updateApplicantDetails(Request $request)
   {
-    dd($request->all());
-    $auth = AuthChecker::VerifierChecker();
+    // dd($request->all());
+    $auth = AuthChecker::VerifierPermission();
     if ($auth) {
       try {
         $user_id = AuthChecker::getUserId();
-        // dd($user_id);
-        $new_aadhar = null;
-        $new_bank_code = null;
-        if (!empty($request->id))
-          $ben_id = trim($request->id);
-        if (!empty($request->scheme_id))
-          $scheme_id = $request->scheme_id;
-        if (!empty($request->old_aadhar))
-          $old_aadhar = trim($request->old_aadhar_no);
-        if (!empty($request->old_bank_code))
-          $old_bank_code = trim($request->old_bank_code);
-        if (!empty($request->old_bank_ifsc))
-          $old_bank_ifsc = trim($request->old_bank_ifsc);
-        if (!empty($request->old_bank_name))
-          $old_bank_name = trim($request->old_bank_name);
-        if (!empty($request->old_bank_branch))
-          $old_bank_branch = trim($request->old_bank_branch);
-        if (!empty($request->old_mobile))
-          $old_mobile = trim($request->old_mobile);
-        if (!empty($request->dup_bank))
-          $dup_bank = $request->dup_bank;
-        if (!empty($request->dup_aadhar))
-          $dup_aadhar = $request->dup_aadhar;
-        if (!empty($request->dup_mobile))
-          $dup_mobile = $request->dup_mobile;
-        if (!empty($request->no_mobile))
-          $no_mobile = $request->no_mobile;
-        if (!empty($request->no_aadhar))
-          $no_aadhar = $request->no_aadhar;
-        if (!empty($request->is_incomplete))
-          $is_incomplete = $request->is_incomplete;
-        if (!empty($request->is_bank_failed))
-          $is_bank_failed = $request->is_bank_failed;
-        if (!empty($request->bank_checked))
-          $bank_checked = $request->bank_checked;
-        if (!empty($request->mobile_checked))
-          $mobile_checked = $request->mobile_checked;
-        if (!empty($request->aadhar_checked))
-          $aadhar_checked = $request->aadhar_checked;
-        if (!empty($request->new_caste_category))
-          $new_caste_category = $request->new_caste_category;
-        if (!empty($request->new_caste_certificate_no))
-          $new_caste_certificate_no = $request->new_caste_certificate_no;
-        if (!empty($request->new_bank_code))
-          $new_bank_code = $request->new_bank_code;
-        if (!empty($request->is_incomplete))
-          $is_incomplete = $request->is_incomplete;
-        if (!empty($request->new_disablity_type))
-          $new_disablity_type = $request->new_disablity_type;
-        if (!empty($request->new_disablity_type_percentage))
-          $new_disablity_type_percentage = $request->new_disablity_type_percentage;
-        if (!empty($request->new_disablity_type_authority))
-          $new_disablity_type_authority = $request->new_disablity_type_authority;
-        if (!empty($request->new_disability_designation))
-          $new_disability_designation = $request->new_disability_designation;
-        if (!empty($request->new_husband_first_name))
-          $new_husband_first_name = $request->new_husband_first_name;
-        if (!empty($request->new_husband_middle_name))
-          $new_husband_middle_name = $request->new_husband_middle_name;
-        if (!empty($request->new_husband_last_name))
-          $new_husband_last_name = $request->new_husband_last_name;
+        $scheme_id = $request->scheme_id;
+        $ben_id = $request->id;
+        $old_bank_ifsc = $request->old_bank_ifsc;
 
-        // dd($request->old_bank_code);
-        $isSame = ($new_bank_code != $request->old_bank_code) ? 0 : 1;
+
+        // dd($request->new_bank_code);
+        $isSame = !empty($request->new_bank_code) && ($request->new_bank_code != $request->old_bank_code) ? 0 : 1;
+
 
         $duty_obj = Configduty::where('user_id', $user_id)->where('scheme_id', $scheme_id)->first();
         if (empty($duty_obj)) {
@@ -590,18 +681,11 @@ class NoDupWorkflowController extends Controller
         $bankCodeRow = DB::connection('pgsql')->table('ifsc.bank_details')->where('ifsc', $old_bank_ifsc)->first();
         $bankDupRow = DB::connection('pgsql')->table('pension.ben_payment_details_bank_code_dup')->where('id', $ben_id)->where('scheme_id', $scheme_id)->where('next_level_role_id', -97)->count();
 
-        $aadhar_doc = 6; // For Aadhar Document
-        $bank_doc = 10; // For Bank Document
-        $disability_doc = 4; // For Disability Document
-        $caste_doc = 3; // For caste Document
-        $epic_doc = 7; // For EPIC Document
-        $ration_doc = 5; // For Ration Document
-        $husband_doc = 105; // For Husband Death Certificate Document
-
+        // dd($bankDupRow);
         $rules = [];
         $attributes = [];
 
-        if ($row->dup_bank == 1) {
+        if ($row->dup_bank == 1 || in_array($row->is_bank_failed, [1, 2, 3])) {
           $bankRules = [
             'old_bank_code' => 'required|max:20',
             'old_bank_ifsc' => 'required|max:11',
@@ -650,13 +734,13 @@ class NoDupWorkflowController extends Controller
           $attributes = array_merge($attributes, $aadharAttributes);
         }
 
-        if ($row->dup_mobile == 1) {
+        if ($row->dup_mobile == 1 || in_array($row->is_bank_failed, [1])) {
           $mobileRules = [
-            'old_mobile' => 'required|digits:10',
+            'old_mobile_no' => 'required|digits:10',
             'new_mobile_no' => 'required|digits:10',
           ];
           $mobileAttributes = [
-            'old_mobile' => 'Old Mobile Number',
+            'old_mobile_no' => 'Old Mobile Number',
             'new_mobile_no' => 'New Mobile Number',
           ];
           $rules = array_merge($rules, $mobileRules);
@@ -716,7 +800,6 @@ class NoDupWorkflowController extends Controller
           }
 
         }
-
         $messages = [
           'required' => 'The :attribute field is required.',
           'max' => 'Total :max characters allowed for :attribute.',
@@ -724,40 +807,47 @@ class NoDupWorkflowController extends Controller
         ];
 
 
+
         // Fetch document details using the helper function
-        $bank_doc_count = DB::connection('pgsql_encwrite')->table('jb_doc.ben_attach_documents')->where('beneficiary_id', $ben_id)->where('document_type', $bank_doc)->count();
-        $doc_aadhar_arr = DataInsert::getDocumentDetails($aadhar_doc);
-        $doc_bank_arr = DataInsert::getDocumentDetails($bank_doc);
-        $doc_caste_arr = DataInsert::getDocumentDetails($caste_doc);
-        $doc_disability_arr = DataInsert::getDocumentDetails($disability_doc);
-        $doc_epic_arr = DataInsert::getDocumentDetails($epic_doc);
-        $doc_ration_arr = DataInsert::getDocumentDetails($ration_doc);
-        $doc_husband_arr = DataInsert::getDocumentDetails($husband_doc);
+        $bank_doc_count = DB::connection('pgsql_encwrite')->table('jb_doc.ben_attach_documents')->where('beneficiary_id', $ben_id)->where('document_type', $this->bank_doc)->count();
+        $doc_aadhar_arr = DataInsert::getDocumentDetails($this->aadhar_doc);
+        $doc_bank_arr = DataInsert::getDocumentDetails($this->bank_doc);
+        $doc_caste_arr = DataInsert::getDocumentDetails($this->caste_doc);
+        $doc_disability_arr = DataInsert::getDocumentDetails($this->disability_doc);
+        $doc_epic_arr = DataInsert::getDocumentDetails($this->epic_doc);
+        $doc_ration_arr = DataInsert::getDocumentDetails($this->ration_doc);
+        $doc_husband_arr = DataInsert::getDocumentDetails($this->husband_doc);
+
+        $bank_doc_count = 1;
 
         if ($doc_aadhar_arr && $row->no_aadhar == 1) {
           $required = 'required';
           $rules['new_aadhar_doc'] = $required . '|mimes:' . $doc_aadhar_arr['doc_type'] . '|max:' .
-          $doc_aadhar_arr['doc_size_kb'] . ',';
+            $doc_aadhar_arr['doc_size_kb'] . ',';
           $messages['new_aadhar_doc.max'] = "The file uploaded for " . $doc_aadhar_arr['doc_name'] . " size must be less than " .
-          $doc_aadhar_arr['doc_size_kb'] . " KB";
+            $doc_aadhar_arr['doc_size_kb'] . " KB";
           $messages['new_aadhar_doc.mimes'] = "The file uploaded for " . $doc_aadhar_arr['doc_name'] . " must be of type " .
-          $doc_aadhar_arr['doc_type'];
+            $doc_aadhar_arr['doc_type'];
           $messages['new_aadhar_doc.required'] = "Document for " . $doc_aadhar_arr['doc_name'] . " must be uploaded";
         }
+
+
         if ($doc_bank_arr && $bank_doc_count == 0) {
           $required = 'required';
           $rules['new_bank_doc'] = $required . '|mimes:' . $doc_bank_arr['doc_type'] . '|max:' . $doc_bank_arr['doc_size_kb'] .
             ',';
           $messages['new_bank_doc.max'] = "The file uploaded for " . $doc_bank_arr['doc_name'] . " size must be less than " .
-          $doc_bank_arr['doc_size_kb'] . " KB";
+            $doc_bank_arr['doc_size_kb'] . " KB";
           $messages['new_bank_doc.mimes'] = "The file uploaded for " . $doc_bank_arr['doc_name'] . " must be of type " .
-          $doc_bank_arr['doc_type'];
+            $doc_bank_arr['doc_type'];
           $messages['new_bank_doc.required'] = "Document for " . $doc_bank_arr['doc_name'] . " must be uploaded";
         }
+
+
         if ($doc_caste_arr && $row->is_incomplete == 1 && ($scheme_id == 1 || $scheme_id == 3)) {
           $required = 'required';
           $rules['new_caste_certificate_doc'] = $required . '|mimes:' . $doc_caste_arr['doc_type'] . '|max:' .
-          $doc_caste_arr['doc_size_kb'] . ',';
+            $doc_caste_arr['doc_size_kb'] . ',';
           $messages['new_caste_certificate_doc.max'] = "The file uploaded for " . $doc_caste_arr['doc_name'] . " size must be less
           than " . $doc_caste_arr['doc_size_kb'] . " KB";
           $messages['new_caste_certificate_doc.mimes'] = "The file uploaded for " . $doc_caste_arr['doc_name'] . " must be of type
@@ -787,10 +877,41 @@ class NoDupWorkflowController extends Controller
           $messages['new_husband_death_doc.required'] = "Document for " . $doc_husband_arr['doc_name'] . " must be uploaded";
         }
 
+        if ($doc_bank_arr && in_array($row->is_bank_failed, [1, 3])) {
+          $required = 'required';
+          $rules['new_bank_doc'] = $required . '|mimes:' . $doc_bank_arr['doc_type'] . '|max:' . $doc_bank_arr['doc_size_kb'] .
+            ',';
+          $messages['new_bank_doc.max'] = "The file uploaded for " . $doc_bank_arr['doc_name'] . " size must be less than " .
+            $doc_bank_arr['doc_size_kb'] . " KB";
+          $messages['new_bank_doc.mimes'] = "The file uploaded for " . $doc_bank_arr['doc_name'] . " must be of type " .
+            $doc_bank_arr['doc_type'];
+          $messages['new_bank_doc.required'] = "Document for " . $doc_bank_arr['doc_name'] . " must be uploaded";
+        }
+
+
+        // dd($doc_bank_arr && in_array($row->is_bank_failed, [1, 2, 3]) );
+        // dd($request->all());
+
+        // dd($row->dup_aadhar == 1 && !empty($request->new_aadhar_no) && $request->new_aadhar_no == $row->aadhar_no);
+
+        // dd($request->all());
+        // dd($row->dup_bank == 1 && !empty($request->new_bank_code) && trim($request->new_bank_code) != trim($row->bank_code));
+        // dd($row->dup_bank == 1 && !empty($request->new_bank_code) && trim($request->new_bank_code) != trim($row->bank_code));
+        // Output the final array
+
+        $updateArray = $this->getUpdateCode($row, $request, 1);
+        // dd($updateArray);
+
+        // die;
+
+
+        // $validator = Validator::make($request->all(), $rules, $messages, $attributes);
 
         $validator = Validator::make($request->all(), $rules, $messages, $attributes);
+        // dd($validator);
         if (!$validator->passes()) {
-          return redirect()->back()
+          // dd($validator->errors()->all());
+          return redirect()->route('editApplicantDetails', ['id' => $ben_id, 'scheme_id' => $scheme_id])
             ->withErrors($validator->errors()->all())
             ->withInput();
         } else {
@@ -802,6 +923,12 @@ class NoDupWorkflowController extends Controller
 
             $old_values = [];
             $new_values = [];
+
+            $benEntry_model = BenEntry::find($ben_id);
+
+            // dd($ben_failed_payment_details_model);
+
+
             // Old values
             $old_values['aadhar_no'] = $beneficiaryRow->aadhar_no;
             $old_values['mobile_no'] = $beneficiaryRow->mobile_no;
@@ -818,10 +945,6 @@ class NoDupWorkflowController extends Controller
             $old_values['husband_fname'] = trim($beneficiaryRow->husband_fname);
             $old_values['husband_mname'] = trim($beneficiaryRow->husband_mname);
             $old_values['husband_lame'] = trim($beneficiaryRow->husband_lname);
-
-
-
-
             // New values
             $new_values['aadhar_no'] = $request->new_aadhar_no;
             $new_values['mobile_no'] = $request->new_mobile_no;
@@ -842,39 +965,70 @@ class NoDupWorkflowController extends Controller
 
 
 
-            $insertUpdateBenDetails = [
-              'scheme_id' => $scheme_id,
-              'created_by_dist_code' => $district_code,
-              'created_by_local_body_code' => $urban_body_code,
-              'created_at' => date('Y-m-d H:i:s'),
-              'updated_at' => date('Y-m-d H:i:s'),
-              'op_type' => class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod(),
-              'ip_address' => request()->ip(),
-              'user_id' => $user_id,
-              'application_id' => $ben_id,
-              'old_data' => json_encode($old_values),
-              'new_data' => json_encode($new_values),
-            ];
+            // dd($request->all());
 
-            $updateBenDetails = [
-              'next_level_clean_id' => 2,
-              'is_clean' => 1,
-              'aadhar_no' => $request->new_aadhar_no,
-              'mobile_no' => $request->new_mobile_no,
-              'bank_code' => trim($request->new_bank_code),
-              'bank_ifsc' => $request->old_bank_ifsc,
-              'bank_name' => trim($request->new_bank_name),
-              'branch_name' => trim($request->new_bank_branch),
-              'caste' => trim($request->new_caste_category),
-              'caste_certificate_no' => trim($request->new_caste_certificate_no),
-              'type_disability' => trim($request->new_disablity_type),
-              'percentage_disability' => trim($request->new_disablity_type_percentage),
-              'certifying_auth' => trim($request->new_certifying_authority),
-              'disability_designation' => trim($request->new_disability_designation),
-              'husband_fname' => trim($request->new_husband_first_name),
-              'husband_mname' => trim($request->new_husband_middle_name),
-              'husband_lname' => trim($request->new_husband_last_name),
-            ];
+            $benEntry_model->next_level_clean_id = 2;
+            $benEntry_model->is_clean = 1;
+            $benEntry_model->action_by = $user_id;
+            $benEntry_model->action_ip_address = request()->ip();
+            $benEntry_model->action_type = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod();
+
+            if (($row->no_aadhar == 1 || $row->dup_aadhar == 1) && !empty($request->new_aadhar_no) && ($request->old_aadhar_no != $request->new_aadhar_no)) {
+              $benEntry_model->aadhar_no = $request->new_aadhar_no;
+            }
+            if (($row->no_mobile == 1 || $row->dup_mobile == 1) && !empty($request->new_mobile_no) && ($request->old_mobile_no != $request->new_mobile_no)) {
+              $benEntry_model->mobile_no = $request->new_mobile_no;
+
+            }
+            if (($row->dup_bank == 1) && !empty($request->new_bank_code) && ($request->new_bank_code != $request->old_bank_code)) {
+              $benEntry_model->bank_code = $request->new_bank_code;
+            }
+            if (($row->is_bank_failed == 1) && !empty($request->new_bank_code) && ($request->new_bank_code != $request->old_bank_code)) {
+              $benEntry_model->bank_code = $request->new_bank_code;
+              if (!empty($request->new_mobile_no) && ($request->old_mobile_no != $request->new_mobile_no)) {
+                $benEntry_model->mobile_no = $request->new_mobile_no;
+              }
+            }
+
+            if ($row->is_bank_failed == 2 && !empty($request->process_type) && ($request->process_type == 2) && !empty($request->new_bank_code) && ($request->old_bank_code != $request->new_bank_code)) {
+
+              $benEntry_model->bank_code = $request->new_bank_code;
+              $benEntry_model->bank_ifsc = $request->bank_ifsc_code;
+              $benEntry_model->branch_name = $request->new_bank_branch;
+              $benEntry_model->bank_name = $request->new_bank_name;
+            }
+
+            if (($row->is_bank_failed == 3) && !empty($request->new_bank_code) && ($request->new_bank_code != $request->old_bank_code)) {
+              $benEntry_model->bank_code = $request->new_bank_code;
+              $benEntry_model->bank_ifsc = $request->bank_ifsc_code;
+              $benEntry_model->branch_name = $request->new_bank_branch;
+              $benEntry_model->bank_name = $request->new_bank_name;
+            }
+
+            if (($row->is_incomplete == 1) && ($row->scheme_id = 1 || $row->scheme_id = 3) && !empty($request->new_caste_certificate_no) && !empty($request->new_caste_category)) {
+              $benEntry_model->caste_certificate_no = $request->new_caste_certificate_no;
+              $benEntry_model->caste = $request->new_caste_category;
+            }
+
+            if (($row->is_incomplete == 1) && ($row->scheme_id = 2) && !empty($request->new_disablity_type) && !empty($request->new_disablity_type_percentage)) {
+              $benEntry_model->type_disability = $request->new_disablity_type;
+              $benEntry_model->percentage_disability = $request->new_disablity_type_percentage;
+              $benEntry_model->certifying_auth = $request->new_disablity_type_authority;
+              $benEntry_model->disability_designation = $request->new_disability_designation;
+            }
+
+            if (($row->is_incomplete == 1) && ($row->scheme_id = 1) && !empty($request->new_husband_first_name)) {
+              $benEntry_model->husband_fname = $request->new_husband_first_name;
+              $benEntry_model->husband_mname = $request->new_husband_middle_name;
+              $benEntry_model->husband_lname = $request->new_husband_last_name;
+            }
+
+            // if(($row->is_incomplete == 1 ||   in_array($row->scheme_id, [1,3]) ) && !empty($request-> ) )
+            // {
+            //   $updateBenDetails [''] = $request->new_mobile_no;
+            // }
+
+            // dd($updateBenDetails);
 
             $benPaymentDetails = [
               'last_accno' => trim($request->new_bank_code),
@@ -890,39 +1044,53 @@ class NoDupWorkflowController extends Controller
               'local_body_code' => trim($urban_body_code),
             ];
 
-            $dupBankTable = [
-              'bank_code' => trim($request->new_bank_code),
-              'bank_name' => trim($request->new_bank_name),
-              'branch_name' => trim($request->new_bank_branch),
-              'bank_ifsc' => $request->bank_ifsc_code,
-              'next_level_role_id' => 101
-            ];
 
 
-            if ($row->is_bank_failed == 1) {
+
+            $ben_failed_payment_details_model = BenFailedPaymentDetails::where('ben_id', $ben_id)->where('scheme_id', $scheme_id)->where('edited_status', 0)->whereIn('failed_type', [1, 2, 3, 4, 5])->first();
+            if ($row->is_bank_failed == 1 || $row->is_bank_failed == 2 || $row->is_bank_failed == 3) {
               if (
                 $paymentErrorType->pay_validated == 3 || $paymentErrorType->pay_validated == 4 || $paymentErrorType->pay_validated
-                == 5
+                == 5 || $paymentErrorType->acc_validated == 3 || $paymentErrorType->acc_validated == 4
               ) {
-                $getNpciBankCode = BankDetails::where('ifsc', $request->bank_ifsc_code)->first();
-                $failedPaymentArr = [];
+                // $failedPaymentArr = [];
                 $newPaymentDetails = [];
-                $insertUpdateBenDetails = ['next_level_role_id' => 5];
+                $getNpciBankCode = BankDetails::where('ifsc', $request->bank_ifsc_code)->first();
+                // $insertUpdateBenDetails = ['next_level_role_id' => 5];
                 $newPaymentDetails['new_bank_name'] = trim($request->new_bank_name);
                 $newPaymentDetails['new_bank_branch'] = trim($request->new_bank_branch);
                 $newPaymentDetails['new_bank_ifsc'] = $request->bank_ifsc_code;
                 $newPaymentDetails['new_bank_code'] = trim($request->new_bank_code);
                 $newPaymentDetails['npci_bank_code'] = $getNpciBankCode->bank_code;
 
-                $failedPaymentArr['updated_details'] = json_encode($newPaymentDetails);
-                $failedPaymentArr['edited_status'] = 1;
-                $failedPaymentArr['updated_at'] = date('Y-m-d H:i:s');
+                // $ben_payment_details_model->new_bank_name = trim($request->new_bank_name);
+
+                $ben_failed_payment_details_model->updated_details = json_encode($newPaymentDetails);
+                $ben_failed_payment_details_model->edited_status = 1;
+                $ben_failed_payment_details_model->updated_at = date('Y-m-d H:i:s');
+                // $failedPaymentArr['updated_details'] = json_encode($newPaymentDetails);
+                // $failedPaymentArr['edited_status'] = 1;
+                // $failedPaymentArr['updated_at'] = date('Y-m-d H:i:s');
               }
             }
 
             $is_bank_upload = 0;
             $is_aadhar_upload = 0;
             $is_caste_upload = 0;
+            $is_disability_upload = 0;
+            $is_husband_upload = 0;
+
+
+
+
+            DB::connection('pgsql')->beginTransaction();
+            DB::connection('pgsql5')->beginTransaction();
+            DB::connection('pgsql_encwrite')->beginTransaction();
+            DB::connection('pgsql_paywrite')->beginTransaction();
+
+
+            /////////////////////////////////Document Upload START//////////////////////////////////////////////// 
+
 
             // Upload Aadhar Card
             if ($request->hasFile('new_aadhar_doc')) {
@@ -977,7 +1145,23 @@ class NoDupWorkflowController extends Controller
               $c_datetime = date('Y-m-d H:i:s', time());
               $user_id = AuthChecker::getUserId();
 
-              $is_aadhar_upload = DataInsert::insertBenAttachDocuments($ben_id, $scheme_id, $aadhar_doc, $base64, $mapping_level, $user_id, $ip_address, $extension, $mime_type, $beneficiaryRow->created_by_dist_code, $beneficiaryRow->created_by_local_body_code, $doc_aadhar_arr['doc_name'], $c_datetime);
+              // $is_aadhar_upload = DataInsert::insertBenAttachDocuments($ben_id, $scheme_id, $this->aadhar_doc, $base64, $mapping_level, $user_id, $ip_address, $extension, $mime_type, $beneficiaryRow->created_by_dist_code, $beneficiaryRow->created_by_local_body_code, $doc_aadhar_arr['doc_name'], $c_datetime);
+              $is_aadhar_upload = DB::connection('pgsql_encwrite')->select("SELECT jb_doc.ben_docs_insert_archive(
+                in_beneficiary_id => " . $ben_id . ",
+                in_scheme_id => " . $scheme_id . ",
+                in_document_type => " . $this->aadhar_doc . ",
+                in_attched_document => '" . $base64 . "',
+                in_created_by_level => '" . $mapping_level . "',
+                in_created_by => " . Auth::user()->id . ",
+                in_ip_address => '" . request()->ip() . "',
+                in_document_extension => '" . $extension . "',
+                in_document_mime_type => '" . $mime_type . "',
+                in_created_by_dist_code => " . $beneficiaryRow->created_by_dist_code . ",
+                in_created_by_local_body_code => " . $beneficiaryRow->created_by_local_body_code . ",
+                in_doc_type_name => '" . $doc_aadhar_arr['doc_name'] . "',
+                in_datetime => '" . $c_datetime . "'
+                );"
+              );
             }
 
 
@@ -1035,7 +1219,23 @@ class NoDupWorkflowController extends Controller
               $user_id = AuthChecker::getUserId();
 
 
-              $is_bank_upload = DataInsert::insertBenAttachDocuments($ben_id, $scheme_id, $bank_doc, $base64, $mapping_level, $user_id, $ip_address, $extension, $mime_type, $beneficiaryRow->created_by_dist_code, $beneficiaryRow->created_by_local_body_code, $doc_bank_arr['doc_name'], $c_datetime);
+              // $is_bank_upload = DataInsert::insertBenAttachDocuments($ben_id, $scheme_id, $this->bank_doc, $base64, $mapping_level, $user_id, $ip_address, $extension, $mime_type, $beneficiaryRow->created_by_dist_code, $beneficiaryRow->created_by_local_body_code, $doc_bank_arr['doc_name'], $c_datetime);
+              $is_bank_upload = DB::connection('pgsql_encwrite')->select("SELECT jb_doc.ben_docs_insert_archive(
+                in_beneficiary_id => " . $ben_id . ",
+                in_scheme_id => " . $scheme_id . ",
+                in_document_type => " . $this->bank_doc . ",
+                in_attched_document => '" . $base64 . "',
+                in_created_by_level => '" . $mapping_level . "',
+                in_created_by => " . Auth::user()->id . ",
+                in_ip_address => '" . request()->ip() . "',
+                in_document_extension => '" . $extension . "',
+                in_document_mime_type => '" . $mime_type . "',
+                in_created_by_dist_code => " . $beneficiaryRow->created_by_dist_code . ",
+                in_created_by_local_body_code => " . $beneficiaryRow->created_by_local_body_code . ",
+                in_doc_type_name => '" . $doc_bank_arr['doc_name'] . "',
+                in_datetime => '" . $c_datetime . "'
+                );"
+              );
 
             }
 
@@ -1093,8 +1293,24 @@ class NoDupWorkflowController extends Controller
               $c_datetime = date('Y-m-d H:i:s', time());
               $user_id = AuthChecker::getUserId();
 
-              $is_caste_upload = DataInsert::insertBenAttachDocuments($ben_id, $scheme_id, $caste_doc, $base64, $mapping_level, $user_id, $ip_address, $extension, $mime_type, $beneficiaryRow->created_by_dist_code, $beneficiaryRow->created_by_local_body_code, $doc_caste_arr['doc_name'], $c_datetime);
+              // $is_caste_upload = DataInsert::insertBenAttachDocuments($ben_id, $scheme_id, $this->caste_doc, $base64, $mapping_level, $user_id, $ip_address, $extension, $mime_type, $beneficiaryRow->created_by_dist_code, $beneficiaryRow->created_by_local_body_code, $doc_caste_arr['doc_name'], $c_datetime);
 
+              $is_caste_upload = DB::connection('pgsql_encwrite')->select("SELECT jb_doc.ben_docs_insert_archive(
+                in_beneficiary_id => " . $ben_id . ",
+                in_scheme_id => " . $scheme_id . ",
+                in_document_type => " . $this->caste_doc . ",
+                in_attched_document => '" . $base64 . "',
+                in_created_by_level => '" . $mapping_level . "',
+                in_created_by => " . Auth::user()->id . ",
+                in_ip_address => '" . request()->ip() . "',
+                in_document_extension => '" . $extension . "',
+                in_document_mime_type => '" . $mime_type . "',
+                in_created_by_dist_code => " . $beneficiaryRow->created_by_dist_code . ",
+                in_created_by_local_body_code => " . $beneficiaryRow->created_by_local_body_code . ",
+                in_doc_type_name => '" . $doc_caste_arr['doc_name'] . "',
+                in_datetime => '" . $c_datetime . "'
+                );"
+              );
             }
 
 
@@ -1150,7 +1366,24 @@ class NoDupWorkflowController extends Controller
               $c_datetime = date('Y-m-d H:i:s', time());
               $user_id = AuthChecker::getUserId();
 
-              $is_disability_upload = DataInsert::insertBenAttachDocuments($ben_id, $scheme_id, $disability_doc, $base64, $mapping_level, $user_id, $ip_address, $extension, $mime_type, $beneficiaryRow->created_by_dist_code, $beneficiaryRow->created_by_local_body_code, $doc_disability_arr['doc_name'], $c_datetime);
+              // $is_disability_upload = DataInsert::insertBenAttachDocuments($ben_id, $scheme_id, $this->disability_doc, $base64, $mapping_level, $user_id, $ip_address, $extension, $mime_type, $beneficiaryRow->created_by_dist_code, $beneficiaryRow->created_by_local_body_code, $doc_disability_arr['doc_name'], $c_datetime);
+
+              $is_disability_upload = DB::connection('pgsql_encwrite')->select("SELECT jb_doc.ben_docs_insert_archive(
+                in_beneficiary_id => " . $ben_id . ",
+                in_scheme_id => " . $scheme_id . ",
+                in_document_type => " . $this->disability_doc . ",
+                in_attched_document => '" . $base64 . "',
+                in_created_by_level => '" . $mapping_level . "',
+                in_created_by => " . Auth::user()->id . ",
+                in_ip_address => '" . request()->ip() . "',
+                in_document_extension => '" . $extension . "',
+                in_document_mime_type => '" . $mime_type . "',
+                in_created_by_dist_code => " . $beneficiaryRow->created_by_dist_code . ",
+                in_created_by_local_body_code => " . $beneficiaryRow->created_by_local_body_code . ",
+                in_doc_type_name => '" . $doc_disability_arr['doc_name'] . "',
+                in_datetime => '" . $c_datetime . "'
+                );"
+              );
 
             }
 
@@ -1207,91 +1440,217 @@ class NoDupWorkflowController extends Controller
               $c_datetime = date('Y-m-d H:i:s', time());
               $user_id = AuthChecker::getUserId();
 
-              $is_husband_upload = DataInsert::insertBenAttachDocuments($ben_id, $scheme_id, $husband_doc, $base64, $mapping_level, $user_id, $ip_address, $extension, $mime_type, $beneficiaryRow->created_by_dist_code, $beneficiaryRow->created_by_local_body_code, $doc_husband_arr['doc_name'], $c_datetime);
+              // $is_husband_upload = DataInsert::insertBenAttachDocuments($ben_id, $scheme_id, $this->husband_doc, $base64, $mapping_level, $user_id, $ip_address, $extension, $mime_type, $beneficiaryRow->created_by_dist_code, $beneficiaryRow->created_by_local_body_code, $doc_husband_arr['doc_name'], $c_datetime);
 
+              $is_husband_upload = DB::connection('pgsql_encwrite')->select("SELECT jb_doc.ben_docs_insert_archive(
+                in_beneficiary_id => " . $ben_id . ",
+                in_scheme_id => " . $scheme_id . ",
+                in_document_type => " . $this->aadhar_doc . ",
+                in_attched_document => '" . $base64 . "',
+                in_created_by_level => '" . $mapping_level . "',
+                in_created_by => " . Auth::user()->id . ",
+                in_ip_address => '" . request()->ip() . "',
+                in_document_extension => '" . $extension . "',
+                in_document_mime_type => '" . $mime_type . "',
+                in_created_by_dist_code => " . $beneficiaryRow->created_by_dist_code . ",
+                in_created_by_local_body_code => " . $beneficiaryRow->created_by_local_body_code . ",
+                in_doc_type_name => 'Husband Death Certificate',
+                in_datetime => '" . $c_datetime . "'
+                );"
+              );
+            }
+
+            // dd($request->all());
+            /////////////////////////////////Document Upload START////////////////////////////////////////////////
+            $benAadharCheck = 0;
+            $benMobileCheck = 0;
+            $benBankCheck = 0;
+            $benCasteCategoryCheck = 0;
+            $benAadharCheckCross = 0;
+            $benMobileCheckCross = 0;
+            $benBankCheckCross = 0;
+            $benCasteCategoryCheckCross = 0;
+
+
+            // dd($row->dup_bank == 1 || ( $row->is_bank_failed = 1 || $row->is_bank_failed = 2 || $row->is_bank_failed = 3));
+
+            if ($row->no_aadhar == 1 || $row->dup_aadhar == 1 && ($request->old_aadhar != $request->new_aadhar)) {
+              $benAadharCheck = DupCheck::dupAadharCheckSame($scheme_id, $request->new_aadhar, $ben_id);
+              $benAadharCheckCross = DupCheck::dupAadharCheckCross($scheme_id, $request->new_aadhar, $ben_id);
+
+            }
+            if ($row->no_mobile == 1 || $row->dup_mobile == 1 && ($request->old_mobile_no != $request->new_mobile_no)) {
+              $benMobileCheck = DupCheck::dupMobileCheckSame($scheme_id, $request->new_mobile_no, $ben_id);
+              $benMobileCheckCross = DupCheck::dupMobileCheckCross($scheme_id, $request->new_mobile_no, $ben_id);
+
+            }
+            if ($row->is_incomplete == 1 && in_array($row->scheme_id, [1, 3])) {
+              $benCasteCategoryCheck = DupCheck::dupCasteCheckSame($scheme_id, $request->new_caste_certificate_no, $ben_id);
+              $benCasteCategoryCheckCross = DupCheck::dupCasteCheckCross($scheme_id, $request->new_caste_certificate_no, $ben_id);
+
+            }
+            if ($row->dup_bank == 1 && !empty($request->new_bank_code) && $request->new_bank_code != $request->old_bank_code) {
+              $benBankCheck = DupCheck::dupBankCheckSame($scheme_id, $request->new_bank_code, $ben_id);
+              $benBankCheckCross = DupCheck::dupBankCheckCross($scheme_id, $request->new_bank_code, $ben_id);
+            }
+
+            if ($row->is_bank_failed == 1 && !empty($request->new_bank_code) && $request->new_bank_code != $request->old_bank_code) {
+              $benBankCheck = DupCheck::dupBankCheckSame($scheme_id, $request->new_bank_code, $ben_id);
+              $benBankCheckCross = DupCheck::dupBankCheckCross($scheme_id, $request->new_bank_code, $ben_id);
             }
 
 
 
-            DB::connection('pgsql')->beginTransaction();
-            DB::connection('pgsql_encwrite')->beginTransaction();
-            DB::connection('pgsql_paywrite')->beginTransaction();
 
-
-            $benAadharCheck = DupCheck::dupAadharCheck($request->new_aadhar);
-            $benMobileCheck = DupCheck::dupMobileCheck($request->new_mobile);
-            $benBankCheck = DupCheck::dupBankCheck($request->new_bank_code);
-            $benCasteCategoryCheck = DupCheck::dupCasteCheck($request->new_caste_certificate_no);
-            $updateBenDetailsCount = DB::connection('pgsql')->table('public.ben_accept_reject_info')->where(
-              'application_id',
-              $ben_id
-            )->where('scheme_id', $scheme_id)->where('update_code', 500)->count();
+            // $updateBenDetailsCount = DB::connection('pgsql')->table('public.ben_accept_reject_info')->where(
+            //   'application_id',
+            //   $ben_id
+            // )->where('scheme_id', $scheme_id)->where('update_code', 500)->count();
             // die;
             // dd($benMobileCheck);
 
+            $benAadharCheck = 0;
+            $benAadharCheckCross = 0;
+            $benMobileCheck = 0;
+            $benMobileCheckCross = 0;
+            $benBankCheck = 0;
+            $benBankCheckCross = 0;
+            $benCasteCategoryCheck = 0;
+            $benCasteCategoryCheckCross = 0;
+
+            // $variables = [
+            //   'benAadharCheck' => $benAadharCheck,
+            //   'benMobileCheck' => $benMobileCheck,
+            //   'benBankCheck' => $benBankCheck,
+            //   'benCasteCategoryCheck' => $benCasteCategoryCheck,
+            //   'benAadharCheckCross' => $benAadharCheckCross,
+            //   'benMobileCheckCross' => $benMobileCheckCross,
+            //   'benBankCheckCross' => $benBankCheckCross,
+            //   'benCasteCategoryCheckCross' => $benCasteCategoryCheckCross,
+            // ];
+            // dump($variables);
+            // die();
+
+            // $updateBenDetailsCount =1 ; 
+            // dump($benAadharCheck, $benMobileCheck, $benBankCheck, $benCasteCategoryCheck, $benAadharCheckCross, $benMobileCheckCross, $benBankCheckCross, $benCasteCategoryCheckCross);
+            // die();
             if ($benAadharCheck > 0) {
               $errorMsg = "This Aadhar No: " . $request->new_aadhar . " is already exist.";
-              return redirect('editApplicantDetails')->with('error', $errorMsg);
+              return redirect()->route('editApplicantDetails', ['id' => $ben_id, 'scheme_id' => $scheme_id])->with('error', $errorMsg);
             } elseif ($benMobileCheck > 0) {
-              // dd('ok');
-              $errorMsg = "This Mobile No: " . $request->new_mobile . " is already exist.";
-              return redirect('editApplicantDetails')->with('error', $errorMsg);
+              $errorMsg = "This Mobile No: " . $request->new_mobile_no . " is already exist.";
+              return redirect()->route('editApplicantDetails', ['id' => $ben_id, 'scheme_id' => $scheme_id])->with('error', $errorMsg);
             } elseif ($benBankCheck > 0) {
               $errorMsg = "This Bank Account: " . $request->bank_code . " is already exist.";
-              return redirect('editApplicantDetails')->with('error', $errorMsg);
+              return redirect()->route('editApplicantDetails', ['id' => $ben_id, 'scheme_id' => $scheme_id])->with('error', $errorMsg);
             } elseif ($benCasteCategoryCheck > 0) {
               $errorMsg = "This Caste Certificate No: " . $request->new_caste_certificate_no . " is already exist.";
-              return redirect('editApplicantDetails')->with('error', $errorMsg);
+              return redirect()->route('editApplicantDetails', ['id' => $ben_id, 'scheme_id' => $scheme_id])->with('error', $errorMsg);
+            } elseif ($benAadharCheckCross > 0) {
+              $errorMsg = "This Aadhar No: " . $request->new_aadhar . " is already exist on Cross Scheme.";
+              return redirect()->route('editApplicantDetails', ['id' => $ben_id, 'scheme_id' => $scheme_id])->with('error', $errorMsg);
+            } elseif ($benMobileCheckCross > 0) {
+              $errorMsg = "This Mobile No: " . $request->new_mobile_no . " is already exist on Cross Scheme.";
+              return redirect()->route('editApplicantDetails', ['id' => $ben_id, 'scheme_id' => $scheme_id])->with('error', $errorMsg);
+            } elseif ($benBankCheckCross > 0) {
+              $errorMsg = "This Bank Account: " . $request->bank_code . " is already exist on Cross Scheme.";
+              return redirect()->route('editApplicantDetails', ['id' => $ben_id, 'scheme_id' => $scheme_id])->with('error', $errorMsg);
+            } elseif ($benCasteCategoryCheckCross > 0) {
+              $errorMsg = "This Caste Certificate No: " . $request->new_caste_certificate_no . " is already exist on Cross Scheme.";
+              return redirect()->route('editApplicantDetails', ['id' => $ben_id, 'scheme_id' => $scheme_id])->with('error', $errorMsg);
+            }
 
-            } elseif
-            (
-              $benAadharCheck == 0 && $benMobileCheck == 0 && $benBankCheck == 0 && $benCasteCategoryCheck == 0 &&
-              ($is_aadhar_upload == 1 || $is_bank_upload == 1 || $is_caste_upload == 1 || $is_disability_upload == 1 || $is_husband_upload = 1)
+
+
+            // dd(   $benAadharCheck == 0 && $benMobileCheck == 0 && $benBankCheck == 0 && $benCasteCategoryCheck == 0
+            // && $benAadharCheckCross == 0 && $benMobileCheckCross == 0 && $benBankCheckCross == 0 && $benCasteCategoryCheckCross == 0
+            // && $benAadharCheckCross == 0 && ($is_aadhar_upload == 1 || $is_bank_upload == 1 || $is_caste_upload == 1 || $is_disability_upload == 1 || $is_husband_upload = 1));
+
+            if (
+              $benAadharCheck == 0 && $benMobileCheck == 0 && $benBankCheck == 0 && $benCasteCategoryCheck == 0
+              && $benAadharCheckCross == 0 && $benMobileCheckCross == 0 && $benBankCheckCross == 0 && $benCasteCategoryCheckCross == 0
+              && $benAadharCheckCross == 0 && ($is_aadhar_upload == 1 || $is_bank_upload == 1 || $is_caste_upload == 1 || $is_disability_upload == 1 || $is_husband_upload = 1)
             ) {
-              // dd($updateBenDetailsCount);
-              if ($updateBenDetailsCount > 0) {
-                $updateBenDetailsAction = DB::connection('pgsql')->table('public.ben_accept_reject_info')->where(
-                  'original_application_id',
-                  $ben_id
-                )->where('scheme_id', $scheme_id)->where('update_code', 500)->update($insertUpdateBenDetails);
-              } else {
-                $updateBenDetailsAction = DB::connection('pgsql')->table('public.ben_accept_reject_info')->insert($insertUpdateBenDetails);
-              }
-              if ($isSame == 0) {
-                $updateBenPaymentTable = DB::connection('pgsql_paywrite')->table('payment.ben_payment_details')->where(
-                  'ben_id',
-                  $ben_id
-                )->where('scheme_id', $scheme_id)->update($benPaymentDetails);
-              } else {
+              //  dd($updateBenDetailsCount);
+              // $updateBenDetailsAction = 0; 
+              // if ($updateBenDetailsCount > 0) {
+              foreach ($updateArray as $updatecode) {
+                $accept_reject_info_model = new AcceptRejectInfo;
+                $accept_reject_info_model->scheme_id = $scheme_id;
+                $accept_reject_info_model->created_by_dist_code = $district_code;
+                $accept_reject_info_model->created_by_local_body_code = $urban_body_code;
+                $accept_reject_info_model->created_at = date('Y-m-d H:i:s');
+                $accept_reject_info_model->updated_at = date('Y-m-d H:i:s');
+                $accept_reject_info_model->op_type = $updatecode->code;
+                $accept_reject_info_model->ip_address = request()->ip();
+                $accept_reject_info_model->user_id = $user_id;
+                $accept_reject_info_model->application_id = $ben_id;
+                $accept_reject_info_model->old_data = json_encode($old_values);
+                $accept_reject_info_model->new_data = json_encode($new_values);
+                $accept_reject_info_model->module_name = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod();
+                $accept_reject_info_model->remarks = $updatecode->description;
+                $updateBenDetailsAction = $accept_reject_info_model->save();
 
-                $updateBenPaymentTable = DB::connection('pgsql_paywrite')->table('payment.ben_payment_details')->insert($benInsertPayementDetails);
               }
-              if ($row->is_bank_failed == 1) {
+              // dd($updateBenDetailsAction);
+              // }
+
+              // dd($isSame);
+
+              // dd($request->all());
+              if ($isSame == 0) {
+                $ben_payment_details_model = BenPaymentDetails::where('ben_id', $ben_id)
+                  ->where('scheme_id', $scheme_id)
+                  ->first();
+                $ben_payment_details_model->last_accno = trim($request->new_bank_code);
+                $ben_payment_details_model->last_ifsc = $request->bank_ifsc_code;
+                $ben_payment_details_model->npci_bank_code = $bankCodeRow->bank_code;
+                $updateBenPaymentTable = $ben_payment_details_model->save();
+                // dd($updateBenPaymentTable);
+              } else {
+                $updateBenPaymentTable = 1;
+              }
+
+
+              // dd($updateBenPaymentTable);
+
+              // dd($row->dup_bank == 1 || in_array($row->is_bank_failed, [1, 2, 3]) );
+
+              // dd($row->dup_bank == 1 || (!empty($request->is_bank_failed) && in_array($request->is_bank_failed, [1, 2, 3])));
+
+              if ($row->dup_bank == 1 || (!empty($request->is_bank_failed) && in_array($request->is_bank_failed, [1, 2, 3]))) {
                 if (
                   $paymentErrorType->pay_validated == 3 || $paymentErrorType->pay_validated == 4 || $paymentErrorType->pay_validated
-                  == 5
+                  == 5 || $paymentErrorType->acc_validated == 3 || $paymentErrorType->acc_validated == 4
                 ) {
-                  $updateFailedPayment = DB::connection('pgsql_paywrite')->table('payment.failed_payment_details')->where(
-                    'ben_id',
-                    $ben_id
-                  )->where('scheme_id', $scheme_id)->where('edited_status', 0)->whereIn('failed_type', [
-                        3,
-                        4,
-                        5
-                      ])->update($failedPaymentArr);
+                  $updateFailedPayment = $ben_failed_payment_details_model->save();
                 }
               } else {
                 $updateFailedPayment = 1;
               }
-              $updateBenTable = DB::connection('pgsql')->table('pension.beneficiaries')->where('id', $ben_id)->where(
-                'scheme_id',
-                $scheme_id
-              )->update($updateBenDetails);
+
+              // dd($updateFailedPayment);
+
+
+              $updateBenTable = $benEntry_model->save();
+
+              // dd($updateBenTable);
+
+
+
               if ($bankDupRow > 0) {
-                $updateBankDup = DB::connection('pgsql')->table('pension.ben_payment_details_bank_code_dup')->where(
-                  'id',
-                  $ben_id
-                )->where('scheme_id', $scheme_id)->where('next_level_role_id', -97)->update($dupBankTable);
+                $ben_dup_bank_code_details = BenDupBankCodePayemntDetails::where('id', $ben_id)->where('scheme_id', $scheme_id)->where('next_level_role_id', -97)->first();
+                // dd($ben_dup_bank_code_details);
+                $ben_dup_bank_code_details->bank_code = trim($request->new_bank_code);
+                $ben_dup_bank_code_details->bank_name = trim($request->new_bank_name);
+                $ben_dup_bank_code_details->branch_name = trim($request->new_bank_branch);
+                $ben_dup_bank_code_details->bank_ifsc = $request->bank_ifsc_code;
+                if ($isSame == 1) {
+                  $ben_dup_bank_code_details->next_level_role_id = 200;
+                } else {
+                  $ben_dup_bank_code_details->next_level_role_id = 101;
+                }
+                $updateBankDup = $ben_dup_bank_code_details->save();
               } else {
                 $updateBankDup = 1;
               }
@@ -1302,25 +1661,25 @@ class NoDupWorkflowController extends Controller
               DB::connection('pgsql_paywrite')->rollback();
 
               $return_text = "Something Went Wrong.";
-              return redirect('editApplicantDetails')->with('error', $return_text);
+              return redirect()->route('editApplicantDetails')->with('error', $return_text);
             }
-            $updateBenPaymentTable = 1;
+            // $updateBenDetailsAction =1 ;
+            // dump($updateBenDetailsAction, $updateBenTable, $updateBenPaymentTable, $updateBankDup, $updateFailedPayment);
+            // die();
+            // $updateBenPaymentTable = 1;
             if ($updateBenDetailsAction && $updateBenTable && $updateBenPaymentTable && $updateBankDup && $updateFailedPayment) {
               DB::connection('pgsql')->commit();
               DB::connection('pgsql_encwrite')->commit();
               DB::connection('pgsql_paywrite')->commit();
-              DB::connection('pgsql')->table('pension.mandatory_field')->where('ben_id', $ben_id)->where(
-                'scheme_id',
-                $scheme_id
-              )->update(['process_code' => 2]);
               $return_text = "Beneficiary(" . $beneficiaryRow->id . ") has successfully verified & forwared for approval.";
-              return redirect('no-dup-beneficiaries-list')->with('success', $return_text);
+              // dd($return_text);
+              return redirect()->route('noDupBeneficiariesList')->with('success', $return_text);
             } else {
               DB::connection('pgsql')->rollback();
               DB::connection('pgsql_encwrite')->rollback();
               DB::connection('pgsql_paywrite')->rollback();
               $return_text = "Beneficiary can't be updated.Something Went Wrong.";
-              return redirect('editApplicantDetails')->with('error', $return_text);
+              return redirect()->route('noDupBeneficiariesList')->with('error', $return_text);
             }
           }
 
@@ -1480,30 +1839,38 @@ class NoDupWorkflowController extends Controller
   }
 
   // Approver End
-  public function approver_linelisting_index()
+  public function approver_linelisting_index(Request $request)
   {
-    $user_id = AuthChecker::getUserId();
-    ;
-    $dutyObj = Configduty::where('user_id', '=', $user_id)->where('is_active', 1)->first();
-    $distCode = $dutyObj->district_code;
-    $incomplete_types = DB::table('public.m_incomplete_type')->where('is_active', true)->get();
-    $scheme = DB::connection('pgsql_mis')->select(
-      'select id,scheme_name from m_scheme where id in (select scheme_id from duty_assignement where user_id=' .
-      $user_id .
-      ' and is_active=1) order by scheme_name'
-    );
-    if (AuthChecker::ApproverChecker()) {
-      $levels = [
-        2 => 'Rural',
-        1 => 'Urban'
-      ];
+    $type = $request->has('type') ? (int) $request->type : null;
+    // dd($type);
+    $auth = AuthChecker::ApproverPermission();
+    if ($auth) {
+
+      $user_id = AuthChecker::getUserId();
+      $dutyObj = Configduty::where('user_id', '=', $user_id)->where('is_active', 1)->first();
+      $distCode = $dutyObj->district_code;
+      $incomplete_types = DB::table('public.m_incomplete_type')->where('is_active', true)->get();
+      $scheme = DB::connection('pgsql_mis')->select(
+        'select id,scheme_name from m_scheme where id in (select scheme_id from duty_assignement where user_id=' .
+        $user_id .
+        ' and is_active=1) order by scheme_name'
+      );
+      if (AuthChecker::ApproverPermission()) {
+        $levels = [
+          2 => 'Rural',
+          1 => 'Urban'
+        ];
+      }
+      $incomplete_types = DB::table('public.m_incomplete_type')->where('is_active', true)->get();
+      return view('No-Duplicate-Update.linelisting_approver', [
+        'levels' => $levels,
+        'schemes' => $scheme,
+        'dist_code' => $distCode,
+        'incomplete_types' => $incomplete_types,
+        'type_id' => $type
+      ]);
     }
-    return view('No-Duplicate-Update.linelisting_approver', [
-      'levels' => $levels, 
-      'schemes' => $scheme, 
-      'dist_code' => $distCode,
-      'incomplete_types' => $incomplete_types
-    ]);
+
   }
 
   public function getNoDupVerifiedList(Request $request)
@@ -1516,40 +1883,100 @@ class NoDupWorkflowController extends Controller
     $scheme_id = $request->scheme_id;
     $filter_type = $request->filter_type;
     $failed_type_id = $request->failed_type_id;
-
+    $pay_validated = $request->pay_validated;
     if ($request->ajax()) {
-      if (AuthChecker::ApproverChecker() && !empty($scheme_id)) {
+      // dd($request->all());
+      if (AuthChecker::ApproverPermission() && !empty($scheme_id)) {
         $query = '';
-        $query = "SELECT id, ben_fname, ben_mname, ben_lname, block_ulb_name, gp_ward_name, scheme_id, dup_aadhar, dup_mobile, dup_bank, no_aadhar, no_mobile, is_bank_failed, pay_validated FROM pension.beneficiaries WHERE next_level_clean_id = 2 AND is_clean = 1 AND scheme_id = " . $scheme_id . "";
+        $query = "SELECT * FROM pension.beneficiaries WHERE next_level_clean_id = 2 AND is_clean = 1 AND scheme_id = " . $scheme_id . "";
+
+
+        if ($filter_type == 0) {
+          $query .= "AND is_incomplete = 1 ";
+        }
+        if ($filter_type == 1) {
+          $query .= "AND dup_aadhar = 1 ";
+        }
+        if ($filter_type == 2) {
+          $query .= "AND no_aadhar = 1 ";
+        }
+        if ($filter_type == 3) {
+          $query .= "AND dup_bank = 1 ";
+        }
+        if ($filter_type == 4) {
+          $query .= "AND dup_mobile = 1 ";
+        }
+        if ($filter_type == 5) {
+          $query .= "AND no_mobile = 1 ";
+        }
+        if ($filter_type == 6) {
+          $query .= "AND no_ration_card = 1 ";
+        }
+        if ($filter_type == 8) {
+          $query .= "AND no_epic_voter = 1 ";
+        }
+        // if ($filter_type == 10) {
+        //   $query .= "AND is_bank_failed = 1 ";
+        // }
+        if ($filter_type == 11) {
+          $query .= "AND is_bank_failed = 2 ";
+        }
+        if ($filter_type == 12) {
+          $query .= "AND is_bank_failed = 3 ";
+        }
+
         if (!empty($rural_urban)) {
           $query .= " AND rural_urban_id =" . $rural_urban . "";
         }
-        if ($local_body_code) {
+        if (!empty($local_body_code)) {
           $query .= " AND created_by_local_body_code = " . $local_body_code . "";
         }
-        if ($filter_type == 0) {
-          $query .= " AND is_incomplete = 1";
-        }
-        if ($filter_type == 1) {
-          $query .= " AND dup_aadhar = 1";
-        }
-        if ($filter_type == 2) {
-          $query .= " AND no_aadhar = 1";
-        }
-        if ($filter_type == 3) {
-          $query .= " AND dup_bank = 1";
-        }
-        if ($filter_type == 4) {
-          $query .= " AND dup_mobile = 1";
-        }
-        if ($filter_type == 5) {
-          $query .= " AND no_mobile = 1";
-        }
-        if ($filter_type == 6) {
-          $query .= " AND is_bank_failed = 1";
-        }
         // dd($query);
+        if ($filter_type == 10 && isset($pay_validated)) {
+          $query .= "AND id IN (";
+          if ($pay_validated == 3) {
+            $subQuery = DB::connection('pgsql_paywrite')->select("SELECT ben_id FROM payment.ben_payment_details WHERE pay_validated = 3");
+            $subQueryIds = array_column($subQuery, 'ben_id');
+            if (!empty($subQueryIds)) {
+              $query .= implode(',', $subQueryIds);
+            } else {
+              $query .= "NULL";
+            }
+          }
+          if ($pay_validated == 4) {
+            $subQuery = DB::connection('pgsql_paywrite')->select("SELECT ben_id FROM payment.ben_payment_details WHERE pay_validated = 4");
+            $subQueryIds = array_column($subQuery, 'ben_id');
+            if (!empty($subQueryIds)) {
+              $query .= implode(',', $subQueryIds);
+            } else {
+              $query .= "NULL";
+            }
+          }
+          if ($pay_validated == 5) {
+            $subQuery = DB::connection('pgsql_paywrite')->select("SELECT ben_id FROM payment.ben_payment_details WHERE pay_validated = 5");
+            $subQueryIds = array_column($subQuery, 'ben_id');
+            if (!empty($subQueryIds)) {
+              $query .= implode(',', $subQueryIds);
+            } else {
+              $query .= "NULL";
+            }
+          }
+          $query .= ") ";
+        }
+
         $data = DB::connection('pgsql_mis')->select($query);
+
+        $data = collect($data)->map(function ($item) use ($scheme_id) {
+          $pay_validation = DB::connection('pgsql_paywrite')
+            ->table('payment.ben_payment_details')
+            ->where('ben_id', $item->id)
+            ->where('scheme_id', $scheme_id)
+            ->select('pay_validated')
+            ->first();
+
+          $item->pay_validated = $pay_validation->pay_validated ?? null;
+          return $item;
+        });
       } else {
         $data = collect([]);
       }
@@ -1591,10 +2018,19 @@ class NoDupWorkflowController extends Controller
               $status .= '<span class="text text-info" style="font-size: 12px;"><b>' . $sl++ . '. Payment Failure SBI</b></span>';
             } elseif ($data->pay_validated == 4) {
               $status .= '<span class="text text-info" style="font-size: 12px;"><b>' . $sl++ . '. Payment Failure RBI</b></span>';
-            } else {
+            } elseif ($data->pay_validated == 5) {
               $status .= '<span class="text text-info" style="font-size: 12px;"><b>' . $sl++ . '. Payment Failure IFMS</b></span>';
+            } else {
+              $status .= '<span class="text text-info" style="font-size: 12px;"><b>' . $sl++ . '. Payment Failure </b></span>';
             }
           }
+          if ($data->is_bank_failed == 2) {
+            $status .= '<span class="text text-info" style="font-size: 12px;"><b>' . $sl++ . '. Name Validation Failure</b></span> <br>';
+          }
+          if ($data->is_bank_failed == 3) {
+            $status .= '<span class="text text-info" style="font-size: 12px;"><b>' . $sl++ . '. A/c Validation Failure</b></span> <br>';
+          }
+
           // $sl++;
           return $status;
         })
@@ -1618,12 +2054,14 @@ class NoDupWorkflowController extends Controller
       $parts = explode('_', $benid);
       $id = $parts[0];
       $scheme_id = $parts[1];
+      $ben_details = BenEntry::where('scheme_id', $scheme_id)->where('id', $id)->where('next_level_clean_id', 2)->first(); //
+      // var_dump($ben_details);
+      $status_array = $this->benStatus($id, $scheme_id);
+      // dd($status);
+      // dd($status);
+      // dd($status_array);
 
-      $query = "SELECT id,ben_fname, ben_mname, ben_lname, id , mobile_no, aadhar_no, bank_code, bank_ifsc, 
-      branch_name, bank_name, is_incomplete, scheme_id, caste, caste_certificate_no, husband_fname, husband_mname, husband_lname,
-      type_disability,  percentage_disability, certifying_auth, disability_designation, ration_card_cat, ration_card_no, epic_voter_id
-       FROM pension.beneficiaries WHERE scheme_id = " . $scheme_id . " AND id = " . $id . " AND next_level_clean_id = 2";
-      $ben_details = DB::connection('pgsql_mis')->select($query);
+
       // dd($ben_details);
       if ($ben_details == null) {
         return $response = [
@@ -1635,25 +2073,37 @@ class NoDupWorkflowController extends Controller
         ];
       } else {
         $ben_arr = [
-          'ben_name' => $ben_details[0]->ben_fname . ' ' . $ben_details[0]->ben_mname . ' ' . $ben_details[0]->ben_lname,
-          'id' => $ben_details[0]->id,
-          'mobile_no' => $ben_details[0]->mobile_no,
-          'aadhar_no' => $ben_details[0]->aadhar_no,
-          'bank_code' => trim($ben_details[0]->bank_code),
-          'bank_ifsc' => trim($ben_details[0]->bank_ifsc),
-          'branch_name' => trim($ben_details[0]->branch_name),
-          'bank_name' => trim($ben_details[0]->bank_name),
-          'is_incomplete' => trim($ben_details[0]->is_incomplete),
+          'ben_name' => $ben_details->ben_fname . ' ' . $ben_details->ben_mname . ' ' . $ben_details->ben_lname,
+          'id' => $ben_details->id,
+          'mobile_no' => $ben_details->mobile_no,
+          'aadhar_no' => $ben_details->aadhar_no,
+          'bank_code' => trim($ben_details->bank_code),
+          'bank_ifsc' => trim($ben_details->bank_ifsc),
+          'branch_name' => trim($ben_details->branch_name),
+          'bank_name' => trim($ben_details->bank_name),
+          'dup_bank' => trim($ben_details->dup_bank),
+          'no_aadhar' => trim($ben_details->no_aadhar),
+          'no_mobile' => trim($ben_details->no_mobile),
+          'dup_mobile' => trim($ben_details->dup_mobile),
+          'dup_aadhar' => trim($ben_details->dup_aadhar),
+          'is_bank_failed' => trim($ben_details->is_bank_failed),
+          'no_ration_card' => trim($ben_details->no_ration_card),
+          'no_epic_voter' => trim($ben_details->no_epic_voter),
+          'is_incomplete' => trim($ben_details->is_incomplete),
           'scheme_id' => $scheme_id,
-          'caste' => trim($ben_details[0]->caste),
-          'caste_certificate_no' => trim($ben_details[0]->caste_certificate_no),
-          'husband_name' => trim($ben_details[0]->husband_fname) . '' . trim($ben_details[0]->husband_mname) . '' . trim($ben_details[0]->husband_lname),
-          'type_disability' => trim($ben_details[0]->type_disability),
-          'percentage_disability' => trim($ben_details[0]->percentage_disability),
-          'certifying_auth' => trim($ben_details[0]->certifying_auth),
-          'disability_designation' => trim($ben_details[0]->disability_designation),
-          'ration_card' => trim($ben_details[0]->ration_card_cat) . ' ' . trim($ben_details[0]->ration_card_no),
-          'epic_voter_id' => trim($ben_details[0]->epic_voter_id),
+          'caste' => trim($ben_details->caste),
+          'caste_certificate_no' => trim($ben_details->caste_certificate_no),
+          'husband_name' => trim($ben_details->husband_fname) . '' . trim($ben_details->husband_mname) . '' . trim($ben_details->husband_lname),
+          'type_disability' => trim($ben_details->type_disability),
+          'percentage_disability' => trim($ben_details->percentage_disability),
+          'certifying_auth' => trim($ben_details->certifying_auth),
+          'disability_designation' => trim($ben_details->disability_designation),
+          'ration_card' => trim($ben_details->ration_card_cat) . ' ' . trim($ben_details->ration_card_no),
+          'epic_voter_id' => trim($ben_details->epic_voter_id),
+          'status_array' => $status_array
+
+
+
         ];
         // dd($response);
         $response = array_merge($ben_arr, [
@@ -1770,195 +2220,156 @@ class NoDupWorkflowController extends Controller
 
   public function approveNoDupApplicant(Request $request)
   {
-    $response = [];
-    $statusCode = 200;
-    if (!$request->ajax()) {
-      $statusCode = 400;
-      $response = ['error' => 'Error occured in form submit.'];
-      return response()->json($response, $statusCode);
-    }
-    $user_id = AuthChecker::getUserId();
-    $is_bulk = $request->is_bulk;
-    $applicant_id = $request->applicantId;
-    $opreation_type = $request->opreation_type;
-    $failed_type = $request->failed_type;
-    $c_time = date('Y-m-d H:i:s');
-    if ($is_bulk == 0) {
-      $single_app_id = $request->single_app_id;
-      $parts = explode('_', $single_app_id);
-      $id = $parts[0];
-      $scheme_id = $parts[1];
-      if ($opreation_type == 'A') {
-        try {
-          $query = "SELECT id, created_by_dist_code, created_by_local_body_code, scheme_id, aadhar_no, mobile_no, next_level_clean_id, is_bank_failed, pay_validated,is_incomplete, full_form_application,  dup_bank FROM pension.beneficiaries WHERE scheme_id = " . $scheme_id . " AND id = " . $id . " AND next_level_clean_id = 2 AND is_clean = 1";
-          $benDetails = DB::connection('pgsql_mis')->select($query);
-          // dd($benDetails);
-          if ($benDetails == null) {
-            return $response = [
-              'status' => 1,
-              'msg' => 'No Beneficiary Found.',
-              'type' => 'red',
-              'icon' => 'fa fa-warning',
-              'title' => 'Warning!!',
-            ];
-          } else {
-            $updateBenTable = [];
-            // $updateBenDetailsTable = [];
-            $updateBenPaymentTable = [];
-            $updateFailedPaymentTable = [];
-            $updateBenTable['next_level_clean_id'] = 1;
-            $updateBenTable['is_incomplete'] = 0;
-            $updateBenTable['dup_bank'] = null;
-            $updateBenTable['dup_mobile'] = null;
-            $updateBenTable['dup_aadhar'] = null;
-            $updateBenTable['no_aadhar'] = null;
-            $updateBenTable['no_mobile'] = null;
-            if ($benDetails[0]->is_bank_failed == 1 && ($benDetails[0]->pay_validated == 3 || $benDetails[0]->pay_validated == 4 || $benDetails[0]->pay_validated == 5)) {
-              $updateBenTable['pay_validated'] = null;
-              $updateBenTable['is_bank_failed'] = null;
-            }
-            if ($benDetails[0]->dup_bank == 1 || $benDetails[0]->is_bank_failed == 1) {
-              $updateBenPaymentTable['dup_bank'] = 0;
-              $updateBenPaymentTable['ben_status'] = 1;
-              $updateBenPaymentTable['acc_validated'] = 0;
-            }
-            $updateFailedPaymentTable['edited_status'] = 2;
+    $auth = AuthChecker::ApproverPermission();
+    if ($auth) {
+      $response = [];
+      $statusCode = 200;
+      if (!$request->ajax()) {
+        $statusCode = 400;
+        $response = ['error' => 'Error occured in form submit.'];
+        return response()->json($response, $statusCode);
+      }
+      $user_id = AuthChecker::getUserId();
+      $is_bulk = $request->is_bulk;
+      $applicant_id = $request->applicantId;
+      $opreation_type = $request->opreation_type;
+      $failed_type = $request->failed_type;
+      $c_time = date('Y-m-d H:i:s');
+      $dutyObj = Configduty::where('user_id', '=', $user_id)->where('is_active', 1)->first();
+      $distCode = $dutyObj->district_code;
 
-            // $updateBenDetailsTable['updated_at'] = date("Y-m-d h:i:s");
-            // $updateBenDetailsTable['remarks'] = $request->accept_reject_comments;
-            // $updateBenDetailsTable['op_type'] = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod() . '@' . 'A';
-            // $updateBenDetailsTable['is_clean'] = 1;
-            // $updateBenDetailsTable['ip_address'] = $request->ip();
-
-            $updateBenDetailsTable = [
-              'scheme_id' => $benDetails[0]->scheme_id,
-              'created_by_dist_code' => $benDetails[0]->created_by_dist_code,
-              'created_by_local_body_code' => $benDetails[0]->created_by_local_body_code,
-              'rejected_reverted_cause' => $c_time,
-              'created_at' => $c_time,
-              'updated_at' => $c_time,
-              'op_type' => class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod() . '@' . 'A',
-              'ip_address' => request()->ip(),
-              'user_id' => $user_id,
-              'application_id' => $benDetails[0]->id,
-            ];
-
-
-
-            // $updateBenDetailsTable['']
-
-            DB::connection('pgsql')->beginTransaction();
-            DB::connection('pgsql_paywrite')->beginTransaction();
-            $is_ben_update = DB::connection('pgsql')->table('pension.beneficiaries')->where('scheme_id', $scheme_id)->where('id', $id)->where('is_clean', 1)->where('next_level_clean_id', 2)->update($updateBenTable);
-            // $is_update_ben_details = DB::connection('pgsql')->table('public.ben_accept_reject_info')->where('original_application_id', $id)->where('scheme_id', $scheme_id)->where('update_code', 500)->where('is_clean', 2)->update($updateBenDetailsTable);
-            $is_update_ben_details = DB::connection('pgsql')->table('public.ben_accept_reject_info')->insert($updateBenDetailsTable);
-            $is_field_update = DB::connection('pgsql')->table('pension.mandatory_field')->where('ben_id', $id)->where('scheme_id', $scheme_id)->update(['process_code' => 0]);
-            if ($benDetails[0]->dup_bank == 1 || $benDetails[0]->is_bank_failed == 1) {
-              $is_update_ben_payment = DB::connection('pgsql_paywrite')->table('payment.ben_payment_details')->where('ben_id', $id)->where('scheme_id', $scheme_id)->update($updateBenPaymentTable);
-            } else {
-              $is_update_ben_payment = 1;
-            }
-            if ($benDetails[0]->is_bank_failed == 1) {
-              $is_update_failed_payment = DB::connection('pgsql_paywrite')->table('payment.failed_payment_details')->where('ben_id', $id)->where('scheme_id', $scheme_id)->update($updateFailedPaymentTable);
-            } else {
-              $is_update_failed_payment = 1;
-            }
-            if (($benDetails[0]->is_bank_failed == 1)) {
-              $is_final_update = DB::connection('pgsql_paywrite')->select("Select payment.failed_update_bank(in_ben_id => ARRAY[" . $id . "], in_scheme_id => " . $scheme_id . ", in_failed_type_id => " . $failed_type . ")");
-            } else {
-              $is_final_update = 1;
-            }
-            // if ($is_ben_update && $is_update_ben_details) {
-            //   $is_final_update = 1;
-            // }       
-            if ($is_final_update) {
-              DB::connection('pgsql')->commit();
-              DB::connection('pgsql_paywrite')->commit();
+      if ($is_bulk == 0) {
+        $single_app_id = $request->single_app_id;
+        $parts = explode('_', $single_app_id);
+        $id = $parts[0];
+        $scheme_id = $parts[1];
+        if ($opreation_type == 'A') {
+          try {
+            $benDetails = BenEntry::where('scheme_id', $scheme_id)->where('id', $id)->where('next_level_clean_id', 2)->where('is_clean', 1)->first();
+            // dd($benDetails);
+            if ($benDetails == null) {
               return $response = [
                 'status' => 1,
-                'msg' => 'Beneficiary Updated Successfully.',
-                'type' => 'green',
-                'icon' => 'fa fa-success',
-                'title' => 'Success',
-              ];
-            } else {
-              DB::connection('pgsql')->rollback();
-              DB::connection('pgsql_paywrite')->rollback();
-              return $response = [
-                'status' => 1,
-                'msg' => 'Somethimg went wrong..',
+                'msg' => 'No Beneficiary Found.',
                 'type' => 'red',
                 'icon' => 'fa fa-warning',
                 'title' => 'Warning!!',
               ];
-            }
-          }
-        } catch (\Exception $e) {
-          dd($e);
-          DB::connection('pgsql')->rollback();
-          DB::connection('pgsql_paywrite')->rollback();
-          $response = [
-            'exception' => true,
-            'exception_message' => $e->getMessage(),
-          ];
-          $statusCode = 400;
-        } finally {
-          // dd($response);
-          return response()->json($response, $statusCode);
-        }
-      } elseif ($opreation_type == 'T') {
-        try {
-          $query = "SELECT id,created_by_dist_code, created_by_local_body_code,scheme_id, aadhar_no, mobile_no, next_level_clean_id, is_incomplete FROM pension.beneficiaries WHERE scheme_id = " . $scheme_id . " AND id = " . $id . " AND next_level_clean_id = 2 AND is_clean = 1";
-          $benDetails = DB::connection('pgsql_mis')->select($query);
-          if ($benDetails == null) {
-            return $response = [
-              'status' => 1,
-              'msg' => 'No Beneficiary Found.',
-              'type' => 'red',
-              'icon' => 'fa fa-warning',
-              'title' => 'Warning!!',
-            ];
-          } else {
-            $updateBenTable = [];
-            $updateBenDetailsTable = [];
-            $updateBenTable['next_level_clean_id'] = null;
-            $updateBenTable['is_incomplete'] = 1;
-            // $updateBenDetailsTable['remarks'] = $request->accept_reject_comments;
-            // $updateBenDetailsTable['op_type'] = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod() . '@' . 'T';
+            } else {
+              $updateBenTable = [];
+              // $updateBenDetailsTable = [];
+              $updateBenPaymentTable = [];
+              $updateFailedPaymentTable = [];
+              // $updateBenTable['next_level_clean_id'] = 1;
+              // $updateBenTable['is_incomplete'] = 0;
+              // $updateBenTable['dup_bank'] = null;
+              // $updateBenTable['dup_mobile'] = null;
+              // $updateBenTable['dup_aadhar'] = null;
+              // $updateBenTable['no_aadhar'] = null;
+              // $updateBenTable['no_mobile'] = null;
+              // if ($benDetails[0]->is_bank_failed == 1 && ($benDetails[0]->pay_validated == 3 || $benDetails[0]->pay_validated == 4 || $benDetails[0]->pay_validated == 5)) {
+              //   $updateBenTable['pay_validated'] = null;
+              //   $updateBenTable['is_bank_failed'] = null;
+              // }
+              if ($benDetails[0]->dup_bank == 1 || $benDetails[0]->is_bank_failed == 1) {
+                $updateBenPaymentTable['dup_bank'] = 0;
+                $updateBenPaymentTable['ben_status'] = 1;
+                $updateBenPaymentTable['acc_validated'] = 0;
+              }
+              $updateFailedPaymentTable['edited_status'] = 2;
+
+              // $updateBenDetailsTable['updated_at'] = date("Y-m-d h:i:s");
+              // $updateBenDetailsTable['remarks'] = $request->accept_reject_comments;
+              // $updateBenDetailsTable['op_type'] = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod() . '@' . 'A';
+              // $updateBenDetailsTable['is_clean'] = 1;
+              // $updateBenDetailsTable['ip_address'] = $request->ip();
+
+              $updateBenDetailsTable = [
+                'scheme_id' => $benDetails[0]->scheme_id,
+                'created_by_dist_code' => $benDetails[0]->created_by_dist_code,
+                'created_by_local_body_code' => $benDetails[0]->created_by_local_body_code,
+                'rejected_reverted_cause' => $c_time,
+                'created_at' => $c_time,
+                'updated_at' => $c_time,
+                'op_type' => class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod() . '@' . 'A',
+                'ip_address' => request()->ip(),
+                'user_id' => $user_id,
+                'application_id' => $benDetails[0]->id,
+              ];
 
 
-            $updateBenDetailsTable = [
-              'scheme_id' => $benDetails[0]->scheme_id,
-              'created_by_dist_code' => $benDetails[0]->created_by_dist_code,
-              'created_by_local_body_code' => $benDetails[0]->created_by_local_body_code,
-              'rejected_reverted_cause' => $c_time,
-              'created_at' => $c_time,
-              'updated_at' => $c_time,
-              'op_type' => class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod() . '@' . 'T',
-              'ip_address' => request()->ip(),
-              'user_id' => $user_id,
-              'application_id' => $benDetails[0]->id,
-            ];
+              $updateArray = $this->getUpdateCode($benDetails, $request, $role = 2);
 
 
-            DB::connection('pgsql')->beginTransaction();
-            $is_ben_update = DB::connection('pgsql')->table('pension.beneficiaries')->where('scheme_id', $scheme_id)->where('id', $id)->where('is_clean', 1)->where('next_level_clean_id', 2)->update($updateBenTable);
-            // $is_update_ben_details = DB::connection('pgsql')->table('public.ben_accept_reject_info')->where('original_application_id', $id)->where('scheme_id', $scheme_id)->where('update_code', 500)->where('is_clean', 2)->update($updateBenDetailsTable);
-            $is_update_ben_details = DB::connection('pgsql')->table('public.ben_accept_reject_info')->insert($updateBenDetailsTable);
-            $is_field_update = DB::connection('pgsql')->table('pension.mandatory_field')->where('ben_id', $id)->where('scheme_id', $scheme_id)->update(['process_code' => 1]);
+              // $updateBenDetailsTable['']
 
-            if ($is_ben_update) {
-              if ($is_update_ben_details) {
+              DB::connection('pgsql')->beginTransaction();
+              DB::connection('pgsql_paywrite')->beginTransaction();
+              $benEntry_Model = BenEntry::where('scheme_id', $scheme_id)->where('id', $id)->where('is_clean', 1)->where('next_level_clean_id', 2)->first();
+              $benEntry_Model->next_level_clean_id = 1;
+              $benEntry_Model->is_incomplete = null;
+              $benEntry_Model->dup_bank = null;
+              $benEntry_Model->dup_mobile = null;
+              $benEntry_Model->dup_aadhar = null;
+              $benEntry_Model->no_aadhar = null;
+              $benEntry_Model->no_mobile = null;
+              if ($benEntry_Model->is_bank_failed = 1 && ($benEntry_Model->pay_validated == 3 || $benEntry_Model->pay_validated == 4 || $benEntry_Model->pay_validated == 5)) {
+                $benEntry_Model->is_bank_failed = null;
+                $benEntry_Model->pay_validated = null;
+              }
+              $is_ben_update = $benEntry_Model->save();
+
+              $is_update_ben_details = DB::connection('pgsql')->table('public.ben_accept_reject_info')->insert($updateBenDetailsTable);
+
+              foreach ($updateArray as $updatecode) {
+                $accept_reject_info_model = new AcceptRejectInfo;
+                $accept_reject_info_model->scheme_id = $scheme_id;
+                $accept_reject_info_model->created_by_dist_code = $distCode;
+                $accept_reject_info_model->created_at = date('Y-m-d H:i:s');
+                $accept_reject_info_model->updated_at = date('Y-m-d H:i:s');
+                $accept_reject_info_model->op_type = $updatecode->code;
+                $accept_reject_info_model->ip_address = request()->ip();
+                $accept_reject_info_model->user_id = $user_id;
+                $accept_reject_info_model->application_id = $id;
+                $accept_reject_info_model->module_name = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod();
+                $accept_reject_info_model->remarks = $updatecode->description;
+                $updateBenDetailsAction = $accept_reject_info_model->save();
+
+              }
+
+
+              $is_field_update = DB::connection('pgsql')->table('pension.mandatory_field')->where('ben_id', $id)->where('scheme_id', $scheme_id)->update(['process_code' => 0]);
+              if ($benDetails[0]->dup_bank == 1 || $benDetails[0]->is_bank_failed == 1) {
+                $is_update_ben_payment = DB::connection('pgsql_paywrite')->table('payment.ben_payment_details')->where('ben_id', $id)->where('scheme_id', $scheme_id)->update($updateBenPaymentTable);
+              } else {
+                $is_update_ben_payment = 1;
+              }
+              if ($benDetails[0]->is_bank_failed == 1) {
+                $is_update_failed_payment = DB::connection('pgsql_paywrite')->table('payment.failed_payment_details')->where('ben_id', $id)->where('scheme_id', $scheme_id)->update($updateFailedPaymentTable);
+              } else {
+                $is_update_failed_payment = 1;
+              }
+              if (($benDetails[0]->is_bank_failed == 1)) {
+                $is_final_update = DB::connection('pgsql_paywrite')->select("Select payment.failed_update_bank(in_ben_id => ARRAY[" . $id . "], in_scheme_id => " . $scheme_id . ", in_failed_type_id => " . $failed_type . ")");
+              } else {
+                $is_final_update = 1;
+              }
+              // if ($is_ben_update && $is_update_ben_details) {
+              //   $is_final_update = 1;
+              // }       
+              if ($is_final_update) {
                 DB::connection('pgsql')->commit();
+                DB::connection('pgsql_paywrite')->commit();
                 return $response = [
                   'status' => 1,
-                  'msg' => 'Beneficiary Reverted Successfully.',
+                  'msg' => 'Beneficiary Updated Successfully.',
                   'type' => 'green',
                   'icon' => 'fa fa-success',
                   'title' => 'Success',
                 ];
               } else {
                 DB::connection('pgsql')->rollback();
+                DB::connection('pgsql_paywrite')->rollback();
                 return $response = [
                   'status' => 1,
                   'msg' => 'Somethimg went wrong..',
@@ -1968,35 +2379,22 @@ class NoDupWorkflowController extends Controller
                 ];
               }
             }
+          } catch (\Exception $e) {
+            dd($e);
+            DB::connection('pgsql')->rollback();
+            DB::connection('pgsql_paywrite')->rollback();
+            $response = [
+              'exception' => true,
+              'exception_message' => $e->getMessage(),
+            ];
+            $statusCode = 400;
+          } finally {
+            // dd($response);
+            return response()->json($response, $statusCode);
           }
-        } catch (\Exception $e) {
-          DB::connection('pgsql')->rollback();
-          $response = [
-            'exception' => true,
-            'exception_message' => $e->getMessage(),
-          ];
-          $statusCode = 400;
-        } finally {
-          return response()->json($response, $statusCode);
-        }
-      }
-    }
-    if ($is_bulk == 1) {
-      if ($opreation_type == 'A') {
-        $bulk_id_arr = explode(',', $applicant_id);
-        $scheme_id = $request->scheme_id;
-
-        DB::beginTransaction();
-        try {
-          $count = 0;
-          $i = 0;
-          foreach ($bulk_id_arr as $key => $value) {
-            $count++;
-            $ip_address = request()->ip();
-            $today = date("Y-m-d h:i:s");
-            $query = '';
-            $query = "SELECT id, created_by_dist_code, created_by_local_body_code,scheme_id, aadhar_no, mobile_no, next_level_clean_id, is_bank_failed, pay_validated, is_incomplete FROM pension.beneficiaries WHERE scheme_id = " . $scheme_id . " AND id = " . $value . " AND next_level_clean_id = 2 AND is_clean = 1";
-            // dd($query);
+        } elseif ($opreation_type == 'T') {
+          try {
+            $query = "SELECT id,created_by_dist_code, created_by_local_body_code,scheme_id, aadhar_no, mobile_no, next_level_clean_id, is_incomplete FROM pension.beneficiaries WHERE scheme_id = " . $scheme_id . " AND id = " . $id . " AND next_level_clean_id = 2 AND is_clean = 1";
             $benDetails = DB::connection('pgsql_mis')->select($query);
             if ($benDetails == null) {
               return $response = [
@@ -2009,33 +2407,10 @@ class NoDupWorkflowController extends Controller
             } else {
               $updateBenTable = [];
               $updateBenDetailsTable = [];
-              $updateBenPaymentTable = [];
-              $updateFailedPaymentTable = [];
-
-              $updateBenTable['next_level_clean_id'] = 1;
-              $updateBenTable['is_clean'] = 1;
-              $updateBenTable['is_incomplete'] = 0;
-              $updateBenTable['dup_bank'] = null;
-              $updateBenTable['dup_mobile'] = null;
-              $updateBenTable['dup_aadhar'] = null;
-              $updateBenTable['no_aadhar'] = null;
-              $updateBenTable['no_mobile'] = null;
-              if ($benDetails[0]->is_bank_failed == 1 && ($benDetails[0]->pay_validated == 3 || $benDetails[0]->pay_validated == 4 || $benDetails[0]->pay_validated == 5)) {
-                $updateBenTable['pay_validated'] = null;
-                $updateBenTable['is_bank_failed'] = null;
-              }
-
-              $updateBenPaymentTable['dup_bank'] = 0;
-              $updateBenPaymentTable['ben_status'] = 1;
-              $updateBenPaymentTable['acc_validated'] = 0;
-
-              $updateFailedPaymentTable['edited_status'] = 0;
-
-              // $updateBenDetailsTable['updated_at'] = date("Y-m-d h:i:s");
+              $updateBenTable['next_level_clean_id'] = null;
+              $updateBenTable['is_incomplete'] = 1;
               // $updateBenDetailsTable['remarks'] = $request->accept_reject_comments;
-              // $updateBenDetailsTable['op_type'] = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod() . '@' . 'A';
-              // $updateBenDetailsTable['is_clean'] = 1;
-
+              // $updateBenDetailsTable['op_type'] = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod() . '@' . 'T';
 
 
               $updateBenDetailsTable = [
@@ -2052,61 +2427,174 @@ class NoDupWorkflowController extends Controller
               ];
 
 
-
-
-              // DB::connection('pgsql')->beginTransaction();
-              $is_ben_update = DB::connection('pgsql')->table('pension.beneficiaries')->where('scheme_id', $scheme_id)->where('id', $value)->where('is_clean', 1)->where('next_level_clean_id', 2)->update($updateBenTable);
-              // $is_update_ben_details = DB::connection('pgsql')->table('public.ben_accept_reject_info')->where('original_application_id', $value)->where('scheme_id', $scheme_id)->where('update_code', 500)->where('is_clean', 2)->update($updateBenDetailsTable);
+              DB::connection('pgsql')->beginTransaction();
+              $is_ben_update = DB::connection('pgsql')->table('pension.beneficiaries')->where('scheme_id', $scheme_id)->where('id', $id)->where('is_clean', 1)->where('next_level_clean_id', 2)->update($updateBenTable);
+              // $is_update_ben_details = DB::connection('pgsql')->table('public.ben_accept_reject_info')->where('original_application_id', $id)->where('scheme_id', $scheme_id)->where('update_code', 500)->where('is_clean', 2)->update($updateBenDetailsTable);
               $is_update_ben_details = DB::connection('pgsql')->table('public.ben_accept_reject_info')->insert($updateBenDetailsTable);
-              $is_field_update = DB::connection('pgsql')->table('pension.mandatory_field')->where('ben_id', $id)->where('scheme_id', $scheme_id)->update(['process_code' => 0]);
+              $is_field_update = DB::connection('pgsql')->table('pension.mandatory_field')->where('ben_id', $id)->where('scheme_id', $scheme_id)->update(['process_code' => 1]);
 
-              // $is_update_ben_payment = DB::connection('pgsql_paywrite')->table('payment.ben_payment_details')->where('ben_id', $value)->where('scheme_id', $scheme_id)->update($updateBenPaymentTable);
-              // $is_update_failed_payment = DB::connection('pgsql_paywrite')->table('payment.failed_payment_details')->where('ben_id', $value)->where('scheme_id', $scheme_id)->update($updateFailedPaymentTable);
-              // dump($is_ben_update); die; //dump($is_update_ben_details); die;
-              if ($benDetails[0]->is_bank_failed == 1) {
-                $is_final_update = DB::connection('pgsql_paywrite')->select("Select payment.failed_update_bank(in_ben_id => ARRAY[" . $value . "], in_scheme_id => " . $scheme_id . ", in_failed_type_id => " . $failed_type . ")");
-              } else {
-                $is_final_update = 1;
-              }
-              if ($is_final_update) {
-                $i++;
+              if ($is_ben_update) {
+                if ($is_update_ben_details) {
+                  DB::connection('pgsql')->commit();
+                  return $response = [
+                    'status' => 1,
+                    'msg' => 'Beneficiary Reverted Successfully.',
+                    'type' => 'green',
+                    'icon' => 'fa fa-success',
+                    'title' => 'Success',
+                  ];
+                } else {
+                  DB::connection('pgsql')->rollback();
+                  return $response = [
+                    'status' => 1,
+                    'msg' => 'Somethimg went wrong..',
+                    'type' => 'red',
+                    'icon' => 'fa fa-warning',
+                    'title' => 'Warning!!',
+                  ];
+                }
               }
             }
-          }
-          if ($i == $count) {
-            DB::commit();
+          } catch (\Exception $e) {
+            DB::connection('pgsql')->rollback();
             $response = [
-              'status' => 1,
-              'msg' => 'Beneficiaries Approved Successfully',
-              'type' => 'green',
-              'icon' => 'fa fa-check',
-              'title' => 'Success',
+              'exception' => true,
+              'exception_message' => $e->getMessage(),
             ];
-          } else {
+            $statusCode = 400;
+          } finally {
+            return response()->json($response, $statusCode);
+          }
+        }
+      }
+      if ($is_bulk == 1) {
+        if ($opreation_type == 'A') {
+          $bulk_id_arr = explode(',', $applicant_id);
+          $scheme_id = $request->scheme_id;
+
+          DB::beginTransaction();
+          try {
+            $count = 0;
+            $i = 0;
+            foreach ($bulk_id_arr as $key => $value) {
+              $count++;
+              $ip_address = request()->ip();
+              $today = date("Y-m-d h:i:s");
+              $query = '';
+              $query = "SELECT id, created_by_dist_code, created_by_local_body_code,scheme_id, aadhar_no, mobile_no, next_level_clean_id, is_bank_failed, pay_validated, is_incomplete FROM pension.beneficiaries WHERE scheme_id = " . $scheme_id . " AND id = " . $value . " AND next_level_clean_id = 2 AND is_clean = 1";
+              // dd($query);
+              $benDetails = DB::connection('pgsql_mis')->select($query);
+              if ($benDetails == null) {
+                return $response = [
+                  'status' => 1,
+                  'msg' => 'No Beneficiary Found.',
+                  'type' => 'red',
+                  'icon' => 'fa fa-warning',
+                  'title' => 'Warning!!',
+                ];
+              } else {
+                $updateBenTable = [];
+                $updateBenDetailsTable = [];
+                $updateBenPaymentTable = [];
+                $updateFailedPaymentTable = [];
+
+                $updateBenTable['next_level_clean_id'] = 1;
+                $updateBenTable['is_clean'] = 1;
+                $updateBenTable['is_incomplete'] = 0;
+                $updateBenTable['dup_bank'] = null;
+                $updateBenTable['dup_mobile'] = null;
+                $updateBenTable['dup_aadhar'] = null;
+                $updateBenTable['no_aadhar'] = null;
+                $updateBenTable['no_mobile'] = null;
+                if ($benDetails[0]->is_bank_failed == 1 && ($benDetails[0]->pay_validated == 3 || $benDetails[0]->pay_validated == 4 || $benDetails[0]->pay_validated == 5)) {
+                  $updateBenTable['pay_validated'] = null;
+                  $updateBenTable['is_bank_failed'] = null;
+                }
+
+                $updateBenPaymentTable['dup_bank'] = 0;
+                $updateBenPaymentTable['ben_status'] = 1;
+                $updateBenPaymentTable['acc_validated'] = 0;
+
+                $updateFailedPaymentTable['edited_status'] = 0;
+
+                // $updateBenDetailsTable['updated_at'] = date("Y-m-d h:i:s");
+                // $updateBenDetailsTable['remarks'] = $request->accept_reject_comments;
+                // $updateBenDetailsTable['op_type'] = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod() . '@' . 'A';
+                // $updateBenDetailsTable['is_clean'] = 1;
+
+
+
+                $updateBenDetailsTable = [
+                  'scheme_id' => $benDetails[0]->scheme_id,
+                  'created_by_dist_code' => $benDetails[0]->created_by_dist_code,
+                  'created_by_local_body_code' => $benDetails[0]->created_by_local_body_code,
+                  'rejected_reverted_cause' => $c_time,
+                  'created_at' => $c_time,
+                  'updated_at' => $c_time,
+                  'op_type' => class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod() . '@' . 'T',
+                  'ip_address' => request()->ip(),
+                  'user_id' => $user_id,
+                  'application_id' => $benDetails[0]->id,
+                ];
+
+
+
+
+                // DB::connection('pgsql')->beginTransaction();
+                $is_ben_update = DB::connection('pgsql')->table('pension.beneficiaries')->where('scheme_id', $scheme_id)->where('id', $value)->where('is_clean', 1)->where('next_level_clean_id', 2)->update($updateBenTable);
+                // $is_update_ben_details = DB::connection('pgsql')->table('public.ben_accept_reject_info')->where('original_application_id', $value)->where('scheme_id', $scheme_id)->where('update_code', 500)->where('is_clean', 2)->update($updateBenDetailsTable);
+                $is_update_ben_details = DB::connection('pgsql')->table('public.ben_accept_reject_info')->insert($updateBenDetailsTable);
+                $is_field_update = DB::connection('pgsql')->table('pension.mandatory_field')->where('ben_id', $id)->where('scheme_id', $scheme_id)->update(['process_code' => 0]);
+
+                // $is_update_ben_payment = DB::connection('pgsql_paywrite')->table('payment.ben_payment_details')->where('ben_id', $value)->where('scheme_id', $scheme_id)->update($updateBenPaymentTable);
+                // $is_update_failed_payment = DB::connection('pgsql_paywrite')->table('payment.failed_payment_details')->where('ben_id', $value)->where('scheme_id', $scheme_id)->update($updateFailedPaymentTable);
+                // dump($is_ben_update); die; //dump($is_update_ben_details); die;
+                if ($benDetails[0]->is_bank_failed == 1) {
+                  $is_final_update = DB::connection('pgsql_paywrite')->select("Select payment.failed_update_bank(in_ben_id => ARRAY[" . $value . "], in_scheme_id => " . $scheme_id . ", in_failed_type_id => " . $failed_type . ")");
+                } else {
+                  $is_final_update = 1;
+                }
+                if ($is_final_update) {
+                  $i++;
+                }
+              }
+            }
+            if ($i == $count) {
+              DB::commit();
+              $response = [
+                'status' => 1,
+                'msg' => 'Beneficiaries Approved Successfully',
+                'type' => 'green',
+                'icon' => 'fa fa-check',
+                'title' => 'Success',
+              ];
+            } else {
+              DB::rollback();
+              $response = [
+                'exception' => true,
+                // 'exception_message' => $e->getMessage(),
+                'exception_message' =>
+                  'Something went wrong. May be session time out logout and login again.',
+              ];
+            }
+          } catch (\Exception $e) {
+            dd($e);
             DB::rollback();
+            DB::connection('pgsql')->rollback();
             $response = [
               'exception' => true,
               // 'exception_message' => $e->getMessage(),
               'exception_message' =>
                 'Something went wrong. May be session time out logout and login again.',
             ];
+            $statusCode = 400;
+          } finally {
+            return response()->json($response, $statusCode);
           }
-        } catch (\Exception $e) {
-          dd($e);
-          DB::rollback();
-          DB::connection('pgsql')->rollback();
-          $response = [
-            'exception' => true,
-            // 'exception_message' => $e->getMessage(),
-            'exception_message' =>
-              'Something went wrong. May be session time out logout and login again.',
-          ];
-          $statusCode = 400;
-        } finally {
-          return response()->json($response, $statusCode);
         }
       }
     }
+
   }
 
 
@@ -2814,7 +3302,7 @@ class NoDupWorkflowController extends Controller
       ->make(true);
   }
 
-  function schemeMisReportExcel(Request $request)
+  public function schemeMisReportExcel(Request $request)
   {
     $user_id = AuthChecker::getUserId();
     $duty_obj = Configduty::where('user_id', $user_id)->where('is_active', 1)->first();
@@ -2882,6 +3370,266 @@ class NoDupWorkflowController extends Controller
       });
     })->download('xlsx');
   }
+
+
+  private function getUpdateCode($row, $request, $role)
+  {
+    $updateArray = array();
+    if ($row->no_aadhar == 1 && !empty($request->new_aadhar_no) && $request->new_aadhar_no != $row->aadhar_no && $role == 1) {
+      $updateArray[] = DB::connection('pgsql')
+        ->table('m_update_code')
+        ->where('id', 1)
+        ->select('code', 'description')
+        ->first();
+      // ->toArray();
+    }
+
+    if ($row->dup_aadhar == 1 && !empty($request->new_aadhar_no) && $request->new_aadhar_no == $row->aadhar_no && $role == 1) {
+
+      $updateArray[] = DB::connection('pgsql')
+        ->table('m_update_code')
+        ->where('id', 8)
+        ->select('code', 'description')
+        ->first();
+      // ->toArray();
+    }
+
+    if ($row->dup_aadhar == 1 && !empty($request->new_aadhar_no) && $request->new_aadhar_no != $row->aadhar_no && $role == 1) {
+      $updateArray[] = DB::connection('pgsql')
+        ->table('m_update_code')
+        ->where('id', 7)
+        ->select('code', 'description')
+        ->first();
+      // ->toArray();
+    }
+
+
+    if ($row->no_mobile == 1 && !empty($request->new_mobile_no) && $request->new_mobile_no != $row->mobile_no && $role == 1) {
+      $updateArray[] = DB::connection('pgsql')
+        ->table('m_update_code')
+        ->where('id', 4)
+        ->select('code', 'description')
+        ->first();
+      // ->toArray();
+    }
+
+    if ($row->dup_mobile == 1 && !empty($request->new_mobile_no) && $request->new_mobile_no == $row->mobile_no && $role == 1) {
+      $updateArray[] = DB::connection('pgsql')
+        ->table('m_update_code')
+        ->where('id', 10)
+        ->select('code', 'description')
+        ->first();
+      // ->toArray();
+    }
+
+    if ($row->dup_mobile == 1 && !empty($request->new_mobile_no) && $request->new_mobile_no != $row->mobile_no && $role == 1) {
+      $updateArray[] = DB::connection('pgsql')
+        ->table('m_update_code')
+        ->where('id', 9)
+        ->select('code', 'description')
+        ->first();
+      // ->toArray();
+    }
+
+    if ($row->dup_bank == 1 && !empty($request->new_bank_code) && trim($request->new_bank_code) != trim($row->bank_code) && $role == 1) {
+      $updateArray[] = DB::connection('pgsql')
+        ->table('m_update_code')
+        ->where('id', 12)
+        ->select('code', 'description')
+        ->first();
+    }
+
+    if ($row->dup_bank == 1 && !empty($request->new_bank_code) && trim($request->new_bank_code) == trim($row->bank_code) && $role == 1) {
+      $updateArray[] = DB::connection('pgsql')
+        ->table('m_update_code')
+        ->where('id', 11)
+        ->select('code', 'description')
+        ->first();
+    }
+
+    $pay_validated = 0;
+
+    // Payment Failed Correction
+    if ($row->is_bank_failed == 1) {
+      $pay_validatedResult = DB::connection('pgsql_paywrite')
+        ->table('payment.ben_payment_details')
+        ->where('ben_id', $row->id)
+        ->select('pay_validated')
+        ->first();
+
+      $pay_validated = $pay_validatedResult ? $pay_validatedResult->pay_validated : 0;
+    }
+    // dd($pay_validated);
+
+    // Check for new bank code mismatch and update logic
+    if ($row->is_bank_failed == 1 && !empty($request->new_bank_code) && trim($request->new_bank_code) != trim($row->bank_code) && $role == 1) {
+      // dd($pay_validated);
+      if ($pay_validated == 3) {
+        $updateArray[] = DB::connection('pgsql')
+          ->table('m_update_code')
+          ->where('id', 13)
+          ->select('code', 'description')
+          ->first();
+      }
+      if ($pay_validated == 4) {
+        $updateArray[] = DB::connection('pgsql')
+          ->table('m_update_code')
+          ->where('id', 14)
+          ->select('code', 'description')
+          ->first();
+      }
+      if ($pay_validated == 5) {
+        $updateArray[] = DB::connection('pgsql')
+          ->table('m_update_code')
+          ->where('id', 16)
+          ->select('code', 'description')
+          ->first();
+      }
+    }
+
+    if ($row->is_bank_failed == 2 && !empty($request->process_type) && ($request->process_type == 1) && $role == 1) {
+
+      $updateArray[] = DB::connection('pgsql')
+        ->table('m_update_code')
+        ->where('id', 18)
+        ->select('code', 'description')
+        ->first();
+
+
+    }
+
+    if ($row->is_bank_failed == 2 && !empty($request->process_type) && ($request->process_type == 2) && $role == 1) {
+
+      $updateArray[] = DB::connection('pgsql')
+        ->table('m_update_code')
+        ->where('id', 19)
+        ->select('code', 'description')
+        ->first();
+
+
+    }
+
+    if ($row->is_bank_failed == 2 && !empty($request->process_type) && ($request->process_type == 3) && $role == 1) {
+      $updateArray[] = DB::connection('pgsql')
+        ->table('m_update_code')
+        ->where('id', 20)
+        ->select('code', 'description')
+        ->first();
+    }
+
+    if ($row->is_bank_failed == 3 && !empty($request->new_bank_code) && ($request->new_bank_code != $request->old_bank_code) && $role == 1) {
+      $updateArray[] = DB::connection('pgsql')
+        ->table('m_update_code')
+        ->where('id', 17)
+        ->select('code', 'description')
+        ->first();
+    }
+
+    if ($row->is_incomplete == 1 && in_array($row->scheme_id, [1, 3]) && !empty($request->new_caste_certificate_no) && $role == 1) {
+      $updateArray[] = DB::connection('pgsql')
+        ->table('m_update_code')
+        ->where('id', 21)
+        ->select('code', 'description')
+        ->first();
+    }
+
+
+    if ($row->is_incomplete == 1 && in_array($row->scheme_id, [2]) && !empty($request->new_disablity_type) && !empty($request->new_disablity_type_percentage) && $role == 1) {
+      $updateArray[] = DB::connection('pgsql')
+        ->table('m_update_code')
+        ->where('id', 22)
+        ->select('code', 'description')
+        ->first();
+    }
+
+    if ($row->is_incomplete == 1 && in_array($row->scheme_id, [11]) && !empty($request->new_husband_first_name) && $role == 1) {
+      $updateArray[] = DB::connection('pgsql')
+        ->table('m_update_code')
+        ->where('id', 23)
+        ->select('code', 'description')
+        ->first();
+    }
+
+
+    return $updateArray;
+
+  }
+
+
+  private function benStatus($ben_id, $scheme_id)
+  {
+    // Fetch the data for the given ben_id and scheme_id
+    $data = BenEntry::where('id', $ben_id)
+      ->where('scheme_id', $scheme_id)
+      ->where('next_level_clean_id', 2)
+      ->get(); // Use get() instead of first() to iterate over multiple results
+
+    $data = collect($data)->map(function ($item) use ($scheme_id) {
+      $pay_validation = DB::connection('pgsql_paywrite')
+        ->table('payment.ben_payment_details')
+        ->where('ben_id', $item->id)
+        ->where('scheme_id', $scheme_id)
+        ->select('pay_validated')
+        ->first();
+
+      $item->pay_validated = $pay_validation->pay_validated ?? null;
+      return $item;
+    });
+
+    if ($data->isEmpty()) {
+      return '<span class="text text-danger" style="font-size: 12px;"><b>No records found</b></span>';
+    }
+
+    $status = [];
+    $sl = 1;
+
+    foreach ($data as $item) {
+      // Check conditions and add status messages
+      if (!empty($item->dup_aadhar)) {
+        $status[] = $this->formatStatus($sl++, 'Duplicate Aadhar');
+      }
+      if (!empty($item->dup_mobile)) {
+        $status[] = $this->formatStatus($sl++, 'Duplicate Mobile');
+      }
+      if (!empty($item->dup_bank)) {
+        $status[] = $this->formatStatus($sl++, 'Duplicate Bank');
+      }
+      if (!empty($item->no_aadhar)) {
+        $status[] = $this->formatStatus($sl++, 'No Aadhar');
+      }
+      if (!empty($item->no_mobile)) {
+        $status[] = $this->formatStatus($sl++, 'No Mobile');
+      }
+      if ($data->is_bank_failed == 1) {
+        if ($data->pay_validated == 3) {
+          $status .= '<span class="text text-info" style="font-size: 12px;"><b>' . $sl++ . '. Payment Failure SBI</b></span>';
+        } elseif ($data->pay_validated == 4) {
+          $status .= '<span class="text text-info" style="font-size: 12px;"><b>' . $sl++ . '. Payment Failure RBI</b></span>';
+        } elseif ($data->pay_validated == 5) {
+          $status .= '<span class="text text-info" style="font-size: 12px;"><b>' . $sl++ . '. Payment Failure IFMS</b></span>';
+        }
+      }
+    }
+
+    // Join the status messages into a single string
+    return implode('', $status);
+  }
+
+  /**
+   * Helper function to format status message.
+   *
+   * @param int $sl
+   * @param string $message
+   * @return string
+   */
+  private function formatStatus($sl, $message)
+  {
+    return '<span class="text text-info" style="font-size: 12px;"><b>' . $sl . '. ' . $message . '</b></span><br>';
+  }
+
+
+
+
 }
 
 

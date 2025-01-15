@@ -613,6 +613,7 @@ class AadharMobileDeDuplicateWorkFlowController extends Controller
   */
   public function indexApprove()
   {
+    return redirect()->route('no-dup-verified-beneficiaries-list');
     $designation_id = Auth::user()->designation_id;
     if (AuthChecker::ApproverChecker()) {
       $is_active = 1;

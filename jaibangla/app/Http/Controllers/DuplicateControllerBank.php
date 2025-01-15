@@ -88,6 +88,8 @@ class DuplicateControllerBank extends Controller
     }
     function dedupBankSelectScheme(Request $request)
     {
+        return redirect()->route('noDupBeneficiariesList', ['type' => 5]);
+
         $this->middleware('auth');
         $is_verifier = AuthChecker::VerifierChecker();
         $is_approver = AuthChecker::ApproverChecker();
@@ -1422,6 +1424,7 @@ class DuplicateControllerBank extends Controller
     }
     function ajaxGetEncloser(Request $request)
     {
+        // dd($request->all());
         $return_status = 0;
         $return_msg = '';
         $html = '';
@@ -2088,6 +2091,8 @@ class DuplicateControllerBank extends Controller
     }
     public function dedupBankApprover(Request $request)
     {
+        return redirect()->route('no-dup-verified-beneficiaries-list', ['type' => 3]);
+
         // dd('ok');
         $user_id = AuthChecker::getUserId();
         $dutyObj = Configduty::where('user_id', '=', $user_id)->where('is_active', 1)->first();

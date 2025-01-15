@@ -312,7 +312,7 @@ class AuthChecker
     // }
 
 
-    public static function MakerPermission()
+    public static function OperatorPermission()
     {
         if (self::OperatorChecker() || self::DelegatedOperatorChecker())
             return true;
@@ -320,7 +320,7 @@ class AuthChecker
             return false;
     }
 
-    public static function CheckerPermission()
+    public static function VerifierPermission()
     {
         if (self::DelegatedVerifierChecker() || self::VerifierChecker())
             return true;

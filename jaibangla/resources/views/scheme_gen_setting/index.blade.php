@@ -148,6 +148,67 @@
                                 </div>
                             </div>
 
+
+                            <!-- Bank Update -->
+                            <div class="box box-primary box-solid mb-3">
+                                <div class="box-header with-border">
+                                    <h3 class="box-title">Bank Validation / Transaction Update</h3>
+                                </div>
+                                <div class="box-body">
+                                    <!-- Validation Options -->
+                                    <div class="form-group d-flex flex-wrap align-items-center">
+                                        <!-- Allow Bank Failed Update -->
+                                        <div class="form-check me-4">
+                                            <input type="checkbox" class="form-check-input" id="bank_failed"
+                                                name="bank_failed" value="1">
+                                            <label class="form-check-label" for="bank_failed">Allow Bank Failed
+                                                Update</label>
+                                        </div>
+
+                                        <!-- Allow Name Validation Update -->
+                                        <div class="form-check me-4">
+                                            <input type="checkbox" class="form-check-input" id="name_validation_failed"
+                                                name="name_validation_failed" value="1">
+                                            <label class="form-check-label" for="name_validation_failed">Allow Name
+                                                Validation Update</label>
+                                        </div>
+
+                                        <!-- Allow Account Validation Update -->
+                                        <div class="form-check">
+                                            <input type="checkbox" class="form-check-input"
+                                                id="account_validation_failed" name="account_validation_failed"
+                                                value="1">
+                                            <label class="form-check-label" for="account_validation_failed">Allow A/c
+                                                Validation Update</label>
+                                        </div>
+                                    </div>
+                                    <div class="name_validation_div" style="display: none;">
+                                        <hr class="my-3" />
+                                        <!-- Active Name Validation Options -->
+                                        <div class="form-group">
+                                            <h4 class="mb-3">Active Name Validation Options</h4>
+                                            <div class="d-flex flex-wrap">
+                                                @foreach ($name_options as $name_option)
+                                                    <div class="form-check me-4">
+                                                        <input type="checkbox" class="form-check-input"
+                                                            id="name_validation_opt_{{$name_option->id}}"
+                                                            name="name_validation_opt[]" value="{{$name_option->id}}">
+                                                        <label class="form-check-label"
+                                                            for="name_validation_opt_{{$name_option->id}}">{{$name_option->name}}</label>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+                                </div>
+                            </div>
+
+
+
+
+
                             <!-- Duare Sarkar Settings -->
                             <div class="box box-primary box-solid mb-3">
                                 <div class="box-header with-border">
@@ -179,26 +240,26 @@
                                 </div>
                             </div>
 
-                                   <!-- CMO Settings -->
-                        <div class="box box-primary box-solid mb-3">
-                            <div class="box-header with-border">
-                                <h3 class="box-title">CMO Grivance</h3>
-                            </div>
-                            <div class="box-body">
-                                <div class="form-group">
-                                    <label for="ds_entry">Allow CMO Grievance Check
-                                        <div>
-                                            <label class="radio-inline">
-                                                <input type="radio" name="cmo_check" value="1" id="entry_yes"> Yes
-                                            </label>
-                                            <label class="radio-inline">
-                                                <input type="radio" name="cmo_check" value="0" id="entry_no"> No
-                                            </label>
-                                        </div>
-                                    </label>
+                            <!-- CMO Settings -->
+                            <div class="box box-primary box-solid mb-3">
+                                <div class="box-header with-border">
+                                    <h3 class="box-title">CMO Grivance</h3>
+                                </div>
+                                <div class="box-body">
+                                    <div class="form-group">
+                                        <label for="ds_entry">Allow CMO Grievance Check
+                                            <div>
+                                                <label class="radio-inline">
+                                                    <input type="radio" name="cmo_check" value="1" id="entry_yes"> Yes
+                                                </label>
+                                                <label class="radio-inline">
+                                                    <input type="radio" name="cmo_check" value="0" id="entry_no"> No
+                                                </label>
+                                            </div>
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
                             <!-- Scheme Capacity -->
                             <div class="box box-primary box-solid">
@@ -435,6 +496,17 @@
         }, 100);
 
         $('#loadingDiv').hide();
+        $('.name_validation_div').hide();
+
+        $('#name_validation_failed').change(function () {
+            if ($(this).prop('checked')) {
+                $('.name_validation_div').show();
+            } else {
+                $('.name_validation_div').hide();
+            }
+        });
+
+
 
         var table = $('#datatable').DataTable({
             processing: true,
@@ -546,6 +618,8 @@
         } else {
             $('.special-quota').hide();
         }
+
+
 
 
         // Toggle visibility of special-quota section based on 'scheme_cap' checkbox

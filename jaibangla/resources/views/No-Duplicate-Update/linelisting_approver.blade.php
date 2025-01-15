@@ -70,7 +70,7 @@
     <!-- Content Header (Page header) -->
     <section class="content-header">
         <h1>
-           Approve/Revert Pending Incomplete Data 
+            Approve/Revert Pending Incomplete Data
         </h1>
 
     </section>
@@ -110,19 +110,16 @@
                                 </select>
                                 <span id="error_scheme_id" class="text-danger"></span>
                             </div>
+
+                            <input type="hidden" name="type" id="type" value="{{ $type_id}}" />
+
                             <div class="form-group col-md-3">
                                 <label class="required-field">Operation Type</label>
                                 <select class="form-control" name="filter_type" id="filter_type">
                                     <option value="">--Select--</option>
-                                    <option value="0">Incomplete Data</option>
-                                    <option value="1">Duplicate Aadhar</option>
-                                    <option value="2">No Aadhar</option>
-                                    <option value="3">Duplicate Bank</option>
-                                    <option value="4">Duplicate Mobile</option>
-                                    <option value="5">No Mobile</option>
-                                    <option value="6">Payment Failure</option>
-                                    <option value="7">Name Validation Failed</option>
-                                    <option value="8">Account Validation Failed</option>
+                                    @foreach ($incomplete_types as $type)
+                                        <option value="{{$type->id}}">{{$type->name}}</option>
+                                    @endforeach
                                 </select>
                                 <span id="error_filter_type" class="text-danger"></span>
                             </div>
@@ -229,6 +226,24 @@
                     <div class="modal-body ben_view_body">
                         <input type="hidden" class="form-control" id="ben_id" name="ben_id">
                         <input type="hidden" class="form-control" id="view_scheme_id" name="view_scheme_id">
+                        <input type="hidden" class="form-control" id="view_is_incomplete" name="view_is_incomplete">
+                        <input type="hidden" class="form-control" id="view_dup_aadhar" name="view_dup_aadhar">
+                        <input type="hidden" class="form-control" id="view_no_aadhar" name="view_no_aadhar">
+                        <input type="hidden" class="form-control" id="view_dup_bank" name="view_dup_bank">
+                        <input type="hidden" class="form-control" id="view_dup_mobile" name="view_dup_mobile">
+                        <input type="hidden" class="form-control" id="view_no_mobile" name="view_no_mobile">
+                        <input type="hidden" class="form-control" id="view_is_bank_failed" name="view_is_abnk_failed">
+
+                        <div class="box box-danger box-solid">
+                            <div class="box-header">
+                                <h3 class="box-title">The Beneficiary is having</h3>
+                            </div>
+                            <div class="box-body">
+                                <div id="status_array" style="width: 30%;" class="status_array"></div>
+                            </div>
+                        </div>
+
+
                         <div class="panel-group singleInfo" role="tablist" aria-multiselectable="true">
                             <div class="panel panel-default">
                                 <div class="panel-heading active" role="tab" id="personal">
@@ -521,6 +536,15 @@
         if ($.fn.DataTable.isDataTable('#example')) {
             $('#example').DataTable().destroy();
         }
+
+
+        if ($('#filter_type').val() === '10') { // Ensure comparison to string
+            $('#failed_type_div').show().css('display', 'inline');
+        } else {
+            $('#failed_type_div').hide();
+        }
+
+
         $('#scheme_id').change(function () {
             if ($(this).val() !== '') {
                 $('#excel_scheme_based_btn').removeAttr('disabled');
@@ -538,6 +562,38 @@
                 $('#excel_another_total_btn').attr('disabled', 'disabled'); // Re-disable the button if no value is selected
             }
         });
+
+
+        if ($('#type').val() !== '') {
+            var type = $('#type').val();
+            if (type === '11') {
+                $('#filter_type').val(11).change();
+                // $('#filter_type').attr('disabled', true);
+            } else if (type === '12') {
+                $('#filter_type').val(12).change();
+                // $('#filter_type').attr('disabled', true);
+            } else if (type === '10') {
+                $('#filter_type').val(10).change();
+                // $('#filter_type').attr('disabled', true);
+            } else if (type === '3') {
+                $('#filter_type').val(3).change();
+                // $('#filter_type').attr('disabled', true);
+            } else if (type === '2') {
+                $('#filter_type').val(2).change();
+                // $('#filter_type').attr('disabled', true);
+            }
+            else {
+                $.alert({
+                    title: 'Error!!',
+                    type: 'red',
+                    icon: 'fa fa-warning',
+                    content: 'Error in Operation Type Selection !!'
+                });
+                $('#filter_type').attr('disabled', false); // Enable filter_type in case of error
+            }
+        }
+
+        // failed_type_div
 
 
 
@@ -886,6 +942,7 @@
                     $('.ben_doc_button').attr('id', 'btnDoc_' + response.id).val(response.id);
                     $('.applicant_id_modal').html('(Beneficiary ID - ' + response.id + ' )');
                     $('#fullForm #id').val(response.id);
+                    $('.status_array').html(response.status_array);
 
                     var view_scheme_id = $('#view_scheme_id').val();
 
@@ -907,6 +964,7 @@
                     }
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
+                    // console.log(jqXHR,textStatus,errorThrown);
                     $('.ben_view_body').removeClass('disabledcontent');
                     $('#loader_img_personal').hide();
                     $('.ben_view_button').removeAttr('disabled', true);

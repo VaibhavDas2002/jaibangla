@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class RequiredFilds extends Model
 {
-    protected $table = 'm_required_field';
+    protected $table = 'm_fields';
      /**
      * The attributes that aren't mass assignable.
      *

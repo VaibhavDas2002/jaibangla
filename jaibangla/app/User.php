@@ -18,16 +18,16 @@ class User extends Authenticatable implements Auditable
     *
     * @var array
     */
-    protected $guarded = ['remember_token'];
+    // protected $guarded = ['remember_token'];
 
     /**
      * The attributes that should be hidden for arrays.
      *
      * @var array
      */
-    protected $hidden = [
-        'password', 'remember_token',
-    ];
+    // protected $hidden = [
+    //     'password', 'remember_token',
+    // ];
 
    
 

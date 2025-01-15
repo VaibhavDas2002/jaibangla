@@ -1977,6 +1977,7 @@ Route::post('accountValidationDownloadExcel', 'accountValidationMISController@do
 
 //Name/Account Validation
 Route::get('ben-acc-nameValidation', 'BenAccNameValidationController@index')->name('ben-acc-nameValidation');
+Route::get('ben-acc-nameValidation_name', 'BenAccNameValidationController@index_new')->name('ben-acc-nameValidation_name');
 Route::post('benNameAccVaidationData', 'BenAccNameValidationController@getData')->name('benNameAccVaidationData');
 Route::post('benNameAccVaidationView', 'BenAccNameValidationController@modalView')->name('benNameAccVaidationView');
 Route::post('benNameAccVaidationVerify', 'BenAccNameValidationController@verify')->name('benNameAccVaidationVerify');
@@ -1985,6 +1986,11 @@ Route::get('ben-acc-nameValidationApprove', 'BenAccNameValidationController@appr
 Route::post('getAccountNameValidationAppList', 'BenAccNameValidationController@getFailedBankListapprove')->name('getAccountNameValidationAppList');
 Route::post('getDataAccountNameValidation', 'BenAccNameValidationController@modalApproveView')->name('getDataAccountNameValidation');
 Route::post('accountNameValidationApprovePost', 'BenAccNameValidationController@approve')->name('accountNameValidationApprovePost');
+
+
+Route::get('bennameValidationApprove', 'BenAccNameValidationController@approvelist_name')->name('bennameValidationApprove');
+Route::get('name-validationMIS', 'NameAccountValidationMIS@index_name')->name('name-validationMIS');
+
 
 //Name/Account Validation MIS Report
 Route::get('name-account-validationMIS', 'NameAccountValidationMIS@index')->name('name-account-validationMIS');
@@ -2154,7 +2160,7 @@ Route::get('download-applicant-details' , 'JBProcessApplicationController@applic
 Route::get('download-applicant-details_multi','JBProcessApplicationController@applicant_details_multiple')->name('download-applicant-details');
 // Update Dup & No Bank, Aadhar, Mobile
 // Verifier End
-Route::get('no-dup-beneficiaries-list', 'NoDupWorkflowController@index')->name('no-dup-beneficiaries-list');
+Route::any('noDupBeneficiariesList', 'NoDupWorkflowController@index')->name('noDupBeneficiariesList');
 Route::post('getNoDupList', 'NoDupWorkflowController@getNoDupList')->name('getNoDupList');
 Route::any('editApplicantDetails', 'NoDupWorkflowController@editApplicantDetails')->name('editApplicantDetails');
 Route::post('updateApplicantDetails', 'NoDupWorkflowController@updateApplicantDetails')->name('updateApplicantDetails');

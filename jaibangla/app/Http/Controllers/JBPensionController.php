@@ -49,7 +49,7 @@ class JBPensionController extends Controller
         $next_level_status = '';
         $scheme_id = Crypt::decrypt($encryptedSchemeId);
         $readonly = [];
-        $auth = AuthChecker::MakerPermission(); ;
+        $auth = AuthChecker::OperatorPermission(); ;
         if ($auth) {
             $entry_type = PermissionManagement::EntryChecker($scheme_id);
             // dd($entry_type);

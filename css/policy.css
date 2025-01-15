@@ -1,0 +1,133 @@
+@import url('https://fonts.googleapis.com/css?family=Open+Sans:400,600&amp;display=swap');
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/css/all.min.css');
+
+
+body {
+    background-size: auto;
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    -o-background-size: cover;
+    background-size: cover;
+    font-family: 'Open Sans', sans-serif;
+}
+
+.adminlogintable {
+    margin-top: 30px;
+}
+
+.inner-container1 {
+    margin-top: 50px;
+    width: 100%;
+    background-color: white;
+    background-size: auto;
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    -o-background-size: cover;
+    background-size: cover;
+    /* overflow-Y:scroll; */
+}
+
+.form-control {
+    padding: 6px 4px;
+}
+
+.adminlogintable tbody tr td input, .adminlogintable tbody tr td img {
+    margin-bottom: 10px;
+    font-size: 13px;
+}
+
+.list-row {
+    position: relative;
+    top: -30px;
+    margin-top: 30px;
+}
+
+.list-text {
+    top: -10px;
+}
+
+.adminlogintable tbody tr td input.btnotp {
+    margin-bottom: 3px;
+}
+
+.admintextnumber {
+    letter-spacing: 2px;
+    margin-bottom: 30px;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+/* */
+
+.panel-default>.panel-heading {
+  color: #333;
+  background-color: #fff;
+  border-color: #e4e5e7;
+  padding: 0;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.panel-default>.panel-heading a {
+  display: block;
+  padding: 10px 15px;
+}
+
+.panel-default>.panel-heading a:after {
+  content: "";
+  position: relative;
+  top: 1px;
+  display: inline-block;
+  font-family: 'Glyphicons Halflings';
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  float: right;
+  transition: transform .25s linear;
+  -webkit-transition: -webkit-transform .25s linear;
+}
+
+.panel-default>.panel-heading a[aria-expanded="true"] {
+  background-color: #eee;
+}
+
+.panel-default>.panel-heading a[aria-expanded="true"]:after {
+  content: "\2212";
+  -webkit-transform: rotate(180deg);
+  transform: rotate(180deg);
+}
+
+.panel-default>.panel-heading a[aria-expanded="false"]:after {
+  content: "\002b";
+  -webkit-transform: rotate(90deg);
+  transform: rotate(90deg);
+}
+#p_text{
+  min-height:300px;
+  margin-top:100px;
+}
+#p_text_1{
+  font-weight:bold;
+}
+.e-sahayR {
+    float: right;
+    margin-right: 20px;
+    position: relative;
+    width: 450px;
+}
+
+.oval-container {
+    background-color: #003399;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 25px;
+    text-align: center;
+    width: fit-content;
+    margin: 40px auto -70px auto;
+    font-size: 25px;
+    font-weight: 800;
+}

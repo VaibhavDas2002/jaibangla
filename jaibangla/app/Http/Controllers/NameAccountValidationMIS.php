@@ -29,6 +29,7 @@ class NameAccountValidationMIS extends Controller
     }
     function index(Request $request)
     {
+        return redirect()->route('no-dup-verified-beneficiaries-list', ['type' => 12]);
         $this->middleware('auth');
       $base_date  = '2020-01-01';
       date_default_timezone_set('Asia/Kolkata');
@@ -455,6 +456,10 @@ class NameAccountValidationMIS extends Controller
 
       $result = DB::connection('pgsql_paywrite')->select($query);
       return $result;
+  }
+  public function index_name(Request $request)
+  {
+      return redirect()->route('no-dup-verified-beneficiaries-list', ['type' => 11]);
   }
 
 }

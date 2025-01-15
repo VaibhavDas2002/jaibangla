@@ -59,7 +59,7 @@ class JBProcessApplicationController extends Controller
         ->where('is_active', 1)
         ->get();
 
-      $url = ($designation_id === 'Verifier') ? $verifierURL : $approverURL;
+      $url = (AuthChecker::VerifierPermission()) ? $verifierURL : $approverURL;
 
       $scheme_id_arr = [];
       $district_code = null;
@@ -104,6 +104,8 @@ class JBProcessApplicationController extends Controller
           ->toArray();
       }
 
+      $is_verifer = AuthChecker::VerifierPermission();
+
 
 
       $is_cmo = [];
@@ -121,28 +123,28 @@ class JBProcessApplicationController extends Controller
       $return_arr = Scheme::whereIn('id', $schemeIds)
         ->orderBy('id')
         ->get()
-        ->map(function ($scheme) use ($is_cmo, $not_cmo, $designation_id, $cmo_url, $verifierURL, $approverURL, $type) {
+        ->map(function ($scheme) use ($is_cmo, $not_cmo, $is_verifer, $cmo_url, $verifierURL, $approverURL, $type) {
           if ($type === 1) {
             if (in_array($scheme->id, $is_cmo)) {
-              $scheme->url = $designation_id === 'Verifier'
+              $scheme->url = $is_verifer === true
                 ? $cmo_url
                 : $approverURL;
             } elseif (in_array($scheme->id, $not_cmo)) {
-              $scheme->url = $designation_id === 'Verifier'
+              $scheme->url = $is_verifer === true
                 ? $verifierURL
                 : $approverURL;
             } else {
-              $scheme->url = $designation_id === 'Verifier'
+              $scheme->url = $is_verifer === false
                 ? $verifierURL
                 : $approverURL;
             }
           } elseif ($type === 2) {
             if (in_array($scheme->id, $not_cmo)) {
-              $scheme->url = $designation_id === 'Verifier'
+              $scheme->url = $is_verifer === true
                 ? $verifierURL
                 : $approverURL;
             } else {
-              $scheme->url = $designation_id === 'Verifier'
+              $scheme->url = $is_verifer === true
                 ? $verifierURL
                 : $approverURL;
             }
@@ -165,10 +167,9 @@ class JBProcessApplicationController extends Controller
   public function verifierview(Request $request)
   {
     try {
-      $auth = AuthChecker::CheckerPermission();
+      $auth = AuthChecker::VerifierPermission();
       if ($auth) {
         $type = (int) $request->type;
-        $designation_id = AuthChecker::getDesignation();
         $table_name = 'pension.beneficiaries';
         $scheme_id = (int) $request->scheme_id;
         if (!$request->has('scheme_id')) {
@@ -795,7 +796,7 @@ class JBProcessApplicationController extends Controller
     if (!is_numeric($request->scheme_id)) {
       return redirect("/")->with('danger', 'Scheme ID Not Valid');
     }
-    $is_verifier = AuthChecker::CheckerPermission();
+    $is_verifier = AuthChecker::VerifierPermission();
     $is_approver = AuthChecker::ApproverPermission();
     $approveBtnvisible = 1;
     $verifyBtnvisible = 1;

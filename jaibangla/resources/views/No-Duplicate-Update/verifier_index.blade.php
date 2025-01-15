@@ -113,14 +113,22 @@
                       <select class="form-control" name="filter_type" id="filter_type">
                         <option value="">--Select--</option>
                         @foreach ($incomplete_types as $type)
-                          <option value="{{$type->id}}">{{$type->name}}</option>
-                        @endforeach
+              <option value="{{$type->id}}">{{$type->name}}</option>
+            @endforeach
                       </select>
                       <span id="error_filter_type" class="text-danger"></span>
                     </div>
-                    <div class="form-group col-md-3" id="failed_type_div">
+
+
+                    <input type="hidden" name="urban_code" id="urban_code" value="{{$rural_urban_fk}}" />
+                    <input type="hidden" name="block" id="block" value="{{$block_munc_corp_code_fk}}" />
+                    <input type="hidden" name="type" id="type" value="{{ $type_id}}" />
+
+                    @include('common-selection.index')
+
+                    <div class="form-group col-md-3" id="failed_type_div" style="display: none;">
                       <label class="required-field">Failed Type <span class="text-danger">*</span></label>
-                      <select class="form-control select2" name="failed_type" id="failed_type">
+                      <select class="form-control" name="failed_type" id="failed_type">
                         <option value="">--Select--</option>
                         <option value="3">SBI</option>
                         <option value="4">RBI</option>
@@ -128,89 +136,95 @@
                       </select>
                       <span id="error_failed_type" class="text-danger"></span>
                     </div>
-                    <input type="hidden" name="district" id="district" value="{{$district_code_fk}}" />
-                    <input type="hidden" name="urban_code" id="urban_code" value="{{$rural_urban_fk}}" />
-                    <input type="hidden" name="block" id="block" value="{{$block_munc_corp_code_fk}}" />
-                    <div class="form-group col-md-4" id="municipality_div" @if($municipality_visible)
-            style="display: block;" @else style="display:none" @endif>
-                      <label class="">Municipality</label>
 
-                      <select name="muncid" id="muncid" class="form-control" tabindex="16">
-                        <option value="">--All --</option>
-                        @foreach ($muncList as $munc)
-              <option value="{{$munc->urban_body_code}}"> {{$munc->urban_body_name}}</option>
-            @endforeach
+                    <!-- 
+                    <div class="form-group row">
+                      <div class="form-group col-md-4" id="municipality_div" @if($municipality_visible)
+          style="display: block;" @else style="display:none" @endif>
+                        <label class="">Municipality</label>
 
-                      </select>
-                      <span id="error_muncid" class="text-danger"></span>
-                    </div>
+                        <select name="muncid" id="muncid" class="form-control" tabindex="16">
+                          <option value="">--All --</option>
+                          @foreach ($muncList as $munc)
+                <option value="{{$munc->urban_body_code}}"> {{$munc->urban_body_name}}</option>
+              @endforeach
 
+                        </select>
+                        <span id="error_muncid" class="text-danger"></span>
+                      </div> -->
 
-                    <div class="form-group col-md-4" id="gp_ward_div" @if($gp_ward_visible) style="display: block;"
-            @else style="display:none" @endif>
-                      <label class="" id="gp_ward_txt">GP/Ward</label>
+                    <!-- <div class="form-group col-md-4" id="gp_ward_div" @if($gp_ward_visible) style="display: block;"
+          @else style="display:none" @endif>
+                        <label class="" id="gp_ward_txt">GP/Ward</label>
 
-                      <select name="gp_ward" id="gp_ward" class="form-control" tabindex="17">
-                        <option value="">--All --</option>
-                        @foreach ($gpList as $gp)
-              <option value="{{$gp->gram_panchyat_code}}"> {{$gp->gram_panchyat_name}}</option>
-            @endforeach
+                        <select name="gp_ward" id="gp_ward" class="form-control" tabindex="17">
+                          <option value="">--All --</option>
+                          @foreach ($gpList as $gp)
+                <option value="{{$gp->gram_panchyat_code}}"> {{$gp->gram_panchyat_name}}</option>
+              @endforeach
 
-                      </select>
-                      <span id="error_gp_ward" class="text-danger"></span>
-                    </div>
-                  </div>
-                  <div style="text-align: center;">
-                    <button class="btn btn-primary" name="submit_btn" id="submit_btn" type="button" disabled><i
-                        class="fa fa-search"></i> Search</button>&nbsp;
-                    {{-- <button class="btn btn-default" name="reset_btn" id="reset_btn" type="button" disabled><i
-                        class="fa fa-refresh"></i> Reset</button> --}}
+                        </select>
+                        <span id="error_gp_ward" class="text-danger"></span>
+                      </div> -->
+
 
                   </div>
 
-                  <div class="col-md-12" style="text-align: left; margin-top: 20px;">
-                    <form action="{{route('getNoDupListExcel')}}" method="post">
-                      {{csrf_field()}}
-                      <input type="hidden" name="excel_scheme_id" id="excel_scheme_id" />
-                      <input type="hidden" name="excel_filter_id" id="excel_filter_id" />
-                      <input type="hidden" name="excel_filter_blk_ulb_body" id="excel_filter_blk_ulb_body" />
-                      <input type="hidden" name="excel_filter_gp_ward" id="excel_filter_gp_ward" />
-                      <button class="btn btn-success" name="excel_btn" id="excel_btn" type="submit" disabled>
-                        <i class="fa fa-file-excel-o"></i> Download List
-                      </button>
-                    </form>
-                  </div>
+
+
+
                 </div>
-              </div>
-            </div>
-          </div>
+                <div style="text-align: center;">
+                  <button class="btn btn-primary" name="submit_btn" id="submit_btn" type="button" disabled><i
+                      class="fa fa-search"></i> Search</button>&nbsp;
+                  {{-- <button class="btn btn-default" name="reset_btn" id="reset_btn" type="button" disabled><i
+                      class="fa fa-refresh"></i> Reset</button> --}}
 
-          <div id="res_div" style="display: none;">
-            <div class="panel panel-default">
-              <div class="panel-heading" id="panel_head"
-                style="font-size: 14px; font-weight: bold; font-style: italic;">List of Beneficiary</div>
-              <div class="panel-body" style="padding: 5px; font-size: 14px;">
-                <div class="table-responsive">
-                  <table id="example" class="table display" cellspacing="0" width="100%">
-                    <thead style="font-size: 12px;">
-                      <th>Application ID</th>
-                      <th>Applicant Name</th>
-                      <th>Block/Municipality</th>
-                      <th>GP/Ward</th>
-                      <th>Aadhar No</th>
-                      <th>Bank A/C</th>
-                      <th>Bank IFSC</th>
-                      <th>Incomplete Status</th>
-                      <th>Action</th>
-                    </thead>
-                    <tbody style="font-size: 14px;"></tbody>
-                  </table>
+                </div>
+
+                <div class="col-md-12" style="text-align: left; margin-top: 20px;">
+                  <form action="{{route('getNoDupListExcel')}}" method="post">
+                    {{csrf_field()}}
+                    <input type="hidden" name="excel_scheme_id" id="excel_scheme_id" />
+                    <input type="hidden" name="excel_filter_id" id="excel_filter_id" />
+                    <input type="hidden" name="excel_filter_blk_ulb_body" id="excel_filter_blk_ulb_body" />
+                    <input type="hidden" name="excel_filter_gp_ward" id="excel_filter_gp_ward" />
+                    <button class="btn btn-success" name="excel_btn" id="excel_btn" type="submit" disabled>
+                      <i class="fa fa-file-excel-o"></i> Download List
+                    </button>
+                  </form>
                 </div>
               </div>
             </div>
           </div>
         </div>
+
+        <div id="res_div" style="display: none;">
+          <div class="panel panel-default">
+            <div class="panel-heading" id="panel_head" style="font-size: 14px; font-weight: bold; font-style: italic;">
+              List of Beneficiary</div>
+            <div class="panel-body" style="padding: 5px; font-size: 14px;">
+              <div class="table-responsive">
+                <table id="example" class="table display" cellspacing="0" width="100%">
+                  <thead style="font-size: 12px;">
+                    <th>Application ID</th>
+                    <th>Applicant Name</th>
+                    <th>Block/Municipality</th>
+                    <th>GP/Ward</th>
+                    <th>Aadhar No</th>
+                    <th>Bank A/C</th>
+                    <th>Bank IFSC</th>
+                    <th>Incomplete Status</th>
+                    <th>Action</th>
+                  </thead>
+                  <tbody style="font-size: 14px;"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
+    </div>
   </section>
   <!-- /.content -->
 
@@ -308,9 +322,45 @@
     }, 100);
 
     $('#loadingDi').hide();
+    $('#failed_type_div').hide();
     $('#submit_btn').removeAttr('disabled');
     $('#reset_btn').removeAttr('disabled');
     $('#excel_btn').removeAttr('disabled');
+
+    if ($('#type').val() !== '') {
+      var type = $('#type').val();
+      if (type === '2') {
+        $('#filter_type').val(11).change();
+        // $('#filter_type').attr('disabled', true);
+      } else if (type === '3') {
+        $('#filter_type').val(12).change();
+        // $('#filter_type').attr('disabled', true);
+      } else if (type === '1') {
+        $('#filter_type').val(10).change();
+        // $('#filter_type').attr('disabled', true);
+      } else if (type === '4') {
+        $('#filter_type').val(2).change();
+        // $('#filter_type').attr('disabled', true);
+      } else if (type === '5') {
+        $('#filter_type').val(3).change();
+
+      }
+      else {
+        $.alert({
+          title: 'Error!!',
+          type: 'red',
+          icon: 'fa fa-warning',
+          content: 'Error in Operation Type Selection !!'
+        });
+        $('#filter_type').attr('disabled', false); // Enable filter_type in case of error
+      }
+    }
+
+    if ($('#filter_type').val() === '10') { // Ensure comparison to string
+      $('#failed_type_div').show().css('display', 'inline');
+    } else {
+      $('#failed_type_div').hide();
+    }
 
 
     $('#scheme_type').change(function () {
@@ -327,58 +377,11 @@
     });
 
 
-
-    // Master drop down 
-    $('#muncid').change(function () {
-      var muncid = $(this).val();
-      var district = $("#district").val();
-      var urban_code = $("#urban_code").val();
-      if (district == '') {
-        $('#urban_code').val('');
-        $('#block').html('<option value="">--All --</option>');
-        $('#muncid').html('<option value="">--All --</option>');
-        alert('Please Select District First');
-        $("#district").focus();
-
-      }
-      if (urban_code == '') {
-        alert('Please Select Rural/Urban First');
-        $('#block').html('<option value="">--All --</option>');
-        $('#muncid').html('<option value="">--All --</option>');
-        $("#urban_code").focus();
-      }
-      if (muncid != '') {
-        var rural_urbanid = $('#urban_code').val();
-        if (rural_urbanid == 1) {
-          var municipality_code = $(this).val();
-          if (municipality_code != '') {
-            $('#gp_ward').html('<option value="">--All --</option>');
-            var htmlOption = '<option value="">--All--</option>';
-            $.each(ulb_wards, function (key, value) {
-              if (value.urban_body_code == municipality_code) {
-                htmlOption += '<option value="' + value.id + '">' + value.text + '</option>';
-              }
-            });
-            $('#gp_ward').html(htmlOption);
-          } else {
-            $('#gp_ward').html('<option value="">--All --</option>');
-          }
-        } else {
-          $('#gp_ward').html('<option value="">--All --</option>');
-          $("#gp_ward_div").hide();
-        }
-      } else {
-        $('#gp_ward').html('<option value="">--All --</option>');
-      }
-
-    });
-    // End Master drop down
-
     var error_scheme_type = '';
     var error_filter_type = '';
     $('#filter_type').on('change', function () {
-      // alert($(this).val());
-      if ($(this).val() == 6) {
+      // Get the text of the selected option
+      if ($(this).find(':selected').text() === 'Payment Failure') {
         $('#failed_type_div').show();
       } else {
         $('#failed_type_div').hide();
@@ -445,8 +448,10 @@
         data: function (d) {
           d.scheme_id = $('#scheme_type').val(),
             d.filter_type = $('#filter_type').val(),
-            d.muncid = $('#muncid').val(),
-            d.gp_ward = $('#gp_ward').val(),
+            d.is_urban = $('#rural_urban_code').val(),
+            d.blk_ulb_code = $('#blk_ulb_code').val(),
+            d.failed_type = $('#failed_type').val(),
+            d.pay_validated =$('#failed_type').val(),
             d._token = "{{csrf_token()}}"
         },
         error: function (jqXHR, textStatus, errorThrown) {

@@ -323,9 +323,9 @@ class DupCheck
     public static function dupMobileCheckCross($scheme_id, $mobile_no, $id = null)
     {
         $is_cross = SchemeConfig::where('scheme_id', $scheme_id)
-            ->where('is_cross', true)
-            ->where('field_type', 2)
-            ->first();
+        ->where('is_cross', true)
+        ->where('field_type', 2)
+        ->first();
 
         if ($is_cross) {
             $cross_schemes = $is_cross->cross_scheme;

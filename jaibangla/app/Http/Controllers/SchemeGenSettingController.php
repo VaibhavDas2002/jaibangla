@@ -30,10 +30,13 @@ class SchemeGenSettingController extends Controller
                 ->get();
 
             $ds_phases = DsPhase::all(); // Use `all()` for better readability if fetching all records
+            $name_options = DB::table('public.m_name_valid_option')->where('is_active', true)->get();
+            // dd($name_options);
 
             return view('scheme_gen_setting.index', [
                 'schemes' => $schemes,
-                'ds_phases' => $ds_phases
+                'ds_phases' => $ds_phases,
+                'name_options' => $name_options
             ]);
         }
     }
@@ -42,9 +45,11 @@ class SchemeGenSettingController extends Controller
 
 
         try {
+            // dd($request->all());
             $now = Carbon::now();
 
             $dsPhase = $request->has('ds_phase') ? json_encode($request->ds_phase) : null;
+            $name_opts = $request->has('name_validation_opt') ? $this->to_pg_array($request->name_validation_opt) : null;
 
             DB::table('m_scheme_gen_setting')->insert([
                 'scheme_id' => $request->scheme_id,
@@ -57,6 +62,10 @@ class SchemeGenSettingController extends Controller
                 'allow_normal_entry' => $request->normal_entry ?? false,
                 'special_quota_exists' => $request->special_quota ?? false,  // Fixed typo here
                 'allow_cmo' => $request->cmo_check ?? false,
+                'allow_bank_failed_update' => $request->bank_failed ?? false,
+                'allow_bank_name_update' => $request->name_validation_failed ?? false,
+                'allow_bank_ac_update' => $request->account_validation_failed ?? false,
+                'name_valid_opt' => $name_opts,
                 'created_at' => $now,
                 'updated_at' => $now,
             ]);
@@ -87,7 +96,7 @@ class SchemeGenSettingController extends Controller
                 'm_scheme_gen_setting.allow_ds_entry',
                 'm_scheme_gen_setting.cap_exists',
                 'm_scheme_gen_setting.allow_cmo',
-                
+
             )
             ->get();
 
@@ -183,7 +192,22 @@ class SchemeGenSettingController extends Controller
             return redirect()->back()->withInput();
         }
     }
-
+    function to_pg_array($set)
+    {
+        settype($set, 'array'); // can be called with a scalar or array
+        $result = array();
+        foreach ($set as $t) {
+            if (is_array($t)) {
+                $result[] = to_pg_array($t);
+            } else {
+                $t = str_replace('"', '\\"', $t); // escape double quote
+                if (!is_numeric($t)) // quote only non-numeric values
+                    $t = '"' . $t . '"';
+                $result[] = $t;
+            }
+        }
+        return '{' . implode(",", $result) . '}'; // format
+    }
 
 
 }

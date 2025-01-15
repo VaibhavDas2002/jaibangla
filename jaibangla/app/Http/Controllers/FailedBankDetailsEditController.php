@@ -66,6 +66,10 @@ class FailedBankDetailsEditController extends Controller
         return $failed_type_id;
     }
     public function index(){
+        return redirect()->route('noDupBeneficiariesList', ['type' => 1]);
+
+
+
         $user_id = AuthChecker::getUserId();
         $designation = Auth::user()->designation_id;
         $mapObj = DB::connection('pgsql_mis')
@@ -1047,6 +1051,7 @@ class FailedBankDetailsEditController extends Controller
         }
     }
     public function approvalList(){
+        return redirect()->route('no-dup-verified-beneficiaries-list', ['type' => 10]);
         // return redirect("/")->with('success', 'Payment Failed correction is temporarily suspended due to financial year end migration.');
         $user_id = AuthChecker::getUserId();
         $dutyObj = Configduty::where('user_id', '=', $user_id)

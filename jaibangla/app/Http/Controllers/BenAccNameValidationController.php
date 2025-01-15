@@ -55,7 +55,10 @@ class BenAccNameValidationController extends Controller
         }
         return $table_name;
     }
-    public function index(){
+    public function index(Request $request){
+        return redirect()->route('noDupBeneficiariesList', ['type' => 3]);
+
+        // dd($request->all());
         // return redirect('/')->with(
         //     'success',
         //     'As per the department instruction validation correction is temporarily suspended'
@@ -118,6 +121,12 @@ class BenAccNameValidationController extends Controller
         } else {
             return redirect('/')->with('success', 'UnAuthorized');
         } 
+    }
+
+
+    public function index_new(Request $request){
+        return redirect()->route('noDupBeneficiariesList', ['type' => 2]);
+
     }
     public function getData(Request $request){
         if ($request->ajax()) {
@@ -887,6 +896,7 @@ class BenAccNameValidationController extends Controller
         }
     }
     public function approvelist(){
+        return redirect()->route('no-dup-verified-beneficiaries-list', ['type' => 12]);
         // return redirect('/')->with(
         //     'success',
         //     'As per the department instruction validation correction is temporarily suspended'
@@ -1808,4 +1818,11 @@ class BenAccNameValidationController extends Controller
             }
         }
     }
+
+    public function approvelist_name(Request $request)
+    {
+        return redirect()->route('no-dup-verified-beneficiaries-list', ['type' => 11]);
+    }
+   
+    
 }
