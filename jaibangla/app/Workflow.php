@@ -39,7 +39,7 @@ class Workflow extends Model
     public static function getParentId($scheme_id, $designation_id)
     {
         $workflow = self::where('scheme_id', $scheme_id)
-            ->where('designation_id', $designation_id)
+            ->where('role_name', $designation_id)
             ->first();
 
         return $workflow && $workflow->schemeStepRank
@@ -50,7 +50,7 @@ class Workflow extends Model
     public static function getID($scheme_id, $designation_id)
     {
         $workflow = self::where('scheme_id', $scheme_id)
-            ->where('designation_id', $designation_id)
+            ->where('role_name', $designation_id)
             ->first();
 
         return $workflow && $workflow->schemeStepRank

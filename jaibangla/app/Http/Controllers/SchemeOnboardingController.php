@@ -10,6 +10,7 @@ use App\Schemetype;
 use App\Scheme;
 use App\Designation;
 use App\Steps;
+use App\Workflow;
 use Exception;
 use Carbon;
 
@@ -81,58 +82,128 @@ class SchemeOnboardingController extends Controller
             ->with('designations', $designations);
     }
 
+    // public function workflowListView(Request $request)
+    // {
+    //     // Validate scheme_id from the request       
+    //     $scheme_id = $request->scheme_id;
+
+    //     // Fetch leaf nodes with their parent
+    //     $leaf_nodes = MapLavel::where('first_node', true)
+    //         ->where('is_active', 1)
+    //         ->where('scheme_id', $scheme_id)
+    //         ->with('parent')
+    //         ->get();
+
+    //     $workflow_li_view = "";
+    //     $workflows = [];
+    //     $workflow_count = 1;
+
+    //     foreach ($leaf_nodes as $leaf_node) {
+    //         $approval_flow = [];
+    //         $workflow_li_view .= '<div class="col-md-3"><h4>WorkFlow ' . $workflow_count . '</h4><ul class="timeline">';
+
+    //         $current_node = $leaf_node;
+    //         $workflow_step = 1;
+
+    //         while ($current_node && $current_node->is_final != 1) {
+    //             $approval_flow[] = $current_node;
+
+    //             $workflow_li_view .= '<li><a href="#">Step ' . $workflow_step . '</a><br/>' .
+    //                 '<b>User Role: </b><a href="#" class="float-right">' . $current_node->role_name . '</a><br/>' .
+    //                 '<p><b>User Level: </b>' . $current_node->stack_level . '</p></li>';
+
+    //             $current_node = $current_node->parent;
+    //             $workflow_step++;
+    //         }
+
+    //         // Add the final node if applicable
+    //         if ($current_node && $current_node->is_final == 1) {
+    //             $approval_flow[] = $current_node;
+
+    //             $workflow_li_view .= '<li><a href="#">Step ' . $workflow_step . '</a><br/>' .
+    //                 '<b>User Role: </b><a href="#" class="float-right">' . $current_node->role_name . '</a><br/>' .
+    //                 '<p><b>User Level: </b>' . $current_node->stack_level . '</p></li>';
+    //         }
+
+    //         $workflow_li_view .= '</ul></div>';
+    //         $workflows[] = $approval_flow;
+    //         $workflow_count++;
+    //     }
+
+    //     return $workflow_li_view;
+    // }
+
+
+
     public function workflowListView(Request $request)
     {
-        // Validate scheme_id from the request       
         $scheme_id = $request->scheme_id;
-    
-        // Fetch leaf nodes with their parent
-        $leaf_nodes = MapLavel::where('first_node', true)
-            ->where('is_active', 1)
-            ->where('scheme_id', $scheme_id)
-            ->with('parent')
-            ->get();
-    
+
+        // Fetch workflow nodes based on the scheme_id
+        $workflow_nodes = Workflow::where('scheme_id', $scheme_id)->get();
+
         $workflow_li_view = "";
         $workflows = [];
         $workflow_count = 1;
-    
-        foreach ($leaf_nodes as $leaf_node) {
+        $workflow_step = 1;
+
+        foreach ($workflow_nodes as $leaf_node) {
             $approval_flow = [];
             $workflow_li_view .= '<div class="col-md-3"><h4>WorkFlow ' . $workflow_count . '</h4><ul class="timeline">';
-    
+
             $current_node = $leaf_node;
-            $workflow_step = 1;
-    
-            while ($current_node && $current_node->is_final != 1) {
-                $approval_flow[] = $current_node;
-    
+
+            while ($current_node && $current_node->is_last != 1) {
+                // Fetch related designation and step details
+                $designation = Designation::find($current_node->designation_id);
+                $step = DB::table('m_scheme_step_rank')
+                    ->join('m_steps', 'm_scheme_step_rank.step_id', '=', 'm_steps.id')
+                    ->where('m_scheme_step_rank.id', $current_node->workflow_step_id)
+                    ->first();
+
+                $approval_flow[] = [
+                    'node' => $current_node,
+                    'designation' => $designation,
+                    'step' => $step,
+                ];
+
                 $workflow_li_view .= '<li><a href="#">Step ' . $workflow_step . '</a><br/>' .
-                    '<b>User Role: </b><a href="#" class="float-right">' . $current_node->role_name . '</a><br/>' .
-                    '<p><b>User Level: </b>' . $current_node->stack_level . '</p></li>';
-    
-                $current_node = $current_node->parent;
+                    '<b>User Role: </b><a href="#" class="float-right">' . $designation->name . '</a><br/>' .
+                    '<p><b>Step Name: </b>' . ($step->step_name ?? 'N/A') . '</p>' .
+                    '<p><b>User Level: </b>' . ($step->rank_id ?? 'N/A') . '</p></li>';
+
+                $current_node = Workflow::find($current_node->parent_id); // Get parent node
                 $workflow_step++;
             }
-    
+
             // Add the final node if applicable
-            if ($current_node && $current_node->is_final == 1) {
-                $approval_flow[] = $current_node;
-    
+            if ($current_node && $current_node->is_last == 1) {
+                $designation = Designation::find($current_node->designation_id);
+                $step = DB::table('m_scheme_step_rank')
+                    ->join('m_steps', 'm_scheme_step_rank.step_id', '=', 'm_steps.id')
+                    ->where('m_scheme_step_rank.id', $current_node->workflow_step_id)
+                    ->first();
+
+                $approval_flow[] = [
+                    'node' => $current_node,
+                    'designation' => $designation,
+                    'step' => $step,
+                ];
+
                 $workflow_li_view .= '<li><a href="#">Step ' . $workflow_step . '</a><br/>' .
-                    '<b>User Role: </b><a href="#" class="float-right">' . $current_node->role_name . '</a><br/>' .
-                    '<p><b>User Level: </b>' . $current_node->stack_level . '</p></li>';
+                    '<b>User Role: </b><a href="#" class="float-right">' . $designation->name . '</a><br/>' .
+                    '<p><b>Step Name: </b>' . ($step->step_name ?? 'N/A') . '</p>' .
+                    '<p><b>User Level: </b>' . ($step->rank_id ?? 'N/A') . '</p></li>';
             }
-    
+
             $workflow_li_view .= '</ul></div>';
             $workflows[] = $approval_flow;
             $workflow_count++;
         }
-    
+
         return $workflow_li_view;
     }
-    
-    
+
 
     public function getschemefromtype(Request $request)
     {

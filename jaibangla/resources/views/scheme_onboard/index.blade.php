@@ -20,7 +20,7 @@
     padding-left: 45px;
   }
 
-  ul.timeline>li:before {
+  ul.timeline>li::before {
     content: ' ';
     background: white;
     display: inline-block;
@@ -70,7 +70,7 @@
                 <select class="form-control" id="sch_type">
                   <option value="">Select Scheme Type</option>
                   @foreach($scheme_types as $scheme_type)
-            <option value="{{$scheme_type->id}}" >{{$scheme_type->scheme_type}}</option>
+            <option value="{{$scheme_type->id}}">{{$scheme_type->scheme_type}}</option>
           @endforeach
                 </select>
                 <p id="add_scheme_type_div" hidden>
@@ -192,7 +192,7 @@
                   <div class="box shadow">
                     <div class="box-header">
                       <h3 class="box-title font-weight-bold text-center">Workflow Table</h3>
-                      
+
                     </div>
 
                     <div class="box-body table-responsive mt-3">
@@ -483,6 +483,10 @@
   var listItemtable = "";
 
   $(document).ready(function () {
+
+
+    $('#step').prop('disabled', true);
+    $('#designation').prop('disabled', true);
     // $('#example2_wrapper').hide();
     $(".dataTables_scrollHeadInner").css({ "width": "100%" });
 
@@ -526,6 +530,13 @@
       });
     }
 
+    // $('#sch').change(function{
+    //   $scheme_id = $("#sch").val();
+    //   if ($scheme_id != '') {
+    //     $('#step').prop('disabled', false);
+    //     $('#designation').prop('disabled', false);
+    //   }
+    // })
     $("#sch").change(function () {
       $scheme_id = $("#sch").val();
 
@@ -537,6 +548,8 @@
       } else {
         $('#addButton').show();
         $('#edit_scheme').show();
+        $('#step').prop('disabled', false);
+        $('#designation').prop('disabled', false);
 
 
       }
@@ -748,7 +761,7 @@
         scheme_id: id
       },
       success: function (data) {
-      alert(data);
+        // alert(data);
         $('#workflowdiv').html(data);
       },
       error: function (ex) {

@@ -200,8 +200,6 @@
                                             </div>
                                         </div>
                                     </div>
-
-
                                 </div>
                             </div>
 
@@ -315,6 +313,7 @@
                                         <th>Duare Sarkar Entry</th>
                                         <th>Scheme Capacity</th>
                                         <th>Allow CMO</th>
+                                        <th>Name Validation Options Allowed</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
@@ -398,6 +397,57 @@
                             </div>
                         </div>
 
+                        <!-- Bank Update -->
+                        <div class="box box-primary box-solid mb-3">
+                            <div class="box-header with-border">
+                                <h3 class="box-title">Bank Validation / Transaction Update</h3>
+                            </div>
+                            <div class="box-body">
+                                <!-- Validation Options -->
+                                <div class="form-group d-flex flex-wrap align-items-center">
+                                    <!-- Allow Bank Failed Update -->
+                                    <div class="form-check me-4">
+                                        <input type="checkbox" class="form-check-input" id="bank_failed"
+                                            name="bank_failed" value="1">
+                                        <label class="form-check-label" for="bank_failed">Allow Bank Failed
+                                            Update</label>
+                                    </div>
+
+                                    <!-- Allow Name Validation Update -->
+                                    <div class="form-check me-4">
+                                        <input type="checkbox" class="form-check-input" id="name_validation_failed"
+                                            name="name_validation_failed" value="1">
+                                        <label class="form-check-label" for="name_validation_failed">Allow Name
+                                            Validation Update</label>
+                                    </div>
+
+                                    <!-- Allow Account Validation Update -->
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" id="account_validation_failed"
+                                            name="account_validation_failed" value="1">
+                                        <label class="form-check-label" for="account_validation_failed">Allow A/c
+                                            Validation Update</label>
+                                    </div>
+                                </div>
+                                <div class="name_validation_div" style="display: none;">
+                                    <hr class="my-3" />
+                                    <!-- Active Name Validation Options -->
+                                    <div class="form-group">
+                                        <h4 class="mb-3">Active Name Validation Options</h4>
+                                        <div class="d-flex flex-wrap">
+                                            @foreach ($name_options as $name_option)
+                                                <div class="form-check me-4">
+                                                    <input type="checkbox" class="form-check-input" id="name_validation_opt"
+                                                        name="name_validation_opt[]" value="{{$name_option->id}}">
+                                                    <label class="form-check-label"
+                                                        for="name_validation_opt_{{$name_option->id}}">{{$name_option->name}}</label>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
 
                         <!-- Duare Sarkar Settings -->
@@ -497,15 +547,21 @@
 
         $('#loadingDiv').hide();
         $('.name_validation_div').hide();
+        // On page load, check the initial state of the checkbox
+        if ($('#name_validation_failed').prop('checked')) {
+            $('.name_validation_div').show();
+        } else {
+            $('.name_validation_div').hide();
+        }
 
-        $('#name_validation_failed').change(function () {
+        // On checkbox toggle, show or hide the div dynamically
+        $('#name_validation_failed').on('change', function () {
             if ($(this).prop('checked')) {
                 $('.name_validation_div').show();
             } else {
                 $('.name_validation_div').hide();
             }
         });
-
 
 
         var table = $('#datatable').DataTable({
@@ -555,6 +611,29 @@
                         return data ? '<span class="label label-success">Active</span>' : '<span class="label label-danger">Deactive</span>';
                     }
                 },
+                {
+                    data: 'name_valid_opt',
+                    name: 'name_valid_opt',
+                    render: function (data) {
+                        if (Array.isArray(data) && data.length > 0) {
+                            return data.map(function (value) {
+                                if (value == 1) {
+                                    return '<span class="label label-info">Minor Mismatch</span> ';
+                                }
+                                if (value == 2) {
+                                    return '<span class="label label-info">Major Mismatch</span> ';
+                                }
+                                if (value == 3) {
+                                    return '<span class="label label-info">Reject</span> ';
+                                }
+                                return '<span class="label label-danger">Deactive</span>';
+                            }).join(' '); // Join the labels with a space or any separator
+                        } else {
+                            return '<span class="label label-danger">Deactive</span>';
+                        }
+                    }
+                },
+
                 {
                     data: 'actions',
                     name: 'actions',
@@ -667,11 +746,15 @@
                     $('input[name="entry"][value="' + (data.entry ? 1 : 0) + '"]').prop('checked', true);
                     $('input[name="verify"][value="' + (data.verify ? 1 : 0) + '"]').prop('checked', true);
                     $('input[name="approve"][value="' + (data.approve ? 1 : 0) + '"]').prop('checked', true);
+                    $('#bank_failed').prop('checked', data.bank_failed ? true : false);
+                    $('#name_validation_failed').prop('checked', data.name_failed ? true : false);
+                    $('#account_validation_failed').prop('checked', data.ac_failed ? true : false);
                     $('#updateModal #ds_entry').prop('checked', data.ds_entry ? true : false);
                     $('#updateModal #normal_entry').prop('checked', data.normal_entry ? true : false);
                     $('#updateModal #scheme_cap').prop('checked', data.capacity ? true : false);
                     $('input[name="cmo_check"][value="' + (data.allow_cmo ? 1 : 0) + '"]').prop('checked', true);
                     // $('#updateModal #allow_cmo').prop('checked', data.allow_cmo ? true : false);
+                    // alert(data.name_valid_opt);
 
                     // Handle multi-select for ds_phase
                     if (data.ds_phase && Array.isArray(data.ds_phase)) {
@@ -679,6 +762,24 @@
                     } else {
                         $('#updateModal #ds_phase').val([]).trigger('change');
                     }
+
+
+                    if (data.name_failed) {
+                        $('.name_validation_div').show();
+                        if (data.name_valid_opt && Array.isArray(data.name_valid_opt)) {
+                            $('#updateModal input[name="name_validation_opt[]"]').prop('checked', false);
+                            data.name_valid_opt.forEach(function (value) {
+                                $('#updateModal input[name="name_validation_opt[]"][value="' + value + '"]').prop('checked', true);
+                            });
+                        } else {
+                            $('#updateModal input[name="name_validation_opt[]"]').prop('checked', false);
+                        }
+                    }
+                    else {
+                        $('.name_validation_div').hide();
+                    }
+
+
 
                     // Show/hide special quota based on capacity
                     if (data.capacity) {

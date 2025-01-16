@@ -2158,6 +2158,8 @@ Route::get('jb-View60lbapplication', 'JBProcessApplicationLB60Controller@View60l
 
 Route::get('download-applicant-details' , 'JBProcessApplicationController@applicant_details')->name('download-applicant-details');
 Route::get('download-applicant-details_multi','JBProcessApplicationController@applicant_details_multiple')->name('download-applicant-details');
+
+
 // Update Dup & No Bank, Aadhar, Mobile
 // Verifier End
 Route::any('noDupBeneficiariesList', 'NoDupWorkflowController@index')->name('noDupBeneficiariesList');
@@ -2184,5 +2186,7 @@ Route::post('blkUlb_mis_report_excel', 'NoDupWorkflowController@blkUlbMisReportE
 Route::get('scheme_mis_report', 'NoDupWorkflowController@schemeMisReport')->name('scheme_mis_report');
 Route::post('scheme_mis_report_post', 'NoDupWorkflowController@schemeMisReportPost')->name('scheme_mis_report_post');
 Route::post('scheme_mis_report_excel', 'NoDupWorkflowController@schemeMisReportExcel')->name('scheme_mis_report_excel');
+Route::get('ben_mis_report', 'NoDupWorkflowController@BenMisReportIndex')->name('ben_mis_report');
+Route::post('ben_mis_report_post', 'NoDupWorkflowController@BenMisReport')->name('ben_mis_report_post');
 
 Route::get('mahestala', 'MahestalaController@mahestala')->name('mahestala');

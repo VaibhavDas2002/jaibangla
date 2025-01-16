@@ -243,7 +243,7 @@ class JBProcessApplicationController extends Controller
     if ($auth) {
       $user_id = AuthChecker::getUserId();
       $type = (int) $request->type;
-      $designation_id = AuthChecker::getDesignation();
+      // $designation_id = AuthChecker::getDesignation();
       $scheme_id = (int) $request->scheme_id;
       if (!$request->has('scheme_id')) {
         return redirect('/')->with('error', 'Scheme ID is missing or invalid.');
@@ -302,7 +302,7 @@ class JBProcessApplicationController extends Controller
         'scheme_id' => $scheme_id,
         'type' => $type,
         'report_name' => $report_name,
-        'designation_id' => $designation_id,
+        // 'designation_id' => $designation_id,
       ]);
 
     }
@@ -752,7 +752,7 @@ class JBProcessApplicationController extends Controller
         ->setFilteredRecords($filterRecords)
         ->skipPaging()
         ->addColumn('view', function ($data) {
-          $action = '<a href="' . route('processApplicationDetailsCommon', ['id' => $data->id, 'scheme_id' => $data->scheme_id, 'view_type' => 1 ]) . '" class="btn btn-xs btn-primary"><i class="glyphicon glyphicon-edit"></i> View</a>';
+          $action = '<a href="' . route('processApplicationDetailsCommon', ['id' => $data->id, 'scheme_id' => $data->scheme_id, 'view_type' => 1]) . '" class="btn btn-xs btn-primary"><i class="glyphicon glyphicon-edit"></i> View</a>';
           return $action;
         })
         ->addColumn('check', function ($data) use ($approveBtnvisible) {
@@ -1111,74 +1111,76 @@ class JBProcessApplicationController extends Controller
       return redirect("/")->with('danger', 'Scheme ID Not Valid');
     }
     $scheme_id = $request->scheme_id;
-    $verify = PermissionManagement::VerifyCheker($scheme_id);
-    if ($verify) {
-      $user_id = AuthChecker::getUserId();
-      $id = $request->benId;
-      // dd($id);
-      $scheme_obj = Scheme::where('id', $scheme_id)->where('is_active', 1)->first();
-      if (empty($scheme_obj)) {
-        return redirect("/")->with('danger', 'Scheme Not Found');
-      }
-      if (!empty($scheme_obj->short_code)) {
-        $schema = $scheme_obj->short_code;
-      } else {
-        $schema = "pension";
-      }
-      $duty_obj = Configduty::where('user_id', $user_id)->where('scheme_id', $scheme_id)->first();
-      if (empty($duty_obj)) {
-        return redirect("/")->with('danger', 'Not Allowed');
-      }
+
+    $user_id = AuthChecker::getUserId();
+    $id = $request->benId;
+    // dd($id);
+    $scheme_obj = Scheme::where('id', $scheme_id)->where('is_active', 1)->first();
+    if (empty($scheme_obj)) {
+      return redirect("/")->with('danger', 'Scheme Not Found');
+    }
+    if (!empty($scheme_obj->short_code)) {
+      $schema = $scheme_obj->short_code;
+    } else {
+      $schema = "pension";
+    }
+    $duty_obj = Configduty::where('user_id', $user_id)->where('scheme_id', $scheme_id)->first();
+    if (empty($duty_obj)) {
+      return redirect("/")->with('danger', 'Not Allowed');
+    }
 
 
 
-      $condition_arr = array();
-      $condition_arr['id'] = $id;
-      if ($duty_obj->mapping_level == "Department") {
+    $condition_arr = array();
+    $condition_arr['id'] = $id;
+    if ($duty_obj->mapping_level == "Department") {
+      $created_by_local_body_code = NULL;
+      $created_by_dist_code = NULL;
+    } else {
+      $condition_arr['created_by_dist_code'] = $duty_obj->district_code;
+      $created_by_dist_code = $duty_obj->district_code;
+      if ($duty_obj->mapping_level == "Subdiv") {
+        $created_by_local_body_code = $duty_obj->urban_body_code;
+        $condition_arr['created_by_local_body_code'] = $created_by_local_body_code;
+
+      } else if ($duty_obj->mapping_level == "Block") {
+        $created_by_local_body_code = $duty_obj->taluka_code;
+        $condition_arr['created_by_local_body_code'] = $created_by_local_body_code;
+
+      } else if ($duty_obj->mapping_level == "District") {
         $created_by_local_body_code = NULL;
-        $created_by_dist_code = NULL;
-      } else {
-        $condition_arr['created_by_dist_code'] = $duty_obj->district_code;
-        $created_by_dist_code = $duty_obj->district_code;
-        if ($duty_obj->mapping_level == "Subdiv") {
-          $created_by_local_body_code = $duty_obj->urban_body_code;
-          $condition_arr['created_by_local_body_code'] = $created_by_local_body_code;
-
-        } else if ($duty_obj->mapping_level == "Block") {
-          $created_by_local_body_code = $duty_obj->taluka_code;
-          $condition_arr['created_by_local_body_code'] = $created_by_local_body_code;
-
-        } else if ($duty_obj->mapping_level == "District") {
-          $created_by_local_body_code = NULL;
-        }
       }
-      $row = DB::table($schema . '.beneficiaries')->where('scheme_id', $scheme_id)
-        ->where($condition_arr)->first();
-      if (empty($row)) {
-        return redirect("/")->with('danger', 'Beneficiary does not Exists');
-      }
-      if ($row->scheme_id != $scheme_id) {
-        return redirect("/")->with('danger', 'Not Allowed');
-      }
+    }
+    $row = DB::table($schema . '.beneficiaries')->where('scheme_id', $scheme_id)
+      ->where($condition_arr)->first();
+    if (empty($row)) {
+      return redirect("/")->with('danger', 'Beneficiary does not Exists');
+    }
+    if ($row->scheme_id != $scheme_id) {
+      return redirect("/")->with('danger', 'Not Allowed');
+    }
 
-      $c_time = date('Y-m-d H:i:s', time());
-      $Verified = "Verified";
-      $Rejected = 1;
-      $comments = $request->comments;
-      $accept_reject_model = new AcceptRejectInfo;
-      $accept_reject_model->created_at = $c_time;
-      $accept_reject_model->application_id = $id;
-      $accept_reject_model->scheme_id = $scheme_id;
-      $accept_reject_model->user_id = $user_id;
-      $accept_reject_model->comment_message = $comments;
-      $accept_reject_model->user_id = $user_id;
-      $accept_reject_model->created_by_dist_code = $created_by_dist_code;
-      $accept_reject_model->created_by_local_body_code = $created_by_local_body_code;
-      $accept_reject_model->ip_address = request()->ip();
-      $next_level_role_id = Workflow::getParentId($scheme_id, Auth::user()->designation_id);
-      //  dd($next_level_role_id);
+    $c_time = date('Y-m-d H:i:s', time());
+    $Verified = "Verified";
+    $Rejected = 1;
+    $comments = $request->comments;
+    $accept_reject_model = new AcceptRejectInfo;
+    $accept_reject_model->created_at = $c_time;
+    $accept_reject_model->application_id = $id;
+    $accept_reject_model->scheme_id = $scheme_id;
+    $accept_reject_model->user_id = $user_id;
+    $accept_reject_model->comment_message = $comments;
+    $accept_reject_model->user_id = $user_id;
+    $accept_reject_model->created_by_dist_code = $created_by_dist_code;
+    $accept_reject_model->created_by_local_body_code = $created_by_local_body_code;
+    $accept_reject_model->ip_address = request()->ip();
+    $next_level_role_id = Workflow::getParentId($scheme_id, Auth::user()->designation_id);
+    //  dd($next_level_role_id);
 
-      if ($_POST['submit'] == 'Verify') {
+    if ($_POST['submit'] == 'Verify') {
+      $verify = PermissionManagement::VerifyCheker($scheme_id);
+      if ($verify) {
+
         if ($scheme_id == 10 || $scheme_id == 11 || $scheme_id == 2) {
           if ($scheme_id == 10)
             return redirect("/")->with('error', 'Verification temporary suspended.');
@@ -1203,8 +1205,9 @@ class JBProcessApplicationController extends Controller
         if ($row->no_mobile == 1) {
           return redirect('workflow?pr1=' . $scheme_obj->pr1_code)->with('error', 'Mobile Number Incorrect.');
         }
-        $accept_reject_model->op_type = class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod() . 'AV';
+        $accept_reject_model->module_name = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod() . 'AV';
 
+        $accept_reject_model->op_type = 'AV';
 
         $input = [
           'is_verified' => 1,
@@ -1214,7 +1217,7 @@ class JBProcessApplicationController extends Controller
           'verified_by' => $user_id,
           'action_by' => $user_id,
           'action_ip_address' => $request->ip(),
-          'action_type' => class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod()
+          'action_type' => class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod()
         ];
 
         DB::beginTransaction();
@@ -1230,98 +1233,106 @@ class JBProcessApplicationController extends Controller
           DB::rollback();
           return redirect('ProcessApllicationVerifier?scheme_id=' . $scheme_id)->with('message', 'Error! Please try again.');
         }
-      } else if ($_POST['submit'] == 'Revert') {
+      } else {
+        return redirect('ProcessApllicationVerifier?scheme_id=' . $scheme_id)->with('error', 'Verification is Suspended For This Scheme');
+      }
+    } else if ($_POST['submit'] == 'Revert') {
 
-        $accept_reject_model->op_type = class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod() . 'AREVERT';
+      $accept_reject_model->module_name = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod() . 'AREVERT';
+      $accept_reject_model->op_type = 'AREVERT';
 
 
+      $input = [
+        'next_level_role_id' => NULL,
+        'is_verified' => 0,
+        'is_approved' => 0,
+        'is_reverted' => 1,
+        'action_by' => $user_id,
+        'action_ip_address' => $request->ip(),
+        'action_type' => class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod()
+      ];
+
+      DB::beginTransaction();
+
+      $is_status_updated = DB::table($schema . '.beneficiaries')->where('id', $id)->where('created_by_dist_code', $created_by_dist_code)->update($input);
+
+      $is_saved_log = $accept_reject_model->save();
+      //dd($is_status_updated);
+      if ($is_status_updated && $is_saved_log) {
+        DB::commit();
+        return redirect('ProcessApllicationVerifier?scheme_id=' . $scheme_id)->withInput()->with('message', 'Beneficiary with ID:' . $id . ' Reverted Succesfully!');
+      } else {
+        DB::rollback();
+        return redirect('ProcessApllicationVerifier?scheme_id=' . $scheme_id)->with('message', 'Error! Please try again.');
+      }
+
+    } else if ($_POST['submit'] == 'Reject') {
+      $is_state_login = 0;
+      try {
+        $accept_reject_model->module_name = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod() . 'AR';
+        $accept_reject_model->op_type = 'AR';
         $input = [
-          'next_level_role_id' => NULL,
-          'is_verified' => 0,
-          'is_approved' => 0,
-          'is_reverted' => 1,
+          'verification_rejected' => $Rejected,
+          'comments' => $comments,
+          'next_level_role_id' => -1,
+          'is_approved' => 2,
+          'is_verified' => 2,
+          'is_rejected' => 1,
+          'rejected_date' => $c_time,
+          'rejected_by' => $user_id,
+          'is_clean' => 10,
           'action_by' => $user_id,
           'action_ip_address' => $request->ip(),
-          'action_type' => class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod()
+          'action_type' => class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod()
         ];
-
+        $appPrefix = "App";
+        // $modelName = $appPrefix . "\\" . $ben_table;
         DB::beginTransaction();
-
-        $is_status_updated = DB::table($schema . '.beneficiaries')->where('id', $id)->where('created_by_dist_code', $created_by_dist_code)->update($input);
-
-        $is_saved_log = $accept_reject_model->save();
-        //dd($is_status_updated);
-        if ($is_status_updated && $is_saved_log) {
-          DB::commit();
-          return redirect('ProcessApllicationVerifier?scheme_id=' . $scheme_id)->withInput()->with('message', 'Beneficiary with ID:' . $id . ' Reverted Succesfully!');
+        if ($is_state_login == 1) {
+          $is_status_updated = DB::table($schema . '.beneficiaries')->where('id', $id)->where('is_state', TRUE)->update($input);
         } else {
-          DB::rollback();
-          return redirect('ProcessApllicationVerifier?scheme_id=' . $scheme_id)->with('message', 'Error! Please try again.');
+          $is_status_updated = DB::table($schema . '.beneficiaries')->where('id', $id)->where('created_by_dist_code', $created_by_dist_code)->update($input);
         }
-      } else if ($_POST['submit'] == 'Reject') {
-        $is_state_login = 0;
-        try {
-          $accept_reject_model->op_type = class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod() . 'AR';
-          $input = [
-            'verification_rejected' => $Rejected,
-            'comments' => $comments,
-            'next_level_role_id' => -1,
-            'is_approved' => 2,
-            'is_verified' => 2,
-            'is_rejected' => 1,
-            'rejected_date' => $c_time,
-            'rejected_by' => $user_id,
-            'is_clean' => 10,
-            'action_by' => $user_id,
-            'action_ip_address' => $request->ip(),
-            'action_type' => class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod()
-          ];
-          $appPrefix = "App";
-          // $modelName = $appPrefix . "\\" . $ben_table;
-          DB::beginTransaction();
-          if ($is_state_login == 1) {
-            $is_status_updated = DB::table($schema . '.beneficiaries')->where('id', $id)->where('is_state', TRUE)->update($input);
+        $is_saved_log = $accept_reject_model->save();
+        $scheme_dedup_list = Config::get('constants.bank_mob_aadhar_update_check');
+        if (in_array($scheme_id, $scheme_dedup_list)) {
+          $free_pending_bank_duplicate_arr = DB::select("select " . $schema . ".free_pending_bank_duplicate_data(in_scheme_id => " . $scheme_id . ", in_district_code => " . $created_by_dist_code . ")");
+          //dd($free_pending_bank_duplicate_arr);
+          $free_pending_bank_duplicate_data = $free_pending_bank_duplicate_arr[0]->free_pending_bank_duplicate_data;
+          if (!empty(trim($row->mobile_no))) {
+            $sp_mobile = $row->mobile_no;
           } else {
-            $is_status_updated = DB::table($schema . '.beneficiaries')->where('id', $id)->where('created_by_dist_code', $created_by_dist_code)->update($input);
+            $sp_mobile = 0;
           }
-          $is_saved_log = $accept_reject_model->save();
-          $scheme_dedup_list = Config::get('constants.bank_mob_aadhar_update_check');
-          if (in_array($scheme_id, $scheme_dedup_list)) {
-            $free_pending_bank_duplicate_arr = DB::select("select " . $schema . ".free_pending_bank_duplicate_data(in_scheme_id => " . $scheme_id . ", in_district_code => " . $created_by_dist_code . ")");
-            //dd($free_pending_bank_duplicate_arr);
-            $free_pending_bank_duplicate_data = $free_pending_bank_duplicate_arr[0]->free_pending_bank_duplicate_data;
-            if (!empty(trim($row->mobile_no))) {
-              $sp_mobile = $row->mobile_no;
-            } else {
-              $sp_mobile = 0;
-            }
-            $reject_dup_adjustment_arr = DB::select("select " . $schema . ".reject_dup_adjustment(
+          $reject_dup_adjustment_arr = DB::select("select " . $schema . ".reject_dup_adjustment(
             in_old_bank_ifsc => '" . $row->bank_ifsc . "', 
             in_old_bank_code => '" . $row->bank_code . "', 
             in_old_aadhar_no => '" . $row->aadhar_no . "', 
             in_old_mobile_no => " . $sp_mobile . "
             )");
-            $reject_dup_adjustment = $reject_dup_adjustment_arr[0]->reject_dup_adjustment;
-          } else {
-            $reject_dup_adjustment = 1;
-            $free_pending_bank_duplicate_data = 1;
-          }
-          if ($is_status_updated && $is_saved_log && $free_pending_bank_duplicate_data && $reject_dup_adjustment) {
-            DB::commit();
-          
-            return redirect('ProcessApllicationVerifier?scheme_id=' . $scheme_id)->withInput()->with('message', 'Beneficiary with ID:' . $id . ' Rejected Succesfully!');
-          } else {
-            DB::rollback();
-            return redirect('ProcessApllicationVerifier?scheme_id=' . $scheme_id)->with('message', 'Error! Please try again.');
-          }
-        } catch (Exception $e) {
+          $reject_dup_adjustment = $reject_dup_adjustment_arr[0]->reject_dup_adjustment;
+        } else {
+          $reject_dup_adjustment = 1;
+          $free_pending_bank_duplicate_data = 1;
+        }
+
+        if ($is_status_updated && $is_saved_log && $free_pending_bank_duplicate_data && $reject_dup_adjustment) {
+          DB::commit();
+
+          return redirect('ProcessApllicationVerifier?scheme_id=' . $scheme_id)->withInput()->with('message', 'Beneficiary with ID:' . $id . ' Rejected Succesfully!');
+        } else {
+          DB::rollback();
           return redirect('ProcessApllicationVerifier?scheme_id=' . $scheme_id)->with('message', 'Error! Please try again.');
         }
+      } catch (Exception $e) {
+        dd($e);
+        return redirect('ProcessApllicationVerifier?scheme_id=' . $scheme_id)->with('message', 'Error! Please try again.');
       }
-
-
-
     }
+
+
+
+
 
   }
 
@@ -1341,61 +1352,62 @@ class JBProcessApplicationController extends Controller
       return redirect("/")->with('danger', 'Scheme ID Not Valid');
     }
     $scheme_id = $request->scheme_id;
-    $approve = PermissionManagement::ApproveCheker($scheme_id);
-    if ($approve) {
-      $user_id = AuthChecker::getUserId();
-      $id = $request->benId;
-      $c_time = date('Y-m-d H:i:s', time());
-      $table_name = 'pension.beneficiaries';
 
-      $duty = Configduty::where('user_id', '=', $user_id)->where('scheme_id', $scheme_id)->first();
-      $district_code = $duty->district_code;
+    $user_id = AuthChecker::getUserId();
+    $id = $request->benId;
+    $c_time = date('Y-m-d H:i:s', time());
+    $table_name = 'pension.beneficiaries';
 
-      $c_time = date('Y-m-d H:i:s', time());
-      $table_name = 'pension.beneficiaries';
+    $duty = Configduty::where('user_id', '=', $user_id)->where('scheme_id', $scheme_id)->first();
+    $district_code = $duty->district_code;
 
-      if ($table_name == '') {
-        return redirect('/')->with('error', 'Scheme Not Found...');
-      }
-      $user_id = AuthChecker::getUserId();
-      $id = $request->benId;
-      $Verified = "Verified";
-      $Rejected = 1;
-      $comments = $request->comments;
-      $accept_reject_model = new AcceptRejectInfo;
-      $accept_reject_model->created_at = $c_time;
-      $accept_reject_model->application_id = $id;
-      $accept_reject_model->scheme_id = $scheme_id;
-      $accept_reject_model->user_id = $user_id;
-      $accept_reject_model->comment_message = $comments;
-      $accept_reject_model->user_id = $user_id;
-      $accept_reject_model->created_by_dist_code = $district_code;
-      $accept_reject_model->op_type = class_basename(request()->route()->getAction()['controller']);
-      $accept_reject_model->ip_address = request()->ip();
-      $user_id = AuthChecker::getUserId();
-      $scheme_obj = Scheme::where('id', $scheme_id)->where('is_active', 1)->first();
-      if (!empty($scheme_obj->short_code)) {
-        $schema = $scheme_obj->short_code;
-        $scheme_length = $scheme_obj->scheme_length;
-        $id_length = $scheme_obj->id_length;
-      } else {
-        $schema = "pension";
-        $scheme_length = NULL;
-        $id_length = NULL;
-      }
+    $c_time = date('Y-m-d H:i:s', time());
+    $table_name = 'pension.beneficiaries';
 
+    if ($table_name == '') {
+      return redirect('/')->with('error', 'Scheme Not Found...');
+    }
+    $user_id = AuthChecker::getUserId();
+    $id = $request->benId;
+    $Verified = "Verified";
+    $Rejected = 1;
+    $comments = $request->comments;
+    $accept_reject_model = new AcceptRejectInfo;
+    $accept_reject_model->created_at = $c_time;
+    $accept_reject_model->application_id = $id;
+    $accept_reject_model->scheme_id = $scheme_id;
+    $accept_reject_model->user_id = $user_id;
+    $accept_reject_model->comment_message = $comments;
+    $accept_reject_model->user_id = $user_id;
+    $accept_reject_model->created_by_dist_code = $district_code;
+    $accept_reject_model->module_name = class_basename(request()->route()->getAction()['controller']);
+    $accept_reject_model->ip_address = request()->ip();
+    $user_id = AuthChecker::getUserId();
+    $scheme_obj = Scheme::where('id', $scheme_id)->where('is_active', 1)->first();
+    if (!empty($scheme_obj->short_code)) {
+      $schema = $scheme_obj->short_code;
+      $scheme_length = $scheme_obj->scheme_length;
+      $id_length = $scheme_obj->id_length;
+    } else {
+      $schema = "pension";
+      $scheme_length = NULL;
+      $id_length = NULL;
+    }
 
 
-      $next_level_role_id = Workflow::getID($scheme_id, Auth::user()->designation_id);
 
-      $row = DB::table($table_name)->where('id', '=', $id)->where('next_level_role_id', '=', $next_level_role_id)->first();
+    $next_level_role_id = Workflow::getID($scheme_id, Auth::user()->designation_id);
+
+    $row = DB::table($table_name)->where('id', '=', $id)->where('next_level_role_id', '=', $next_level_role_id)->first();
 
 
-      if (empty($row)) {
-        return redirect("/")->with('danger', 'Application id Not Found');
-      }
+    if (empty($row)) {
+      return redirect("/")->with('danger', 'Application id Not Found');
+    }
 
-      if ($_POST['submit'] == 'Approve') {
+    if ($_POST['submit'] == 'Approve') {
+      $approve = PermissionManagement::ApproveCheker($scheme_id);
+      if ($approve) {
 
         $accept_reject_model->op_type = 'AA';
         if ($scheme_id == 10 || $scheme_id == 11 || $scheme_id == 2) {
@@ -1441,7 +1453,7 @@ class JBProcessApplicationController extends Controller
             'wp_phase' => 2,
             'action_by' => $user_id,
             'action_ip_address' => $request->ip(),
-            'action_type' => class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod()
+            'action_type' => class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod()
           ];
         } else
           $input = [
@@ -1453,7 +1465,7 @@ class JBProcessApplicationController extends Controller
             'approved_by' => $user_id,
             'action_by' => $user_id,
             'action_ip_address' => $request->ip(),
-            'action_type' => class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod()
+            'action_type' => class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod()
           ];
         $appPrefix = "App";
 
@@ -1472,304 +1484,305 @@ class JBProcessApplicationController extends Controller
           DB::rollback();
           return redirect('ProcessApllicationApprover?scheme_id=' . $scheme_id)->with('message', 'Error! Please try again.');
         }
-      } else if ($_POST['submit'] == 'Reject') {
-        $accept_reject_model->op_type = 'AR';
-        $input = [
-          'approval_rejected' => $Rejected,
-          'comments' => $comments,
-          'next_level_role_id' => -1,
-          'is_approved' => 2,
-          'is_verified' => 2,
-          'is_rejected' => 1,
-          'rejected_date' => $c_time,
-          'rejected_by' => $user_id,
-          'is_clean' => 10,
-          'action_by' => $user_id,
-          'action_ip_address' => $request->ip(),
-          'action_type' => class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod()
-        ];
-        $appPrefix = "App";
-        DB::beginTransaction();
-        $is_status_updated = DB::table($table_name)->where('id', $id)->where('created_by_dist_code', $district_code)->update($input);
-        $is_saved_log = $accept_reject_model->save();
-        $scheme_dedup_list = Config::get('constants.bank_mob_aadhar_update_check');
-        if (in_array($scheme_id, $scheme_dedup_list)) {
-          $free_pending_bank_duplicate_arr = DB::select("select " . $schema . ".free_pending_bank_duplicate_data(in_scheme_id => " . $scheme_id . ", in_district_code => " . $district_code . ")");
-          //dd($free_pending_bank_duplicate_arr);
-          $free_pending_bank_duplicate_data = $free_pending_bank_duplicate_arr[0]->free_pending_bank_duplicate_data;
-          if (!empty(trim($row->mobile_no))) {
-            $sp_mobile = $row->mobile_no;
-          } else {
-            $sp_mobile = 0;
-          }
-          $reject_dup_adjustment_arr = DB::select("select " . $schema . ".reject_dup_adjustment(
+      }
+    } else if ($_POST['submit'] == 'Reject') {
+      $accept_reject_model->op_type = 'AR';
+      $input = [
+        'approval_rejected' => $Rejected,
+        'comments' => $comments,
+        'next_level_role_id' => -1,
+        'is_approved' => 2,
+        'is_verified' => 2,
+        'is_rejected' => 1,
+        'rejected_date' => $c_time,
+        'rejected_by' => $user_id,
+        'is_clean' => 10,
+        'action_by' => $user_id,
+        'action_ip_address' => $request->ip(),
+        'action_type' => class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod()
+      ];
+      $appPrefix = "App";
+      DB::beginTransaction();
+      $is_status_updated = DB::table($table_name)->where('id', $id)->where('created_by_dist_code', $district_code)->update($input);
+      $is_saved_log = $accept_reject_model->save();
+      $scheme_dedup_list = Config::get('constants.bank_mob_aadhar_update_check');
+      if (in_array($scheme_id, $scheme_dedup_list)) {
+        $free_pending_bank_duplicate_arr = DB::select("select " . $schema . ".free_pending_bank_duplicate_data(in_scheme_id => " . $scheme_id . ", in_district_code => " . $district_code . ")");
+        //dd($free_pending_bank_duplicate_arr);
+        $free_pending_bank_duplicate_data = $free_pending_bank_duplicate_arr[0]->free_pending_bank_duplicate_data;
+        if (!empty(trim($row->mobile_no))) {
+          $sp_mobile = $row->mobile_no;
+        } else {
+          $sp_mobile = 0;
+        }
+        $reject_dup_adjustment_arr = DB::select("select " . $schema . ".reject_dup_adjustment(
             in_old_bank_ifsc => '" . $row->bank_ifsc . "', 
             in_old_bank_code => '" . $row->bank_code . "', 
             in_old_aadhar_no => '" . $row->aadhar_no . "', 
             in_old_mobile_no => " . $sp_mobile . "
             )");
-          $reject_dup_adjustment = $reject_dup_adjustment_arr[0]->reject_dup_adjustment;
-        } else {
-          $reject_dup_adjustment = 1;
-          $free_pending_bank_duplicate_data = 1;
-        }
-        if ($is_status_updated && $is_saved_log && $free_pending_bank_duplicate_data && $reject_dup_adjustment) {
-          DB::commit();
-          return redirect('ProcessApllicationApprover?scheme_id=' . $scheme_id)->withInput()->with('message', 'Beneficiary with ID:' . $id . ' Rejected Succesfully!');
-        } else {
-          DB::rollback();
-          return redirect('ProcessApllicationApprover?scheme_id=' . $scheme_id)->with('message', 'Error! Please try again.');
-        }
-      } else if ($_POST['submit'] == 'Revert') {
-        $accept_reject_model->op_type = 'AE';
-        $input = [
-          'approval_rejected' => 3,
-          'comments' => $comments,
-          'next_level_role_id' => NULL,
-          'is_verified' => 0,
-          'is_approved' => 0,
-          'is_reverted' => 1,
-          'action_by' => $user_id,
-          'action_ip_address' => $request->ip(),
-          'action_type' => class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod()
-        ];
-        $appPrefix = "App";
-        DB::beginTransaction();
-        $is_status_updated = DB::table($table_name)->where('id', $id)->where('created_by_dist_code', $district_code)->update($input);
-        $is_saved_log = $accept_reject_model->save();
-        if ($is_status_updated && $is_saved_log) {
-          DB::commit();
-          return redirect('ProcessApllicationApprover?scheme_id=' . $scheme_id)->withInput()->with('message', 'Beneficiary with ID:' . $id . ' Reverted Succesfully!');
-        } else {
-          DB::rollback();
-          return redirect('ProcessApllicationApprover?scheme_id=' . $scheme_id)->with('message', 'Error! Please try again.');
-        }
+        $reject_dup_adjustment = $reject_dup_adjustment_arr[0]->reject_dup_adjustment;
+      } else {
+        $reject_dup_adjustment = 1;
+        $free_pending_bank_duplicate_data = 1;
+      }
+      if ($is_status_updated && $is_saved_log && $free_pending_bank_duplicate_data && $reject_dup_adjustment) {
+        DB::commit();
+        return redirect('ProcessApllicationApprover?scheme_id=' . $scheme_id)->withInput()->with('message', 'Beneficiary with ID:' . $id . ' Rejected Succesfully!');
+      } else {
+        DB::rollback();
+        return redirect('ProcessApllicationApprover?scheme_id=' . $scheme_id)->with('message', 'Error! Please try again.');
+      }
+    } else if ($_POST['submit'] == 'Revert') {
+      $accept_reject_model->op_type = 'AE';
+      $input = [
+        'approval_rejected' => 3,
+        'comments' => $comments,
+        'next_level_role_id' => NULL,
+        'is_verified' => 0,
+        'is_approved' => 0,
+        'is_reverted' => 1,
+        'action_by' => $user_id,
+        'action_ip_address' => $request->ip(),
+        'action_type' => class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod()
+      ];
+      $appPrefix = "App";
+      DB::beginTransaction();
+      $is_status_updated = DB::table($table_name)->where('id', $id)->where('created_by_dist_code', $district_code)->update($input);
+      $is_saved_log = $accept_reject_model->save();
+      if ($is_status_updated && $is_saved_log) {
+        DB::commit();
+        return redirect('ProcessApllicationApprover?scheme_id=' . $scheme_id)->withInput()->with('message', 'Beneficiary with ID:' . $id . ' Reverted Succesfully!');
+      } else {
+        DB::rollback();
+        return redirect('ProcessApllicationApprover?scheme_id=' . $scheme_id)->with('message', 'Error! Please try again.');
       }
     }
   }
-
-  public function applicant_details(Request $request)
-  {
-    $applicant_details = [
-      'app_id' => 6359286,
-      'app_name' => 'OLIMA SEKH',
-      'app_block' => 'KALIGANJ',
-      'app_district' => 'NADIA',
-    ];
-
-    $applicant_activity = [
-      [
-        'activity' => 'Application Submitted',
-        'datetime' => '2021-02-06',
-        'remarks' => 'Data imported from excel sheet provided by concerned department',
-      ],
-      [
-        'activity' => 'Applicant’s Bank details',
-        'datetime' => '',
-        'remarks' => 'For the Bank Account Details Bank IFSC - SBIN0003242, Bank A/c - 30451287145',
-      ],
-      [
-        'activity' => 'Bank details updated by Verifier due to IFMS payment failed',
-        'datetime' => '2021-07-02 08:17:57',
-        'remarks' => 'Old Bank A/c details – 30451287145, Bank IFSC - SBIN0003242. <br/> Modified with remarks – “IFMS Failed Update Bank Details” & Bank Account Details as Bank IFSC - SBIN0003242, Bank A/c – 30451287145, Updated by verifier (Mob No. – 8373050605, User name- bdov@kaliganj, Email ID - bdo_k@yahoo.com)',
-      ],
-      [
-        'activity' => 'Account Validation Lot Creation',
-        'datetime' => '2023-02-22 16:25:39',
-        'remarks' => 'For the Bank Account Details Bank IFSC- SBIN0003242 Bank A/C- 30451287145, Branch- DEBAGRAM',
-      ],
-      [
-        'activity' => 'Account Validation Lot Response Receive',
-        'datetime' => '2023-02-27 12:10:14',
-        'remarks' => 'Validation success.',
-      ],
-      [
-        'activity' => 'Bank details updated Approver',
-        'datetime' => '2023-04-01 11:30:18',
-        'remarks' => 'Old Bank A/c details – 30451287145, Bank IFSC - SBIN0003242.  <br/> Modified with remarks – ‘Ac/Close’ & Bank Account Details as IFSC- PUNB0021720, Bank A/C – 0217010492799 by Nadia district Approver (Mob No. - 8373050635, Username- ADM_ D Nadia, email_id- admd.nadia1@gmail.com)',
-      ],
-      [
-        'activity' => 'Bank details updated Approver',
-        'datetime' => '2023-08-21 16:52:24',
-        'remarks' => 'Old Bank A/c details – 0217010492799, Bank IFSC - PUNB0021720.  <br/> Modified with remarks – ‘ac close’ & Bank Account Details as IFSC- SBIN0000176, Bank A/C – 35957247985 by Nadia district Approver (Mob No. - 8373050635, Username- ADM_ D Nadia, email_id- admd.nadia1@gmail.com)',
-      ],
-      [
-        'activity' => 'Bank details updated by Approver end',
-        'datetime' => '2023-10-04 11:19:07',
-        'remarks' => 'Old Bank A/c details – 35957247985, Bank IFSC - SBIN0000176.   <br/>Modified with remarks – ‘BDO Kaliganj Memo No.1996/Klj,Dated.02.08.2023.’ & Bank Account Details as IFSC- SBIN0003242, Bank A/C – 30451287145 by Nadia district Approver (Mob No. - 8373050635, Username- ADM_ D Nadia, email_id- admd.nadia1@gmail.com)',
-      ],
-      [
-        'activity' => 'Bank details updated by Approver',
-        'datetime' => '2023-12-21 11:15:53',
-        'remarks' => 'Old Bank A/c details – 30451287145, Bank IFSC - SBIN0003242.  <br/> Modified with remarks – ‘AC CLOSE’ & Bank Account Details as IFSC- SBIN0005681, Bank A/C – 34316144772 by Nadia district Approver (Mob No. - 8373050635, Username- ADM_ D Nadia, email_id- admd.nadia1@gmail.com)',
-      ],
-      [
-        'activity' => 'Bank details updated by Approver',
-        'datetime' => '2024-01-29 18:44:49',
-        'remarks' => 'Old Bank A/c details – 34316144772, Bank IFSC - SBIN0005681.   <br/>Modified with remarks – ‘Changed as per request of BDO Kaliganj vide Memo No. 245/KLJ Dated 25/01/2024’ & Bank Account Details as IFSC- SBIN0003242, Bank A/C – 30451287145 by Nadia district Approver (Mob No. - 8373050635, Username- ADM_ D Nadia, email_id- admd.nadia1@gmail.com)',
-      ],
-    ];
-
-    // Decode remarks to render HTML tags properly
-    foreach ($applicant_activity as &$activity) {
-      $activity['remarks'] = htmlspecialchars_decode($activity['remarks']);
-    }
-
-    // Render the view content
-    $pdfContent = View::make('applicant-details.details', [
-      'applicant_details' => $applicant_details,
-      'applicant_activity' => $applicant_activity,
-    ])->render();
-
-    // Initialize TCPDF object
-    $pdf = new TCPDF('P', 'mm', 'A4'); // Set page orientation to Portrait and size to A4
-    $pdf->SetAuthor('Jai Bangla');
-    $pdf->SetTitle('Applicant Activity Details');
-    $pdf->SetSubject('Applicant Activity PDF');
-
-    // Add a page and set margins
-    $pdf->AddPage();
-    $pdf->SetMargins(10, 5, 10); // Adjusting margins for the page
-
-    // Write the rendered HTML content
-    $pdf->writeHTML($pdfContent, true, false, true, false, '');
-
-    // Output the PDF as a download
-    return $pdf->Output('Applicant_Details-' . $applicant_details['app_id'] . '-Jai-Bangla.pdf', 'D');
-  }
-
-
-
-  public function applicant_details_multiple(Request $request)
-  {
-    // Sample array of multiple applicants
-    $applicants = [
-      [
-        'app_id' => 6353952,
-        'app_name' => 'PRABHAT SHIKDAR',
-        'app_block' => 'KALIGANJ',
-        'app_district' => 'NADIA',
-        'activities' => [
-          [
-            'activity' => 'Application Submitted',
-            'datetime' => '2021-02-06',
-            'remarks' => 'Data imported from excel sheet provided by concerned department',
-          ],
-          [
-            'activity' => 'Applicant’s Bank details',
-            'datetime' => '',
-            'remarks' => 'For the Bank Account Details Bank IFSC - SBIN0003242, Bank A/c - 30451287145',
-          ],
-
-        ],
-      ],
-      [
-        'app_id' => 8250535,
-        'app_name' => 'MD REJAUL HAQUE',
-        'app_block' => 'KALIGANJ',
-        'app_district' => 'NADIA',
-        'activities' => [
-          [
-            'activity' => 'Application Submitted',
-            'datetime' => '2022-08-25',
-            'remarks' => 'From the KALIGANJ Block Operator (Mobile_number- 9332393867, Username- klignjopt1, email_id- biswasm36@gmail.com)',
-          ],
-          [
-            'activity' => 'Application Verification',
-            'datetime' => '2022-08-25 07:39:54',
-            'remarks' => 'From the KALIGANJ Block Verifier (Mobile_number- 8373050605, Username- bdov@kaliganj, email_id- bdo_k@yahoo.com) & ip address 172.20.140.8.',
-          ],
-          [
-            'activity' => 'Application Approval',
-            'datetime' => '2022-08-26 11:43:04',
-            'remarks' => 'From the KALIGANJ Block Approver (Mobile_number- 8373050635, Username- ADM_ D Nadia, email_id- admd.nadia1@gmail.com) & ip address 172.20.140.8.',
-          ],
-          [
-            'activity' => 'Applicant’s Bank details',
-            'datetime' => '',
-            'remarks' => 'For the Bank Account Details Bank IFSC - SBIN0001382, Bank A/c – 30249634951.',
-          ],
-          [
-            'activity' => 'Bank details updated by Verifier due to SBI failed',
-            'datetime' => '2022-10-11 08:45:36',
-            'remarks' => 'Old Bank A/c details – 30249634951, Bank IFSC - SBIN0001382. Modified with remarks – “SBI Failed Update Bank Details” & Bank Account Details as IFSC - PUNB0RRBBGB, Bank A/c – 5414019163977. Update by Verifier (Mob No. – 8373050605, User name- bdov@kaliganj, Email ID - bdo_k@yahoo.com)',
-          ],
-
-        ],
-      ],
-
-
-      [
-        'app_id' => 6359286,
-        'app_name' => 'OLIMA SEKH',
-        'app_block' => 'KALIGANJ',
-        'app_district' => 'NADIA',
-        'activities' => [
-          [
-            'activity' => 'Application Submitted',
-            'datetime' => '2021-02-07',
-            'remarks' => 'Data imported from excel sheet provided by concerned department',
-          ],
-          [
-            'activity' => 'Applicant’s Bank details',
-            'datetime' => '',
-            'remarks' => 'For the Bank Account Details Bank IFSC - UTBI0RRBBGB, Bank A/c - 5123020294314',
-          ],
-          [
-            'activity' => 'Bank details updated Approver',
-            'datetime' => '2023-02-07 19:28:35',
-            'remarks' => 'Old Bank A/c details – 5123020294314, Bank IFSC - UTBI0RRBBGB. Modified with remarks – “Ac” & Bank Account Details as IFSC - BKID0004103, Bank A/c – 410318210000207 Update by Approver (Mob No. – 8373050635, User name- ADM_ D Nadia, Email ID - admd.nadia1@gmail.com)',
-          ],
-          [
-            'activity' => 'Account Validation Creation',
-            'datetime' => '2023-02-25 20:57:19',
-            'remarks' => 'For the Bank Account Details Bank IFSC- BKID0004103 Bank A/C- 410318210000207',
-          ],
-          [
-            'activity' => 'Account Validation Response',
-            'datetime' => '2023-03-03 11:21:13',
-            'remarks' => 'Account Validation success but name validation failed. The name response from bank was OLIMA BIBI SEKH. Whereas the applicant’s name is OLIMA SEKH for the bank account details Bank IFSC- BKID0004103 Bank A/C- 410318210000207.',
-          ],
-          [
-            'activity' => 'Failed Name Validation accepted as Minor Mismatch',
-            'datetime' => '2023-04-15 10:01:46',
-            'remarks' => 'From KALIGANJ Block Verifier (Mob No. - 8373050605,Username- bdov@kaliganj, email_id- bdo_k@yahoo.com)',
-          ],
-          [
-            'activity' => 'Bank details updated by Approver',
-            'datetime' => '2023-08-21 17:21:40',
-            'remarks' => 'Old Bank A/c details – 410318210000207, Bank IFSC - BKID0004103. Modified with remarks – ‘ac close’ & Bank Account Details as IFSC- SBIN0000176,  Bank A/C – 35504595155 by Nadia district Approver (Mob No. - 8373050635, Username- ADM_ D Nadia, email_id- admd.nadia1@gmail.com)',
-          ],
-          [
-            'activity' => 'Bank details updated by Approver',
-            'datetime' => '2023-09-29 14:31:04',
-            'remarks' => 'Old Bank A/c details – 35504595155, Bank IFSC - SBIN0000176. Modified with remarks – ‘Correction of account from BOD Kaliganj Vide Memo No. 3190/Kly Dated- 01.09.2023.’ & Bank Account Details as Bank IFSC- PUNB0RRBBGB Bank A/C – 5123020294314 by Nadia district Approver (Mob No. - 8373050635, Username- ADM_ D Nadia, email_id- admd.nadia1@gmail.com)',
-          ]
-        ],
-
-
-      ],
-    ];
-
-    // Initialize TCPDF object
-    $pdf = new TCPDF('P', 'mm', 'A4');
-    $pdf->SetAuthor('Jai Bangla');
-    $pdf->SetTitle('Applicant Activity Details');
-    $pdf->SetSubject('Applicant Activity PDF');
-    $pdf->SetMargins(10, 5, 10);
-    $pdf->AddPage();
-
-    foreach ($applicants as $applicant) {
-      $pdfContent = View::make('applicant-details.details_multi', [
-        'applicant' => $applicant,  // Pass the current applicant
-      ])->render();
-      $pdf->writeHTML($pdfContent, true, false, true, false, '');
-
-      $pdf->AddPage();
-    }
-
-    return $pdf->Output('Applicant_Details-Jai-Bangla.pdf', 'D');
-  }
-
-
 }
+
+// public function applicant_details(Request $request)
+// {
+//   $applicant_details = [
+//     'app_id' => 6359286,
+//     'app_name' => 'OLIMA SEKH',
+//     'app_block' => 'KALIGANJ',
+//     'app_district' => 'NADIA',
+//   ];
+
+//   $applicant_activity = [
+//     [
+//       'activity' => 'Application Submitted',
+//       'datetime' => '2021-02-06',
+//       'remarks' => 'Data imported from excel sheet provided by concerned department',
+//     ],
+//     [
+//       'activity' => 'Applicant’s Bank details',
+//       'datetime' => '',
+//       'remarks' => 'For the Bank Account Details Bank IFSC - SBIN0003242, Bank A/c - 30451287145',
+//     ],
+//     [
+//       'activity' => 'Bank details updated by Verifier due to IFMS payment failed',
+//       'datetime' => '2021-07-02 08:17:57',
+//       'remarks' => 'Old Bank A/c details – 30451287145, Bank IFSC - SBIN0003242. <br/> Modified with remarks – “IFMS Failed Update Bank Details” & Bank Account Details as Bank IFSC - SBIN0003242, Bank A/c – 30451287145, Updated by verifier (Mob No. – 8373050605, User name- bdov@kaliganj, Email ID - bdo_k@yahoo.com)',
+//     ],
+//     [
+//       'activity' => 'Account Validation Lot Creation',
+//       'datetime' => '2023-02-22 16:25:39',
+//       'remarks' => 'For the Bank Account Details Bank IFSC- SBIN0003242 Bank A/C- 30451287145, Branch- DEBAGRAM',
+//     ],
+//     [
+//       'activity' => 'Account Validation Lot Response Receive',
+//       'datetime' => '2023-02-27 12:10:14',
+//       'remarks' => 'Validation success.',
+//     ],
+//     [
+//       'activity' => 'Bank details updated Approver',
+//       'datetime' => '2023-04-01 11:30:18',
+//       'remarks' => 'Old Bank A/c details – 30451287145, Bank IFSC - SBIN0003242.  <br/> Modified with remarks – ‘Ac/Close’ & Bank Account Details as IFSC- PUNB0021720, Bank A/C – 0217010492799 by Nadia district Approver (Mob No. - 8373050635, Username- ADM_ D Nadia, email_id- admd.nadia1@gmail.com)',
+//     ],
+//     [
+//       'activity' => 'Bank details updated Approver',
+//       'datetime' => '2023-08-21 16:52:24',
+//       'remarks' => 'Old Bank A/c details – 0217010492799, Bank IFSC - PUNB0021720.  <br/> Modified with remarks – ‘ac close’ & Bank Account Details as IFSC- SBIN0000176, Bank A/C – 35957247985 by Nadia district Approver (Mob No. - 8373050635, Username- ADM_ D Nadia, email_id- admd.nadia1@gmail.com)',
+//     ],
+//     [
+//       'activity' => 'Bank details updated by Approver end',
+//       'datetime' => '2023-10-04 11:19:07',
+//       'remarks' => 'Old Bank A/c details – 35957247985, Bank IFSC - SBIN0000176.   <br/>Modified with remarks – ‘BDO Kaliganj Memo No.1996/Klj,Dated.02.08.2023.’ & Bank Account Details as IFSC- SBIN0003242, Bank A/C – 30451287145 by Nadia district Approver (Mob No. - 8373050635, Username- ADM_ D Nadia, email_id- admd.nadia1@gmail.com)',
+//     ],
+//     [
+//       'activity' => 'Bank details updated by Approver',
+//       'datetime' => '2023-12-21 11:15:53',
+//       'remarks' => 'Old Bank A/c details – 30451287145, Bank IFSC - SBIN0003242.  <br/> Modified with remarks – ‘AC CLOSE’ & Bank Account Details as IFSC- SBIN0005681, Bank A/C – 34316144772 by Nadia district Approver (Mob No. - 8373050635, Username- ADM_ D Nadia, email_id- admd.nadia1@gmail.com)',
+//     ],
+//     [
+//       'activity' => 'Bank details updated by Approver',
+//       'datetime' => '2024-01-29 18:44:49',
+//       'remarks' => 'Old Bank A/c details – 34316144772, Bank IFSC - SBIN0005681.   <br/>Modified with remarks – ‘Changed as per request of BDO Kaliganj vide Memo No. 245/KLJ Dated 25/01/2024’ & Bank Account Details as IFSC- SBIN0003242, Bank A/C – 30451287145 by Nadia district Approver (Mob No. - 8373050635, Username- ADM_ D Nadia, email_id- admd.nadia1@gmail.com)',
+//     ],
+//   ];
+
+//   // Decode remarks to render HTML tags properly
+//   foreach ($applicant_activity as &$activity) {
+//     $activity['remarks'] = htmlspecialchars_decode($activity['remarks']);
+//   }
+
+//   // Render the view content
+//   $pdfContent = View::make('applicant-details.details', [
+//     'applicant_details' => $applicant_details,
+//     'applicant_activity' => $applicant_activity,
+//   ])->render();
+
+//   // Initialize TCPDF object
+//   $pdf = new TCPDF('P', 'mm', 'A4'); // Set page orientation to Portrait and size to A4
+//   $pdf->SetAuthor('Jai Bangla');
+//   $pdf->SetTitle('Applicant Activity Details');
+//   $pdf->SetSubject('Applicant Activity PDF');
+
+//   // Add a page and set margins
+//   $pdf->AddPage();
+//   $pdf->SetMargins(10, 5, 10); // Adjusting margins for the page
+
+//   // Write the rendered HTML content
+//   $pdf->writeHTML($pdfContent, true, false, true, false, '');
+
+//   // Output the PDF as a download
+//   return $pdf->Output('Applicant_Details-' . $applicant_details['app_id'] . '-Jai-Bangla.pdf', 'D');
+// }
+
+
+
+// public function applicant_details_multiple(Request $request)
+// {
+//   // Sample array of multiple applicants
+//   $applicants = [
+//     [
+//       'app_id' => 6353952,
+//       'app_name' => 'PRABHAT SHIKDAR',
+//       'app_block' => 'KALIGANJ',
+//       'app_district' => 'NADIA',
+//       'activities' => [
+//         [
+//           'activity' => 'Application Submitted',
+//           'datetime' => '2021-02-06',
+//           'remarks' => 'Data imported from excel sheet provided by concerned department',
+//         ],
+//         [
+//           'activity' => 'Applicant’s Bank details',
+//           'datetime' => '',
+//           'remarks' => 'For the Bank Account Details Bank IFSC - SBIN0003242, Bank A/c - 30451287145',
+//         ],
+
+//       ],
+//     ],
+//     [
+//       'app_id' => 8250535,
+//       'app_name' => 'MD REJAUL HAQUE',
+//       'app_block' => 'KALIGANJ',
+//       'app_district' => 'NADIA',
+//       'activities' => [
+//         [
+//           'activity' => 'Application Submitted',
+//           'datetime' => '2022-08-25',
+//           'remarks' => 'From the KALIGANJ Block Operator (Mobile_number- 9332393867, Username- klignjopt1, email_id- biswasm36@gmail.com)',
+//         ],
+//         [
+//           'activity' => 'Application Verification',
+//           'datetime' => '2022-08-25 07:39:54',
+//           'remarks' => 'From the KALIGANJ Block Verifier (Mobile_number- 8373050605, Username- bdov@kaliganj, email_id- bdo_k@yahoo.com) & ip address 172.20.140.8.',
+//         ],
+//         [
+//           'activity' => 'Application Approval',
+//           'datetime' => '2022-08-26 11:43:04',
+//           'remarks' => 'From the KALIGANJ Block Approver (Mobile_number- 8373050635, Username- ADM_ D Nadia, email_id- admd.nadia1@gmail.com) & ip address 172.20.140.8.',
+//         ],
+//         [
+//           'activity' => 'Applicant’s Bank details',
+//           'datetime' => '',
+//           'remarks' => 'For the Bank Account Details Bank IFSC - SBIN0001382, Bank A/c – 30249634951.',
+//         ],
+//         [
+//           'activity' => 'Bank details updated by Verifier due to SBI failed',
+//           'datetime' => '2022-10-11 08:45:36',
+//           'remarks' => 'Old Bank A/c details – 30249634951, Bank IFSC - SBIN0001382. Modified with remarks – “SBI Failed Update Bank Details” & Bank Account Details as IFSC - PUNB0RRBBGB, Bank A/c – 5414019163977. Update by Verifier (Mob No. – 8373050605, User name- bdov@kaliganj, Email ID - bdo_k@yahoo.com)',
+//         ],
+
+//       ],
+//     ],
+
+
+//     [
+//       'app_id' => 6359286,
+//       'app_name' => 'OLIMA SEKH',
+//       'app_block' => 'KALIGANJ',
+//       'app_district' => 'NADIA',
+//       'activities' => [
+//         [
+//           'activity' => 'Application Submitted',
+//           'datetime' => '2021-02-07',
+//           'remarks' => 'Data imported from excel sheet provided by concerned department',
+//         ],
+//         [
+//           'activity' => 'Applicant’s Bank details',
+//           'datetime' => '',
+//           'remarks' => 'For the Bank Account Details Bank IFSC - UTBI0RRBBGB, Bank A/c - 5123020294314',
+//         ],
+//         [
+//           'activity' => 'Bank details updated Approver',
+//           'datetime' => '2023-02-07 19:28:35',
+//           'remarks' => 'Old Bank A/c details – 5123020294314, Bank IFSC - UTBI0RRBBGB. Modified with remarks – “Ac” & Bank Account Details as IFSC - BKID0004103, Bank A/c – 410318210000207 Update by Approver (Mob No. – 8373050635, User name- ADM_ D Nadia, Email ID - admd.nadia1@gmail.com)',
+//         ],
+//         [
+//           'activity' => 'Account Validation Creation',
+//           'datetime' => '2023-02-25 20:57:19',
+//           'remarks' => 'For the Bank Account Details Bank IFSC- BKID0004103 Bank A/C- 410318210000207',
+//         ],
+//         [
+//           'activity' => 'Account Validation Response',
+//           'datetime' => '2023-03-03 11:21:13',
+//           'remarks' => 'Account Validation success but name validation failed. The name response from bank was OLIMA BIBI SEKH. Whereas the applicant’s name is OLIMA SEKH for the bank account details Bank IFSC- BKID0004103 Bank A/C- 410318210000207.',
+//         ],
+//         [
+//           'activity' => 'Failed Name Validation accepted as Minor Mismatch',
+//           'datetime' => '2023-04-15 10:01:46',
+//           'remarks' => 'From KALIGANJ Block Verifier (Mob No. - 8373050605,Username- bdov@kaliganj, email_id- bdo_k@yahoo.com)',
+//         ],
+//         [
+//           'activity' => 'Bank details updated by Approver',
+//           'datetime' => '2023-08-21 17:21:40',
+//           'remarks' => 'Old Bank A/c details – 410318210000207, Bank IFSC - BKID0004103. Modified with remarks – ‘ac close’ & Bank Account Details as IFSC- SBIN0000176,  Bank A/C – 35504595155 by Nadia district Approver (Mob No. - 8373050635, Username- ADM_ D Nadia, email_id- admd.nadia1@gmail.com)',
+//         ],
+//         [
+//           'activity' => 'Bank details updated by Approver',
+//           'datetime' => '2023-09-29 14:31:04',
+//           'remarks' => 'Old Bank A/c details – 35504595155, Bank IFSC - SBIN0000176. Modified with remarks – ‘Correction of account from BOD Kaliganj Vide Memo No. 3190/Kly Dated- 01.09.2023.’ & Bank Account Details as Bank IFSC- PUNB0RRBBGB Bank A/C – 5123020294314 by Nadia district Approver (Mob No. - 8373050635, Username- ADM_ D Nadia, email_id- admd.nadia1@gmail.com)',
+//         ]
+//       ],
+
+
+//     ],
+//   ];
+
+//   // Initialize TCPDF object
+//   $pdf = new TCPDF('P', 'mm', 'A4');
+//   $pdf->SetAuthor('Jai Bangla');
+//   $pdf->SetTitle('Applicant Activity Details');
+//   $pdf->SetSubject('Applicant Activity PDF');
+//   $pdf->SetMargins(10, 5, 10);
+//   $pdf->AddPage();
+
+//   foreach ($applicants as $applicant) {
+//     $pdfContent = View::make('applicant-details.details_multi', [
+//       'applicant' => $applicant,  // Pass the current applicant
+//     ])->render();
+//     $pdf->writeHTML($pdfContent, true, false, true, false, '');
+
+//     $pdf->AddPage();
+//   }
+
+//   return $pdf->Output('Applicant_Details-Jai-Bangla.pdf', 'D');
+// }
+
+
+

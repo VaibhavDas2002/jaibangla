@@ -88,7 +88,7 @@ class SchemeGenSettingController extends Controller
         $data = DB::table('m_scheme_gen_setting')
             ->join('m_scheme', 'm_scheme_gen_setting.scheme_id', '=', 'm_scheme.id')
             ->select(
-                'm_scheme.id as scheme_id', // Add alias for clarity
+                'm_scheme.id as scheme_id',
                 'm_scheme.scheme_name',
                 'm_scheme_gen_setting.allow_entry',
                 'm_scheme_gen_setting.allow_verify',
@@ -96,19 +96,29 @@ class SchemeGenSettingController extends Controller
                 'm_scheme_gen_setting.allow_ds_entry',
                 'm_scheme_gen_setting.cap_exists',
                 'm_scheme_gen_setting.allow_cmo',
-
+                'm_scheme_gen_setting.allow_bank_failed_update',
+                'm_scheme_gen_setting.allow_bank_name_update',
+                'm_scheme_gen_setting.allow_bank_ac_update',
+                'm_scheme_gen_setting.name_valid_opt'
             )
             ->get();
 
+        // Process the name_valid_opt column for each record
+        $data = $data->map(function ($item) {
+            $item->name_valid_opt = $item->name_valid_opt
+                ? array_map('intval', array_filter(explode(',', trim($item->name_valid_opt, '{}'))))
+                : [];
+            return $item;
+        });
 
         return response()->json(['data' => $data]);
     }
 
 
+
     public function getDetails($scheme_id)
     {
         try {
-            // dd($scheme_id);
             // Fetch scheme details from the database
             $scheme = DB::table('m_scheme_gen_setting')
                 ->join('m_scheme', 'm_scheme_gen_setting.scheme_id', '=', 'm_scheme.id')
@@ -118,13 +128,16 @@ class SchemeGenSettingController extends Controller
                     'm_scheme_gen_setting.allow_entry as entry',
                     'm_scheme_gen_setting.allow_verify as verify',
                     'm_scheme_gen_setting.allow_approve as approve',
+                    'm_scheme_gen_setting.allow_bank_failed_update as bank_failed',
+                    'm_scheme_gen_setting.allow_bank_name_update as name_failed',
+                    'm_scheme_gen_setting.allow_bank_ac_update as ac_failed',
+                    'm_scheme_gen_setting.name_valid_opt',
                     'm_scheme_gen_setting.allow_ds_entry as ds_entry',
                     'm_scheme_gen_setting.cap_exists as capacity',
                     'm_scheme_gen_setting.ds_phase',
                     'm_scheme_gen_setting.allow_normal_entry as normal_entry',
                     'm_scheme_gen_setting.special_quota_exists as special_quota',
-                    'm_scheme_gen_setting.allow_cmo as cmo',
-
+                    'm_scheme_gen_setting.allow_cmo as cmo'
                 )
                 ->where('m_scheme_gen_setting.scheme_id', $scheme_id)
                 ->first();
@@ -134,8 +147,16 @@ class SchemeGenSettingController extends Controller
                 return response()->json(['error' => 'Scheme not found'], 404);
             }
 
-            // Decode ds_phase if needed
+            // Decode JSON values and handle array columns
             $scheme->ds_phase = $scheme->ds_phase ? json_decode($scheme->ds_phase) : [];
+
+            // Parse PostgreSQL array into a PHP array
+            $scheme->name_valid_opt = $scheme->name_valid_opt
+                ? array_map('intval', array_filter(explode(',', trim($scheme->name_valid_opt, '{}'))))
+                : [];
+
+            // Debug the result
+            // dd($scheme);
 
             return response()->json($scheme);
         } catch (\Exception $e) {
@@ -143,6 +164,7 @@ class SchemeGenSettingController extends Controller
             return response()->json(['error' => 'An unexpected error occurred: ' . $e->getMessage()], 500);
         }
     }
+
     public function update(Request $request)
     {
         // dd($request->all());
@@ -163,12 +185,18 @@ class SchemeGenSettingController extends Controller
 
             // Get the ds_phase array if present, otherwise set it to null
             $dsPhase = $request->has('ds_phase') ? json_encode($request->ds_phase) : null;
+            $name_opts = $request->has('name_validation_opt') ? $this->to_pg_array($request->name_validation_opt) : null;
+
 
             // Update the existing record in the database
             DB::table('m_scheme_gen_setting')->where('scheme_id', $schemeId)->update([
                 'allow_entry' => $request->entry ?? false,
                 'allow_verify' => $request->verify ?? false,
                 'allow_approve' => $request->approve ?? false,
+                'allow_bank_failed_update' => $request->bank_failed ?? false,
+                'allow_bank_name_update' => $request->name_validation_failed ?? false,
+                'allow_bank_ac_update' => $request->account_validation_failed ?? false,
+                'name_valid_opt' => $name_opts,
                 'allow_ds_entry' => $request->ds_entry ?? false,
                 'ds_phase' => $dsPhase,  // This will be null if no phases are selected
                 'cap_exists' => $request->scheme_cap ?? false,
