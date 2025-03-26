@@ -1,0 +1,52 @@
+Friday 18-Nov-2022 05:10:18 PM
+------------------------------
+Lot Type-> 6, Lot Year-> 2021-2022, Lot Month-> February, Scheme Id-> 2
+Exception - Undefined index: lotno
+Tuesday 22-Nov-2022 11:02:09 AM
+------------------------------
+Lot Type-> 9, Lot Year-> 2021-2022, Lot Month-> February, Scheme Id-> 2
+Exception - Undefined index: lotno
+Tuesday 22-Nov-2022 11:02:50 AM
+------------------------------
+Lot Type-> 9, Lot Year-> 2021-2022, Lot Month-> February, Scheme Id-> 2
+Exception - Undefined index: lotno
+Tuesday 22-Nov-2022 11:04:15 AM
+------------------------------
+Lot Type-> 9, Lot Year-> 2021-2022, Lot Month-> February, Scheme Id-> 2
+Exception - Undefined index: lotno
+Tuesday 22-Nov-2022 11:07:18 AM
+------------------------------
+Lot Type-> 9, Lot Year-> 2021-2022, Lot Month-> February, Scheme Id-> 2
+Exception - Undefined index: lotno
+Tuesday 22-Nov-2022 11:10:14 AM
+------------------------------
+Lot Type-> 9, Lot Year-> 2021-2022, Lot Month-> February, Scheme Id-> 2
+Exception - Undefined index: lotno
+Tuesday 22-Nov-2022 11:10:25 AM
+------------------------------
+Lot Type-> 9, Lot Year-> 2021-2022, Lot Month-> February, Scheme Id-> 2
+Exception - Undefined index: lotno
+Tuesday 22-Nov-2022 11:21:43 AM
+------------------------------
+Lot Type-> 9, Lot Year-> 2021-2022, Lot Month-> February, Scheme Id-> 2
+Exception - Undefined index: lotno
+Tuesday 22-Nov-2022 11:22:06 AM
+------------------------------
+Lot Type-> 9, Lot Year-> 2021-2022, Lot Month-> February, Scheme Id-> 2
+Exception - Undefined index: lotno
+Tuesday 22-Nov-2022 11:26:05 AM
+------------------------------
+Lot Type-> 9, Lot Year-> 2021-2022, Lot Month-> February, Scheme Id-> 2
+Exception - Undefined index: lotno
+Tuesday 22-Nov-2022 11:30:19 AM
+------------------------------
+Lot Type-> 9, Lot Year-> 2021-2022, Lot Month-> February, Scheme Id-> 2
+Exception - Undefined index: lotno
+Tuesday 22-Nov-2022 11:37:05 AM
+------------------------------
+Lot Type-> 9, Lot Year-> 2021-2022, Lot Month-> January, Scheme Id-> 2
+Exception - Undefined index: lotno
+Tuesday 22-Nov-2022 11:38:32 AM
+------------------------------
+Lot Type-> 9, Lot Year-> 2021-2022, Lot Month-> February, Scheme Id-> 2
+Exception - Undefined index: lotno

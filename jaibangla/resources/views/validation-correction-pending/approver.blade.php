@@ -61,7 +61,7 @@
       <div class="content-wrapper">
         <section class="content-header">
           <h1>
-            Approve Legacy Name Validation
+            Approve Name validation failed with matching score between 0 to 25 but payment is on going
           </h1>
         </section>
         <section class="content">
@@ -103,10 +103,10 @@
                       <label class="control-label" id="edited_txt">Edited Type by Verifier<span class="text-danger">*</span></label>
                       <select name="update_code" id="update_code" class="form-control">
                         <option value="">-----Select----</option>
-                        <option value="41">Bank name may be taken as Beneficiary Name as Bank Name is correct</option>
-                        <option value="42">Passbook Correction by Verifier</option>
-                        <option value="43">Bank Account is of other Family Members, New Account Number modified by verifier</option>
-                        <option value="44">Bank account is of completely of other person out of family, New Account Number modified by verifier</option>
+                        <option value="141">Bank name may be taken as Beneficiary Name as Bank Name is correct</option>
+                        <option value="142">Passbook Correction by Verifier</option>
+                        <option value="143">Bank Account is of other Family Members, New Account Number modified by verifier</option>
+                        <option value="144">Bank account is of completely of other person out of family, New Account Number modified by verifier</option>
                       </select>
                       <span class="text-danger" id="error_update_code"></span>
                     </div>
@@ -152,8 +152,9 @@
                         <th width="10%">Beneficiary Account No</th>
                         <th width="10%">Beneficiary IFSC</th>
                         <th width="10%">Block/Municipality Name</th>
+                        <th width="10%">Bank Response Name</th>
                         <th>Action</th>
-                        <th >Check <input type="checkbox" id='check_all_btn' style="width:48px;"> </th>
+                        <th id = 'check_box_id'>Check <input type="checkbox" id='check_all_btn' style="width:48px;"> </th>
                       </thead>
                       <tbody style="font-size: 14px;"></tbody>   
                     </table>
@@ -169,7 +170,7 @@
                   <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                   </button>
-                  <h4 class="modal-title">Approve Legacy Name Validation Bank Details</h4>
+                  <h4 class="modal-title">Approve Name Validation Request</h4>
                 </div>
                 <div class="modal-body ben_view_body">
                   <p id="header_message" style="text-align: center; align-content: center; font-size: 15px; font-weight: bold;" class="text-success"></p>
@@ -253,6 +254,19 @@
                   <div class="panel-group">  
                     <div class="panel panel-default">
                       <div class="panel-heading" role="tab" id="headingFour">   
+                        <h4 class="panel-title"> <a>Modified Enclosure Details</a> </h4> 
+                      </div> 
+                      <div id="collapseEnclosure" class="panel-collapse collapse in" role="tabpanel"
+                                        aria-labelledby="enclosure">
+                        <div class="panel-body" style="padding: 5px;">
+                          <table class="table table-bordered table-condensed" style="font-size: 14px;" id="enCloserTable"><tbody></tbody></table>
+                        </div>
+                      </div> 
+                    </div>  
+                  </div>
+                  <div class="panel-group">  
+                    <div class="panel panel-default">
+                      <div class="panel-heading" role="tab" id="headingFour">   
                         <h4 class="panel-title"> <a>Action</a> </h4> 
                       </div> 
                       <div id="collapse4" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingFour">  
@@ -279,6 +293,7 @@
                       </div> 
                     </div>  
                   </div>
+                  
                   <form method="POST" action="#" target="_blank" name="fullForm" id="fullForm" style="text-align: center; align-content: center;">
                     <input type="hidden" name="_token" value="{{ csrf_token() }}">
                     <input type="hidden" name="is_bulk" id="is_bulk" value="0" />
@@ -289,6 +304,19 @@
                     <button style="display:none;" type="button" id="submitting" value="Submit" class="btn btn-success success" disabled>Processing Please Wait</button>
                   </form> 
                 </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal" id="encolser_modal"  role="dialog">
+            <div class="modal-dialog" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="encolser_name">Modal title</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <div id="encolser_content">  </div>   
               </div>
             </div>
           </div>
@@ -359,6 +387,7 @@
                     { "data": "last_accno" },
                     { "data": "last_ifsc"},
                     { "data": "block_ulb_name"},
+                    { "data": "bank_response_name"},
                     { "data": "view" },
                     { "data": "check" },
       ],
@@ -388,7 +417,7 @@
               //'pdf','excel','print'
             ],
           });
-          $('#filter').click(function(){
+        $('#filter').click(function(){
           if($.trim($('#scheme_type').val()).length == 0){
               error_scheme_type = 'Scheme is required';
           $('#error_scheme_type').text(error_scheme_type);
@@ -409,6 +438,12 @@
           return false;
         }
         else{
+          var update_id = $('#update_code').val();
+          if(update_id == 143 || update_id == 144){
+            $('#check_box_id').hide();
+          }else{
+            $('#check_box_id').show();
+          }
           $('#loadingDiv').show();
           $('#res_div').show();
           var msg = 'Beneficiary Details';
@@ -424,7 +459,7 @@
     });
     $('#check_all_btn').on('change', function () {
       var checked = $(this).prop('checked');
-      dataTable.cells(null, 7).every( function () {
+      dataTable.cells(null, 8).every( function () {
         var cell = this.node();
         $(cell).find('input[type="checkbox"][name="chkbx"]').prop('checked', checked); 
       } );
@@ -474,6 +509,7 @@
         $(".singleInfo").show();
         $('.applicant_id_modal').html('');
         $('#accept_reject_comments').val('');
+        $("#enCloserTable tbody").empty(); 
         $("#collapseBank").collapse('hide');
         $('#collapsePersonal').collapse('hide');
         $('.ben_view_body').addClass('disabledcontent');
@@ -486,7 +522,7 @@
         },
           dataType: 'json',
           success: function (response) {
-             console.log(JSON.stringify(response));
+            //  console.log(JSON.stringify(response));
             $('#fullname').text(response.ben_name);
             $('#father_name').text(response.father_name);
             $('#mobile_no').text(response.mobile_no);
@@ -500,6 +536,7 @@
             $('#new_acc_no').text(response.new_bank_code);  
             $('#new_bank_name').text(response.new_bank_name);
             $('#new_branch_name').text(response.new_branch_name);
+            $("#enCloserTable tbody").html(response.html);  
             $('#new_ifsc').text(response.new_bank_ifsc);
             $('.ben_view_body').removeClass('disabledcontent');
             $("#collapseBank").collapse('show');
@@ -616,7 +653,7 @@
                 },
                 success: function (data) {
                   // console.log(data);
-                  console.log(JSON.stringify(data));
+                  // console.log(JSON.stringify(data));
                  // dataTable.ajax.reload();
                  var table_renew = $('#example').DataTable(); 
                  table_renew.ajax.reload( null, false );
@@ -800,6 +837,35 @@
       }  
     });
   });
+  function View_encolser_modal(doc_name,doc_type,is_profile_pic,beneficiary_id,scheme_id){
+            var type = 2;
+            $('#encolser_name').html('');
+            $('#encolser_content').html('');
+            $('#encolser_name').html(doc_name+'('+beneficiary_id+')');
+            $('#encolser_content').html('<img   width="50px" height="50px" src="images/ZKZg.gif"/>');
+
+            $.ajax({
+                        url: '{{ url('ajaxGetEncloser') }}',
+                        type: "POST",
+                        data: {
+                        doc_type: doc_type,
+                        is_profile_pic: is_profile_pic,
+                        application_id: beneficiary_id,
+                        scheme_id : scheme_id,
+                        type : type,
+                        _token: '{{ csrf_token() }}',
+                        },
+                        }).done(function( data, textStatus, jqXHR ) {
+                          // console.log();
+                        $('#encolser_content').html('');
+                        $('#encolser_content').html(data.htmlText);
+                        $("#encolser_modal").modal();
+                    }).fail(function( jqXHR, textStatus, errorThrown ) {
+                    $('#encolser_content').html('');
+                        alert(sessiontimeoutmessage);
+                    window.location.href=base_url;
+                    });
+  }
   function controlCheckBox(){
     var anyBoxesChecked = false;
      var applicantId=Array();

@@ -54,7 +54,7 @@ class AadharMobileDeDuplicateWorkFlowController extends Controller
   public function index()
   {
     $designation_id = Auth::user()->designation_id;
-    if (AuthChecker::VerifierChecker()) {
+    if (AuthChecker::VerifierPermission()) {
       $is_active = 1;
     } else {
       $is_active = 0;
@@ -65,7 +65,7 @@ class AadharMobileDeDuplicateWorkFlowController extends Controller
     $user_id = AuthChecker::getUserId();
     $mapObj = DB::table('public.duty_assignement')->where('user_id', $user_id)->where('is_active', 1)->first();
     $scheme = DB::select(DB::raw("select id,scheme_name from m_scheme where  id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . " )"));
-    if (AuthChecker::VerifierChecker()) {
+    if (AuthChecker::VerifierPermission()) {
       if (count($scheme) > 0) {
         $municipality_visible = 0;
         $gp_ward_visible = 1;
@@ -144,7 +144,7 @@ class AadharMobileDeDuplicateWorkFlowController extends Controller
           break;
         }
       }
-      if (AuthChecker::VerifierChecker()) {
+      if (AuthChecker::VerifierPermission()) {
         $is_active = 1;
       } else {
         $is_active = 0;
@@ -274,7 +274,7 @@ class AadharMobileDeDuplicateWorkFlowController extends Controller
           break;
         }
       }
-      if (AuthChecker::VerifierChecker()) {
+      if (AuthChecker::VerifierPermission()) {
         $is_active = 1;
       } else {
         $is_active = 0;
@@ -427,7 +427,7 @@ class AadharMobileDeDuplicateWorkFlowController extends Controller
             break;
           }
         }
-        if (AuthChecker::VerifierChecker()) {
+        if (AuthChecker::VerifierPermission()) {
           $is_active = 1;
         } else {
           $is_active = 0;
@@ -563,7 +563,7 @@ class AadharMobileDeDuplicateWorkFlowController extends Controller
           break;
         }
       }
-      if (AuthChecker::VerifierChecker()) {
+      if (AuthChecker::VerifierPermission()) {
         $is_active = 1;
       } else {
         $is_active = 0;
@@ -615,7 +615,7 @@ class AadharMobileDeDuplicateWorkFlowController extends Controller
   {
     return redirect()->route('no-dup-verified-beneficiaries-list');
     $designation_id = Auth::user()->designation_id;
-    if (AuthChecker::ApproverChecker()) {
+    if (AuthChecker::ApproverPermission()) {
       $is_active = 1;
     } else {
       $is_active = 0;
@@ -626,7 +626,7 @@ class AadharMobileDeDuplicateWorkFlowController extends Controller
     $user_id = AuthChecker::getUserId();
     $mapObj = DB::table('public.duty_assignement')->where('user_id', $user_id)->where('is_active', 1)->first();
     $scheme = DB::select(DB::raw("select id,scheme_name from m_scheme where  id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . ")"));
-    if (AuthChecker::ApproverChecker()) {
+    if (AuthChecker::ApproverPermission()) {
       if (count($scheme) > 0) {
         return view('DuplicateAadharUpdate/approve_index', [
           'schemes' => $scheme,
@@ -694,7 +694,7 @@ class AadharMobileDeDuplicateWorkFlowController extends Controller
           break;
         }
       }
-      if (Authchecker::ApproverChecker()) {
+      if (Authchecker::ApproverPermission()) {
         $is_active = 1;
       } else {
         $is_active = 0;
@@ -806,7 +806,7 @@ class AadharMobileDeDuplicateWorkFlowController extends Controller
           break;
         }
       }
-      if (AuthChecker::ApproverChecker()) {
+      if (AuthChecker::ApproverPermission()) {
         $is_active = 1;
       } else {
         $is_active = 0;
@@ -925,7 +925,7 @@ class AadharMobileDeDuplicateWorkFlowController extends Controller
         );
       }
 
-      if (AuthChecker::ApproverChecker()) {
+      if (AuthChecker::ApproverPermission()) {
         $is_bulk = $request->is_bulk;
         if ($is_bulk == 1) {
           $fg_is_bulk = 1;

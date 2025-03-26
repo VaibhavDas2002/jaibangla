@@ -466,7 +466,7 @@ margin: 10px 0px 10px 0px !important;
                @endif
                  
                       </div>
-                      @if(is_null($row->next_level_role_id))
+                      @if($row->next_level_role_id == $next_level_role_id_approver && !is_null($row->update_datetime))
                 <br/>
                 <div class="row">
                        

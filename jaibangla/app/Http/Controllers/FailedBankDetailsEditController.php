@@ -83,7 +83,7 @@ class FailedBankDetailsEditController extends Controller
                 $user_id .
                 ' and is_active=1) order by scheme_name'
         ); 
-        if (AuthChecker::VerifierChecker()) {
+        if (AuthChecker::VerifierPermission()) {
             if (count($scheme) > 0) {
                 if ($mapObj->is_urban == 1) {
                     $urban_body_code = $mapObj->urban_body_code;
@@ -119,7 +119,7 @@ class FailedBankDetailsEditController extends Controller
                     'User disabled. No scheme assign to this user'
                 );
             }
-        } elseif (AuthChecker::ApproverChecker() ) {
+        } elseif (AuthChecker::ApproverPermission() ) {
             return view('failed-bank-edit/index', [
                 'schemes' => $scheme,
                 'mapLevel' => $mapObj->mapping_level . $designation,

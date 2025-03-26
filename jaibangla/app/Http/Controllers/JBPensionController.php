@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Session;
 use App\BankDetails;
 use App\Configduty;
 use App\UrbanBody;
@@ -30,18 +31,77 @@ use App\JBPensionNew;
 use App\AcceptRejectInfo;
 use Illuminate\Support\Facades\Crypt;
 use App\BenDocs;
+use App\BlkUrbanlEntryMapping;
+use App\Workflow;
+use Carbon\Carbon;
 
-
+use App\SchemeStepRank;
 class JBPensionController extends Controller
 {
     public function __construct()
     {
         $this->middleware('auth');
+        $this->base_dob_chk_date = date('Y-m-d');
+
+    }
+    public function formEntryOption(Request $request)
+    {
+        $scheme_not_re = array(4, 12, 14, 15, 16, 18, 19);
+        $user_id = AuthChecker::getUserId();
+        $auth = AuthChecker::OperatorPermission();
+
+        if (!$auth) {
+            return redirect('/')->with('error', 'Not Allowded');
+        }
+        if ($auth) {
+            $district_arr = Configduty::select('district_code')->where('user_id', $user_id)->where('is_active', 1)->first();
+            if (empty($district_arr)) {
+                return redirect("/")->with('danger', 'User Disabled');
+            }
+            if (empty($district_arr->district_code)) {
+                return redirect("/")->with('danger', 'User Disabled');
+            }
+            $district_code = $district_arr->district_code;
+            $return_arr = array();
+            $schemes_arr_all = Scheme::where('is_active', 1)->orderBy('rank')->get();
+            $schemes = DB::select(DB::raw("select id,scheme_name,pr1_code,entry_url,display_name from m_scheme where id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . ") order by rank"));
+            //dd($schemes);
+            $i = 0;
+            foreach ($schemes as $scheme_arr) {
+                if (in_array($scheme_arr->id, $scheme_not_re)) {
+                    continue;
+                }
+                $return_arr[$i]['id'] = $scheme_arr->id;
+                $return_arr[$i]['display_name'] = $scheme_arr->display_name;
+                $return_arr[$i]['pr1_code'] = $scheme_arr->pr1_code;
+                $return_arr[$i]['entry_url'] = $scheme_arr->entry_url;
+
+                $return_arr[$i]['active'] = 1;
+
+
+                $i++;
+            }
+
+
+
+            // dd($return_arr);
+            return view(
+                'jb-scheme-selection/entryOption',
+                [
+
+                    'return_arr' => $return_arr,
+                ]
+            );
+        }
 
     }
     public function index(Request $request)
     {
-        // dd($request->all());
+
+
+
+
+
         $op_type = 0;
         $encryptedSchemeId = request('scheme_id');
         $type = (int) $request->type;
@@ -49,7 +109,10 @@ class JBPensionController extends Controller
         $next_level_status = '';
         $scheme_id = Crypt::decrypt($encryptedSchemeId);
         $readonly = [];
-        $auth = AuthChecker::OperatorPermission(); ;
+        if ($scheme_id == 8 || $scheme_id == 9) {
+            $auth = AuthChecker::ApproverPermission();
+        } else
+            $auth = AuthChecker::OperatorChecker();
         if ($auth) {
             $entry_type = PermissionManagement::EntryChecker($scheme_id);
             // dd($entry_type);
@@ -127,25 +190,22 @@ class JBPensionController extends Controller
 
                     $id = $request->app_id;
                     $model_name = 'App\\BenEntry';
-                    $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();                    $op_type = $type;
+                    $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+                    $op_type = $type;
 
                     $duty_obj = Configduty::where('user_id', $user_id)->where('scheme_id', $scheme_id)->first();
                     $distCode = $duty_obj->district_code;
                     $blockCode = $duty_obj->is_urban == 1 ? $duty_obj->urban_body_code : $duty_obj->taluka_code;
-
+                    $next_level_role_id_operator = SchemeStepRank::getSchemeParentId($scheme_id, 1);
                     $query = $model_name::where([
+                        'scheme_id' => $scheme_id,
                         'id' => $id,
                         'created_by_dist_code' => $distCode,
-                        'scheme_id' => $scheme_id
+                        'next_level_role_id' => $next_level_role_id_operator
                     ]);
 
-                    if ($designation_id == 'Verifier') {
-                        $query = $query->whereNull('next_level_role_id');
-                    } elseif ($designation_id == 'Approver') {
-                        $query = $query->where('is_verified', 1)
-                            ->where('is_approved', 0)
-                            ->where('is_rejected', 0);
-                    }
+                    $query = $query->where('is_verified', 0)->where('is_approved', 0)->where('is_rejected', 0);
+
 
                     $row = $query->first();
                     if (empty($row)) {
@@ -201,6 +261,32 @@ class JBPensionController extends Controller
                     }
                 }
 
+                $grievance_id = null;
+                if ($type == 4) {
+                    // dd($request->all());
+                    if (empty($request->grievance_id)) {
+                        return redirect("/")->with('error', 'Grievance Id not found');
+                    }
+                    if (!intval($request->grievance_id)) {
+                        return redirect("/")->with('error', 'Grievance Id is invalid');
+                    } else {
+                        $grievance_id = $request->grievance_id;
+                    }
+
+                    $cmo_id_count = DB::table('cmo.cmo_sm_data')->where('grievance_id', $grievance_id)->count();
+                    // dd($cmo_id_count);
+                    if ($cmo_id_count == 0) {
+                        return redirect("/")->with('error', 'Grievance Id not found');
+                    }
+                    if ($cmo_id_count > 1) {
+                        return redirect("/")->with('error', 'Grievance Id is Invalid ');
+                    }
+
+
+
+                }
+
+
                 return view('JBformEntry.Entry', [
                     'issue_text' => $issue_text,
                     'next_level_status' => $next_level_status,
@@ -224,6 +310,8 @@ class JBPensionController extends Controller
                     'gp_ward_list' => $gp_ward_list,
                     'document_msg' => $document_msg,
                     'readonly' => $readonly,
+                    'cur_ds_phase_arr' => $cur_ds_phase_arr,
+                    'grievance_id' => $grievance_id
                 ]);
             }
             return redirect("/")->with('danger', 'Not Allowed for this Scheme');
@@ -233,525 +321,788 @@ class JBPensionController extends Controller
 
     public function store(Request $request)
     {
-        // dd($request->all());
-        $scheme_id = $request->scheme_id;
-        $Auth = AuthChecker::OperatorChecker();
-        if ($Auth) {
-            $user_id = AuthChecker::getUserId();
-            $entry_type = PermissionManagement::EntryChecker($scheme_id);
-            if ($entry_type) {
-                // dd($request->all());
-                $type = $request->type;
-                $id = $request->app_id ?? null;
-                $formType = $request->entry_type;
-                $duty_obj = Configduty::where('user_id', $user_id)->where('scheme_id', $scheme_id)->first();
-                if (empty($duty_obj)) {
-                    return redirect("/")->with('danger', 'Not Allowed');
-                }
-                $district_code = $duty_obj->district_code;
-                if ($duty_obj->mapping_level == "Block") {
-                    $created_by_local_body_code = $duty_obj->taluka_code;
-                }
-                if ($duty_obj->mapping_level == "Subdiv") {
-                    $created_by_local_body_code = $duty_obj->urban_body_code;
-                }
-                if (empty($created_by_local_body_code)) {
-                    return redirect("/")->with('danger', 'Not Allowed');
-                }
-                $caste_category = trim($request->caste_category);
-                $ds_phase = DsPhase::where('is_current', TRUE)->first();
-                $isValidarr = $this->validateInput($request, $scheme_id, $type, $formType);
-                if ($isValidarr['is_valid'] == false) {
-                    if ($type == 1) {
-                        return redirect('jb-pension?scheme_id=' . encrypt($scheme_id) . '&type=' . $type . '&app_id=' . $id)
-                        ->with('errors', $isValidarr['errors'])
-                        ->withInput($request->all());
-                    } else {
-                        
-                        return redirect('jb-pension?scheme_id=' . encrypt($scheme_id) . '&type=' . $type . '&app_id=' . $id)
-                        ->with('errors', $isValidarr['errors']);
-                        
-                    }
-                }
-                if (!empty($request->aadhar_no)) {
-                    if ($this->isAadharValid(trim($request->aadhar_no)) == false) {
-                        $errors = array();
-                        $errorMsg = "Aadhaar Number Invalid";
-                        array_push($errors, $errorMsg);
-                        return back()->with('errors', $errors)->withInput();
-                    }
-                }
-                
-                if (!preg_match('/^[0-9]{10}+$/', $request->mobile_no)) {
+        if (isset($_POST['btnDuplicateSubmit'])) {
+            $scheme_id = $request->scheme_id;
+            $type = $request->type;
+            if (empty($request->scheme_id)) {
+                $errors = array();
+                $errorMsg = "Scheme Required";
+                array_push($errors, $errorMsg);
+                return back()->with('errors', $errors)->withInput();
+
+            }
+            if (empty($request->aadhar_no_dup_check)) {
+                $errors = array();
+                $errorMsg = "Aadhaar Number Required";
+                array_push($errors, $errorMsg);
+                return back()->with('errors', $errors)->withInput();
+
+            }
+            if (!empty($request->aadhar_no_dup_check)) {
+                if ($this->isAadharValid(trim($request->aadhar_no_dup_check)) == false) {
                     $errors = array();
-                    $errorMsg = "Mobile Number Invalid";
-                    array_push($errors, $errorMsg);
-                    return back()->with('errors', $errors)->withInput(Input::all());
-                }
-                if ($request->mobile_no < 1000000000) {
-                    $errors = array();
-                    $errorMsg = "Mobile Number Invalid";
-                    array_push($errors, $errorMsg);
-                    return back()->with('errors', $errors)->withInput(Input::all());
-                }
-                $ifsc = trim($request->bank_ifsc_code);
-                $bank_branch = trim($request->bank_branch);
-                $name_of_bank = trim($request->name_of_bank);
-                $row_count_bank = BankDetails::whereraw("trim(branch)='$bank_branch'")->whereraw("trim(ifsc)='$ifsc'")->where('is_active', 1)->whereraw("trim(bank)='$name_of_bank'")->count();
-                //$bank_details = BankDetails::whereraw("trim(ifsc)='$ifsc'")->where('is_active',1)->get(['bank', 'branch','bank_code'])->first();
-                $bank_details = BankDetails::where('ifsc', trim($ifsc))->where('is_active', 1)->get(['bank', 'branch', 'bank_code'])->first();
-                $new_bank_code = $bank_details->bank_code;
-                if ($row_count_bank == 0) {
-                    $errors = array();
-                    $errorMsg = "Bank IFSC and Bank Name Not Match!";
+                    $errorMsg = "Aadhaar Number Invalid";
                     array_push($errors, $errorMsg);
                     return back()->with('errors', $errors)->withInput();
                 }
-                $str_caste = strtolower($request->caste_category);
-                $ifsc = trim($request->bank_ifsc_code);
-                $bank_account_number = trim($request->bank_account_number);
-                $bank_branch = trim($request->bank_branch);
-                $name_of_bank = trim($request->name_of_bank);
-                
-                
-                $scheme_obj = Scheme::where('id', $scheme_id)->where('is_active', 1)->first();
-                if (empty($scheme_obj)) {
-                    return redirect("/")->with('danger', 'Scheme Not Found');
+            }
+            if (!empty($request->aadhar_no_dup_check)) {
+                if (strlen(trim($request->aadhar_no_dup_check)) != 12) {
+                    $errors = array();
+                    $errorMsg = "Aadhaar Number Sould be 12 digit";
+                    array_push($errors, $errorMsg);
+                    return back()->with('errors', $errors)->withInput();
                 }
-                
-                if (!empty($scheme_obj->short_code)) {
-                    $schema = $scheme_obj->short_code;
-                    $scheme_length = $scheme_obj->scheme_length;
-                    $id_length = $scheme_obj->id_length;
-                    $scheme_name = $scheme_obj->scheme_name;
-                } else {
-                    $schema = "pension";
+                if ($this->isAadharValid(trim($request->aadhar_no_dup_check)) == false) {
+                    $errors = array();
+                    $errorMsg = "Aadhaar Number Invalid";
+                    array_push($errors, $errorMsg);
+                    return back()->with('errors', $errors)->withInput();
                 }
-                
-                $BankCheck = DupCheck::dupBankCheckSame($scheme_id, $bank_account_number, $id);
-                if ($BankCheck) {
-                    $errors[] = "Bank account is Duplicate ";
+            }
+            $dup_aadhar = 0;
+            $AadharCheck = DupCheck::dupAadharCheckSame($scheme_id, $request->aadhar_no_dup_check, NULL);
+            if ($AadharCheck) {
+                $errors[] = "Aadhar Number is Duplicate ";
+                $dup_aadhar = 1;
+                $ds_marking_enable = PermissionManagement::Dsmarking($scheme_id);
+                if ($ds_marking_enable) {
+                    Session::put('dup_btn_visible', 1);
+                    Session::put('dup_type', 'aadhar');
+                    Session::put('dup_value', Crypt::encryptString($request->aadhar_no_dup_check));
                 }
-                $AadharCheck = DupCheck::dupAadharCheckSame($scheme_id, $request->aadhar_no, $id);
-                if ($AadharCheck) {
-                    $errors[] = "Aadhar Number is Duplicate ";
-                }
-                $MobileCheck = DupCheck::dupMobileCheckSame($scheme_id, $request->mobile_no, $id);
-                if ($MobileCheck) {
-                    $errors[] = "Mobile number is Duplicate ";
-                }
-                $CasteCheck = DupCheck::dupCasteCheckSame($scheme_id, $request->caste_certificate_no, $id);
-                if ($CasteCheck) {
-                    $errors[] = "Caste Certificate number is Duplicate ";
-                }
-                $BankCheckCross = DupCheck::dupBankCheckCross($scheme_id, $bank_account_number, $id);
-                if ($BankCheckCross) {
-                    $errors[] = "Bank account is Duplicate with Cross Scheme";
-                }
-                $MobileCheckCross = DupCheck::dupMobileCheckCross($scheme_id, $request->mobile_no, $id);
-                if ($MobileCheckCross) {
-                    $errors[] = "Mobile no is Duplicate with Cross Scheme";
-                }
-                $AadharCheckCross = DupCheck::dupAadharCheckCross($scheme_id, $request->aadhar_no, $id);
-                if ($AadharCheckCross) {
-                    $errors[] = "Aadhar no is Duplicate with Cross Scheme";
-                }
-                $CasteCheckCross = DupCheck::dupCasteCheckCross($scheme_id, $request->caste_certificate_no, $id);
-                if ($CasteCheckCross) {
-                    $errors[] = "Caste Certificate is Duplicate with Cross Scheme ";
-                }
-                
-                // dd($errors);   
-                if (!empty($errors)) {
-                    return redirect('jb-pension?scheme_id=' . encrypt($scheme_id) . '&type=' . $type . '&app_id=' . $id)
-                    ->with('errors', $errors)
-                    ->withInput();
-                }
+                return redirect('jb-pension?scheme_id=' . encrypt($scheme_id) . '&type=' . $type)->with('errors', $errors)->withInput($request->all());
 
-                // dd($id);
-                $JBPension = $id ? BenEntry::find($id) : new BenEntry();
-                $i = 0;
-                $c_time = date('Y-m-d H:i:s');
+            }
+            if ($dup_aadhar == 0) {
+                $return_status = 'success';
+                $msg = "No Duplicate Found";
+                return redirect('jb-pension?scheme_id=' . encrypt($scheme_id) . '&type=' . $type)
+                    ->with($return_status, $msg)->withInput($request->all());
+            }
+        } else if (isset($_POST['final_submit'])) {
+            $scheme_id = $request->scheme_id;
+            if ($scheme_id == 8 || $scheme_id == 9) {
+                $Auth = AuthChecker::ApproverPermission();
+            } else {
+                $Auth = AuthChecker::OperatorChecker();
+            }
+            if ($Auth) {
+                $user_id = AuthChecker::getUserId();
+                $entry_type = PermissionManagement::EntryChecker($scheme_id);
+                if ($entry_type) {
+                    // dd($request->all());
+                    $type = $request->type;
+                    $id = $request->app_id ?? null;
+                    $formType = $request->entry_type;
+                    $duty_obj = Configduty::where('user_id', $user_id)->where('scheme_id', $scheme_id)->first();
+                    if (empty($duty_obj)) {
+                        return redirect("/")->with('danger', 'Not Allowed');
+                    }
+                    $district_code = $duty_obj->district_code;
+                    if ($duty_obj->mapping_level == "Block") {
+                        $created_by_local_body_code = $duty_obj->taluka_code;
+                    }
+                    if ($duty_obj->mapping_level == "Subdiv") {
+                        $created_by_local_body_code = $duty_obj->urban_body_code;
+                    }
+                    if ($scheme_id == 8 || $scheme_id == 9) {
+                        $created_by_local_body_code = NULL;
+                    } else {
+                        if (empty($created_by_local_body_code)) {
+                            return redirect("/")->with('danger', 'Not Allowed');
+                        }
+                    }
 
-                $doc_id_list = SchemeDocMap::select('doc_list_man', 'doc_list_opt')->where('scheme_code', $scheme_id)->get();
-                $doc_list_man = json_decode($doc_id_list[0]['doc_list_man']);
-                $doc_list_opt = json_decode($doc_id_list[0]['doc_list_opt']);
-                $doc_list = array_merge($doc_list_man, $doc_list_opt);
-                // dd($doc_list);
-                $upload_file = array();
-                $doc_master = DocumentType::get();
-                foreach ($doc_list as $doc) {
-                    if ($request->hasFile('doc_' . $doc)) {
-                        $doc_file = $request->file('doc_' . $doc);
-                        $img_data = file_get_contents($doc_file);
-                        $u_extension_file = $doc_file->getClientOriginalExtension();
-                        $u_extension = strtolower($u_extension_file);
-                        $mime_type = $doc_file->getMimeType();
-                        $doc_type_name = $doc_master->where('id', $doc)->first();
-                        if (strtolower($mime_type) == 'image/jpeg') {
-                            if ($u_extension == 'jpg' || $u_extension == 'jpeg') {
-                                $extension = $u_extension;
+
+
+                    $caste_category = trim($request->caste_category);
+                    $ds_phase = DsPhase::where('is_current', TRUE)->first();
+                    $isValidarr = $this->validateInput($request, $scheme_id, $type, $formType);
+                    if ($isValidarr['is_valid'] == false) {
+                        if ($type == 1) {
+                            return redirect('jb-pension?scheme_id=' . encrypt($scheme_id) . '&type=' . $type . '&app_id=' . $id)
+                                ->with('errors', $isValidarr['errors'])
+                                ->withInput($request->all());
+                        } else if ($type == 4) {
+                            return redirect('jb-pension?scheme_id=' . encrypt($scheme_id) . '&type=' . $type . '&grievance_id=' . $request->grievance_id)
+                                ->with('errors', $isValidarr['errors'])
+                                ->withInput($request->all());
+                        } else {
+
+                            return redirect('jb-pension?scheme_id=' . encrypt($scheme_id) . '&type=' . $type . '&app_id=' . $id)
+                                ->with('errors', $isValidarr['errors']);
+
+                        }
+                    }
+
+
+                    if (!empty($request->application_date)) {
+                        $startDateObj = strtotime(date('Y-m-d', strtotime($request->application_date)));
+
+                        $currentDateObj = strtotime($request->application_date);
+
+
+
+                        if ($startDateObj > $currentDateObj) {
+
+                            return redirect('jb-pension?scheme_id=' . encrypt($scheme_id) . '&type=' . $type . '&app_id=' . $id)
+                                ->with('errors', array('Application Date is Invalid'))
+                                ->withInput($request->all());
+
+                        }else if ($type == 4) {
+                            return redirect('jb-pension?scheme_id=' . encrypt($scheme_id) . '&type=' . $type . '&grievance_id=' . $request->grievance_id)
+                                ->with('errors', $isValidarr['errors'])
+                                ->withInput($request->all());
+                        }
+
+                    }
+
+                    $is_valid_dob = $this->dob_checker($scheme_id, $request);
+
+                    // dd($is_valid_dob);
+                    if ($is_valid_dob == false) {
+                        if ($type == 4) {
+                            return redirect('jb-pension?scheme_id=' . encrypt($scheme_id) . '&type=' . $type . '&grievance_id=' . $request->grievance_id)
+                                ->with('errors', $isValidarr['errors'])
+                                ->withInput($request->all());
+                        }else {
+                            return redirect('jb-pension?scheme_id=' . encrypt($scheme_id) . '&type=' . $type . '&app_id=' . $id)
+                                ->with('errors', array('Date of Birth Invalid'))
+                                ->withInput($request->all());
+                        }
+                    }
+
+
+                    if (!empty($request->aadhar_no)) {
+                        if ($this->isAadharValid(trim($request->aadhar_no)) == false) {
+                            $errors = array();
+                            $errorMsg = "Aadhaar Number Invalid";
+                            array_push($errors, $errorMsg);
+                            return back()->with('errors', $errors)->withInput();
+                        }
+                    }
+
+                    if (!preg_match('/^[0-9]{10}+$/', $request->mobile_no)) {
+                        $errors = array();
+                        $errorMsg = "Mobile Number Invalid";
+                        array_push($errors, $errorMsg);
+                        return back()->with('errors', $errors)->withInput(Input::all());
+                    }
+                    if ($request->mobile_no < 1000000000) {
+                        $errors = array();
+                        $errorMsg = "Mobile Number Invalid";
+                        array_push($errors, $errorMsg);
+                        return back()->with('errors', $errors)->withInput(Input::all());
+                    }
+                    if (!empty($request->gender)) {
+                        if ($scheme_id == 11 && in_array($request->gender, array('Male', 'Other'))) {
+
+                            $errors = array();
+                            $errorMsg = "Gender is not Invalid";
+                            array_push($errors, $errorMsg);
+                            return back()->with('errors', $errors)->withInput();
+                        }
+                    }
+                    $ifsc = trim($request->bank_ifsc_code);
+                    $bank_branch = trim($request->bank_branch);
+                    $name_of_bank = trim($request->name_of_bank);
+                    $row_count_bank = BankDetails::whereraw("trim(branch)='$bank_branch'")->whereraw("trim(ifsc)='$ifsc'")->where('is_active', 1)->whereraw("trim(bank)='$name_of_bank'")->count();
+                    //$bank_details = BankDetails::whereraw("trim(ifsc)='$ifsc'")->where('is_active',1)->get(['bank', 'branch','bank_code'])->first();
+                    $bank_details = BankDetails::where('ifsc', trim($ifsc))->where('is_active', 1)->get(['bank', 'branch', 'bank_code'])->first();
+                    $new_bank_code = $bank_details->bank_code;
+                    if ($row_count_bank == 0) {
+                        $errors = array();
+                        $errorMsg = "Bank IFSC and Bank Name Not Match!";
+                        array_push($errors, $errorMsg);
+                        return back()->with('errors', $errors)->withInput();
+                    }
+                    $str_caste = strtolower($request->caste_category);
+                    $ifsc = trim($request->bank_ifsc_code);
+                    $bank_account_number = trim($request->bank_account_number);
+                    $bank_branch = trim($request->bank_branch);
+                    $name_of_bank = trim($request->name_of_bank);
+
+
+                    $scheme_obj = Scheme::where('id', $scheme_id)->where('is_active', 1)->first();
+                    if (empty($scheme_obj)) {
+                        return redirect("/")->with('danger', 'Scheme Not Found');
+                    }
+
+                    if (!empty($scheme_obj->short_code)) {
+                        $schema = $scheme_obj->short_code;
+                        $scheme_length = $scheme_obj->scheme_length;
+                        $id_length = $scheme_obj->id_length;
+                        $scheme_name = $scheme_obj->scheme_name;
+                    } else {
+                        $schema = "pension";
+                    }
+
+                    $BankCheck = DupCheck::dupBankCheckSame($scheme_id, $bank_account_number, $id);
+                    if ($BankCheck) {
+                        $errors[] = "Bank account is Duplicate ";
+                        if ($request->entry_type == 'Form through Duare Sarkar camp') {
+                            $ds_marking_enable = PermissionManagement::Dsmarking($scheme_id);
+                            if ($ds_marking_enable) {
+                                Session::put('dup_btn_visible', 1);
+                                Session::put('dup_type', 'bank');
+                                Session::put('dup_value', Crypt::encryptString($bank_account_number));
+                            }
+                        }
+                    }
+                    if ($request->scheme_id == 2 && trim($request->aadhar_exits) == 1) {
+                        $AadharCheck = DupCheck::dupAadharCheckSame($scheme_id, $request->aadhar_no, $id);
+                        if ($AadharCheck) {
+                            $errors[] = "Aadhar Number is Duplicate ";
+                            if ($request->entry_type == 'Form through Duare Sarkar camp') {
+                                $ds_marking_enable = PermissionManagement::Dsmarking($scheme_id);
+                                if ($ds_marking_enable) {
+                                    Session::put('dup_btn_visible', 1);
+                                    Session::put('dup_type', 'aadhar');
+                                    Session::put('dup_value', Crypt::encryptString($request->aadhar_no));
+                                }
+                            }
+                        }
+
+                    } else {
+                        $AadharCheck = DupCheck::dupAadharCheckSame($scheme_id, $request->aadhar_no, $id);
+                        if ($AadharCheck) {
+                            $errors[] = "Aadhar Number is Duplicate ";
+                            if ($request->entry_type == 'Form through Duare Sarkar camp') {
+                                $ds_marking_enable = PermissionManagement::Dsmarking($scheme_id);
+                                if ($ds_marking_enable) {
+                                    Session::put('dup_btn_visible', 1);
+                                    Session::put('dup_type', 'aadhar');
+                                    Session::put('dup_value', Crypt::encryptString($request->aadhar_no));
+                                }
+                            }
+                        }
+                    }
+                    $MobileCheck = DupCheck::dupMobileCheckSame($scheme_id, $request->mobile_no, $id);
+                    if ($MobileCheck) {
+                        $errors[] = "Mobile number is Duplicate ";
+                        if ($request->entry_type == 'Form through Duare Sarkar camp') {
+                            $ds_marking_enable = PermissionManagement::Dsmarking($scheme_id);
+                            if ($ds_marking_enable) {
+                                Session::put('dup_btn_visible', 1);
+                                Session::put('dup_type', 'mobile');
+                                Session::put('dup_value', Crypt::encryptString($request->mobile_no));
+                            }
+                        }
+                    }
+                    $CasteCheck = DupCheck::dupCasteCheckSame($scheme_id, $request->caste_certificate_no, $id);
+                    if ($CasteCheck) {
+                        $errors[] = "Caste Certificate number is Duplicate ";
+                        if ($request->entry_type == 'Form through Duare Sarkar camp') {
+                            $ds_marking_enable = PermissionManagement::Dsmarking($scheme_id);
+                            if ($ds_marking_enable) {
+                                Session::put('dup_btn_visible', 1);
+                                Session::put('dup_type', 'caste');
+                                Session::put('dup_value', Crypt::encryptString($request->caste_certificate_no));
+                            }
+                        }
+                    }
+                    $BankCheckCross = DupCheck::dupBankCheckCross($scheme_id, $bank_account_number, $id);
+                    if ($BankCheckCross) {
+                        $errors[] = "Bank account is Duplicate with Cross Scheme";
+                    }
+                    $MobileCheckCross = DupCheck::dupMobileCheckCross($scheme_id, $request->mobile_no, $id);
+                    if ($MobileCheckCross) {
+                        $errors[] = "Mobile no is Duplicate with Cross Scheme";
+                    }
+                    $AadharCheckCross = DupCheck::dupAadharCheckCross($scheme_id, $request->aadhar_no, $id);
+                    if ($AadharCheckCross) {
+                        $errors[] = "Aadhar no is Duplicate with Cross Scheme";
+                    }
+                    $CasteCheckCross = DupCheck::dupCasteCheckCross($scheme_id, $request->caste_certificate_no, $id);
+                    if ($CasteCheckCross) {
+                        $errors[] = "Caste Certificate is Duplicate with Cross Scheme ";
+                    }
+
+
+                    // dd($errors);   
+                    if ($type == 4) {
+                        if (!empty($errors)) {
+                            return redirect('jb-pension?scheme_id=' . encrypt($scheme_id) . '&type=' . $type . '&grievance_id=' . $request->grievance_id)
+                                ->with('errors', $errors)
+                                ->withInput();
+                        }
+                    } else {
+                        if (!empty($errors)) {
+                            return redirect('jb-pension?scheme_id=' . encrypt($scheme_id) . '&type=' . $type . '&app_id=' . $id)
+                                ->with('errors', $errors)
+                                ->withInput();
+                        }
+                    }
+
+
+                    if ($type == 4) {
+                        if (empty($request->grievance_id)) {
+                            return redirect("/")->with('error', 'Grievance Id not found');
+                        }
+                        if (!intval($request->grievance_id)) {
+                            return redirect("/")->with('error', 'Grievance Id is invalid');
+                        } else {
+                            $grievance_id = $request->grievance_id;
+                        }
+
+                        $cmo_id_count = DB::table('cmo.cmo_sm_data')->where('grievance_id', $grievance_id)->where('is_processed', 0)->where('send_to_op', 1)->whereNotNull('jb_id')->count();
+                        // dd($cmo_id_count);
+
+                        if ($cmo_id_count >= 1) {
+                            return redirect("/")->with('danger', 'Grievance Id is Invalid ');
+                        }
+                        // dd($cmo_id_count);
+
+                    }
+
+
+
+
+
+                    $JBPension = $id ? BenEntry::where('id', $id)->where('created_by_dist_code', $district_code)->where('scheme_id', $scheme_id)->where('is_rejected', 0)->whereNull('lb_application_id')->first() : new BenEntry();
+                    $i = 0;
+                    $c_time = date('Y-m-d H:i:s');
+
+                    $doc_id_list = SchemeDocMap::select('doc_list_man', 'doc_list_opt')->where('scheme_code', $scheme_id)->get();
+                    $doc_list_man = json_decode($doc_id_list[0]['doc_list_man']);
+                    $doc_list_opt = json_decode($doc_id_list[0]['doc_list_opt']);
+                    $doc_list = array_merge($doc_list_man, $doc_list_opt);
+                    // dd($doc_list);
+                    $upload_file = array();
+                    $doc_master = DocumentType::get();
+                    foreach ($doc_list as $doc) {
+                        if ($request->hasFile('doc_' . $doc)) {
+                            $doc_file = $request->file('doc_' . $doc);
+                            $img_data = file_get_contents($doc_file);
+                            $u_extension_file = $doc_file->getClientOriginalExtension();
+                            $u_extension = strtolower($u_extension_file);
+                            $mime_type = $doc_file->getMimeType();
+                            $doc_type_name = $doc_master->where('id', $doc)->first();
+                            if (strtolower($mime_type) == 'image/jpeg') {
+                                if ($u_extension == 'jpg' || $u_extension == 'jpeg') {
+                                    $extension = $u_extension;
+                                } else {
+                                    $errors = array();
+                                    $errorMsg = "You are trying to upload an incorrect file for " . $doc_type_name->doc_name;
+                                    array_push($errors, $errorMsg);
+                                    return back()->with('errors', $errors)->withInput(Input::all());
+                                }
+                            } else if (strtolower($mime_type) == 'image/png') {
+                                $extension = 'png';
+                            } else if (strtolower($mime_type) == 'image/gif') {
+                                $extension = 'gif';
+                            } else if (strtolower($mime_type) == 'application/pdf') {
+                                $extension = 'pdf';
                             } else {
                                 $errors = array();
                                 $errorMsg = "You are trying to upload an incorrect file for " . $doc_type_name->doc_name;
                                 array_push($errors, $errorMsg);
                                 return back()->with('errors', $errors)->withInput(Input::all());
                             }
-                        } else if (strtolower($mime_type) == 'image/png') {
-                            $extension = 'png';
-                        } else if (strtolower($mime_type) == 'image/gif') {
-                            $extension = 'gif';
-                        } else if (strtolower($mime_type) == 'application/pdf') {
-                            $extension = 'pdf';
-                        } else {
-                            $errors = array();
-                            $errorMsg = "You are trying to upload an incorrect file for " . $doc_type_name->doc_name;
-                            array_push($errors, $errorMsg);
-                            return back()->with('errors', $errors)->withInput(Input::all());
+                            if ($u_extension != $extension) {
+                                $errors = array();
+                                $errorMsg = "You are trying to upload an incorrect file for " . $doc_type_name->doc_name;
+                                array_push($errors, $errorMsg);
+                                return back()->with('errors', $errors)->withInput(Input::all());
+                            }
+                            $base64 = base64_encode($img_data);
+                            $upload_file[$i]['created_by_dist_code'] = $district_code;
+                            $upload_file[$i]['created_by_local_body_code'] = $created_by_local_body_code;
+                            $upload_file[$i]['document_type'] = $doc;
+                            $upload_file[$i]['scheme_id'] = $scheme_id;
+                            $upload_file[$i]['created_by_level'] = $duty_obj->mapping_level;
+                            $upload_file[$i]['created_at'] = $c_time;
+                            $upload_file[$i]['created_by'] = $user_id;
+                            $upload_file[$i]['ip_address'] = $request->ip();
+                            $upload_file[$i]['attched_document'] = $base64;
+                            $upload_file[$i]['document_mime_type'] = $mime_type;
+                            $upload_file[$i]['document_extension'] = $extension;
+                            if (!empty($doc_type_name)) {
+                                $upload_file[$i]['doc_type_name'] = $doc_type_name->doc_name;
+                            }
+                            $i++;
                         }
-                        if ($u_extension != $extension) {
-                            $errors = array();
-                            $errorMsg = "You are trying to upload an incorrect file for " . $doc_type_name->doc_name;
-                            array_push($errors, $errorMsg);
-                            return back()->with('errors', $errors)->withInput(Input::all());
-                        }
-                        $base64 = base64_encode($img_data);
-                        $upload_file[$i]['created_by_dist_code'] = $district_code;
-                        $upload_file[$i]['created_by_local_body_code'] = $created_by_local_body_code;
-                        $upload_file[$i]['document_type'] = $doc;
-                        $upload_file[$i]['scheme_id'] = $scheme_id;
-                        $upload_file[$i]['created_by_level'] = $duty_obj->mapping_level;
-                        $upload_file[$i]['created_at'] = $c_time;
-                        $upload_file[$i]['created_by'] = $user_id;
-                        $upload_file[$i]['ip_address'] = $request->ip();
-                        $upload_file[$i]['attched_document'] = $base64;
-                        $upload_file[$i]['document_mime_type'] = $mime_type;
-                        $upload_file[$i]['document_extension'] = $extension;
-                        if (!empty($doc_type_name)) {
-                            $upload_file[$i]['doc_type_name'] = $doc_type_name->doc_name;
-                        }
-                        $i++;
+
+
                     }
-                }
-                // dd($upload_file);
+                    // dd($upload_file);
 
-                if ($request->urban_code == 1) {
-                    $block_ulb = UrbanBody::where('urban_body_code', '=', $request->block)->first();
-                    $gp_ward = Ward::where('urban_body_ward_code', '=', $request->gp_ward)->first();
-                    if (!empty($request->urban_body_name))
-                        $JBPension->block_ulb_name = trim($block_ulb->urban_body_name);
-                    if (!empty($request->urban_body_ward_name))
-                        $JBPension->gp_ward_name = trim($gp_ward->urban_body_ward_name);
-                } else {
-                    $block_ulb = Taluka::where('block_code', '=', $request->block)->first();
-                    $gp_ward = GP::where('gram_panchyat_code', '=', $request->gp_ward)->first();
-                    if (!empty($request->block_name))
-                        $JBPension->block_ulb_name = trim($block_ulb->block_name);
-                    if (!empty($request->gram_panchyat_name))
-                        $JBPension->gp_ward_name = trim($gp_ward->gram_panchyat_name);
-                }
-                $assembly = Assembly::where('ac_no', '=', $request->asmb_cons)->first();
-                $assembly_name = $assembly->ac_name;
-
-                if (!empty($request->entry_type))
-                    $JBPension->entry_type = trim($request->entry_type);
-                if ($request->entry_type == 'Form through Duare Sarkar camp') {
-                    if (!empty($request->ds_registration_no))
-                        $JBPension->ds_registration_no = trim($request->ds_registration_no);
-                    if (!empty($request->ds_date))
-                        $JBPension->ds_date = trim($request->ds_date);
-                    if (!empty($ds_phase)) {
-                        $JBPension->ds_phase = $ds_phase->phase_code;
-                    }
-                }
-
-                // Personal Details
-                if (!empty($request->first_name))
-                    $JBPension->ben_fname = trim($request->first_name);
-                if (!empty($request->middle_name))
-                    $JBPension->ben_mname = trim($request->middle_name);
-                if (!empty($request->last_name))
-                    $JBPension->ben_lname = trim($request->last_name);
-                if (!empty($request->gender))
-                    $JBPension->gender = trim($request->gender);
-                if (!empty($request->dob))
-                    $JBPension->dob = trim($request->dob);
-                if (!empty($request->txt_age))
-                    $JBPension->ben_age = trim($request->txt_age);
-                if (!empty($request->father_first_name))
-                    $JBPension->father_fname = trim($request->father_first_name);
-                if (!empty($request->father_middle_name))
-                    $JBPension->father_mname = trim($request->father_middle_name);
-                if (!empty($request->father_last_name))
-                    $JBPension->father_lname = trim($request->father_last_name);
-                if (!empty($request->mother_first_name))
-                    $JBPension->mother_fname = trim($request->mother_first_name);
-                if (!empty($request->mother_middle_name))
-                    $JBPension->mother_mname = trim($request->mother_middle_name);
-                if (!empty($request->mother_last_name))
-                    $JBPension->mother_lname = trim($request->mother_last_name);
-                if (!empty($request->caste_category))
-                    $JBPension->caste = trim($request->caste_category);
-                if (!empty($request->caste_certificate_no))
-                    $JBPension->caste_certificate_no = trim($request->caste_certificate_no);
-                if (!empty($request->marital_status))
-                    $JBPension->marital_status = trim($request->marital_status);
-                if (!empty($request->monthly_income))
-                    $JBPension->mothly_income = trim($request->monthly_income);
-                if (!empty($request->spouse_first_name))
-                    $JBPension->spouse_fname = trim($request->spouse_first_name);
-                if (!empty($request->spouse_middle_name))
-                    $JBPension->spouse_mname = trim($request->spouse_middle_name);
-                if (!empty($request->spouse_last_name))
-                    $JBPension->spouse_lname = trim($request->spouse_last_name);
-
-                if ($scheme_id == 5) {
-                    if (!empty($request->fisherman_comm))
-                        $JBPension->fisherman_comm = trim($request->fisherman_comm);
-                    if (!empty($request->phy_hadi_status))
-                        $JBPension->phy_hadi_status = trim($request->phy_hadi_status);
-
-                }
-                if ($scheme_id == 11) {
-                    if (!empty($request->husband_first_name))
-                        $JBPension->husband_fname = trim($request->husband_first_name);
-                    if (!empty($request->husband_middle_name))
-                        $JBPension->husband_mname = trim($request->husband_middle_name);
-                    if (!empty($request->husband_last_name))
-                        $JBPension->husband_lname = trim($request->husband_last_name);
-                }
-
-                if ($scheme_id == 17) {
-                    if (!empty($request->app_phase))
-                        $JBPension->app_phase = $request->app_phase;
-                    if (!empty($request->temple_type))
-                        $JBPension->temple_type = $request->temple_type;
-
-                }
-
-                if ($scheme_id == 2) {
-                    if (!empty($request->disablity_type))
-                        $JBPension->type_disability = $request->disablity_type;
-                    if (!empty($request->disablity_type_percentage))
-                        $JBPension->percentage_disability = $request->disablity_type_percentage;
-                    if (!empty($request->disablity_type_authority))
-                        $JBPension->certifying_auth = $request->disablity_type_authority;
-                    if (!empty($request->disability_designation))
-                        $JBPension->disability_designation = $request->disability_designation;
-                }
-                // Personal Indentification Details 
-                if (!empty($request->ration_card_cat))
-                    $JBPension->ration_card_cat = trim($request->ration_card_cat);
-                if (!empty($request->ration_card_no))
-                    $JBPension->ration_card_no = trim($request->ration_card_no);
-                if (!empty($request->ahl_tin))
-                    $JBPension->ahl_tin = trim($request->ahl_tin);
-                if (!empty($request->aadhar_no))
-                    $JBPension->aadhar_no = trim($request->aadhar_no);
-                if (!empty($request->epic_voter_id))
-                    $JBPension->epic_voter_id = trim($request->epic_voter_id);
-                if (!empty($request->pan_no))
-                    $JBPension->pan_no = trim($request->pan_no);
-                if (!empty($request->bpl_seq_no))
-                    $JBPension->bpl_seq_no = trim($request->bpl_seq_no);
-                if (!empty($request->bpl_id_no))
-                    $JBPension->bpl_id_no = trim($request->bpl_id_no);
-                if (!empty($request->bpl_total_score))
-                    $JBPension->bpl_total_score = intval($request->bpl_total_score);
-
-
-                if ($scheme_id == 2) {
-                    if (trim($request->aadhar_exits) == 1) {
-                        if (!empty($request->aadhar_no))
-                            $JBPension->aadhar_no = $request->aadhar_no;
+                    if ($request->urban_code == 1) {
+                        $block_ulb = UrbanBody::where('urban_body_code', '=', $request->block)->first();
+                        $gp_ward = Ward::where('urban_body_ward_code', '=', $request->gp_ward)->first();
+                        if (!empty($request->urban_body_name))
+                            $JBPension->block_ulb_name = trim($block_ulb->urban_body_name);
+                        if (!empty($request->urban_body_ward_name))
+                            $JBPension->gp_ward_name = trim($gp_ward->urban_body_ward_name);
                     } else {
-                        if (!empty($request->withoutaadhar_cause))
-                            $JBPension->withoutaadhar_cause_code = $request->withoutaadhar_cause;
-                        if (trim($request->withoutaadhar_cause) == 'Others') {
-                            if (!empty($request->withoutaadhar_cause_other))
-                                $JBPension->withoutaadhar_cause = trim($request->withoutaadhar_cause_other);
+                        $block_ulb = Taluka::where('block_code', '=', $request->block)->first();
+                        $gp_ward = GP::where('gram_panchyat_code', '=', $request->gp_ward)->first();
+                        if (!empty($request->block_name))
+                            $JBPension->block_ulb_name = trim($block_ulb->block_name);
+                        if (!empty($request->gram_panchyat_name))
+                            $JBPension->gp_ward_name = trim($gp_ward->gram_panchyat_name);
+                    }
+                    if ($scheme_id == 8 || $scheme_id == 9) {
+                        $created_by_local_body_code = $block_ulb->block_code;
+                    }
+                    $assembly = Assembly::where('ac_no', '=', $request->asmb_cons)->first();
+                    $assembly_name = $assembly->ac_name;
+                    if (!empty($request->application_date))
+                        $JBPension->application_date = trim($request->application_date);
+
+                    if (!empty($request->entry_type))
+                        $JBPension->entry_type = trim($request->entry_type);
+                    if ($request->entry_type == 'Form through Duare Sarkar camp') {
+                        if (!empty($request->ds_registration_no))
+                            $JBPension->ds_registration_no = trim($request->ds_registration_no);
+                        if (!empty($request->ds_date))
+                            $JBPension->ds_date = trim($request->ds_date);
+                        if (!empty($ds_phase)) {
+                            $JBPension->ds_phase = $ds_phase->phase_code;
+                        }
+                    }
+
+                    // Personal Details
+                    if (!empty($request->first_name))
+                        $JBPension->ben_fname = trim($request->first_name);
+                    if (!empty($request->middle_name))
+                        $JBPension->ben_mname = trim($request->middle_name);
+                    if (!empty($request->last_name))
+                        $JBPension->ben_lname = trim($request->last_name);
+                    if (!empty($request->gender))
+                        $JBPension->gender = trim($request->gender);
+                    if (!empty($request->dob))
+                        $JBPension->dob = trim($request->dob);
+
+                    $JBPension->ben_age = Carbon::parse($request->dob)->age;
+                    if (!empty($request->father_first_name))
+                        $JBPension->father_fname = trim($request->father_first_name);
+                    if (!empty($request->father_middle_name))
+                        $JBPension->father_mname = trim($request->father_middle_name);
+                    if (!empty($request->father_last_name))
+                        $JBPension->father_lname = trim($request->father_last_name);
+                    if (!empty($request->mother_first_name))
+                        $JBPension->mother_fname = trim($request->mother_first_name);
+                    if (!empty($request->mother_middle_name))
+                        $JBPension->mother_mname = trim($request->mother_middle_name);
+                    if (!empty($request->mother_last_name))
+                        $JBPension->mother_lname = trim($request->mother_last_name);
+                    if (!empty($request->caste_category))
+                        $JBPension->caste = trim($request->caste_category);
+                    if (!empty($request->caste_certificate_no))
+                        $JBPension->caste_certificate_no = trim($request->caste_certificate_no);
+                    if (!empty($request->marital_status))
+                        $JBPension->marital_status = trim($request->marital_status);
+                    if (!empty($request->monthly_income))
+                        $JBPension->mothly_income = trim($request->monthly_income);
+                    if (!empty($request->spouse_first_name))
+                        $JBPension->spouse_fname = trim($request->spouse_first_name);
+                    if (!empty($request->spouse_middle_name))
+                        $JBPension->spouse_mname = trim($request->spouse_middle_name);
+                    if (!empty($request->spouse_last_name))
+                        $JBPension->spouse_lname = trim($request->spouse_last_name);
+
+                    if ($scheme_id == 5) {
+                        if (!empty($request->fisherman_comm))
+                            $JBPension->fisherman_comm = trim($request->fisherman_comm);
+                        if (!empty($request->phy_hadi_status))
+                            $JBPension->phy_hadi_status = trim($request->phy_hadi_status);
+
+                    }
+                    if ($scheme_id == 11) {
+                        if (!empty($request->husband_first_name))
+                            $JBPension->husband_fname = trim($request->husband_first_name);
+                        if (!empty($request->husband_middle_name))
+                            $JBPension->husband_mname = trim($request->husband_middle_name);
+                        if (!empty($request->husband_last_name))
+                            $JBPension->husband_lname = trim($request->husband_last_name);
+                    }
+
+                    if ($scheme_id == 17) {
+                        if (!empty($request->app_phase))
+                            $JBPension->app_phase = $request->app_phase;
+                        if (!empty($request->temple_type))
+                            $JBPension->temple_type = $request->temple_type;
+
+                    }
+
+                    if ($scheme_id == 2) {
+                        if (!empty($request->disablity_type))
+                            $JBPension->type_disability = $request->disablity_type;
+                        if (!empty($request->disablity_type_percentage))
+                            $JBPension->percentage_disability = $request->disablity_type_percentage;
+                        if (!empty($request->disablity_type_authority))
+                            $JBPension->certifying_auth = $request->disablity_type_authority;
+                        if (!empty($request->disability_designation))
+                            $JBPension->disability_designation = $request->disability_designation;
+                    }
+                    // Personal Indentification Details 
+                    if (!empty($request->ration_card_cat))
+                        $JBPension->ration_card_cat = trim($request->ration_card_cat);
+                    if (!empty($request->ration_card_no))
+                        $JBPension->ration_card_no = trim($request->ration_card_no);
+                    if (!empty($request->ahl_tin))
+                        $JBPension->ahl_tin = trim($request->ahl_tin);
+                    if (!empty($request->aadhar_no))
+                        $JBPension->aadhar_no = trim($request->aadhar_no);
+                    if (!empty($request->epic_voter_id))
+                        $JBPension->epic_voter_id = trim($request->epic_voter_id);
+                    if (!empty($request->pan_no))
+                        $JBPension->pan_no = trim($request->pan_no);
+                    if (!empty($request->bpl_seq_no))
+                        $JBPension->bpl_seq_no = trim($request->bpl_seq_no);
+                    if (!empty($request->bpl_id_no))
+                        $JBPension->bpl_id_no = trim($request->bpl_id_no);
+                    if (!empty($request->bpl_total_score))
+                        $JBPension->bpl_total_score = intval($request->bpl_total_score);
+
+
+                    if ($scheme_id == 2) {
+                        if (trim($request->aadhar_exits) == 1) {
+                            if (!empty($request->aadhar_no))
+                                $JBPension->aadhar_no = $request->aadhar_no;
                         } else {
                             if (!empty($request->withoutaadhar_cause))
-                                $JBPension->withoutaadhar_cause = $request->withoutaadhar_cause;
+                                $JBPension->withoutaadhar_cause_code = $request->withoutaadhar_cause;
+                            if (trim($request->withoutaadhar_cause) == 'Others') {
+                                if (!empty($request->withoutaadhar_cause_other))
+                                    $JBPension->withoutaadhar_cause = trim($request->withoutaadhar_cause_other);
+                            } else {
+                                if (!empty($request->withoutaadhar_cause))
+                                    $JBPension->withoutaadhar_cause = $request->withoutaadhar_cause;
+                            }
                         }
                     }
-                }
 
 
-                //Contact Details 
-                if (!empty($request->district))
-                    $JBPension->dist_code = trim($request->district);
-                if (!empty($request->urban_code))
-                    $JBPension->rural_urban_id = trim($request->urban_code);
-                if (!empty($request->asmb_cons))
-                    $JBPension->assembly_code = trim($request->asmb_cons);
-                if (!empty($request->assembly_name))
-                    $JBPension->assembly_name = trim($assembly_name);
-                if (!empty($request->police_station))
-                    $JBPension->police_station = trim($request->police_station);
-                if (!empty($request->block))
-                    $JBPension->block_ulb_code = trim($request->block);
-                if (!empty($request->gp_ward))
-                    $JBPension->gp_ward_code = trim($request->gp_ward);
-                if (!empty($request->village))
-                    $JBPension->village_town_city = trim($request->village);
-                if (!empty($request->house))
-                    $JBPension->house_premise_no = trim($request->house);
-                if (!empty($request->post_office))
-                    $JBPension->post_office = trim($request->post_office);
-                if (!empty($request->pin_code))
-                    $JBPension->pincode = trim($request->pin_code);
-                if (!empty($request->residency_period))
-                    $JBPension->residency_period = trim($request->residency_period);
-                if (!empty($request->mobile_no))
-                    $JBPension->mobile_no = trim($request->mobile_no);
-                if (!empty($request->email))
-                    $JBPension->email = trim($request->email);
-                if ($scheme_id == 17) {
-                    if (!empty($request->district_cur))
-                        $JBPension->dist_code_cur = $request->district_cur;
+                    //Contact Details 
+                    if (!empty($request->district))
+                        $JBPension->dist_code = trim($request->district);
+                    if (!empty($request->urban_code))
+                        $JBPension->rural_urban_id = trim($request->urban_code);
+                    if (!empty($request->asmb_cons))
+                        $JBPension->assembly_code = trim($request->asmb_cons);
+                    if (!empty($request->assembly_name))
+                        $JBPension->assembly_name = trim($assembly_name);
+                    if (!empty($request->police_station))
+                        $JBPension->police_station = trim($request->police_station);
+                    if (!empty($request->block))
+                        $JBPension->block_ulb_code = trim($request->block);
+                    if (!empty($request->gp_ward))
+                        $JBPension->gp_ward_code = trim($request->gp_ward);
+                    if (!empty($request->village))
+                        $JBPension->village_town_city = trim($request->village);
+                    if (!empty($request->house))
+                        $JBPension->house_premise_no = trim($request->house);
+                    if (!empty($request->post_office))
+                        $JBPension->post_office = trim($request->post_office);
+                    if (!empty($request->pin_code))
+                        $JBPension->pincode = trim($request->pin_code);
+                    if (!empty($request->residency_period))
+                        $JBPension->residency_period = trim($request->residency_period);
+                    if (!empty($request->mobile_no))
+                        $JBPension->mobile_no = trim($request->mobile_no);
+                    if (!empty($request->email))
+                        $JBPension->email = trim($request->email);
+                    if ($scheme_id == 17) {
+                        if (!empty($request->district_cur))
+                            $JBPension->dist_code_cur = $request->district_cur;
 
-                    if (!empty($request->asmb_cons_cur))
-                        $JBPension->assembly_code_cur = $request->asmb_cons_cur;
+                        if (!empty($request->asmb_cons_cur))
+                            $JBPension->assembly_code_cur = $request->asmb_cons_cur;
 
-                    if (!empty($request->urban_code_cur))
-                        $JBPension->rural_urban_id_cur = $request->urban_code_cur;
+                        if (!empty($request->urban_code_cur))
+                            $JBPension->rural_urban_id_cur = $request->urban_code_cur;
 
-                    if (!empty($request->block_cur))
-                        $JBPension->block_ulb_code_cur = $request->block_cur;
+                        if (!empty($request->block_cur))
+                            $JBPension->block_ulb_code_cur = $request->block_cur;
 
-                    if (!empty($request->gp_ward_cur))
-                        $JBPension->gp_ward_code_cur = $request->gp_ward_cur;
+                        if (!empty($request->gp_ward_cur))
+                            $JBPension->gp_ward_code_cur = $request->gp_ward_cur;
 
-                    if (!empty($request->village_cur))
-                        $JBPension->village_town_city_cur = $request->village_cur;
+                        if (!empty($request->village_cur))
+                            $JBPension->village_town_city_cur = $request->village_cur;
 
-                    if (!empty($request->house_cur))
-                        $JBPension->house_premise_no_cur = $request->house_cur;
+                        if (!empty($request->house_cur))
+                            $JBPension->house_premise_no_cur = $request->house_cur;
 
-                    if (!empty($request->post_office_cur))
-                        $JBPension->post_office_cur = $request->post_office_cur;
+                        if (!empty($request->post_office_cur))
+                            $JBPension->post_office_cur = $request->post_office_cur;
 
-                    if (!empty($request->pin_code_cur))
-                        $JBPension->pincode_cur = $request->pin_code_cur;
+                        if (!empty($request->pin_code_cur))
+                            $JBPension->pincode_cur = $request->pin_code_cur;
 
-                    if (!empty($request->police_station_cur))
-                        $JBPension->police_station_cur = $request->police_station_cur;
+                        if (!empty($request->police_station_cur))
+                            $JBPension->police_station_cur = $request->police_station_cur;
 
 
-                }
-
-                // Bank Details
-                if (!empty($request->name_of_bank))
-                    $JBPension->bank_name = trim($request->name_of_bank);
-                if (!empty($request->bank_branch))
-                    $JBPension->branch_name = trim($request->bank_branch);
-                if (!empty($request->bank_account_number))
-                    $JBPension->bank_code = trim($request->bank_account_number);
-                $JBPension->npci_bank_code = trim($new_bank_code);
-                if (!empty($request->bank_ifsc_code))
-                    $JBPension->bank_ifsc = trim($request->bank_ifsc_code);
-
-                if ($scheme_id == 13) {
-                    //Land Details 
-                    if (trim($request->f_land_array) != '') {
-
-                        $f_land_array = json_decode($request->f_land_array, true);
-                        $f_land_array = json_encode($f_land_array);
-                    } else {
-                        $f_land_array = null;
                     }
-                    if (!empty($f_land_array))
-                        $JBPension->land_json = $f_land_array;
 
-                    if (!empty($request->first_name))
-                        $JBPension->cultivation_by_applicant = trim($request->cultivation_by_applicant);
-                    if (!empty($request->first_name))
-                        $JBPension->source_income = trim($request->source_income);
-                    if (!empty($request->first_name))
-                        $JBPension->any_other_benefitis = trim($request->any_other_benefitis);
-                    //Family Details
-                    if (trim($request->f_member_array) != '') {
-                        $f_member_array = json_decode($request->f_member_array, true);
-                        $f_member_array = json_encode($f_member_array);
-                    } else {
-                        $f_member_array = null;
+                    // Bank Details
+                    if (!empty($request->name_of_bank))
+                        $JBPension->bank_name = trim($request->name_of_bank);
+                    if (!empty($request->bank_branch))
+                        $JBPension->branch_name = trim($request->bank_branch);
+                    if (!empty($request->bank_account_number))
+                        $JBPension->bank_code = trim($request->bank_account_number);
+                    $JBPension->npci_bank_code = trim($new_bank_code);
+                    if (!empty($request->bank_ifsc_code))
+                        $JBPension->bank_ifsc = trim($request->bank_ifsc_code);
+
+                    if ($scheme_id == 13) {
+                        //Land Details 
+                        if (trim($request->f_land_array) != '') {
+
+                            $f_land_array = json_decode($request->f_land_array, true);
+                            $f_land_array = json_encode($f_land_array);
+                        } else {
+                            $f_land_array = null;
+                        }
+                        if (!empty($f_land_array))
+                            $JBPension->land_json = $f_land_array;
+
+                        if (!empty($request->first_name))
+                            $JBPension->cultivation_by_applicant = trim($request->cultivation_by_applicant);
+                        if (!empty($request->first_name))
+                            $JBPension->source_income = trim($request->source_income);
+                        if (!empty($request->first_name))
+                            $JBPension->any_other_benefitis = trim($request->any_other_benefitis);
+                        //Family Details
+                        if (trim($request->f_member_array) != '') {
+                            $f_member_array = json_decode($request->f_member_array, true);
+                            $f_member_array = json_encode($f_member_array);
+                        } else {
+                            $f_member_array = null;
+                        }
+                        if (!empty($f_member_array))
+                            $JBPension->member_json = $f_member_array;
+
                     }
-                    if (!empty($f_member_array))
-                        $JBPension->member_json = $f_member_array;
 
-                }
-
-                if ($scheme_id == 17) {
-                    if (!empty($request->mouza_name))
-                        $JBPension->mouza_name = $request->mouza_name;
-                    if (!empty($request->land_jlno))
-                        $JBPension->land_jlno = $request->land_jlno;
-                    if (!empty($request->khatian_no))
-                        $JBPension->khatian_no = $request->khatian_no;
-                    if (!empty($request->plot_no))
-                        $JBPension->plot_no = $request->plot_no;
-                    if (!empty($request->land_area))
-                        $JBPension->land_area = $request->land_area;
-                    if (!empty($request->land_holdername))
-                        $JBPension->land_holdername = $request->land_holdername;
-                }
+                    if ($scheme_id == 17) {
+                        if (!empty($request->mouza_name))
+                            $JBPension->mouza_name = $request->mouza_name;
+                        if (!empty($request->land_jlno))
+                            $JBPension->land_jlno = $request->land_jlno;
+                        if (!empty($request->khatian_no))
+                            $JBPension->khatian_no = $request->khatian_no;
+                        if (!empty($request->plot_no))
+                            $JBPension->plot_no = $request->plot_no;
+                        if (!empty($request->land_area))
+                            $JBPension->land_area = $request->land_area;
+                        if (!empty($request->land_holdername))
+                            $JBPension->land_holdername = $request->land_holdername;
+                    }
 
 
 
-                //Self Decleration Details
-                if (!empty($request->nominate_name))
-                    $JBPension->nominate_name = trim($request->nominate_name);
-                if (!empty($request->nominate_address))
-                    $JBPension->nominate_address = trim($request->nominate_address);
-                if (!empty($request->nominate_relationship))
-                    $JBPension->nominate_relationship = trim($request->nominate_relationship);
-                if ($request->social_security_pension != "") {
-                    $social_security_pension = implode(',', $request->social_security_pension);
-                    $JBPension->social_security_pension = $social_security_pension;
-                }
-                if ($request->receive_pension != "") {
-                    $receive_pension = implode(',', $request->receive_pension);
-                    $JBPension->receive_pension = $receive_pension;
-                }
-                if (!empty($request->av_status))
-                    $JBPension->av_status = trim($request->av_status);
-                if (!empty($request->receiving_pension_other_source_1))
-                    $JBPension->receiving_pension_other_source_1 = trim($request->receiving_pension_other_source_1);
-                if (!empty($request->receiving_pension_other_source_2))
-                    $JBPension->receiving_pension_other_source_2 = trim($request->receiving_pension_other_source_2);
+                    //Self Decleration Details
+                    if (!empty($request->nominate_name))
+                        $JBPension->nominate_name = trim($request->nominate_name);
+                    if (!empty($request->nominate_address))
+                        $JBPension->nominate_address = trim($request->nominate_address);
+                    if (!empty($request->nominate_relationship))
+                        $JBPension->nominate_relationship = trim($request->nominate_relationship);
+                    if ($request->social_security_pension != "") {
+                        $social_security_pension = implode(',', $request->social_security_pension);
+                        $JBPension->social_security_pension = $social_security_pension;
+                    }
+                    if ($request->receive_pension != "") {
+                        $receive_pension = implode(',', $request->receive_pension);
+                        $JBPension->receive_pension = $receive_pension;
+                    }
+                    if (!empty($request->av_status))
+                        $JBPension->av_status = trim($request->av_status);
+                    if (!empty($request->receiving_pension_other_source_1))
+                        $JBPension->receiving_pension_other_source_1 = trim($request->receiving_pension_other_source_1);
+                    if (!empty($request->receiving_pension_other_source_2))
+                        $JBPension->receiving_pension_other_source_2 = trim($request->receiving_pension_other_source_2);
 
-                if ($scheme_id == 17) {
-                    if (!empty($request->ssp_y_n))
-                        $JBPension->ssp_y_n = $request->ssp_y_n;
-                    if (!empty($request->pucca_house_y_n))
-                        $JBPension->pucca_house_y_n = $request->pucca_house_y_n;
-                }
+                    if ($scheme_id == 17) {
+                        if (!empty($request->ssp_y_n))
+                            $JBPension->ssp_y_n = $request->ssp_y_n;
+                        if (!empty($request->pucca_house_y_n))
+                            $JBPension->pucca_house_y_n = $request->pucca_house_y_n;
+                    }
 
-                //Additional Details
-                $JBPension->created_by = $user_id;
-                $JBPension->created_at = date('Y-m-d');
-                $JBPension->created_by_level = $duty_obj->mapping_level;
-                $JBPension->created_by_dist_code = $district_code;
-                $JBPension->created_by_local_body_code = $created_by_local_body_code;
-                $JBPension->scheme_id = $scheme_id;
-                $JBPension->entry_datetime = $c_time;
-                $JBPension->ip_address = $request->ip();
-                $JBPension->action_by = $user_id;
-                $JBPension->action_ip_address = $request->ip();
-                $JBPension->action_type = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod() . '@' . $type;
-                DB::beginTransaction();
-                DB::connection('pgsql_encwrite')->beginTransaction();
-                try {
-                    $doc_inserted = false;
-                    $is_saved = $JBPension->save();
 
-                    if ($is_saved) {
-                        $beneficiary_id = $JBPension->id;
+                    //Additional Details
+                    $JBPension->is_reverted = 0;
+                    $JBPension->no_aadhar = 0;
+                    $JBPension->dup_aadhar = 0;
+                    $JBPension->no_mobile = 0;
+                    $JBPension->dup_mobile = 0;
+                    $JBPension->dup_bank = 0;
+                    $JBPension->no_caste = 0;
+                    $JBPension->dup_caste = 0;
+                    if ($type == 1 || $type == 4) {
+                        $JBPension->created_by = $user_id;
+                        $JBPension->created_at = date('Y-m-d');
+                        $JBPension->created_by_level = $duty_obj->mapping_level;
+                        $JBPension->created_by_dist_code = $district_code;
+                        $JBPension->created_by_local_body_code = $created_by_local_body_code;
+                        $JBPension->scheme_id = $scheme_id;
+                        $JBPension->entry_datetime = $c_time;
+                        $JBPension->ip_address = $request->ip();
+                        $JBPension->action_by = $user_id;
+                        $JBPension->action_ip_address = $request->ip();
+                        $JBPension->action_type = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod() . '@' . $type;
+                        $JBPension->next_level_role_id = SchemeStepRank::getSchemeParentId($scheme_id, 1);
+                    }
+                    if ($type == 2) {
+                        $JBPension->update_datetime = $c_time;
+                    }
+                    // if($type == 4){
+                    //     $JBPension->cmo_entry = 1; 
+                    //     $JBPension->cmo_grievance_id = $grievance_id;
+                    // }
 
-                        if (!empty($upload_file)) { // Check if $upload_file is not empty
-                            foreach ($upload_file as $up_file) {
-                                $query = "
+
+
+
+
+
+                    if ($type == 4) {
+                        // dd('ok');
+                        $grievance_id = $request->grievance_id;
+                        $JBPension->cmo_entry = 1;
+                        $JBPension->cmo_grievance_id = $grievance_id;
+                        $cmo_data = DB::table('cmo.cmo_sm_data')->where('grievance_id', $grievance_id)->where('send_to_op', 1)->first();
+                        // dd($cmo_data);
+
+                        $cmo_data = array();
+                        $cmo_data['is_processed'] = 1;
+                        $cmo_data['is_mark'] = 1;
+                        $cmo_data['marked_by'] = $user_id;
+                        $cmo_data['marked_date'] = date('Y-m-d H:i:s');
+                        $cmo_data['jb_next_level_role_id'] = SchemeStepRank::getSchemeParentId($scheme_id, 1);
+
+                        $cmo_data_update = DB::table('cmo.cmo_sm_data')->where('grievance_id', $grievance_id)->update($cmo_data);
+
+                    }
+                    if ($type == 4) {
+                        $op_type = 'CMOENTRY';
+                    } else {
+                        $op_type = 'AENTRY';
+                    }
+
+                    DB::beginTransaction();
+                    DB::connection('pgsql_encwrite')->beginTransaction();
+                    try {
+                        $doc_inserted = false;
+                        $is_saved = $JBPension->save();
+                        if ($is_saved) {
+                            $beneficiary_id = $JBPension->id;
+                            if ($type == 4) {
+                                $cmo_data = array();
+                                $cmo_data_id['jb_id'] = $beneficiary_id;
+                                $cmo_data_update = DB::table('cmo.cmo_sm_data')->where('grievance_id', $grievance_id)->update($cmo_data_id);
+                            }
+
+                            if (!empty($upload_file)) { // Check if $upload_file is not empty
+                                foreach ($upload_file as $up_file) {
+                                    $query = "
                                     SELECT jb_doc.ben_docs_insert_archive(
                                         in_beneficiary_id => :beneficiary_id,
                                         in_scheme_id => :scheme_id,
@@ -769,87 +1120,172 @@ class JBPensionController extends Controller
                                     )
                                 ";
 
-                                $params = [
-                                    'beneficiary_id' => $beneficiary_id,
-                                    'scheme_id' => $scheme_id,
-                                    'document_type' => $up_file['document_type'],
-                                    'attched_document' => $up_file['attched_document'],
-                                    'created_by_level' => $up_file['created_by_level'],
-                                    'created_by' => $up_file['created_by'],
-                                    'ip_address' => $up_file['ip_address'],
-                                    'document_extension' => $up_file['document_extension'],
-                                    'document_mime_type' => $up_file['document_mime_type'],
-                                    'created_by_dist_code' => $up_file['created_by_dist_code'],
-                                    'created_by_local_body_code' => $up_file['created_by_local_body_code'],
-                                    'doc_type_name' => $up_file['doc_type_name'],
-                                    'created_at' => $c_time,
-                                ];
+                                    $params = [
+                                        'beneficiary_id' => $beneficiary_id,
+                                        'scheme_id' => $scheme_id,
+                                        'document_type' => $up_file['document_type'],
+                                        'attched_document' => $up_file['attched_document'],
+                                        'created_by_level' => $up_file['created_by_level'],
+                                        'created_by' => $up_file['created_by'],
+                                        'ip_address' => $up_file['ip_address'],
+                                        'document_extension' => $up_file['document_extension'],
+                                        'document_mime_type' => $up_file['document_mime_type'],
+                                        'created_by_dist_code' => $up_file['created_by_dist_code'],
+                                        'created_by_local_body_code' => $up_file['created_by_local_body_code'],
+                                        'doc_type_name' => $up_file['doc_type_name'],
+                                        'created_at' => $c_time,
+                                    ];
 
-                                // Execute the query with bound parameters
-                                $doc_inserted = DB::connection('pgsql_encwrite')->select($query, $params);
-                            }
-                        } else {
-                            if ($type == 2 || $type == 3) {
-                                $doc_inserted = true;
+                                    // Execute the query with bound parameters
+                                    $doc_inserted = DB::connection('pgsql_encwrite')->select($query, $params);
+                                }
                             } else {
-                                $doc_inserted = false;
+                                if ($type == 2 || $type == 3) {
+                                    $doc_inserted = true;
+                                } else {
+                                    $doc_inserted = false;
+                                }
+                            }
+
+                            if ($doc_inserted) {
+                                DB::commit();
+                                DB::connection('pgsql_encwrite')->commit();
+                                $is_inserted = true;
+                            } else {
+                                DB::rollBack();
+                                DB::connection('pgsql_encwrite')->rollBack();
+                                $is_inserted = false;
+                            }
+
+                            if ($is_inserted) {
+                                $accept_reject_model = new AcceptRejectInfo();
+                                $accept_reject_model->created_at = $c_time;
+                                $accept_reject_model->application_id = $beneficiary_id;
+                                $accept_reject_model->scheme_id = $scheme_id;
+                                $accept_reject_model->user_id = $user_id;
+                                $accept_reject_model->created_by_dist_code = $district_code;
+                                $accept_reject_model->created_by_local_body_code = $created_by_local_body_code;
+                                $accept_reject_model->module_name = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod() . '@' . $type;
+                                $accept_reject_model->op_type = $op_type;
+                                $accept_reject_model->ip_address = $request->ip();
+                                $accept_reject_model->save();
+
+                                $return_status = 'success';
+                                $msg = "Application Submitted Successfully on Scheme Name " . $scheme_name .
+                                    " and Beneficiary ID " . $beneficiary_id;
+                                if ($type == 4) {
+                                    return redirect('jb-pension?scheme_id=' . encrypt($scheme_id) . '&type=' . $type . '&grievance_id=' . $request->grievance_id)
+                                        ->with($return_status, $msg);
+                                } else {
+                                    return redirect('jb-pension?scheme_id=' . encrypt($scheme_id) . '&type=' . $type . '&app_id=' . $id)
+                                        ->with($return_status, $msg);
+                                }
+
+                            } else {
+                                // Initialize $errors as an array
+                                $errors = [];
+                                $return_status = 'error';
+                                $errorMsg = "Insertion Failed..Please try again.";
+                                array_push($errors, $errorMsg);
+                                if ($type == 4) {
+                                    return redirect('jb-pension?scheme_id=' . encrypt($scheme_id) . '&type=' . $type . '&grievance_id=' . $request->grievance_id)
+                                        ->with('errors', $errors)
+                                        ->withInput($request->all());
+                                } else {
+                                    return redirect('jb-pension?scheme_id=' . encrypt($scheme_id) . '&type=' . $type . '&app_id=' . $id)
+                                        ->with('errors', $errors)
+                                        ->withInput($request->all());
+                                }
                             }
                         }
-
-                        if ($doc_inserted) {
-                            DB::commit();
-                            DB::connection('pgsql_encwrite')->commit();
-                            $is_inserted = true;
-                        } else {
-                            DB::rollBack();
-                            DB::connection('pgsql_encwrite')->rollBack();
-                            $is_inserted = false;
+                    } catch (\Exception $e) {
+                        if ($type == 4) {
+                            dd($e);
                         }
-
-                        if ($is_inserted) {
-                            $accept_reject_model = new AcceptRejectInfo();
-                            $accept_reject_model->created_at = $c_time;
-                            $accept_reject_model->application_id = $beneficiary_id;
-                            $accept_reject_model->scheme_id = $scheme_id;
-                            $accept_reject_model->user_id = $user_id;
-                            $accept_reject_model->created_by_dist_code = $district_code;
-                            $accept_reject_model->created_by_local_body_code = $created_by_local_body_code;
-                            $accept_reject_model->op_type = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod() . '@' . $type;
-                            $accept_reject_model->ip_address = $request->ip();
-                            $accept_reject_model->save();
-
-                            $return_status = 'success';
-                            $msg = "Application Submitted Successfully on Scheme Name " . $scheme_name .
-                                " and Beneficiary ID " . $district_code . "0" . $scheme_id . "0000" . $beneficiary_id;
-                            return redirect('jb-pension?scheme_id=' . encrypt($scheme_id) . '&type=' . $type . '&app_id=' . $id)
-                                ->with($return_status, $msg);
-                        } else {
-                            // Initialize $errors as an array
-                            $errors = [];
-                            $return_status = 'error';
-                            $errorMsg = "Insertion Failed..Please try again.";
-                            array_push($errors, $errorMsg);
-
-                            return redirect('jb-pension?scheme_id=' . encrypt($scheme_id) . '&type=' . $type . '&app_id=' . $id)
-                                ->with('errors', $errors)
-                                ->withInput($request->all());
-                        }
+                        DB::rollBack();
+                        DB::connection('pgsql_encwrite')->rollBack();
+                        $return_status = 'error';
+                        return redirect('jb-pension?scheme_id=' . encrypt($scheme_id) . '&type=' . $type . '&app_id=' . $id)->with($return_status, $e->getMessage());
                     }
-                } catch (\Exception $e) {
-                    dd([
-                        'message' => $e->getMessage(),
-                        'code' => $e->getCode(),
-                        'file' => $e->getFile(),
-                        'line' => $e->getLine(),
-                        'trace' => $e->getTraceAsString(),
-                    ]);
 
-                    $return_status = 'error';
-                    return redirect('jb-pension?scheme_id=' . encrypt($scheme_id) . '&type=' . $type . '&app_id=' . $id)->with($return_status, $e->getMessage());
+                } else {
+                    return redirect("/")->with('danger', 'Not Allowed for this Scheme');
                 }
 
             }
+        }else if (isset($_POST['btnDuplicateCMOSubmit'])){
+            $scheme_id = $request->scheme_id;
+            $type = $request->type;
+            $grievance_id = $request->grievance_id;
+            if (empty($request->scheme_id)) {
+                $errors = array();
+                $errorMsg = "Scheme Required";
+                array_push($errors, $errorMsg);
+                return back()->with('errors', $errors)->withInput();
 
+            }
+            if (empty($request->aadhar_no_dup_check_cmo)) {
+                $errors = array();
+                $errorMsg = "Aadhaar Number Required";
+                array_push($errors, $errorMsg);
+                return back()->with('errors', $errors)->withInput();
+
+            }
+            if (!empty($request->aadhar_no_dup_check_cmo)) {
+                if ($this->isAadharValid(trim($request->aadhar_no_dup_check_cmo)) == false) {
+                    $errors = array();
+                    $errorMsg = "Aadhaar Number Invalid";
+                    array_push($errors, $errorMsg);
+                    return back()->with('errors', $errors)->withInput();
+                }
+            }
+            if (!empty($request->aadhar_no_dup_check_cmo)) {
+                if (strlen(trim($request->aadhar_no_dup_check_cmo)) != 12) {
+                    $errors = array();
+                    $errorMsg = "Aadhaar Number Sould be 12 digit";
+                    array_push($errors, $errorMsg);
+                    return back()->with('errors', $errors)->withInput();
+                }
+                if ($this->isAadharValid(trim($request->aadhar_no_dup_check_cmo)) == false) {
+                    $errors = array();
+                    $errorMsg = "Aadhaar Number Invalid";
+                    array_push($errors, $errorMsg);
+                    return back()->with('errors', $errors)->withInput();
+                }
+            }
+            if (empty($request->grievance_id)) {
+                $errors = array();
+                $errorMsg = "CMO Gerievance Required";
+                array_push($errors, $errorMsg);
+                return back()->with('errors', $errors)->withInput();
+            }
+
+
+
+            $dup_aadhar_cmo = 0;
+            $AadharCheckCMO = DupCheck::dupAadharCheckSameCMO($scheme_id, $request->aadhar_no_dup_check_cmo, NULL);
+            // dd($AadharCheckCMO);
+
+
+            if ($AadharCheckCMO) {
+                $errors[] = "Aadhar Number is Duplicate ";
+                $dup_aadhar_cmo = 1;
+                $cmo_marking_enable = PermissionManagement::CMOmarking($scheme_id);
+                if ($cmo_marking_enable) {
+                    Session::put('cmo_dup_btn_visible', 1);
+                    Session::put('cmo_dup_type', 'aadhar');
+                    Session::put('cmo_dup_value', Crypt::encryptString($request->aadhar_no_dup_check_cmo));
+                    Session::put('cmo_grievance_id', $request->grievance_id);
+                }
+                // dd(session()->all());
+                return redirect('jb-pension?scheme_id=' . encrypt($scheme_id) . '&type=' . $type . '&grievance_id=' . $request->grievance_id)->with('errors', $errors)->withInput($request->all());
+
+            }
+            if ($dup_aadhar_cmo == 0) {
+                $return_status = 'success';
+                $msg = "No Duplicate Found";
+                return redirect('jb-pension?scheme_id=' . encrypt($scheme_id) . '&type=' . $type . '&grievance_id=' . $request->grievance_id)->with($return_status, $msg)->withInput($request->all());
+            }
         }
 
     }
@@ -865,19 +1301,22 @@ class JBPensionController extends Controller
         $entry_type_arr = array('Normal', 'Form through Duare Sarkar camp');
         if ($add_edit_code == 1) {
             $entry_type_r = "required";
-        } else if ($add_edit_code == 2 || $add_edit_code == 3) {
+            $application_date_r = "required";
+        } else if ($add_edit_code == 2 || $add_edit_code == 3 || $add_edit_code == 4) {
             $entry_type_r = "nullable";
+            $application_date_r = "nullable";
         } else {
             $entry_type_r = "nullable";
+            $application_date_r = "nullable";
         }
         $rules = [
+            'application_date' => $application_date_r,
             'entry_type' => $entry_type_r . '|in:' . implode(",", $entry_type_arr),
 
             'first_name' => 'required|string|max:200',
             'middle_name' => 'string|nullable',
             'last_name' => 'required|string|max:200',
             'gender' => 'required',
-            'txt_age' => 'required|numeric',
             'father_first_name' => 'required|string|max:200',
             'father_middle_name' => 'string|nullable',
             'father_last_name' => 'required|string|max:200',
@@ -984,6 +1423,7 @@ class JBPensionController extends Controller
         //dd($rules);
         $attributes = array();
         $messages = array();
+        $attributes['application_date'] = 'Application Date';
         $attributes['entry_type'] = 'Application Type';
         $attributes['ds_registration_no'] = 'Duare Sarkar Registration No.';
         $attributes['ds_date'] = 'Duare Sarkar Date';
@@ -992,7 +1432,6 @@ class JBPensionController extends Controller
         $attributes['last_name'] = 'Beneficiary Last Name';
         $attributes['gender'] = 'Gender';
         $attributes['dob'] = 'Date of Birth';
-        $attributes['txt_age'] = 'Age (as on 01/01/2020)';
         $attributes['father_first_name'] = 'Father First Name';
         $attributes['father_middle_name'] = 'Father Middle Name';
         $attributes['father_last_name'] = 'Father Last Name';
@@ -1055,7 +1494,7 @@ class JBPensionController extends Controller
         $messages = array();
         foreach ($doc_list as $key => $value) {
             if (in_array($value->id, $in_array)) {
-                if ($add_edit_code == 1) {
+                if ($add_edit_code == 1 || $add_edit_code == 4) {
                     $required = 'required';
                 } else {
                     $required = 'nullable';
@@ -1593,6 +2032,77 @@ class JBPensionController extends Controller
             })
             ->rawColumns(['ben_id', 'ben_name', 'ben_age', 'gender', 'bank_ifsc', 'bank_code', 'village_town_city', 'action', 'status'])
             ->make(true);
+    }
+
+
+    public function dob_checker($scheme_id, $request)
+    {
+        // $age = Carbon::parse($request->dob)->age;
+        $age = Carbon::parse($request->dob)->diffInYears(date('Y-m-d'));
+        if ($scheme_id == 2 || $scheme_id == 11 || $scheme_id == 17) {
+            return true;
+        } else if ($scheme_id == 8) {
+            if ($age < 18 || $age > 60) {
+
+                return false;
+            } else {
+
+                return true;
+            }
+        } else if ($scheme_id == 9) {
+            if ($age < 60) {
+
+                return false;
+            } else {
+
+                return true;
+            }
+        } else if ($scheme_id == 5) {
+            $phy_hnd = $request->phy_hadi_status;
+            $marital_status = $request->marital_status;
+
+            if ($marital_status == "Widow") {
+                return true;
+            } else {
+                if ($phy_hnd == "Yes") {
+                    if ($age < 55) {
+
+                        return false;
+                    } else {
+
+                        return true;
+                    }
+                } else {
+                    if ($age < 60) {
+
+                        return false;
+                    } else {
+
+                        return true;
+                    }
+                }
+            }
+        } else if ($scheme_id == 13) {
+            $marital_status = $request->marital_status;
+            if ($marital_status == "Widow") {
+                return true;
+            } else {
+                if ($age > 60) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        } else {
+            if ($age < 60) {
+
+
+                return false;
+            } else {
+
+                return true;
+            }
+        }
     }
 }
 

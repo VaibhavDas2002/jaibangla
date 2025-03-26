@@ -54,7 +54,7 @@ class LifeCertificateController extends Controller
   {
     $user_id = AuthChecker::getUserId();
     $is_operator = AuthChecker::OperatorChecker();
-    $is_verifier = AuthChecker::VerifierChecker();
+    $is_verifier = AuthChecker::VerifierPermission();
 
     $scheme_id = $request->scheme_id;
 
@@ -118,7 +118,7 @@ class LifeCertificateController extends Controller
       $query = DB::table($schema . '.beneficiaries')
         ->where('created_by_dist_code', $district_code)
         ->where("next_level_role_id", 0);
-      if (AuthChecker::VerifierChecker() || AuthChecker::OperatorChecker()) {
+      if (AuthChecker::VerifierPermission() || AuthChecker::OperatorChecker()) {
         $query = $query->where('created_by_local_body_code', $created_by_local_body_code);
       }
       if ($duty_obj->mapping_level == "Subdiv") {
@@ -133,7 +133,7 @@ class LifeCertificateController extends Controller
         if ($request->application_type == 1) {
           if (AuthChecker::OperatorChecker())
             $query = $query->whereNull('next_level_role_id_edit');
-          else if (AuthChecker::VerifierChecker())
+          else if (AuthChecker::VerifierPermission())
             $query = $query->where('next_level_role_id_edit', 1);
         }
 
@@ -339,8 +339,8 @@ class LifeCertificateController extends Controller
   {
     $user_id = AuthChecker::getUserId();
     $is_operator = AuthChecker::OperatorChecker();
-    $is_verifier = AuthChecker::VerifierChecker();
-    $is_approver = AuthChecker::ApproverChecker();
+    $is_verifier = AuthChecker::VerifierPermission();
+    $is_approver = AuthChecker::ApproverPermission();
     $is_hod = AuthChecker::HODChecker();
 
     $scheme_id = $request->scheme_id;
@@ -358,7 +358,7 @@ class LifeCertificateController extends Controller
       return redirect("/")->with('danger', 'Scheme Not Found');
     }
     // $designation_id = Auth::user()->designation_id;
-    if (!AuthChecker::OperatorChecker() || !AuthChecker::VerifierChecker()) {
+    if (!AuthChecker::OperatorChecker() || !AuthChecker::VerifierPermission()) {
       return redirect("/")->with('error', 'Not Allowed');
     }
     $is_active = 0;
@@ -399,7 +399,7 @@ class LifeCertificateController extends Controller
     }
     $condition = array();
     $condition["created_by_dist_code"] = $distCode;
-    if (AuthChecker::VerifierChecker()) {
+    if (AuthChecker::VerifierPermission()) {
       $condition["created_by_local_body_code"] = $blockCode;
     }
     // $condition["next_level_role_id"] = 0;
@@ -597,7 +597,7 @@ class LifeCertificateController extends Controller
     if (empty($duty_obj)) {
       return redirect("/")->with('danger', 'Not Allowed');
     }
-    if (!AuthChecker::VerifierChecker()) {
+    if (!AuthChecker::VerifierPermission()) {
       return redirect("/")->with('danger', 'Not Allowed');
     }
     $district_code = $duty_obj->district_code;
@@ -680,7 +680,7 @@ class LifeCertificateController extends Controller
       return redirect("/")->with('danger', 'Not Allowed');
     }
     $district_code = $duty_obj->district_code;
-    if (!AuthChecker::VerifierChecker()) {
+    if (!AuthChecker::VerifierPermission()) {
       return redirect("/")->with('danger', 'Not Allowed');
     }
     $id = $request->id;

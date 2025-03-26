@@ -1248,7 +1248,7 @@
 
     $.ajax({
       url: "addworkflow",
-      type: "POST",
+      type: "post",
       data: {
         scheme_id: schemeId,
         steps: steps,

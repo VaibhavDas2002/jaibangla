@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\AcceptRejectInfo;
 use Illuminate\Http\Request;
 use App\DupliacteApproveReject;
 use App\Scheme;
@@ -9,6 +10,8 @@ use App\District;
 use App\UrbanBody;
 use App\GP;
 use App\BeneficiaryPensions;
+use App\BenEntry;
+use App\BenPaymentDetails;
 use App\PensionSc;
 use App\PensionSt;
 use App\Manabik;
@@ -54,7 +57,7 @@ class JnmpController extends Controller
     {
         $is_active = 0;
         $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();        // echo '<pre>'; print_r($roleArray);die();
-        $designation_id = Auth::user()->designation_id;
+        // $designation_id = Auth::user()->designation_id;
         $user_id = AuthChecker::getUserId();
         $district_visible = $is_urban_visible = $block_visible = 1;
         $municipality_visible = 0;
@@ -64,9 +67,9 @@ class JnmpController extends Controller
         $duty = Configduty::where('user_id', '=', $user_id)->first();
         $schemes = DB::select(DB::raw("select id,scheme_name,pr1_code,entry_url,display_name from m_scheme where id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . ") AND id in (1,2,3,5,6,7,8,9,10,11,13,17,19) order by rank"));
         // echo '<pre>';print_r($schemes);die();
-        if ($designation_id == 'Admin') {
+        if (AuthChecker::AdminChecker()) {
             $district_visible = $is_urban_visible = $block_visible = 1;
-        } else if ($designation_id == 'Approver') {
+        } else if (AuthChecker::ApproverPermission()) {
             // echo 1;die();
             $district_code = NULL;
             $is_urban = NULL;
@@ -129,7 +132,6 @@ class JnmpController extends Controller
                 'block_munc_corp_code_fk' => $block_munc_corp_code_fk,
                 'municipality_visible' => $municipality_visible,
                 'gp_ward_visible' => $gp_ward_visible,
-                'is_urban_visible' => $is_urban_visible,
                 'gpList' => $gpList,
                 'muncList' => $muncList,
                 'reactive_reasons' => $reactive_reasons
@@ -140,15 +142,15 @@ class JnmpController extends Controller
     public function jnmpMarkedData(Request $request)
     {
         $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
-                $designation_id = Auth::user()->designation_id;
+                // $designation_id = Auth::user()->designation_id;
         $user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id', '=', $user_id)->first();
         $schemes = DB::select(DB::raw("select id,scheme_name,pr1_code,entry_url,display_name from m_scheme where id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . ") AND id in(1,2,3,5,6,7,8,9,10,11,13,17,19) order by rank"));
-        if ($designation_id == 'Admin') {
+        if (AuthChecker::AdminChecker()) {
             $district_code = NULL;
             $is_urban = NULL;
             $blockCode = NULL;
-        } else if ($designation_id == 'Approver') {
+        } else if (AuthChecker::ApproverPermission()) {
             $district_code = NULL;
             $is_urban = NULL;
             $blockCode = NULL;
@@ -179,7 +181,7 @@ class JnmpController extends Controller
         $muncid = $request->muncid;
         $table_name = $this->getSchemaName($scheme_id);
         if ($request->ajax()) {
-            $query = $this->getDataRows($district_code,$blockCode,$block,$gp_ward,$muncid,$table_name,$dist_code);
+            $query = $this->getDataRows($district_code,$blockCode,$block,$gp_ward,$muncid,$table_name);
             // echo $query;die();
             $result = DB::connection('pgsql_mis')->select($query);
             // echo '<pre>';print_r($result);die();
@@ -322,7 +324,7 @@ class JnmpController extends Controller
                     break;
                 }
             }
-            if ($designation_id == 'Approver') {
+            if (AuthChecker::ApproverPermission()) {
             $is_active = 1;
             } else {
             $is_active = 0;
@@ -356,7 +358,7 @@ class JnmpController extends Controller
             'user_id' => Auth::user()->id,
             'ip_address' => request()->ip(),
             'reactive_reason' => $reactive_reason,
-            'update_code' => 17, // For Janma Mrityu Activation.
+            'op_type' => 17, // For Janma Mrityu Activation.
             'created_at' => date('Y-m-d H:i:s'),
             'updated_at' => date('Y-m-d H:i:s')
             ];
@@ -477,106 +479,140 @@ class JnmpController extends Controller
                   $is_upload = $fun_call[0]->ben_docs_insert_archive;
                 // Insert Unique Aadhar Table.
                 $aadhar_no = DB::table($beneficiary_table)->where('id', $ben_id)->value('aadhar_no');
-                $uniqueAadharTableCount = DB::table($scheme_short_code.'.ben_aadhar_no_unique')->where('aadhar_no', $aadhar_no)->count();
+                // $uniqueAadharTableCount = DB::table($scheme_short_code.'.ben_aadhar_no_unique')->where('aadhar_no', $aadhar_no)->count();
                 // print_r($insertUniqueAadhar);die;
                 // echo $uniqueAadharTable;die;
-                if ($uniqueAadharTableCount == 0) {
-                    $insertUniqueAadhar = [
-                        'aadhar_no' => $aadhar_no,
-                        'total_count' => 1
-                    ];
-                    // echo "IF";die;
-                    $insertAadhar = DB::table($scheme_short_code.'.ben_aadhar_no_unique')->insert($insertUniqueAadhar);
-                    // echo $insertAadhar;die;
-                } 
-                else if ($uniqueAadharTableCount == 1) {
-                    $insertAadhar = 1;
-                } 
-                else{
-                    $insertAadhar = 0;
-                    $error_msg = 'This Aadhar Number is already exist.';
-                }
+                // if ($uniqueAadharTableCount == 0) {
+                //     $insertUniqueAadhar = [
+                //         'aadhar_no' => $aadhar_no,
+                //         'total_count' => 1
+                //     ];
+                //     // echo "IF";die;
+                //     $insertAadhar = DB::table($scheme_short_code.'.ben_aadhar_no_unique')->insert($insertUniqueAadhar);
+                //     // echo $insertAadhar;die;
+                // } 
+                // else if ($uniqueAadharTableCount == 1) {
+                //     $insertAadhar = 1;
+                // } 
+                // else{
+                //     $insertAadhar = 0;
+                //     $error_msg = 'This Aadhar Number is already exist.';
+                // }
 
                 // Insert Unique Mobile Table.
-                $mobile_no = DB::table($beneficiary_table)->where('id', $ben_id)->value('mobile_no');
+                // $mobile_no = DB::table($beneficiary_table)->where('id', $ben_id)->value('mobile_no');
 
-                if ($scheme_id == 13) {
-                    $insertUniqueMobile = [
-                        'mobile_no' => $mobile_no,
-                        'total_count' => 1
-                    ];
-                    $insertMobile = DB::table($scheme_short_code.'.ben_mobile_no_unique')->insert($insertUniqueMobile);
-                }else {
-                    $uniqueMobileTable = DB::table($scheme_short_code.'.ben_mobile_no_unique')->where('mobile_no', $mobile_no)->count();
-                    // echo $uniqueAadharTable;die;
-                    if ($uniqueMobileTable == 0) {
-                        $insertUniqueMobile = [
-                            'mobile_no' => $mobile_no,
-                            'total_count' => 1
-                        ];
-                        $insertMobile = DB::table($scheme_short_code.'.ben_mobile_no_unique')->insert($insertUniqueMobile);
-                    }
-                    else if ($uniqueMobileTable == 1) {
-                        $insertMobile = 1;
-                    } 
-                    else{
-                        $insertMobile = 0;
-                        $error_msg = 'This Mobile Number is already exist.';
-                    }
-                }
+                // if ($scheme_id == 13) {
+                //     $insertUniqueMobile = [
+                //         'mobile_no' => $mobile_no,
+                //         'total_count' => 1
+                //     ];
+                //     $insertMobile = DB::table($scheme_short_code.'.ben_mobile_no_unique')->insert($insertUniqueMobile);
+                // }else {
+                //     $uniqueMobileTable = DB::table($scheme_short_code.'.ben_mobile_no_unique')->where('mobile_no', $mobile_no)->count();
+                //     // echo $uniqueAadharTable;die;
+                //     if ($uniqueMobileTable == 0) {
+                //         $insertUniqueMobile = [
+                //             'mobile_no' => $mobile_no,
+                //             'total_count' => 1
+                //         ];
+                //         $insertMobile = DB::table($scheme_short_code.'.ben_mobile_no_unique')->insert($insertUniqueMobile);
+                //     }
+                //     else if ($uniqueMobileTable == 1) {
+                //         $insertMobile = 1;
+                //     } 
+                //     else{
+                //         $insertMobile = 0;
+                //         $error_msg = 'This Mobile Number is already exist.';
+                //     }
+                // }
 
                 // Insert Unique Bank Table.
                 $bank_accno = $benDetails->bank_code;
                 $bank_ifsc = $benDetails->bank_ifsc;
                 // print_r($bank_ifsc);die;
-                if ($scheme_id == 13) {
-                    $insertUniqueBank = [
-                        'bank_code' => $bank_accno,
-                        'bank_ifsc' => $bank_ifsc,
-                        'total_count' => 1
-                    ];
-                    $insertBank = DB::table($scheme_short_code.'.ben_bank_account_no_unique')->insert($insertUniqueBank);
-                }else{
-                    $uniqueBankTable = DB::table($scheme_short_code.'.ben_bank_account_no_unique')->where('bank_code', $bank_accno)->where('bank_ifsc', $bank_ifsc)->count();
-                    // echo $uniqueAadharTable;die;
-                    if ($uniqueBankTable == 0) {
-                        $insertUniqueBank = [
-                            'bank_code' => $bank_accno,
-                            'bank_ifsc' => $bank_ifsc,
-                            'total_count' => 1
-                        ];
-                        $insertBank = DB::table($scheme_short_code.'.ben_bank_account_no_unique')->insert($insertUniqueBank);
-                    } 
-                    else if ($uniqueBankTable == 1) { 
-                        $insertBank = 1;
-                    }
-                    else{
-                        $insertBank = 0;
-                        $error_msg = 'This bank account & IFSC is already exist.';
-                    }
-                }
+                // if ($scheme_id == 13) {
+                //     $insertUniqueBank = [
+                //         'bank_code' => $bank_accno,
+                //         'bank_ifsc' => $bank_ifsc,
+                //         'total_count' => 1
+                //     ];
+                //     $insertBank = DB::table($scheme_short_code.'.ben_bank_account_no_unique')->insert($insertUniqueBank);
+                // }else{
+                //     $uniqueBankTable = DB::table($scheme_short_code.'.ben_bank_account_no_unique')->where('bank_code', $bank_accno)->where('bank_ifsc', $bank_ifsc)->count();
+                //     // echo $uniqueAadharTable;die;
+                //     if ($uniqueBankTable == 0) {
+                //         $insertUniqueBank = [
+                //             'bank_code' => $bank_accno,
+                //             'bank_ifsc' => $bank_ifsc,
+                //             'total_count' => 1
+                //         ];
+                //         $insertBank = DB::table($scheme_short_code.'.ben_bank_account_no_unique')->insert($insertUniqueBank);
+                //     } 
+                //     else if ($uniqueBankTable == 1) { 
+                //         $insertBank = 1;
+                //     }
+                //     else{
+                //         $insertBank = 0;
+                //         $error_msg = 'This bank account & IFSC is already exist.';
+                //     }
+                // }
                 // dump($is_upload); dump($insertAadhar); dump($insertMobile); dump($insertBank); die;
-                if ($is_upload == 1 && $insertAadhar == 1 && $insertMobile == 1 && $insertBank == 1) {
-                    $updateBenDetailsInsert = UpdateBenDetails::insert($updateBenDetailsData);
+                if ($is_upload == 1) {
+                    // $updateBenDetailsInsert = UpdateBenDetails::insert($updateBenDetailsData);
+                    $accept_reject_model = New AcceptRejectInfo;
+                    $accept_reject_model->application_id = $benDetails->id;
+                    $accept_reject_model->created_by_dist_code = $benDetails->dist_code;
+                    $accept_reject_model->scheme_id = $benDetails->scheme_id;
+                    $accept_reject_model->remarks = $remarks;
+                    $accept_reject_model->old_data = json_encode($old_value);
+                    $accept_reject_model->new_data = json_encode($input);
+                    $accept_reject_model->user_id = Auth::user()->id;
+                    $accept_reject_model->ip_address = request()->ip();
+                    $accept_reject_model->reactive_reason = $reactive_reason;
+                    $accept_reject_model->op_type = 17; // For Janma Mrityu Activation.
+                    $accept_reject_model->created_at = date('Y-m-d H:i:s');
+                    $accept_reject_model->updated_at = date('Y-m-d H:i:s');
+                    $updateBenDetailsInsert = $accept_reject_model->save();
+
+
+
                     if ($updateBenDetailsInsert == 1) {
-                        $updateBenTable = [
-                            'is_rejected' => 0,
-                            'is_approved' => 1,
-                            'payment_suspended' => null,
-                            'is_verified' => 1,
-                            'jnmp_remarks' => $remarks,
-                            'reactive_reason' => $reactive_reason,
-                        ];
+                        // $updateBenTable = [
+                        //     'is_rejected' => 0,
+                        //     'is_approved' => 1,
+                        //     'payment_suspended' => null,
+                        //     'is_verified' => 1,
+                        //     'jnmp_remarks' => $remarks,
+                        //     'reactive_reason' => $reactive_reason,
+                        // ];
                         $updatePaymentTable = [
                             'ben_status' => 1,
                         ];
-                        $is_update = DB::table($beneficiary_table)->where('id', $ben_id)
-                                    ->where('jnmp_aadhar_mapped', '=', 1)
-                                    ->where('payment_suspended', '=', 1)
-                                    ->where('next_level_role_id', '=', 0)
-                                    ->where('scheme_id', $scheme_id)
-                                    ->update($updateBenTable);
-                        $payment_update = DB::connection('pgsql_paywrite')->table('payment.ben_payment_details')->where('ben_id', $ben_id)->where('scheme_id', $scheme_id)->where('ben_status', '=', 2)->update($updatePaymentTable);
+                        // $is_update = DB::table($beneficiary_table)->where('id', $ben_id)
+                        //             ->where('jnmp_aadhar_mapped', '=', 1)
+                        //             ->where('payment_suspended', '=', 1)
+                        //             ->where('next_level_role_id', '=', 0)
+                        //             ->where('scheme_id', $scheme_id)
+                        //             ->update($updateBenTable);
+                        $ben_entry_model = BenEntry::where('id', $ben_id)
+                        ->where('jnmp_aadhar_mapped', '=', 1)
+                        ->where('payment_suspended', '=', 1)
+                        ->where('next_level_role_id', '=', 0)
+                        ->where('scheme_id', $scheme_id)
+                        ->first();
+                        $ben_entry_model->is_rejected = 0;
+                        $ben_entry_model->is_approved = 1;
+                        $ben_entry_model->payment_suspended = null;
+                        $ben_entry_model->is_verified = 1;
+                        $ben_entry_model->jnmp_remarks = $remarks;
+                        $ben_entry_model->reactive_reason = $reactive_reason;
+                        $is_update = $ben_entry_model->save();
+
+                        // $payment_update = DB::connection('pgsql_paywrite')->table('payment.ben_payment_details')->where('ben_id', $ben_id)->where('scheme_id', $scheme_id)->where('ben_status', '=', 2)->update($updatePaymentTable);
+                        $ben_payment_model = BenPaymentDetails::where('ben_id', $ben_id)->where('scheme_id', $scheme_id)->where('ben_status', '=', 2)->first();
+                        $ben_payment_model->ben_status = 1;
+                        $payment_update = $ben_payment_model->save();
                     }
                     DB::connection('pgsql')->commit();
                     DB::connection('pgsql_paywrite')->commit();
@@ -586,7 +622,7 @@ class JnmpController extends Controller
                         'type' => 'green', 'icon' => 'fa fa-check', 'title' => 'Success'
                     );
                 }else{
-                    $return_text = $error_msg;
+                    $return_text = 'Something Went Wrong !!';
                     DB::connection('pgsql')->rollback();
                     DB::connection('pgsql_paywrite')->rollback();
                     DB::connection('pgsql_encwrite')->rollback();
@@ -603,10 +639,10 @@ class JnmpController extends Controller
 
                 // }
             }catch(\Exception $e){
-                dd($e);
+                //  dd($e);
                 DB::rollback();
                 $return_status = 0;
-                
+                $return_text = 'Something Went Wrong !!';
                 $return_msg = array("" . $return_text);
                 return $response = array(
                     'status' => $return_status, 'msg' => $return_msg,
@@ -642,11 +678,11 @@ class JnmpController extends Controller
         $user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id', '=', $user_id)->first();
         $schemes = DB::select(DB::raw("select id,scheme_name,pr1_code,entry_url,display_name from m_scheme where id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . ") AND id in(1,2,3,5,6,7,8,9,10,11,13,17,19) order by rank"));
-        if ($designation_id == 'Admin') {
+        if (AuthChecker::AdminChecker()) {
             $district_code = NULL;
             $is_urban = NULL;
             $blockCode = NULL;
-        } else if ($designation_id == 'Approver') {
+        } else if (AuthChecker::ApproverPermission()) {
             $district_code = NULL;
             $is_urban = NULL;
             $blockCode = NULL;

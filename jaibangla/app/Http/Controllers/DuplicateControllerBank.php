@@ -20,6 +20,7 @@ use App\getModelFunc;
 use Illuminate\Support\Facades\Crypt;
 use App\RejectRevertReason;
 use App\AadharDuplicateTrail;
+use App\AcceptRejectInfo;
 use App\SubDistrict;
 use App\Taluka;
 use App\DocumentType;
@@ -91,11 +92,11 @@ class DuplicateControllerBank extends Controller
         return redirect()->route('noDupBeneficiariesList', ['type' => 5]);
 
         $this->middleware('auth');
-        $is_verifier = AuthChecker::VerifierChecker();
-        $is_approver = AuthChecker::ApproverChecker();
+        $is_verifier = AuthChecker::VerifierPermission();
+        $is_approver = AuthChecker::ApproverPermission();
         // $designation_id = Auth::user()->designation_id;
         $userId = AuthChecker::getUserId();
-        if (AuthChecker::ApproverChecker() || AuthChecker::VerifierChecker()) {
+        if (AuthChecker::ApproverPermission() || AuthChecker::VerifierPermission()) {
             $is_active = 1;
         } else {
             $is_active = 0;
@@ -147,12 +148,12 @@ class DuplicateControllerBank extends Controller
                 break;
             }
         }
-        if (AuthChecker::VerifierChecker()) {
+        if (AuthChecker::VerifierPermission()) {
             $is_active = 1;
         } else {
             $is_active = 0;
         }
-        if (AuthChecker::VerifierChecker()) {
+        if (AuthChecker::VerifierPermission()) {
             $verifier_condition = ' and p.created_by_local_body_code=' . $urban_body_code;
         } else {
             $verifier_condition = '';
@@ -217,12 +218,12 @@ class DuplicateControllerBank extends Controller
                 break;
             }
         }
-        if (AuthChecker::VerifierChecker()) {
+        if (AuthChecker::VerifierPermission()) {
             $is_active = 1;
         } else {
             $is_active = 0;
         }
-        if (AuthChecker::VerifierChecker()) {
+        if (AuthChecker::VerifierPermission()) {
             $verifier_condition = ' and p.created_by_local_body_code=' . $urban_body_code;
         } else {
             $verifier_condition = '';
@@ -290,13 +291,13 @@ class DuplicateControllerBank extends Controller
                 $ben_list[$i]['gp_ward_name'] = 'NA';
             }
 
-            if (AuthChecker::ApproverChecker()) {
+            if (AuthChecker::ApproverPermission()) {
                 if ($arr->created_by_dist_code == $district_code) {
                     $allowed = 1;
                 } else {
                     $allowed = 0;
                 }
-            } else if (AuthChecker::VerifierChecker()) {
+            } else if (AuthChecker::VerifierPermission()) {
                 if ($arr->created_by_dist_code == $district_code && $arr->created_by_local_body_code == $urban_body_code) {
                     $allowed = 1;
                 } else {
@@ -355,12 +356,12 @@ class DuplicateControllerBank extends Controller
                 break;
             }
         }
-        if (AuthChecker::VerifierChecker()) {
+        if (AuthChecker::VerifierPermission()) {
             $is_active = 1;
         } else {
             $is_active = 0;
         }
-        if (AuthChecker::VerifierChecker()) {
+        if (AuthChecker::VerifierPermission()) {
             $verifier_condition = ' and p.created_by_local_body_code=' . $urban_body_code;
         } else {
             $verifier_condition = '';
@@ -421,13 +422,14 @@ class DuplicateControllerBank extends Controller
                 // $is_saved1 = DB::table($schema . '.beneficiary')->where('created_by_dist_code', $district_code)->where('id', $application_id)->update($input);
                 $is_saved2 = DB::table('pension.ben_payment_details_bank_code_dup')->whereraw("trim(bank_code)='$bank_code'")->where('id', $application_id)->where('created_by_dist_code', $district_code)->update($update_arr);
                 $modelmainArch = array();
-                $modelmainArch['update_code'] = -200;
-                $modelmainArch['original_application_id'] = $application_id;
+                $modelmainArch['op_type'] = -200;
+                $modelmainArch['application_id'] = $application_id;
                 $modelmainArch['scheme_id'] = $scheme_id;
                 $modelmainArch['created_at'] = $today;
                 $modelmainArch['user_id'] = $user_id;
                 $modelmainArch['ip_address'] = $request->ip();
-                $modelmainArchStatus = DB::table('update_ben_details')->insert($modelmainArch);
+                $modelmainArch['module_name'] = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod() ;
+                $modelmainArchStatus = DB::table('ben_accept_reject_info')->insert($modelmainArch);
                 $scheme_dedup_list = Config::get('constants.bank_mob_aadhar_update_check');
                 if (in_array($scheme_id, $scheme_dedup_list)) {
                     $free_pending_bank_duplicate_arr = DB::select("select " . $schema . ".free_pending_bank_duplicate_data(in_scheme_id => " . $scheme_id . ", in_district_code => " . $district_code . ")");
@@ -508,13 +510,14 @@ class DuplicateControllerBank extends Controller
                 }
                 foreach ($all_arr as $app_row) {
                     $modelmainArch = array();
-                    $modelmainArch['update_code'] = -200;
-                    $modelmainArch['original_application_id'] = $app_row;
+                    $modelmainArch['op_type'] = -200;
+                    $modelmainArch['application_id'] = $app_row;
                     $modelmainArch['scheme_id'] = $scheme_id;
                     $modelmainArch['created_at'] = $today;
                     $modelmainArch['user_id'] = $user_id;
                     $modelmainArch['ip_address'] = $request->ip();
-                    $modelmainArchStatus = DB::table('update_ben_details')->insert($modelmainArch);
+                    $modelmainArch['module_name'] = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod() ;
+                    $modelmainArchStatus = DB::table('ben_accept_reject_info')->insert($modelmainArch);
                     $free_pending_bank_duplicate_arr = DB::select("select " . $schema . ".free_pending_bank_duplicate_data(in_scheme_id => " . $scheme_id . ", in_district_code => " . $district_code . ")");
                     $free_pending_bank_duplicate_data = $free_pending_bank_duplicate_arr[0]->free_pending_bank_duplicate_data;
                 }
@@ -556,12 +559,12 @@ class DuplicateControllerBank extends Controller
                     break;
                 }
             }
-            if (AuthChecker::VerifierChecker()) {
+            if (AuthChecker::VerifierPermission()) {
                 $is_active = 1;
             } else {
                 $is_active = 0;
             }
-            if (AuthChecker::VerifierChecker()) {
+            if (AuthChecker::VerifierPermission()) {
                 $verifier_condition = ' and p.created_by_local_body_code=' . $urban_body_code;
             } else {
                 $verifier_condition = '';
@@ -609,13 +612,13 @@ class DuplicateControllerBank extends Controller
                     $local_body = $block->where('block_code', $arr->created_by_local_body_code)->first();
                     $ben_list[$i]['local_body_name'] = 'Block-' . $local_body->block_name;
                 }
-                if (AuthChecker::ApproverChecker()) {
+                if (AuthChecker::ApproverPermission()) {
                     if ($arr->created_by_dist_code == $district_code) {
                         $allowed = 1;
                     } else {
                         $allowed = 0;
                     }
-                } else if (AuthChecker::VerifierChecker()) {
+                } else if (AuthChecker::VerifierPermission()) {
                     if ($arr->created_by_dist_code == $district_code && $arr->created_by_local_body_code == $urban_body_code) {
                         $allowed = 1;
                     } else {
@@ -803,12 +806,12 @@ class DuplicateControllerBank extends Controller
                 break;
             }
         }
-        if (AuthChecker::VerifierChecker()) {
+        if (AuthChecker::VerifierPermission()) {
             $is_active = 1;
         } else {
             $is_active = 0;
         }
-        if (AuthChecker::VerifierChecker()) {
+        if (AuthChecker::VerifierPermission()) {
             $verifier_condition = ' and p.created_by_local_body_code=' . $urban_body_code;
         } else {
             $verifier_condition = '';
@@ -998,12 +1001,12 @@ class DuplicateControllerBank extends Controller
                 break;
             }
         }
-        if (AuthChecker::VerifierChecker()) {
+        if (AuthChecker::VerifierPermission()) {
             $is_active = 1;
         } else {
             $is_active = 0;
         }
-        if (AuthChecker::VerifierChecker()) {
+        if (AuthChecker::VerifierPermission()) {
             $verifier_condition = ' and p.created_by_local_body_code=' . $urban_body_code;
         } else {
             $verifier_condition = '';
@@ -1042,7 +1045,7 @@ class DuplicateControllerBank extends Controller
         if (empty($row->id)) {
             return redirect("/dedupBankView?scheme_id=" . $scheme_id . "&bank_code=" . $old_bank_code)->with('error', 'Application Id Not found in Db');
         }
-        if (AuthChecker::ApproverChecker()) {
+        if (AuthChecker::ApproverPermission()) {
             $urban_body_code = $row->created_by_local_body_code;
         }
         if (in_array($scheme_id, array(8, 9))) {
@@ -1274,15 +1277,17 @@ class DuplicateControllerBank extends Controller
                 $new_value['bank_ifsc'] = trim($request->bank_ifsc_code);
                 $new_value['bank_code'] = trim($request->bank_account_number);
                 $modelmainArch = array();
-                $modelmainArch['update_code'] = 101;
-                $modelmainArch['original_application_id'] = $application_id;
+                $modelmainArch['op_type'] = 101;
+                $modelmainArch['application_id'] = $application_id;
                 $modelmainArch['old_data'] = json_encode($row);
                 $modelmainArch['new_data'] = json_encode($new_value);
                 $modelmainArch['scheme_id'] = $scheme_id;
                 $modelmainArch['created_at'] = $today;
                 $modelmainArch['user_id'] = $user_id;
                 $modelmainArch['ip_address'] = $request->ip();
-                $modelmainArchStatus = DB::table('update_ben_details')->insert($modelmainArch);
+                $modelmainArch['created_by_dist_code'] = $district_code;
+                $modelmainArch['module_name'] = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod() ;
+                $modelmainArchStatus = DB::table('ben_accept_reject_info')->insert($modelmainArch);
                 $pension_details_bank_arr = array();
                 $pension_details_bank_arr['bank_name'] = trim($request->name_of_bank);
                 $pension_details_bank_arr['branch_name'] = trim($request->bank_branch);
@@ -1444,22 +1449,17 @@ class DuplicateControllerBank extends Controller
         // $designation_id = Auth::user()->designation_id;
         $distCode = NULL;
         $user_id = AuthChecker::getUserId();
-        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
-        foreach ($roleArray as $roleObj) {
-            if ($roleObj['scheme_id'] == $scheme_id) {
-                $is_active = 1;
-                $mapping_level = $roleObj['mapping_level'];
-                $distCode = $roleObj['district_code'];
-                $is_urban = $roleObj['is_urban'];
-                if ($roleObj['is_urban'] == 1) {
-                    $blockCode = $roleObj['urban_body_code'];
-                } else {
-                    $blockCode = $roleObj['taluka_code'];
-                }
-                break;
-            }
+        $roleObj = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->where('scheme_id',$scheme_id)->first();
+        $mapping_level = $roleObj->mapping_level;
+        $distCode = $roleObj->district_code;
+        $is_urban = $roleObj->is_urban;
+        if ($is_urban == 1) {
+            $blockCode = $roleObj->urban_body_code;
+        } else {
+            $blockCode = $roleObj->taluka_code;
         }
-        if (AuthChecker::ApproverChecker() || AuthChecker::VerifierChecker()) {
+      
+        if (AuthChecker::ApproverPermission() || AuthChecker::VerifierPermission()) {
             $is_active = 1;
         } else {
             $is_active = 0;
@@ -1586,12 +1586,12 @@ class DuplicateControllerBank extends Controller
                 break;
             }
         }
-        if (AuthChecker::VerifierChecker()) {
+        if (AuthChecker::VerifierPermission()) {
             $is_active = 1;
         } else {
             $is_active = 0;
         }
-        if (AuthChecker::VerifierChecker()) {
+        if (AuthChecker::VerifierPermission()) {
             $verifier_condition = ' and p.local_body_code=' . $urban_body_code;
         } else {
             $verifier_condition = '';
@@ -1695,13 +1695,16 @@ class DuplicateControllerBank extends Controller
 
                 DB::beginTransaction();
                 $modelmainArch = array();
-                $modelmainArch['update_code'] = 200;
-                $modelmainArch['original_application_id'] = $application_id;
+                $modelmainArch['op_type'] = 200;
+                $modelmainArch['application_id'] = $application_id;
                 $modelmainArch['scheme_id'] = $scheme_id;
                 $modelmainArch['created_at'] = $today;
                 $modelmainArch['user_id'] = $user_id;
                 $modelmainArch['ip_address'] = $request->ip();
-                $modelmainArchStatus = DB::table('update_ben_details')->insert($modelmainArch);
+                $modelmainArch['created_by_dist_code'] = $district_code;
+                $modelmainArch['module_name'] = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod();
+                $modelmainArchStatus = DB::table('ben_accept_reject_info
+')->insert($modelmainArch);
                 $pension_details_bank_arr = array();
                 $pension_details_bank_arr['dup_bank'] = 0;
                 $pension_details_bank_arr['dup_bank_pending'] = $dup_bank_pending;
@@ -1761,7 +1764,7 @@ class DuplicateControllerBank extends Controller
         $gpList = collect([]);
         if (AuthChecker::ReportCheckerCommon()) {
             $district_visible = $is_urban_visible = $block_visible = 1;
-        } else if (AuthChecker::VerifierChecker() || AuthChecker::ApproverChecker()) {
+        } else if (AuthChecker::VerifierPermission() || AuthChecker::ApproverPermission()) {
             $district_code = NULL;
             $is_urban = NULL;
             $blockCode = NULL;
@@ -2374,17 +2377,18 @@ class DuplicateControllerBank extends Controller
                         $updateDupTable['is_approved'] = 1;
 
                         $updateBenDetailsData = [
-                            'original_application_id' => $ben_details[0]->beneficiary_id,
-                            'dist_code' => $ben_details[0]->created_by_dist_code,
+                            'application_id' => $ben_details[0]->beneficiary_id,
+                            'created_by_dist_code' => $ben_details[0]->created_by_dist_code,
                             'scheme_id' => $scheme_id,
                             'remarks' => $accept_reject_comments,
                             'old_data' => json_encode($old_data),
                             'new_data' => json_encode($new_data),
                             'user_id' => $user_id,
-                            'update_code' => 100, //Approved De duplicate Bank details.
+                            'op_type' => 100, //Approved De duplicate Bank details.
                             'created_at' => date('Y-m-d H:i:s'),
                             'updated_at' => date('Y-m-d H:i:s'),
                             'ip_address' => $ip_address,
+                            'module_name' => class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod()
                         ];
                         $updateBenDetailsData = array_merge($updateBenDetailsData, $updateBenDetailsData1);
                         $ben_main = DB::table($table_name)->where('id', $id)->first();
@@ -2400,7 +2404,7 @@ class DuplicateControllerBank extends Controller
                                 ];
                             }
                         }
-                        $is_insert = UpdateBenDetails::insert($updateBenDetailsData);
+                        $is_insert = AcceptRejectInfo::insert($updateBenDetailsData);
                         if ($is_insert) {
                             $is_ben_update = DB::table($table_name)->where('id', $id)->update($updateBenTable);
                             if ($is_ben_update) {
@@ -2506,24 +2510,23 @@ class DuplicateControllerBank extends Controller
                         ];
                     } else {
                         $updateBenDetailsData = [
-                            'original_application_id' => $ben_details[0]->beneficiary_id,
-                            'dist_code' => $ben_details[0]->created_by_dist_code,
+                            'application_id' => $ben_details[0]->beneficiary_id,
+                            'created_by_dist_code' => $ben_details[0]->created_by_dist_code,
                             'scheme_id' => $scheme_id,
                             'remarks' => $accept_reject_comments,
                             'user_id' => $user_id,
-                            'update_code' => 400,
+                            'op_type' => 400,
                             'created_at' => date('Y-m-d H:i:s'),
                             'updated_at' => date('Y-m-d H:i:s'),
                             'ip_address' => $ip_address,
-                            'action_by' => $user_id,
-                            'action_ip_address' => $request->ip(),
-                            'action_type' => class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod()
+                            'user_id' => $user_id,
+                            'module_name' => class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod()
                         ];
                         $updateDupTable = [];
                         $updateDupTable['revert_remarks'] = $accept_reject_comments;
                         $updateDupTable['next_level_role_id'] = -97;
                         $updateDupTable['is_approved'] = 2;
-                        $is_insert = UpdateBenDetails::insert($updateBenDetailsData);
+                        $is_insert = AcceptRejectInfo::insert($updateBenDetailsData);
                         if ($is_insert) {
                             $is_dup_update = DB::table('pension.ben_payment_details_bank_code_dup')->where('id', $id)->update($updateDupTable);
                             if ($is_dup_update) {
@@ -2656,20 +2659,18 @@ class DuplicateControllerBank extends Controller
                             $updateDupTable['revert_remarks'] = $accept_reject_comments;
 
                             $updateBenDetailsData = [
-                                'original_application_id' => $ben_details[0]->beneficiary_id,
-                                'dist_code' => $ben_details[0]->created_by_dist_code,
+                                'application_id' => $ben_details[0]->beneficiary_id,
+                                'created_by_dist_code' => $ben_details[0]->created_by_dist_code,
                                 'scheme_id' => $scheme_id,
                                 'remarks' => $accept_reject_comments,
                                 'old_data' => json_encode($old_data),
                                 'new_data' => json_encode($new_data),
                                 'user_id' => Auth::user()->id,
-                                'update_code' => 100, //Approved De duplicate Bank details.
+                                'op_type' => 100, //Approved De duplicate Bank details.
                                 'created_at' => date('Y-m-d H:i:s'),
                                 'updated_at' => date('Y-m-d H:i:s'),
                                 'ip_address' => $ip_address,
-                                'action_by' => $user_id,
-                                'action_ip_address' => $request->ip(),
-                                'action_type' => class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod()
+                                'module_name' => class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod()
                             ];
                             $updateBenDetailsData = array_merge($updateBenDetailsData, $updateBenDetailsData1);
                             $ben_main = DB::table($table_name)->where('id', $id)->first();
@@ -2685,7 +2686,7 @@ class DuplicateControllerBank extends Controller
                                     ];
                                 }
                             }
-                            $is_insert = UpdateBenDetails::insert($updateBenDetailsData);
+                            $is_insert = AcceptRejectInfo::insert($updateBenDetailsData);
                             if ($is_insert) {
                                 $is_ben_update = DB::table($table_name)->where('id', $value)->update($updateBenTable);
                                 if ($ben_main->next_level_role_id == 0) {
@@ -2785,25 +2786,23 @@ class DuplicateControllerBank extends Controller
                             ];
                         } else {
                             $updateBenDetailsData = [
-                                'original_application_id' => $ben_details[0]->beneficiary_id,
-                                'dist_code' => $ben_details[0]->created_by_dist_code,
+                                'application_id' => $ben_details[0]->beneficiary_id,
+                                'created_by_dist_code' => $ben_details[0]->created_by_dist_code,
                                 'scheme_id' => $scheme_id,
                                 'remarks' => $accept_reject_comments,
                                 'user_id' => $user_id,
-                                'update_code' => 400,
+                                'op_type' => 400,
                                 'created_at' => date('Y-m-d H:i:s'),
                                 'updated_at' => date('Y-m-d H:i:s'),
                                 'ip_address' => $ip_address,
-                                'action_by' => $user_id,
-                                'action_ip_address' => $request->ip(),
-                                'action_type' => class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod()
+                                'module_name' => class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod()
                             ];
 
                             $updateDupTable = [];
                             $updateDupTable['revert_remarks'] = $accept_reject_comments;
                             $updateDupTable['next_level_role_id'] = -97;
                             $updateDupTable['is_approved'] = 2;
-                            $is_insert = UpdateBenDetails::insert($updateBenDetailsData);
+                            $is_insert = AcceptRejectInfo::insert($updateBenDetailsData);
                             if ($is_insert) {
                                 $is_dup_update = DB::table('pension.ben_payment_details_bank_code_dup')->where('id', $value)->update($updateDupTable);
                                 if ($is_dup_update) {

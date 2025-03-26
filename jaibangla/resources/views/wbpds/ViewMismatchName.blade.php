@@ -338,7 +338,7 @@
 
                             </div>
 
-                            @if ($designation_id == 'Approver')
+                            @if ($is_approver)
 
                                 <div class="form-group col-md-12">
                                     <label class="">Process Type</label>
@@ -446,7 +446,7 @@
                         </center>
 
                         @endif
-                        @if ($designation_id == 'Verifier')
+                        @if ($is_verifier)
                             <form method="post" id="register_form" action="{{ url('ViewpdsnamemismatchPost') }}"
                                 enctype="multipart/form-data" class="submit-once" onsubmit="return client_validation()">
                                 <input type="hidden" name="scheme_id" id="scheme_id" value="{{ $row->scheme_id }}" />

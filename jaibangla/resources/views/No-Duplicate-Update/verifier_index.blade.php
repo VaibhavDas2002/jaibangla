@@ -55,263 +55,289 @@
 </style>
 @extends('layouts.app-template-datatable_new')
 @section('content')
-<div class="content-wrapper">
-  <!-- <div class="preloader1"><img src="{{ asset('images/ZKZg.gif') }}" width="150px" id="loader_img"></div> -->
-  <!-- Content Header (Page header) -->
-  <section class="content-header">
+  <div class="content-wrapper">
+    <!-- <div class="preloader1"><img src="{{ asset('images/ZKZg.gif') }}" width="150px" id="loader_img"></div> -->
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
     <h1>
       Verify/Update Incomplete Pending Data
     </h1>
     <ol class="breadcrumb">
       <i class="fa fa-clock-o"></i> Date : <span style="font-size: 12px; font-weight: bold;"><span
-          class='date-part'></span>&nbsp;&nbsp;<span class='time-part'></span></span>
+        class='date-part'></span>&nbsp;&nbsp;<span class='time-part'></span></span>
     </ol>
-  </section>
-  <section class="content">
+    </section>
+    <section class="content">
     <div class="box box-default">
       <div class="box-body">
-        <div id="loadingDi"></div>
+      <div id="loadingDi"></div>
+      <div class="panel panel-default">
+        <div class="panel-heading" style="font-size: 14px; font-weight: bold; font-style: italic;"><span
+          id="panel-icon">Enter Filter Criteria</div>
+        <div class="panel-body" style="padding: 5px;">
+        <div class="row">
+          <div class="col-md-12">
+          @if (($message = Session::get('success')))
+        <div class="alert alert-success alert-block">
+        <button type="button" class="close" data-dismiss="alert">×</button>
+        <strong>{{ $message }} </strong>
+        </div>
+      @endif
+          @if (($message = Session::get('message')))
+        <div class="alert alert-danger alert-block">
+        <button type="button" class="close" data-dismiss="alert">×</button>
+        <strong>{{ $message }}</strong>
+        </div>
+      @endif
+          @if (($message = Session::get('error')))
+        <div class="alert alert-danger alert-block">
+        <button type="button" class="close" data-dismiss="alert">×</button>
+        <strong>{{ $message }}</strong>
+        </div>
+      @endif
+          <div class="row">
+            <div class="col-md-12">
+            <div class="col-md-4">
+              <label class=" control-label">Scheme <span class="text-danger">*</span></label>
+              <select class="form-control" name="scheme_type" id='scheme_type' required>
+              <option value="">--Select Scheme--</option>
+              @foreach ($schemes as $scheme)
+          <option value="{{ $scheme->id }}">{{ $scheme->scheme_name }}
+          </option>
+        @endforeach
+              </select>
+              <span class="text-danger" id="error_scheme_type"></span>
+            </div>
+            <div class="form-group col-md-4">
+              <label class="required-field">Operation Type <span class="text-danger">*</span></label>
+              <select class="form-control" name="filter_type" id="filter_type">
+              <option value="">--Select--</option>
+              @foreach ($incomplete_types as $type)
+          <option value="{{$type->id}}">{{$type->name}}</option>
+        @endforeach
+              </select>
+              <span id="error_filter_type" class="text-danger"></span>
+            </div>
+
+
+            <input type="hidden" name="urban_code" id="urban_code" value="{{$rural_urban_fk}}" />
+            <input type="hidden" name="block" id="block" value="{{$block_munc_corp_code_fk}}" />
+            <input type="hidden" name="type" id="type" value="{{ $type_id}}" />
+
+            @include('common-selection.index')
+
+            <div class="form-group col-md-3" id="failed_type_div" style="display: none;">
+              <label class="required-field">Failed Type <span class="text-danger">*</span></label>
+              <select class="form-control" name="failed_type" id="failed_type">
+              <option value="">--Select--</option>
+              <option value="3">SBI</option>
+              <option value="4">RBI</option>
+              <option value="5">IFMS</option>
+              </select>
+              <span id="error_failed_type" class="text-danger"></span>
+            </div>
+
+
+
+
+            </div>
+
+
+
+
+          </div>
+          <div style="text-align: center;">
+            <button class="btn btn-primary" name="submit_btn" id="submit_btn" type="button" disabled><i
+              class="fa fa-search"></i> Search</button>&nbsp;
+          </div>
+
+          <div class="col-md-12" style="text-align: left; margin-top: 20px;">
+            <form action="{{route('getNoDupListExcel')}}" method="post">
+            {{csrf_field()}}
+            <input type="hidden" name="excel_scheme_id" id="excel_scheme_id" />
+            <input type="hidden" name="excel_filter_id" id="excel_filter_id" />
+            <input type="hidden" name="excel_filter_blk_ulb_body" id="excel_filter_blk_ulb_body" />
+            <input type="hidden" name="excel_filter_gp_ward" id="excel_filter_gp_ward" />
+            <button class="btn btn-success" name="excel_btn" id="excel_btn" type="submit" disabled>
+              <i class="fa fa-file-excel-o"></i> Download List
+            </button>
+            </form>
+          </div>
+
+
+          <div class="col-md-12" style="text-align: right; ">
+            <button class="btn btn-info btn-md" id="ild_bulk" style="margin-right: 5px;"><i class="fa fa-download"></i>
+            ILDB</button>
+          </div>
+          </div>
+        </div>
+        </div>
+      </div>
+
+      <div class="panel panel-default" id="tagging_div">
+        <div class="panel-heading"
+        style="font-size: 14px; font-weight: bold; font-style: italic;background-color:rgb(197, 232, 231);"><span
+          id="panel-icon">Tagged to Incomplete Details Beneficiary</div>
+        <div class="panel-body" style="padding: 5px;">
+        <div class="row">
+          <form method="post" id="register_form" action="{{route('NoDup_assign_arrival_date') }}">
+          {{ csrf_field() }}
+          <div class="row">
+            <div class="col-md-12" style="margin-bottom: 10px;">
+            <div class="col-md-3">
+              <label class=" control-label">No. of Applicants <span class="text-danger">*</span></label>
+              <input type="text" name="no_of_applicants" id="no_of_applicants" class="form-control NumOnly" />
+              <span class="text-danger" id="error_no_of_applicants"></span>
+            </div>
+
+            <div class="col-md-3">
+              <label class=" control-label">Visiting Date<span class="text-danger">*</span></label>
+              <input type="date" name="arrival_date" id="arrival_date" class="form-control"
+              min="@php echo date(" Y-m-d"); @endphp "/>
+      <span class=" text-danger" id="error_arrival_date"></span>
+            </div>
+            <div class="form-group col-md-3">
+              <label class="required-field control-label">Visiting Time </label>
+              <select name="visiting_time" id="visiting_time" class="form-control">
+              <option value="">----- Select Time -----</option>
+              @foreach($time as $value)
+          <option value="{{$value}}">{{$value}}</option>
+        @endforeach
+              </select>
+              <span id="error_visiting_time" style="font-size: 14px; color: firebrick;"></span>
+            </div>
+            <input type="text" name="incomplete_type" id="incomplete_type" />
+            <input type="text" name="failed_type_func" id="failed_type_func" />
+            <input type="hidden" name="assign_scheme_id" id="assign_scheme_id">
+            <div class="col-md-3" style="margin-top: 24px;">
+              <button class="btn btn-primary" name="search_btn" id="search_btn" type="submit">
+              Tag</button>&nbsp;&nbsp;&nbsp;
+            </div>
+            </div>
+          </div>
+          </form>
+        </div>
+        </div>
+      </div>
+
+      <div id="res_div" style="display: none;">
         <div class="panel panel-default">
-          <div class="panel-heading" style="font-size: 14px; font-weight: bold; font-style: italic;"><span
-              id="panel-icon">Enter Filter Criteria</div>
-          <div class="panel-body" style="padding: 5px;">
-            <div class="row">
-              <div class="col-md-12">
-                @if (($message = Session::get('success')))
-          <div class="alert alert-success alert-block">
-            <button type="button" class="close" data-dismiss="alert">×</button>
-            <strong>{{ $message }} </strong>
-          </div>
-        @endif
-                @if (($message = Session::get('message')))
-          <div class="alert alert-danger alert-block">
-            <button type="button" class="close" data-dismiss="alert">×</button>
-            <strong>{{ $message }}</strong>
-          </div>
-        @endif
-                @if (($message = Session::get('msg1')))
-          <div class="alert alert-danger alert-block">
-            <button type="button" class="close" data-dismiss="alert">×</button>
-            <strong>{{ $message }}</strong>
-          </div>
-        @endif
-                <div class="row">
-                  <div class="col-md-12">
-                    <div class="col-md-4">
-                      <label class=" control-label">Scheme <span class="text-danger">*</span></label>
-                      <select class="form-control" name="scheme_type" id='scheme_type' required>
-                        <option value="">--Select Scheme--</option>
-                        @foreach ($schemes as $scheme)
-              <option value="{{ $scheme->id }}">{{ $scheme->scheme_name }}
-              </option>
-            @endforeach
-                      </select>
-                      <span class="text-danger" id="error_scheme_type"></span>
-                    </div>
-                    <div class="form-group col-md-4">
-                      <label class="required-field">Operation Type <span class="text-danger">*</span></label>
-                      <select class="form-control" name="filter_type" id="filter_type">
-                        <option value="">--Select--</option>
-                        @foreach ($incomplete_types as $type)
-              <option value="{{$type->id}}">{{$type->name}}</option>
-            @endforeach
-                      </select>
-                      <span id="error_filter_type" class="text-danger"></span>
-                    </div>
-
-
-                    <input type="hidden" name="urban_code" id="urban_code" value="{{$rural_urban_fk}}" />
-                    <input type="hidden" name="block" id="block" value="{{$block_munc_corp_code_fk}}" />
-                    <input type="hidden" name="type" id="type" value="{{ $type_id}}" />
-
-                    @include('common-selection.index')
-
-                    <div class="form-group col-md-3" id="failed_type_div" style="display: none;">
-                      <label class="required-field">Failed Type <span class="text-danger">*</span></label>
-                      <select class="form-control" name="failed_type" id="failed_type">
-                        <option value="">--Select--</option>
-                        <option value="3">SBI</option>
-                        <option value="4">RBI</option>
-                        <option value="5">IFMS</option>
-                      </select>
-                      <span id="error_failed_type" class="text-danger"></span>
-                    </div>
-
-                    <!-- 
-                    <div class="form-group row">
-                      <div class="form-group col-md-4" id="municipality_div" @if($municipality_visible)
-          style="display: block;" @else style="display:none" @endif>
-                        <label class="">Municipality</label>
-
-                        <select name="muncid" id="muncid" class="form-control" tabindex="16">
-                          <option value="">--All --</option>
-                          @foreach ($muncList as $munc)
-                <option value="{{$munc->urban_body_code}}"> {{$munc->urban_body_name}}</option>
-              @endforeach
-
-                        </select>
-                        <span id="error_muncid" class="text-danger"></span>
-                      </div> -->
-
-                    <!-- <div class="form-group col-md-4" id="gp_ward_div" @if($gp_ward_visible) style="display: block;"
-          @else style="display:none" @endif>
-                        <label class="" id="gp_ward_txt">GP/Ward</label>
-
-                        <select name="gp_ward" id="gp_ward" class="form-control" tabindex="17">
-                          <option value="">--All --</option>
-                          @foreach ($gpList as $gp)
-                <option value="{{$gp->gram_panchyat_code}}"> {{$gp->gram_panchyat_name}}</option>
-              @endforeach
-
-                        </select>
-                        <span id="error_gp_ward" class="text-danger"></span>
-                      </div> -->
-
-
-                  </div>
-
-
-
-
-                </div>
-                <div style="text-align: center;">
-                  <button class="btn btn-primary" name="submit_btn" id="submit_btn" type="button" disabled><i
-                      class="fa fa-search"></i> Search</button>&nbsp;
-                  {{-- <button class="btn btn-default" name="reset_btn" id="reset_btn" type="button" disabled><i
-                      class="fa fa-refresh"></i> Reset</button> --}}
-
-                </div>
-
-                <div class="col-md-12" style="text-align: left; margin-top: 20px;">
-                  <form action="{{route('getNoDupListExcel')}}" method="post">
-                    {{csrf_field()}}
-                    <input type="hidden" name="excel_scheme_id" id="excel_scheme_id" />
-                    <input type="hidden" name="excel_filter_id" id="excel_filter_id" />
-                    <input type="hidden" name="excel_filter_blk_ulb_body" id="excel_filter_blk_ulb_body" />
-                    <input type="hidden" name="excel_filter_gp_ward" id="excel_filter_gp_ward" />
-                    <button class="btn btn-success" name="excel_btn" id="excel_btn" type="submit" disabled>
-                      <i class="fa fa-file-excel-o"></i> Download List
-                    </button>
-                  </form>
-                </div>
-              </div>
-            </div>
+        <div class="panel-heading" id="panel_head" style="font-size: 14px; font-weight: bold; font-style: italic;">
+          List of Beneficiary</div>
+        <div class="panel-body" style="padding: 5px; font-size: 14px;">
+          <div class="table-responsive">
+          <table id="example" class="table display" cellspacing="0" width="100%">
+            <thead style="font-size: 12px;">
+            <th>Application ID</th>
+            <th>Applicant Name</th>
+            <th>Block/Municipality</th>
+            <th>GP/Ward</th>
+            <th>Aadhar No</th>
+            <th>Bank A/C</th>
+            <th>Bank IFSC</th>
+            <th>Incomplete Status</th>
+            <th>Action</th>
+            </thead>
+            <tbody style="font-size: 14px;"></tbody>
+          </table>
           </div>
         </div>
-
-        <div id="res_div" style="display: none;">
-          <div class="panel panel-default">
-            <div class="panel-heading" id="panel_head" style="font-size: 14px; font-weight: bold; font-style: italic;">
-              List of Beneficiary</div>
-            <div class="panel-body" style="padding: 5px; font-size: 14px;">
-              <div class="table-responsive">
-                <table id="example" class="table display" cellspacing="0" width="100%">
-                  <thead style="font-size: 12px;">
-                    <th>Application ID</th>
-                    <th>Applicant Name</th>
-                    <th>Block/Municipality</th>
-                    <th>GP/Ward</th>
-                    <th>Aadhar No</th>
-                    <th>Bank A/C</th>
-                    <th>Bank IFSC</th>
-                    <th>Incomplete Status</th>
-                    <th>Action</th>
-                  </thead>
-                  <tbody style="font-size: 14px;"></tbody>
-                </table>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
+      </div>
     </div>
-  </section>
-  <!-- /.content -->
+    </section>
+    <!-- /.content -->
 
-  <!-- Update Details Modal -->
-  <!-- Modal -->
-  <div class="modal fade" id="modalUpdate" role="dialog">
+    <!-- Update Details Modal -->
+    <!-- Modal -->
+    <div class="modal fade" id="modalUpdate" role="dialog">
     <div class="modal-dialog modal-lg">
       <div class="modal-content">
-        <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span></button>
-          <h4 class="modal-title">Verify Details</h4>
-        </div>
-        <div class="modal-body">
-          <div class="loadingDivModal"></div>
-          <div class="" id="updateDiv">
-            <div class="row">
-              <div class="col-md-12">
-                <h4 style="text-align: center;" class="text-primary">Application ID: <span id="application_id"></span>
-                </h4>
-              </div>
-            </div>
-            <div id="benMobileDetails"></div>
-            <input type="hidden" name="pension_id" id="pension_id" value="">
-            <input type="hidden" name="update_scheme_id" id="update_scheme_id" value="">
-            <input type="hidden" name="update_type" id="update_type" value="">
-            <div class="table-responsive">
-              <table class="table table-bordered table-responsive table-condensed" style="width:100%; font-size: 14px;">
-                <tr>
-                  <th>Action: <span class="text-danger">*</span></th>
-                  <td>
-                    <select id="action_type" name="action_type" class="form-control">
-                      <option value="verify" selected>Verify</option>
-                    </select>
-                    <span id="error_action_type" class="text-danger"></span>
-                  </td>
-                  <th class="viewAadharCardRow">View Aadhar Card: </th>
-                  <td class="viewAadharCardRow">
-                    <button name="view_aadhar" id="view_aadhar" class="btn btn-primary btn-xs"><i class="fa fa-eye"></i>
-                      View</button>
-                  </td>
-                </tr>
-                <tr>
-                  <th>Remarks: </th>
-                  <td>
-                    <input type="text" name="remarks" id="remarks" class="form-control" value="" maxlength="100">
-                    <small style="font-weight: normal;">Max 100 character allowed</small>
-                  </td>
-                </tr>
-              </table>
-            </div>
-            <div class="row">
-              <div class="col-md-12" style="text-align: center;"><input type="button" name="submit" value="Submit"
-                  id="verifySubmit" class="btn btn-success btn-lg"></div>
-            </div>
-            <!-- </div> -->
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title">Verify Details</h4>
+      </div>
+      <div class="modal-body">
+        <div class="loadingDivModal"></div>
+        <div class="" id="updateDiv">
+        <div class="row">
+          <div class="col-md-12">
+          <h4 style="text-align: center;" class="text-primary">Application ID: <span id="application_id"></span>
+          </h4>
           </div>
         </div>
+        <div id="benMobileDetails"></div>
+        <input type="hidden" name="pension_id" id="pension_id" value="">
+        <input type="hidden" name="update_scheme_id" id="update_scheme_id" value="">
+        <input type="hidden" name="update_type" id="update_type" value="">
+        <div class="table-responsive">
+          <table class="table table-bordered table-responsive table-condensed" style="width:100%; font-size: 14px;">
+          <tr>
+            <th>Action: <span class="text-danger">*</span></th>
+            <td>
+            <select id="action_type" name="action_type" class="form-control">
+              <option value="verify" selected>Verify</option>
+            </select>
+            <span id="error_action_type" class="text-danger"></span>
+            </td>
+            <th class="viewAadharCardRow">View Aadhar Card: </th>
+            <td class="viewAadharCardRow">
+            <button name="view_aadhar" id="view_aadhar" class="btn btn-primary btn-xs"><i class="fa fa-eye"></i>
+              View</button>
+            </td>
+          </tr>
+          <tr>
+            <th>Remarks: </th>
+            <td>
+            <input type="text" name="remarks" id="remarks" class="form-control" value="" maxlength="100">
+            <small style="font-weight: normal;">Max 100 character allowed</small>
+            </td>
+          </tr>
+          </table>
+        </div>
+        <div class="row">
+          <div class="col-md-12" style="text-align: center;"><input type="button" name="submit" value="Submit"
+            id="verifySubmit" class="btn btn-success btn-lg"></div>
+        </div>
+        <!-- </div> -->
+        </div>
+      </div>
       </div>
       <!-- /.modal-content -->
     </div>
     <!-- /.modal-dialog -->
-  </div>
-  <!-- /.modal -->
+    </div>
+    <!-- /.modal -->
 
-  <!-- Aadhar card view modal -->
-  <div class="modal fade" id="modalAadharView" role="dialog">
+    <!-- Aadhar card view modal -->
+    <div class="modal fade" id="modalAadharView" role="dialog">
     <div class="modal-dialog modal-lg">
       <div class="modal-content">
-        <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span></button>
-          <h4 class="modal-title" id="docTypeName">View Aadhar Card</h4>
-        </div>
-        <div class="modal-body">
-          <img id="showAadhar">
-        </div>
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="docTypeName">View Aadhar Card</h4>
+      </div>
+      <div class="modal-body">
+        <img id="showAadhar">
+      </div>
       </div>
       <!-- /.modal-content -->
     </div>
     <!-- /.modal-dialog -->
-  </div>
-  <!-- /.modal -->
+    </div>
+    <!-- /.modal -->
 
-</div>
+  </div>
 @endsection
 <script src="{{ asset("/bower_components/AdminLTE/plugins/jQuery/jquery-2.2.3.min.js") }}"></script>
+<script src="{{ URL::asset('js/beneficiary_jb_tagged_form_oap.js') }}"></script>
+<script src="{{ URL::asset('js/beneficiary_jb_tagged_form_manabik.js') }}"></script>
+<script src="{{ URL::asset('js/beneficiary_jb_tagged_form_wp.js') }}"></script>
+<script src="{{ URL::asset('js/pdfmake.min.js') }}"></script>
+<script src="{{ URL::asset('js/vfs_fonts.js') }}"></script>
 <script>
   $(document).ready(function () {
     // Live Clock
@@ -325,43 +351,55 @@
     $('#failed_type_div').hide();
     $('#submit_btn').removeAttr('disabled');
     $('#reset_btn').removeAttr('disabled');
-    $('#excel_btn').removeAttr('disabled');
+    $('#excel_btn').prop('disabled', false);
+    $('#tagging_div').hide();
+    $('#ild_bulk').hide();
 
-    if ($('#type').val() !== '') {
-      var type = $('#type').val();
-      if (type === '2') {
-        $('#filter_type').val(11).change();
-        // $('#filter_type').attr('disabled', true);
-      } else if (type === '3') {
-        $('#filter_type').val(12).change();
-        // $('#filter_type').attr('disabled', true);
-      } else if (type === '1') {
-        $('#filter_type').val(10).change();
-        // $('#filter_type').attr('disabled', true);
-      } else if (type === '4') {
-        $('#filter_type').val(2).change();
-        // $('#filter_type').attr('disabled', true);
-      } else if (type === '5') {
-        $('#filter_type').val(3).change();
+    // if ($('#scheme_type').val() && $('#filter_type').val()) {
+    // }else{
+    //   $('#excel_btn').prop('disabled', true);
+    // }
 
+    $('#submit_btn').click(function () {
+      if ($.trim($('#filter_type').val()).length !== 0 && $.trim($('#scheme_type').val()).length !== 0) {
+        var incomplete_type = $('#filter_type').val();
+        var failed_type = $('#failed_type').val();
+        var assign_scheme_id = $('#scheme_type').val();
+
+        $('#incomplete_type').val(incomplete_type);
+        $('#failed_type_func').val(failed_type);
+        $('#assign_scheme_id').val(assign_scheme_id); // Fixed missing #
+
+        var scheme_id = parseInt(assign_scheme_id, 10); // Ensure scheme_id is an integer
+        if ([2, 10, 11].includes(scheme_id)) {
+          $('#tagging_div').show();
+          $('#ild_bulk').show();
+        } else {
+          $('#tagging_div').hide();
+          $('#ild_bulk').hide();
+        }
       }
-      else {
-        $.alert({
-          title: 'Error!!',
-          type: 'red',
-          icon: 'fa fa-warning',
-          content: 'Error in Operation Type Selection !!'
-        });
-        $('#filter_type').attr('disabled', false); // Enable filter_type in case of error
-      }
-    }
+    });
+
+    $('#ild_bulk').click(function(){
+      
+    });
+
+
+
+
+
+
+
 
     if ($('#filter_type').val() === '10') { // Ensure comparison to string
       $('#failed_type_div').show().css('display', 'inline');
     } else {
       $('#failed_type_div').hide();
     }
-
+    // alert($('#scheme_type').val());
+    $('#excel_filter_id').val($('#filter_type').val());
+    // $('#excel_scheme_id').val($('#scheme_type').val());
 
     $('#scheme_type').change(function () {
       const value = $(this).val(); // Get the value of the selected option
@@ -369,6 +407,16 @@
         $('#excel_scheme_id').val(value); // Set the value of #excel_scheme_id
       }
     });
+
+    $('#blk_ulb_code').change(function () {
+      const value = $(this).val(); // Get the value of the selected option
+      if (value !== '') {
+        $('#excel_filter_blk_ulb_body').val(value); // Set the value of #excel_scheme_id
+      }
+    });
+
+
+
     $('#filter_type').change(function () {
       const value = $(this).val(); // Get the value of the selected option
       if (value !== '') {
@@ -379,6 +427,9 @@
 
     var error_scheme_type = '';
     var error_filter_type = '';
+    var error_failed_type = '';
+
+
     $('#filter_type').on('change', function () {
       // Get the text of the selected option
       if ($(this).find(':selected').text() === 'Payment Failure') {
@@ -389,6 +440,19 @@
     });
 
     $('#submit_btn').click(function () {
+      var filter_type = $.trim($('#filter_type').val());
+      if (filter_type == 10) {
+        if ($.trim($('#failed_type').val()).length == 0) {
+          error_failed_type = 'Failed type is required';
+          $('#error_failed_type').text(error_failed_type);
+          $('#failed_type').addClass('has-error');
+        } else {
+          error_failed_type = '';
+          $('#error_failed_type').text(error_failed_type);
+          $('#failed_type').removeClass('has-error');
+        }
+      }
+
       if ($.trim($('#scheme_type').val()).length == 0) {
         error_scheme_type = 'Scheme name is required';
         $('#error_scheme_type').text(error_scheme_type);
@@ -404,14 +468,69 @@
         error_filter_type = '';
         $('#error_filter_type').text(error_filter_type);
       }
-
-      if (error_scheme_type != '' || error_filter_type != '') {
-        return false;
+      if (filter_type == 10) {
+        if (error_scheme_type != '' || error_filter_type != '' || error_failed_type != '') {
+          return false;
+        } else {
+          loadDatatable();
+        }
       } else {
-        loadDatatable();
+        if (error_scheme_type != '' || error_filter_type != '') {
+          return false;
+        } else {
+          loadDatatable();
+        }
       }
+
     });
   });
+
+  function benDownloadAssignFunction(value, scheme_id) {
+    $('#loadingDi').show();
+    $.ajax({
+      type: 'post',
+      url: "{{ route('NoDup-validation-correction-form-download') }}",
+      data: { scheme_id: scheme_id, id: value, _token: '{{ csrf_token() }}' },
+      success: function (response) {
+        $('#loadingDi').hide();
+        if (response.status == 1) {
+          $.alert({
+            title: response.title,
+            type: response.type,
+            icon: response.icon,
+            content: response.msg
+          });
+        }
+        else {
+          //console.log("Data Array:", response.data_array); // Debugging
+          const data = response.data_array;
+          if (data.length === 0) {
+            console.warn("No Data Received!");
+            return;
+          }
+
+          if (data[0].scheme_id == 10) {
+            // console.log("Passing Data to OAP Function:", data);
+            beneficiary_jb_tagged_form_oap_n(data);
+          }
+          if (data[0].scheme_id == 11) {
+            // console.log("Passing Data to WP Function:", data);
+            beneficiary_jb_tagged_form_wp(data);
+          }
+          if (data[0].scheme_id == 2) {
+            // console.log("Passing Data to Manabik Function:", data);
+            beneficiary_jb_tagged_form_manabik(data);
+          }
+        }
+      },
+      complete: function () {
+      },
+      error: function (jqXHR, textStatus, errorThrown) {
+        $('#loadingDi').hide();
+        ajax_error(jqXHR, textStatus, errorThrown);
+      }
+    });
+  }
 
 
 
@@ -444,26 +563,26 @@
       },
       "ajax": {
         url: "{{ route('getNoDupList') }}",
-        type: "post",
+        type: "POST",
         data: function (d) {
           d.scheme_id = $('#scheme_type').val(),
             d.filter_type = $('#filter_type').val(),
             d.is_urban = $('#rural_urban_code').val(),
             d.blk_ulb_code = $('#blk_ulb_code').val(),
             d.failed_type = $('#failed_type').val(),
-            d.pay_validated =$('#failed_type').val(),
+            d.pay_validated = $('#failed_type').val(),
             d._token = "{{csrf_token()}}"
         },
         error: function (jqXHR, textStatus, errorThrown) {
           $('#loadingDi').hide();
           $('.preloader1').hide();
           // ajax_error(jqXHR, textStatus, errorThrown);
-          $.alert({
-            title: 'Error!!',
-            type: 'red',
-            icon: 'fa fa-warning',
-            content: 'Loading Error! Session timeout, please logout and login again.'
-          });
+          // $.alert({
+          //   title: 'Error!!',
+          //   type: 'red',
+          //   icon: 'fa fa-warning',
+          //   content: 'Loading Error! Session timeout, please logout and login again.'
+          // });
         }
       },
       "initComplete": function () {
@@ -588,6 +707,7 @@
   $(document).on('click', '#verifySubmit', function () {
     var error_action_type = '';
     var action_type = $.trim($('#action_type').val());
+
     if ($.trim($('#action_type').val()).length == 0) {
       error_action_type = 'Action type is required';
       $('#error_action_type').text(error_action_type);

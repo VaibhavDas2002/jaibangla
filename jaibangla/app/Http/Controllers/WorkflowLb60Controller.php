@@ -12,6 +12,7 @@ use App\GP;
 use App\Taluka;
 use App\UrbanBody;
 use App\Ward;
+use App\Workflow;
 use Illuminate\Contracts\Session\Session;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
@@ -29,12 +30,19 @@ use App\DsPhase;
 use Illuminate\Support\Facades\Storage;
 use App\BenDocs;
 use App\BankDetails;
+use App\BenEntry;
 use App\Helpers\AuthChecker;
 use App\Helpers\PermissionManagement;
-
+use Illuminate\Support\Facades\Route;
+use App\SubDistrict;
+use App\SchemeStepRank;
 
 class WorkflowLb60Controller extends Controller
 {
+  public $aadhar_doc_type_id;
+  public $supporting_dob_type_id;
+  public $reason_order_type_id;
+
   public function __construct()
   {
     $this->middleware('auth');
@@ -68,7 +76,6 @@ class WorkflowLb60Controller extends Controller
       //  dd($request->all());
       $c_time = date('Y-m-d H:i:s', time());
       $user_id = AuthChecker::getUserId();
-
       $scheme_id = $request->scheme_id;
       if (!ctype_digit($scheme_id)) {
         return redirect("/")->with('error', 'Scheme Not Valid');
@@ -81,8 +88,8 @@ class WorkflowLb60Controller extends Controller
       if (empty($duty_obj)) {
         return redirect("/")->with('danger', 'Not Allowed');
       }
-      $is_verifier = AuthChecker::VerifierChecker();
-      $is_approver = AuthChecker::ApproverChecker();
+      $is_verifier = AuthChecker::VerifierPermission();
+      $is_approver = AuthChecker::ApproverPermission();
       $is_hod = AuthChecker::HODChecker();
 
       $district_list_obj = District::get();
@@ -132,22 +139,25 @@ class WorkflowLb60Controller extends Controller
         $is_rural = NULL;
         $created_by_local_body_code = NULL;
       }
-      if (AuthChecker::VerifierChecker()) {
+      if (AuthChecker::VerifierPermission()) {
         // $dup_mark_lb = DB::select("select " . $schema . ".dup_mark_lb(in_c_time => '" . $c_time . "',in_user_id => " . $user_id . ",in_created_by_local_body_code => " . $created_by_local_body_code . ")");     
       }
       if (request()->ajax()) {
         $limit = $request->input('length');
         $offset = $request->input('start');
-        $role_arr_verfied = MapLavel::where('scheme_id', $scheme_id)->where('role_name', 'Verifier')->first();
-        $next_level_role_id_verified = $role_arr_verfied->parent_id;
+        // $role_arr_verfied = MapLavel::where('scheme_id', $scheme_id)->where('role_name', 'Verifier')->first();
+        $next_level_role_id_verified = SchemeStepRank::getSchemeParentId($scheme_id, 1);
+        $next_level_role_id_approval_pending = SchemeStepRank::getSchemeParentId($scheme_id, 2);
+        //dd($next_level_role_id_verified);
+        // $next_level_role_id_verified = $role_arr_verfied->parent_id;
         if ($request->application_type == 5) {
-          if (AuthChecker::ApproverChecker() || AuthChecker::VerifierChecker()) {
+          if (AuthChecker::ApproverPermission() || AuthChecker::VerifierPermission()) {
             // dd(11);
-            $query = DB::table($schema . '.beneficiaries')
+            $query = DB::table('pension.beneficiary_dup_lb')
               ->where('scheme_id', $scheme_id)
               ->where('created_by_dist_code', $district_code);
           } else {
-            $query = DB::table($schema . '.beneficiaries')->where('scheme_id', $scheme_id);
+            $query = DB::table('pension.beneficiaries')->where('scheme_id', $scheme_id);
             if (!empty($request->dist_code)) {
               $query = $query->where('created_by_dist_code', $request->dist_code)->where('scheme_id', $scheme_id);
             }
@@ -157,11 +167,11 @@ class WorkflowLb60Controller extends Controller
 
           }
         } else {
-          if (AuthChecker::ApproverChecker() || AuthChecker::VerifierChecker()) {
-            $query = DB::table($schema . '.beneficiaries')->where('scheme_id', $scheme_id)
+          if (AuthChecker::ApproverPermission() || AuthChecker::VerifierPermission()) {
+            $query = DB::table('pension.beneficiaries')->where('scheme_id', $scheme_id)
               ->where('is_lb_imported', 1)->where('created_by_dist_code', $district_code);
           } else {
-            $query = DB::table($schema . '.beneficiaries')->where('scheme_id', $scheme_id)
+            $query = DB::table('pension.beneficiaries')->where('scheme_id', $scheme_id)
               ->where('is_lb_imported', 1);
             //dd($request->dist_code);
             if (!empty($request->dist_code) && isset($request->dist_code) && ($request->dist_code !== 'undefined')) {
@@ -172,13 +182,13 @@ class WorkflowLb60Controller extends Controller
             }
           }
         }
-        if (AuthChecker::VerifierChecker()) {
+        if (AuthChecker::VerifierPermission()) {
           $query = $query->where('created_by_local_body_code', $created_by_local_body_code);
         }
-        if (AuthChecker::VerifierChecker()) {
+        if (AuthChecker::VerifierPermission()) {
           //$query = $query->whereIn('no_aadhar_mobile_flag', [1, 2, 3]);
         }
-        if (AuthChecker::ApproverChecker()) {
+        if (AuthChecker::ApproverPermission()) {
           // $query = $query->whereIn('no_aadhar_mobile_flag', [2, 3]);
         }
         if ($duty_obj->mapping_level == "Subdiv") {
@@ -192,13 +202,13 @@ class WorkflowLb60Controller extends Controller
         if (!empty($request->application_type)) {
           if ($request->application_type == 1) {
             //Pending
-            if (AuthChecker::ApproverChecker()) {
-              $query = $query->whereraw(" (((is_transfer=1 and transfer_finalize IS NULL) or (back_lb=1 and back_lb_finalize IS NULL) or next_level_role_id=" . $next_level_role_id_verified . ") and is_rejected=0)");
+            if (AuthChecker::ApproverPermission()) {
+              $query = $query->whereraw(" (((is_transfer=1 and transfer_finalize IS NULL) or (back_lb=1 and back_lb_finalize IS NULL) or next_level_role_id=" . $next_level_role_id_approval_pending . ") and is_rejected=0)");
             } else
-              $query = $query->whereNull('next_level_role_id')->whereNull('transfer_to_scheme_id')->whereNull('is_transfer')->whereNull('back_lb');
+              $query = $query->where('next_level_role_id', $next_level_role_id_verified)->whereNull('transfer_to_scheme_id')->whereNull('is_transfer')->whereNull('back_lb');
           } else if ($request->application_type == 2) {
             //Verified and Yet not Approved
-            $query = $query->where('next_level_role_id', $next_level_role_id_verified);
+            $query = $query->where('next_level_role_id', $next_level_role_id_approval_pending);
           } else if ($request->application_type == 3) {
             //Verified and Approved
 
@@ -208,13 +218,13 @@ class WorkflowLb60Controller extends Controller
             $query = $query->where('next_level_role_id', -3);
           } else if ($request->application_type == 6) {
             //Received from bandhu
-            $query = $query->whereNull('next_level_role_id')->where('transfer_from_scheme_id', 3);
+            $query = $query->where('next_level_role_id', $next_level_role_id_verified)->where('transfer_from_scheme_id', 3);
           } else if ($request->application_type == 7) {
             //Transfer to Bandhu
             $query = $query->where('is_transfer', 1)->where('transfer_to_scheme_id', 3);
           } else if ($request->application_type == 9) {
             //Received from Johar
-            $query = $query->whereNull('next_level_role_id')->where('transfer_from_scheme_id', 1);
+            $query = $query->where('next_level_role_id', $next_level_role_id_verified)->where('transfer_from_scheme_id', 1);
           } else if ($request->application_type == 10) {
             //Transfer to Johar
             $query = $query->where('is_transfer', 1)->where('transfer_to_scheme_id', 1);
@@ -223,15 +233,20 @@ class WorkflowLb60Controller extends Controller
             $query = $query->where('is_transfer', 1)->where('transfer_to_scheme_id', 10);
           } else if ($request->application_type == 12) {
             //Received from Bandhu
-            $query = $query->whereNull('next_level_role_id')->where('transfer_from_scheme_id', 3);
+            $query = $query->where('next_level_role_id', $next_level_role_id_verified)->where('transfer_from_scheme_id', 3);
           } else if ($request->application_type == 13) {
             //Received from Johar
-            $query = $query->whereNull('next_level_role_id')->where('transfer_from_scheme_id', 1);
+            $query = $query->where('next_level_role_id', $next_level_role_id_verified)->where('transfer_from_scheme_id', 1);
           } else if ($request->application_type == 14) {
             //Received from Johar
             $query = $query->where('back_lb', 1);
+          } else if ($request->application_type == 5) {
+            // Probable Duplicate 
+            $query = $query->whereRaw('(jb_dup_bank = 1 OR jb_dup_aadhar = 1 OR jb_dup_caste_certificate_no = 1)');
           }
         }
+
+        // dd($query->toSql());
         $application_type = $request->application_type;
         $serachvalue = $request->search['value'];
         if (empty($serachvalue)) {
@@ -252,7 +267,8 @@ class WorkflowLb60Controller extends Controller
               'mobile_no',
               'jb_dup_bank',
               'jb_dup_aadhar',
-              'jb_dup_caste_certificate_no'
+              'jb_dup_caste_certificate_no',
+              'scheme_id'
             ]);
           } else {
             $data = $query->orderBy(DB::raw('regexp_replace(trim(ben_full_name), \'.*\\s\', \'\')'), 'ASC')->orderBy('dob', 'ASC')->offset($offset)->limit($limit)->get([
@@ -276,6 +292,7 @@ class WorkflowLb60Controller extends Controller
               'transfer_to_scheme_id',
               'back_lb',
               'back_lb_finalize',
+              'scheme_id'
 
             ]);
           }
@@ -305,7 +322,8 @@ class WorkflowLb60Controller extends Controller
                   'mobile_no',
                   'jb_dup_bank',
                   'jb_dup_aadhar',
-                  'jb_dup_caste_certificate_no'
+                  'jb_dup_caste_certificate_no',
+                  'scheme_id'
                 ]
               );
             } else {
@@ -331,6 +349,7 @@ class WorkflowLb60Controller extends Controller
                   'transfer_to_scheme_id',
                   'back_lb',
                   'back_lb_finalize',
+                  'scheme_id'
                 ]
               );
             }
@@ -360,7 +379,8 @@ class WorkflowLb60Controller extends Controller
                   'mobile_no',
                   'jb_dup_bank',
                   'jb_dup_aadhar',
-                  'jb_dup_caste_certificate_no'
+                  'jb_dup_caste_certificate_no',
+                  'scheme_id'
                 ]
               );
             } else {
@@ -386,6 +406,7 @@ class WorkflowLb60Controller extends Controller
                   'transfer_to_scheme_id',
                   'back_lb',
                   'back_lb_finalize',
+                  'scheme_id'
                 ]
               );
             }
@@ -492,12 +513,12 @@ class WorkflowLb60Controller extends Controller
         return redirect("/")->with('danger', 'Scheme Not Found');
       }
 
-      $is_verifier = AuthChecker::VerifierChecker();
-      $is_approver = AuthChecker::ApproverChecker();
+      $is_verifier = AuthChecker::VerifierPermission();
+      $is_approver = AuthChecker::ApproverPermission();
       $is_hod = AuthChecker::HODChecker();
       $duty_obj = Configduty::where('user_id', $user_id)->where('scheme_id', $scheme_id)->first();
       if (empty($duty_obj)) {
-        return redirect("/")->with('danger', 'Not Allowed');
+        return redirect("/")->with('danger', 'Not Allowed.');
       }
       $district_code = $duty_obj->district_code;
       if (!empty($scheme_obj->short_code)) {
@@ -509,33 +530,34 @@ class WorkflowLb60Controller extends Controller
         $scheme_length = NULL;
         $id_length = NULL;
       }
-      if (AuthChecker::ApproverChecker() || AuthChecker::VerifierChecker()) {
-        $query = DB::table($schema . '.beneficiaries')
-          ->where('created_by_dist_code', $district_code)
+      if (AuthChecker::ApproverPermission() || AuthChecker::VerifierPermission()) {
+        $query = DB::table('pension.beneficiaries')
+          ->where('created_by_dist_code', $district_code)->where('scheme_id', $request->scheme_id)
           ->where('id', $request->id)->where('is_lb_imported', 1);
       } else {
-        $query = DB::table($schema . '.beneficiaries')
+        $query = DB::table('pension.beneficiaries')->where('scheme_id', $request->scheme_id)
           ->where('id', $request->id)->where('is_lb_imported', 1);
       }
 
-      $role_arr_verfied = MapLavel::where('scheme_id', $scheme_id)->where('role_name', 'Verifier')->first();
-      $next_level_role_id_verified = $role_arr_verfied->parent_id;
+
+      $next_level_role_id_verified = SchemeStepRank::getSchemeParentId($scheme_id, 1);
+      $next_level_role_id_approval_pending = SchemeStepRank::getSchemeParentId($scheme_id, 2);
       // dd($next_level_role_id_verified);
       $row = $query->first();
       //dd($row->next_level_role_id);
       if (empty($row)) {
-        return redirect("/")->with('danger', 'Not Allowed');
+        return redirect("/")->with('danger', 'Not Allowed..');
       }
-      if ($row->next_level_role_id == 0 && !is_null($row->next_level_role_id)) {
+      if ($row->next_level_role_id == 0) {
         //dd($row->next_level_role_id);
-        return redirect("/")->with('danger', 'Not Allowed');
+        return redirect("/")->with('danger', 'Not Allowed...');
       }
-      if (AuthChecker::VerifierChecker()) {
-        if (!is_null($row->next_level_role_id)) {
-          return redirect("/")->with('danger', 'Not Allowed');
+      if (AuthChecker::VerifierPermission()) {
+        if ($row->next_level_role_id != $next_level_role_id_verified) {
+          return redirect("/")->with('danger', 'Not Allowed....');
         }
       }
-      if (AuthChecker::ApproverChecker()) {
+      if (AuthChecker::ApproverPermission()) {
       }
       $row->app_id = $row->lb_application_id;
 
@@ -751,12 +773,12 @@ class WorkflowLb60Controller extends Controller
         }
         //$transfer_oap = 0;
       }
-      if (AuthChecker::VerifierChecker()) {
+      if (AuthChecker::VerifierPermission()) {
         if ($row->doc_imported == 1) {
           $can_verify = 1;
         }
         $can_approve = 0;
-      } else if (AuthChecker::ApproverChecker()) {
+      } else if (AuthChecker::ApproverPermission()) {
         $can_verify = 0;
         // dd($row->transfer_to_scheme_id);
         $transfer_sc = 0;
@@ -784,7 +806,7 @@ class WorkflowLb60Controller extends Controller
             $transfer_st = 0;
             $transfer_oap = 1;
           }
-        } else if ($row->next_level_role_id === $next_level_role_id_verified) {
+        } else if ($row->next_level_role_id === $next_level_role_id_approval_pending) {
           $can_approve = 1;
           $back_to_lb = 0;
           $undo = 1;
@@ -792,7 +814,7 @@ class WorkflowLb60Controller extends Controller
           return redirect("/")->with('danger', 'Not Allowed');
         }
       }
-      if (AuthChecker::ApproverChecker() || AuthChecker::VerifierChecker()) {
+      if (AuthChecker::ApproverPermission() || AuthChecker::VerifierPermission()) {
       } else {
         $fetch_lb = 0;
         $can_verify = 0;
@@ -806,6 +828,17 @@ class WorkflowLb60Controller extends Controller
       //$undo=0;
       //$back_to_lb=0;
       //dump($transfer_sc);dump($transfer_st);dump($transfer_oap);dd($transfer_sc);
+      $is_verifier_login = 0;
+      $is_approver_login = 0;
+      if (AuthChecker::ApproverPermission()) {
+        $is_approver_login = 1;
+        $designation_id = 'Approver';
+      }
+      if (AuthChecker::VerifierPermission()) {
+        $is_verifier_login = 1;
+        $designation_id = 'Verifier';
+      }
+
       return view(
         'Lokkhibhandar60.View60lbapplication',
         [
@@ -832,11 +865,15 @@ class WorkflowLb60Controller extends Controller
           'can_approve' => $can_approve,
           'age_supporting' => $age_supporting,
           'reason_order' => $reason_order,
-          'district_code' => $district_code
+          'district_code' => $district_code,
+          'is_approver_login' => $is_approver_login,
+          'is_verifier_login' => $is_verifier_login,
+          'designation_id' => $designation_id
+
         ]
       );
     } catch (\Exception $e) {
-      // dd($e);
+      //dd($e);
       return redirect("/")->with('danger', 'Error');
     }
   }
@@ -845,9 +882,10 @@ class WorkflowLb60Controller extends Controller
   {
     try {
       $user_id = AuthChecker::getUserId();
-      if (!AuthChecker::VerifierChecker() || !AuthChecker::ApproverChecker()) {
+      if (!(AuthChecker::VerifierPermission() || AuthChecker::ApproverPermission())) {
         return redirect("/")->with('danger', 'Not Allowed');
       }
+
       $scheme_id = $request->scheme_id;
       if (!ctype_digit($scheme_id)) {
         return redirect("/")->with('error', 'Scheme Not Valid');
@@ -872,8 +910,9 @@ class WorkflowLb60Controller extends Controller
       } else {
         $created_by_local_body_code = $duty_obj->taluka_code;
       }
-      $role = MapLavel::where('scheme_id', $scheme_id)->where('role_name', 'Verifier')->first();
-      $next_level_role_id_verified = $role->parent_id;
+      // $role = MapLavel::where('scheme_id', $scheme_id)->where('role_name', 'Verifier')->first();
+      // $next_level_role_id_verified = $role->parent_id;
+      $next_level_role_id_verified = Workflow::getID($scheme_id, Auth::user()->designation_id);
       $condition = array();
       $condition['id'] = $request->id;
       $condition['is_lb_imported'] = 1;
@@ -887,12 +926,12 @@ class WorkflowLb60Controller extends Controller
         $scheme_length = NULL;
         $id_length = NULL;
       }
-      if (AuthChecker::VerifierChecker()) {
-        $query = DB::table($schema . '.beneficiaries')
-          ->where($condition)->whereNull('next_level_role_id');
+      if (AuthChecker::VerifierPermission()) {
+        $query = DB::table('pension.beneficiaries')
+          ->where($condition)->where('next_level_role_id', $next_level_role_id_verified);
       }
-      if (AuthChecker::ApproverChecker()) {
-        $query = DB::table($schema . '.beneficiaries')
+      if (AuthChecker::ApproverPermission()) {
+        $query = DB::table('pension.beneficiaries')
           ->where($condition);
       }
 
@@ -1004,7 +1043,7 @@ class WorkflowLb60Controller extends Controller
             $return_msg = 'IFSC Not Found';
             return redirect("/")->with('danger', 'IFSC Not Found');
           }
-          $npci_bank_update = DB::table($schema . '.beneficiaries')->where('id', $request->id)->update(['npci_bank_code' => $bank_details->bank_code]);
+          $npci_bank_update = DB::table('pension.beneficiaries')->where('id', $request->id)->update(['npci_bank_code' => $bank_details->bank_code]);
         } else {
           $npci_bank_update = 1;
         }
@@ -1017,14 +1056,14 @@ class WorkflowLb60Controller extends Controller
       //dd($action_msg);
       if ($action_type == 1) {
         //For Doc Import
-        if (AuthChecker::VerifierChecker()) {
+        if (AuthChecker::VerifierPermission()) {
           return redirect("/")->with('danger', 'Not Allowed');
         }
       } else if ($action_type == 5) {
 
         // dd('ok');
         //For Import & Verify
-        if (!AuthChecker::VerifierChecker()) {
+        if (!AuthChecker::VerifierPermission()) {
           return redirect("/")->with('danger', 'Not Allowed');
         }
         //dd('ok');
@@ -1034,29 +1073,49 @@ class WorkflowLb60Controller extends Controller
         if ($isValidarr['is_valid'] == false) {
           return back()->with('errors', $isValidarr['errors'])->withInput(Input::all());
         }
-        $role = MapLavel::where('scheme_id', $scheme_id)->where('role_name', 'Verifier')->first();
-        $next_level_role_id_verified = $role->parent_id;
-        // dd($next_level_role_id_verified );
+        // $role = MapLavel::where('scheme_id', $scheme_id)->where('role_name', 'Verifier')->first();
+        $next_level_role_id_verified = SchemeStepRank::getSchemeParentId($scheme_id, 2);
+        $next_level_role_id_operator = SchemeStepRank::getSchemeParentId($scheme_id, 1);
+
+        $ip_address = request()->ip();
+        $benEntry_model = BenEntry::where('id', $request->id)->where('scheme_id', $scheme_id)->where('created_by_dist_code', $district_code)->where('next_level_role_id', $next_level_role_id_operator)->first();
         DB::beginTransaction();
-        //dump($sp_aadhar_no_old);dump($sp_aadhar_no_new);dump($sp_mobile_old);dd($sp_mobile_new);        
-        //dd($sp_aadhar_no_new);
-        $import_from_lb_arr = DB::select("select " . $schema . ".import_from_lb(
-          in_op_type => 'LV',
-          in_scheme_id =>" . $scheme_id . ",
-          in_verified_next_level_role_id => " . $next_level_role_id_verified . ",
-          in_c_time => '" . $c_time . "',
-          in_user_id => " . $user_id . ",
-          in_ben_id =>" . $request->id . ",
-          in_mobile_no =>" . $sp_mobile_new . ",
-          in_aadhar_no => '" . $sp_aadhar_no_new . "',
-          in_ration_card_cat => '" . $ration_card_cat . "',
-          in_ration_card_no => '" . $ration_card_no . "',
-          in_epic_voter_id => '" . $epic_voter_id . "',
-          in_caste_certificate_no => '" . $sp_caste_certificate_no_new . "')");
-        $import_from_lb_status = $import_from_lb_arr[0]->import_from_lb;
+        $benEntry_model->is_verified = 1;
+        $benEntry_model->next_level_role_id = $next_level_role_id_verified;
+        $benEntry_model->verification_date = $c_time;
+        if (!is_null($sp_aadhar_no_new)) {
+          $benEntry_model->aadhar_no = $sp_aadhar_no_new;
+        }
+        if (!is_null($sp_mobile_new) && $sp_mobile_new > 0) {
+          $benEntry_model->mobile_no = $sp_mobile_new;
+        }
+        if (!is_null($ration_card_cat)) {
+          $benEntry_model->ration_card_cat = $ration_card_cat;
+        }
+        if (!is_null($epic_voter_id)) {
+          $benEntry_model->epic_voter_id = $epic_voter_id;
+        }
+        if (!is_null($sp_caste_certificate_no_new)) {
+          $benEntry_model->caste_certificate_no = $sp_caste_certificate_no_new;
+        }
+        $is_status_updated = $benEntry_model->save();
+        $accept_reject_model = new AcceptRejectInfo;
+        $accept_reject_model->created_at = $c_time;
+        $accept_reject_model->application_id = $request->id;
+        $accept_reject_model->scheme_id = $scheme_id;
+        $accept_reject_model->user_id = $user_id;
+        $accept_reject_model->user_id = $user_id;
+        $accept_reject_model->created_by_dist_code = $district_code;
+        $accept_reject_model->created_by_local_body_code = $created_by_local_body_code;
+        $accept_reject_model->ip_address = request()->ip();
+        $accept_reject_model->module_name = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod() . 'AV';
+        $accept_reject_model->op_type = 'LV';
+        $is_saved_log = $accept_reject_model->save();
+
+
         // dd($import_from_lb_status);
         try {
-          if ($import_from_lb_status && $npci_bank_update) {
+          if ($is_saved_log && $is_status_updated) {
             DB::commit();
             return redirect("workflow-lb60?scheme_id=" . $scheme_id)->with('success', $action_msg)
               ->with('lb_id', $row->lb_application_id);
@@ -1078,7 +1137,7 @@ class WorkflowLb60Controller extends Controller
 
         //Back to LB
 
-        if (AuthChecker::VerifierChecker()) {
+        if (AuthChecker::VerifierPermission()) {
           $mydate = date('Y-m-d');
           $max_date = strtotime("-25 year", strtotime($mydate));
           $max_date = date("Y-m-d", $max_date);
@@ -1109,6 +1168,17 @@ class WorkflowLb60Controller extends Controller
             return redirect("View60lbapplication?id=" . $request->id . "&scheme_id=" . $scheme_id)->with('errors', $error_msg);
           }
           try {
+            if (is_null(trim($request->reject_revert_cause)) || trim($request->reject_revert_cause) == '') {
+              $return_text = 'Please Specify Cause';
+              $return_msg = array("" . $return_text);
+              return redirect("View60lbapplication?id=" . $request->id . "&scheme_id=" . $scheme_id)->with('errors', $return_msg);
+            }
+            $reject_revert_cause_count = RejectRevertReason::where('status', true)->where('id', trim($request->reject_revert_cause))->count();
+            if ($reject_revert_cause_count == 0) {
+              $return_text = 'Cause is Invalid';
+              $return_msg = array("" . $return_text);
+              return redirect("View60lbapplication?id=" . $request->id . "&scheme_id=" . $scheme_id)->with('errors', $return_msg);
+            }
             $doc_master = DocumentType::get();
             $image_file = $request->file('doc_' . $doc_age_dob->id);
             $img_data = file_get_contents($image_file);
@@ -1138,6 +1208,8 @@ class WorkflowLb60Controller extends Controller
             $serverip = Config::get('constants.lb60server');
             // dd($serverip);
             if (empty($row->is_faulty)) {
+
+
               $is_faulty = 0;
               //$doc_attach = 'ben_attach_documents';
               // $doc_profile = 'ben_profile_image';
@@ -1147,11 +1219,16 @@ class WorkflowLb60Controller extends Controller
               //$doc_profile = 'faulty_ben_profile_image';
             }
             $post_url = $serverip . '/api/jbtempdobupdate';
+            if (strpos($post_url, "https://") === 0) {
+              $post_url = str_replace("https://", "http://", $post_url);
+            }
             $curl = curl_init($post_url);
             $headers = array(
               'Content-Type: application/json'
             );
-
+            // if($row->lb_application_id == 120432484) {
+            //   dd('faulty');
+            // }
             $data = array("application_id" => $row->lb_application_id, "is_faulty" => $is_faulty, "dob" => $request->dob);
             $data_string = json_encode($data);
 
@@ -1160,13 +1237,25 @@ class WorkflowLb60Controller extends Controller
             curl_setopt($curl, CURLOPT_URL, $post_url);
             curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-            curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "GET");
+            curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "POST");
             curl_setopt($curl, CURLOPT_POSTFIELDS, $data_string);
+            // curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+            // curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
             $post_response = curl_exec($curl);
             //dd($post_response);
+
+
+            // if ($row->lb_application_id == 120432484) {
+            //   dd('cURL Error: ' . curl_error($curl));
+            // }
+            // if($row->lb_application_id == 120432484 ){
+            //   dd($post_response);
+            // }
             if ($post_response) {
               $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
               curl_close($curl);
+
+
               if ($httpcode == 200) {
                 $post_response_lb = json_decode($post_response);
                 $is_success = $post_response_lb->is_success;
@@ -1204,18 +1293,30 @@ class WorkflowLb60Controller extends Controller
                           'back_lb' => 1,
                           'lb_dob' => $request->dob
                         ];
-                        $back_lb_status = DB::table($schema . '.beneficiaries')->where('id', $request->id)->whereNull('is_transfer')->whereNull('back_lb')->update($input);
+                        $benEntry_model = BenEntry::where('id', $request->id)->where('scheme_id', $scheme_id)->where('created_by_dist_code', $duty_obj->district_code)->whereNull('is_transfer')->whereNull('back_lb')->first();
+                        $benEntry_model->back_lb = 1;
+                        $benEntry_model->lb_dob = $request->dob;
+                        $benEntry_model->action_cause_id = trim($request->reject_revert_cause);
+                        $benEntry_model->action_remark = trim($request->remarks);
+                        $back_lb_status = $benEntry_model->save();
+                        //$back_lb_status = DB::table('pension.beneficiaries')->where('id', $request->id)->whereNull('is_transfer')->whereNull('back_lb')->update($input);
                         $accept_reject_model = new AcceptRejectInfo;
+
                         $accept_reject_model->created_at = $c_time;
                         $accept_reject_model->application_id = $request->id;
                         $accept_reject_model->scheme_id = $scheme_id;
                         $accept_reject_model->user_id = $user_id;
                         $accept_reject_model->ip_address = request()->ip();
                         $accept_reject_model->op_type = 'BACKLBV';
-                        $accept_reject_model->action_by = $user_id;
-                        $accept_reject_model->action_ip_address = $request->ip();
-                        $accept_reject_model->action_type = class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod() . '@' . 'BACKLBV';
+                        $accept_reject_model->module_name = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod() . '@' . 'BACKLBV';
                         $is_saved_log = $accept_reject_model->save();
+
+                        //   if($row->lb_application_id == 120432484){
+                        //     dump($back_lb_status);
+                        //     dump($is_saved_log);
+                        //     die;
+
+                        // }
                         if ($back_lb_status && $is_saved_log) {
                           DB::commit();
                           DB::connection('pgsql_lb_encwrite')->commit();
@@ -1266,10 +1367,10 @@ class WorkflowLb60Controller extends Controller
 
 
           } catch (\Exception $e) {
-            // dd($e);
+            //dd($e);
             return redirect("View60lbapplication?id=" . $request->id . "&scheme_id=" . $scheme_id)->with('error', 'Error! Please try again.');
           }
-        } else if (AuthChecker::ApproverChecker()) {
+        } else if (AuthChecker::ApproverPermission()) {
           // dd('ok');
           try {
             $serverip = Config::get('constants.lb60server');
@@ -1284,6 +1385,9 @@ class WorkflowLb60Controller extends Controller
               //$doc_profile = 'faulty_ben_profile_image';
             }
             $post_url = $serverip . '/api/jbmarkwrongdob';
+            if (strpos($post_url, "https://") === 0) {
+              $post_url = str_replace("https://", "http://", $post_url);
+            }
             $curl = curl_init($post_url);
             $headers = array(
               'Content-Type: application/json'
@@ -1291,15 +1395,19 @@ class WorkflowLb60Controller extends Controller
 
             $data = array("application_id" => $row->lb_application_id, "is_faulty" => $is_faulty);
             $data_string = json_encode($data);
-
+            // dd($data_string);
             $scheme_id = $row->scheme_id;
             header("Access-Control-Allow-Origin: *");
             curl_setopt($curl, CURLOPT_URL, $post_url);
             curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-            curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "GET");
+            curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "POST");
             curl_setopt($curl, CURLOPT_POSTFIELDS, $data_string);
             $post_response = curl_exec($curl);
+            if (curl_errno($curl)) {
+              $response_text = curl_error($curl);
+              // dd($response_text);
+            }
             //dd($post_response);
             if ($post_response) {
               $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
@@ -1307,6 +1415,7 @@ class WorkflowLb60Controller extends Controller
               if ($httpcode == 200) {
                 $post_response_lb = json_decode($post_response);
                 $is_success = $post_response_lb->is_success;
+                // dd($is_success);
                 if ($is_success) {
                   DB::beginTransaction();
                   $input = [
@@ -1314,7 +1423,13 @@ class WorkflowLb60Controller extends Controller
                     'next_level_role_id' => -36,
                     'is_rejected' => 1
                   ];
-                  $lb_update = DB::table($schema . '.beneficiaries')->where('id', $request->id)->update($input);
+                  $benEntry_model = BenEntry::where('id', $request->id)->where('scheme_id', $scheme_id)->where('created_by_dist_code', $duty_obj->district_code)->where('back_lb', 1)->first();
+                  $benEntry_model->back_lb_finalize = 1;
+                  $benEntry_model->next_level_role_id = -36;
+                  $benEntry_model->is_rejected = 1;
+                  $benEntry_model->is_clean = 10;
+                  $lb_update = $benEntry_model->save();
+                  // $lb_update = DB::table('pension.beneficiaries')->where('id', $request->id)->update($input);
                   $accept_reject_model = new AcceptRejectInfo;
                   $accept_reject_model->created_at = $c_time;
                   $accept_reject_model->application_id = $request->id;
@@ -1322,9 +1437,7 @@ class WorkflowLb60Controller extends Controller
                   $accept_reject_model->user_id = $user_id;
                   $accept_reject_model->ip_address = request()->ip();
                   $accept_reject_model->op_type = 'BACKLBA';
-                  $accept_reject_model->action_by = $user_id;
-                  $accept_reject_model->action_ip_address = $request->ip();
-                  $accept_reject_model->action_type = class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod() . '@' . 'BACKLBA';
+                  $accept_reject_model->module_name = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod() . '@' . 'BACKLBA';
                   $is_saved_log = $accept_reject_model->save();
                   if ($lb_update && $is_saved_log) {
                     DB::commit();
@@ -1341,11 +1454,11 @@ class WorkflowLb60Controller extends Controller
               }
             } else {
               $return_msg = array('Please try again.');
-              //dd( $return_msg);
+              dd($return_msg);
               return redirect("View60lbapplication?id=" . $request->id . "&scheme_id=" . $scheme_id)->with('errors', $return_msg);
             }
           } catch (\Exception $e) {
-            //dd($e);
+            dd($e);
             // $docs = array();
             $return_msg = array('Error.. Please try agian.');
             return redirect("View60lbapplication?id=" . $request->id . "&scheme_id=" . $scheme_id)->with('errors', $return_msg);
@@ -1355,19 +1468,36 @@ class WorkflowLb60Controller extends Controller
 
         // dd($designation_id);
         //For Approve
-        if (!AuthChecker::ApproverChecker()) {
+        if (!AuthChecker::ApproverPermission()) {
           return redirect("/")->with('danger', 'Not Allowed');
         }
         $in_pension_id = 'ARRAY[' . "'$request->id'" . ']';
         $back_url = 'View60lbapplication?id=' . $request->id . '&scheme_id=' . $scheme_id;
         //dd($next_level_role_id_verified = $role->parent_id);
         try {
+          $next_level_role_id_verified = Workflow::getParentId($scheme_id, 'Verifier');
+          $c_time = date('Y-m-d H:i:s', time());
+          $benEntry_model = BenEntry::where('id', $request->id)->where('scheme_id', $scheme_id)->where('created_by_dist_code', $district_code)->where('next_level_role_id', $next_level_role_id_verified)->first();
           DB::beginTransaction();
-          $is_inserted_status_arr = DB::select("select " . $schema . ".approve_data_bulk_lb(in_verified_next_level_role_id => " . $next_level_role_id_verified . ",in_ben_id => $in_pension_id,in_scheme_id => $scheme_id,in_district_code => $district_code,in_user_id => $user_id,in_op_type => 'LA')");
-          //dd($is_inserted_status_arr);
-          $is_inserted_status = $is_inserted_status_arr[0]->approve_data_bulk_lb;
-          //dd($is_inserted_status);
-          if ($is_inserted_status == 1) {
+          $benEntry_model->payment_start_date = $c_time;
+          $benEntry_model->is_approved = 1;
+          $benEntry_model->next_level_role_id = 0;
+          $benEntry_model->approval_date = $c_time;
+          $benEntry_model->approved_by = $user_id;
+          $is_status_updated = $benEntry_model->save();
+          $accept_reject_model = new AcceptRejectInfo;
+          $accept_reject_model->created_at = $c_time;
+          $accept_reject_model->application_id = $request->id;
+          $accept_reject_model->scheme_id = $scheme_id;
+          $accept_reject_model->user_id = $user_id;
+          $accept_reject_model->created_by_dist_code = $district_code;
+          $accept_reject_model->created_by_local_body_code = $created_by_local_body_code;
+          $accept_reject_model->ip_address = request()->ip();
+          $accept_reject_model->module_name = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod() . 'AV';
+          $accept_reject_model->op_type = 'LA';
+          $is_saved_log = $accept_reject_model->save();
+
+          if ($is_status_updated && $is_saved_log) {
 
             DB::commit();
             return redirect('workflow-lb60?scheme_id=' . $scheme_id)->with('message', 'Application with LB Id ' . $row->lb_application_id . ' has been Approved Succesfully!');
@@ -1383,39 +1513,63 @@ class WorkflowLb60Controller extends Controller
       } else if ($action_type == 70) {
 
         //Transfer to Johar
-        if (AuthChecker::VerifierChecker()) {
+        if (AuthChecker::VerifierPermission()) {
           $isValidarr = $this->validateInput($request, $scheme_id, $row, $action_type, $schema, 'johar', $request->new_aadhar_no, $request->new_mobile_no, $request->caste_certificate_no, trim($row->bank_code), trim($row->bank_ifsc), $row->aadhar_no, $row->mobile_no, $row->caste_certificate_no);
           if ($isValidarr['is_valid'] == false) {
             return back()->with('errors', $isValidarr['errors'])->withInput(Input::all());
           }
           if ($isValidarr['is_valid'] == true) {
             try {
-
+              if (is_null(trim($request->reject_revert_cause)) || trim($request->reject_revert_cause) == '') {
+                $return_text = 'Please Specify Cause';
+                $return_msg = array("" . $return_text);
+                return redirect("View60lbapplication?id=" . $request->id . "&scheme_id=" . $scheme_id)->with('errors', $return_msg);
+              }
+              $reject_revert_cause_count = RejectRevertReason::where('status', true)->where('id', trim($request->reject_revert_cause))->count();
+              if ($reject_revert_cause_count == 0) {
+                $return_text = 'Cause is Invalid';
+                $return_msg = array("" . $return_text);
+                return redirect("View60lbapplication?id=" . $request->id . "&scheme_id=" . $scheme_id)->with('errors', $return_msg);
+              }
               //dd($request->caste_certificate_no);
               DB::beginTransaction();
               // dump($sp_mobile_new); dump($sp_aadhar_no_new);dump($ration_card_cat);dump($ration_card_no);dd($sp_caste_certificate_no_new);
-              $input = [
-                'is_transfer' => 1,
-                'transfer_from_scheme_id' => $scheme_id,
-                'transfer_to_scheme_id' => 1,
-                'lb_transfer_mobile_no' => $request->new_mobile_no,
-                'lb_transfer_aadhar_no' => trim($request->new_aadhar_no),
-                'lb_transfer_ration_card_cat' => trim($request->ration_card_cat),
-                'lb_transfer_ration_card_no' => trim($request->ration_card_no),
-                'lb_transfer_epic_voter_id' => trim($request->epic_voter_id),
-                'lb_transfer_caste_certificate_no' => trim($request->caste_certificate_no)
-              ];
-              $transfer_to_status = DB::table($schema . '.beneficiaires')->where('id', $request->id)->whereNull('back_lb')->whereNull('is_transfer')->update($input);
+              // $input = [
+              //   'is_transfer' => 1,
+              //   'transfer_from_scheme_id' => $scheme_id,
+              //   'transfer_to_scheme_id' => 1,
+              //   'lb_transfer_mobile_no' => $request->new_mobile_no,
+              //   'lb_transfer_aadhar_no' => trim($request->new_aadhar_no),
+              //   'lb_transfer_ration_card_cat' => trim($request->ration_card_cat),
+              //   'lb_transfer_ration_card_no' => trim($request->ration_card_no),
+              //   'lb_transfer_epic_voter_id' => trim($request->epic_voter_id),
+              //   'lb_transfer_caste_certificate_no' => trim($request->caste_certificate_no)
+              // ];
+              $ben_entry_model = BenEntry::where('id', $request->id)->whereNull('back_lb')->whereNull('is_transfer')->first();
+              $ben_entry_model->is_transfer = 1;
+              $ben_entry_model->transfer_from_scheme_id = $scheme_id;
+              $ben_entry_model->transfer_to_scheme_id = 1;
+              $ben_entry_model->lb_transfer_mobile_no = $request->new_mobile_no;
+              $ben_entry_model->lb_transfer_aadhar_no = trim($request->new_aadhar_no);
+              $ben_entry_model->lb_transfer_ration_card_cat = trim($request->ration_card_cat);
+              $ben_entry_model->lb_transfer_ration_card_no = trim($request->ration_card_no);
+              $ben_entry_model->lb_transfer_epic_voter_id = trim($request->epic_voter_id);
+              $ben_entry_model->lb_transfer_caste_certificate_no = trim($request->caste_certificate_no);
+              $ben_entry_model->action_cause_id = trim($request->reject_revert_cause);
+              $ben_entry_model->action_remark = trim($request->remarks);
+              $transfer_to_status = $ben_entry_model->save();
+
+              // $transfer_to_status = DB::table($schema . '.beneficiaires')->where('id', $request->id)->whereNull('back_lb')->whereNull('is_transfer')->update($input);
               $accept_reject_model = new AcceptRejectInfo;
+              $accept_reject_model->created_by_dist_code = $district_code;
+              $accept_reject_model->created_by_local_body_code = $created_by_local_body_code;
               $accept_reject_model->created_at = $c_time;
               $accept_reject_model->application_id = $request->id;
               $accept_reject_model->scheme_id = $scheme_id;
               $accept_reject_model->user_id = $user_id;
               $accept_reject_model->ip_address = request()->ip();
               $accept_reject_model->op_type = 'TJOHARV';
-              $accept_reject_model->action_by = $user_id;
-              $accept_reject_model->action_ip_address = $request->ip();
-              $accept_reject_model->action_type = class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod() . '@' . 'TJOHARV';
+              $accept_reject_model->module_name = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod() . '@' . 'TJOHARV';
               $is_saved_log = $accept_reject_model->save();
               //dd($transfer_to_status);
               if ($transfer_to_status == 1 && $is_saved_log) {
@@ -1437,18 +1591,19 @@ class WorkflowLb60Controller extends Controller
             }
           }
         }
-        if (AuthChecker::ApproverChecker()) {
+        if (AuthChecker::ApproverPermission()) {
           DB::beginTransaction();
-          $transfer_to_arr = DB::select("select pension.transfer_from_bandhu_to_johar_lb(
+          $transfer_to_arr = DB::select("select pension.lb_transfer(
           in_op_type => 'TJOHARAV',
           in_scheme_id =>" . $scheme_id . ",
           in_transfer_to_scheme_id =>1,
           in_c_time => '" . $c_time . "',
           in_user_id => " . $user_id . ",
+          in_ip_address => '" . $request->ip() . "',
           in_ben_id =>" . $request->id . ")");
-          $is_inserted_status = $transfer_to_arr[0]->transfer_from_bandhu_to_johar_lb;
+          $is_inserted_status = $transfer_to_arr[0]->lb_transfer;
           $update_arr = array();
-          $update_arr['beneficiary_id'] = $is_inserted_status;
+          $update_arr['beneficiary_id'] = $request->id;
           $update_arr['scheme_id'] = 1;
           $doc_updated_status = BenDocs::where('scheme_id', $scheme_id)->where('created_by_dist_code', $district_code)->where('beneficiary_id', $request->id)->update($update_arr);
           //dd($is_inserted_status);
@@ -1467,32 +1622,66 @@ class WorkflowLb60Controller extends Controller
       } else if ($action_type == 75) {
 
         //Transfer to Bandhu
-        if (AuthChecker::VerifierChecker()) {
+        if (AuthChecker::VerifierPermission()) {
           $isValidarr = $this->validateInput($request, $scheme_id, $row, $action_type, $schema, 'bandhu', $request->new_aadhar_no, $request->new_mobile_no, $request->caste_certificate_no, trim($row->bank_code), trim($row->bank_ifsc), $row->aadhar_no, $row->mobile_no, $row->caste_certificate_no);
           if ($isValidarr['is_valid'] == false) {
             return back()->with('errors', $isValidarr['errors'])->withInput(Input::all());
           }
           if ($isValidarr['is_valid'] == true) {
             try {
-
+              if (is_null(trim($request->reject_revert_cause)) || trim($request->reject_revert_cause) == '') {
+                $return_text = 'Please Specify Cause';
+                $return_msg = array("" . $return_text);
+                return redirect("View60lbapplication?id=" . $request->id . "&scheme_id=" . $scheme_id)->with('errors', $return_msg);
+              }
+              $reject_revert_cause_count = RejectRevertReason::where('status', true)->where('id', trim($request->reject_revert_cause))->count();
+              if ($reject_revert_cause_count == 0) {
+                $return_text = 'Cause is Invalid';
+                $return_msg = array("" . $return_text);
+                return redirect("View60lbapplication?id=" . $request->id . "&scheme_id=" . $scheme_id)->with('errors', $return_msg);
+              }
               DB::beginTransaction();
               // dump($sp_mobile_new); dump($sp_aadhar_no_new);dump($ration_card_cat);dump($ration_card_no);dd($sp_caste_certificate_no_new);
 
-              $input = [
-                'is_transfer' => 1,
-                'transfer_from_scheme_id' => $scheme_id,
-                'transfer_to_scheme_id' => 3,
-                'lb_transfer_mobile_no' => $request->new_mobile_no,
-                'lb_transfer_aadhar_no' => trim($request->new_aadhar_no),
-                'lb_transfer_ration_card_cat' => trim($request->ration_card_cat),
-                'lb_transfer_ration_card_no' => trim($request->ration_card_no),
-                'lb_transfer_epic_voter_id' => trim($request->epic_voter_id),
-                'lb_transfer_caste_certificate_no' => trim($request->caste_certificate_no)
-              ];
+              // $input = [
+              //   'is_transfer' => 1,
+              //   'transfer_from_scheme_id' => $scheme_id,
+              //   'transfer_to_scheme_id' => 3,
+              //   'lb_transfer_mobile_no' => $request->new_mobile_no,
+              //   'lb_transfer_aadhar_no' => trim($request->new_aadhar_no),
+              //   'lb_transfer_ration_card_cat' => trim($request->ration_card_cat),
+              //   'lb_transfer_ration_card_no' => trim($request->ration_card_no),
+              //   'lb_transfer_epic_voter_id' => trim($request->epic_voter_id),
+              //   'lb_transfer_caste_certificate_no' => trim($request->caste_certificate_no)
+              // ];
 
-              $transfer_to_status = DB::table($schema . '.beneficiaires')->where('id', $request->id)->whereNull('is_transfer')->update($input);
+
+              $ben_entry_model = BenEntry::where('id', $request->id)->whereNull('is_transfer')->first();
+              $ben_entry_model->is_transfer = 1;
+              $ben_entry_model->transfer_from_scheme_id = $scheme_id;
+              $ben_entry_model->transfer_to_scheme_id = 3;
+              $ben_entry_model->lb_transfer_mobile_no = $request->new_mobile_no;
+              $ben_entry_model->lb_transfer_aadhar_no = trim($request->new_aadhar_no);
+              $ben_entry_model->lb_transfer_ration_card_cat = trim($request->ration_card_cat);
+              $ben_entry_model->lb_transfer_ration_card_no = trim($request->ration_card_no);
+              $ben_entry_model->lb_transfer_epic_voter_id = trim($request->epic_voter_id);
+              $ben_entry_model->lb_transfer_caste_certificate_no = trim($request->caste_certificate_no);
+              $ben_entry_model->action_cause_id = trim($request->reject_revert_cause);
+              $ben_entry_model->action_remark = trim($request->remarks);
+              $transfer_to_status = $ben_entry_model->save();
+
+              $accept_reject_model = new AcceptRejectInfo;
+              $accept_reject_model->created_at = $c_time;
+              $accept_reject_model->application_id = $request->id;
+              $accept_reject_model->scheme_id = $scheme_id;
+              $accept_reject_model->user_id = $user_id;
+              $accept_reject_model->ip_address = request()->ip();
+              $accept_reject_model->op_type = 'TBANDHUV';
+              $accept_reject_model->module_name = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod() . '@' . 'TJOHARV';
+              $is_saved_log = $accept_reject_model->save();
+              // $transfer_to_status = DB::table($schema . '.beneficiaires')->where('id', $request->id)->whereNull('is_transfer')->update($input);
               // dump($transfer_to_status);
-              if ($transfer_to_status == 1) {
+              if ($transfer_to_status == 1 && $is_saved_log == 1) {
                 DB::commit();
                 return redirect("workflow-lb60?scheme_id=" . $scheme_id)->with('success', 'Application has been Transfer to Bandhu Succesfully')->with('lb_id', $row->lb_application_id);
               } else {
@@ -1509,24 +1698,22 @@ class WorkflowLb60Controller extends Controller
             }
           }
         }
-        if (AuthChecker::ApproverChecker()) {
+        if (AuthChecker::ApproverPermission()) {
           try {
             DB::beginTransaction();
             DB::connection('pgsql_encwrite')->beginTransaction();
-            $transfer_to_arr = DB::select("select pension.transfer_from_johar_to_bandhu_lb(
-            in_op_type => 'TBANDHUV',
+            $transfer_to_arr = DB::select("select pension.lb_transfer(
+            in_op_type => 'TBANDHUA',
             in_scheme_id =>" . $scheme_id . ",
             in_transfer_to_scheme_id =>1,
             in_c_time => '" . $c_time . "',
             in_user_id => " . $user_id . ",
+            in_ip_address => '" . $request->ip() . "',
             in_ben_id =>" . $request->id . ")");
-            $is_inserted_status = $transfer_to_arr[0]->transfer_from_johar_to_bandhu_lb;
-            if ($request->id == 12506831) {
-              // dd($is_inserted_status);
-            }
+            $is_inserted_status = $transfer_to_arr[0]->lb_transfer;
 
             $update_arr = array();
-            $update_arr['beneficiary_id'] = $is_inserted_status;
+            $update_arr['beneficiary_id'] = $request->id;
             $update_arr['scheme_id'] = 3;
             $doc_updated_status = BenDocs::where('scheme_id', $scheme_id)->where('created_by_dist_code', $district_code)->where('beneficiary_id', $request->id)->update($update_arr);
             if ($is_inserted_status && $doc_updated_status) {
@@ -1543,9 +1730,6 @@ class WorkflowLb60Controller extends Controller
             }
           } catch (\Exception $e) {
             //dd($e);
-            if ($request->id == 12506831) {
-              dd($e);
-            }
             $return_text = 'Error.. Please try again';
             $return_msg = array("" . $return_text);
             return redirect("View60lbapplication?id=" . $request->id . "&scheme_id=" . $scheme_id)->with('errors', $return_msg);
@@ -1553,9 +1737,10 @@ class WorkflowLb60Controller extends Controller
 
         }
       } else if ($action_type == 80) {
+        //dd('ok');
 
         //Transfer to OAP
-        if (AuthChecker::VerifierChecker()) {
+        if (AuthChecker::VerifierPermission()) {
           $isValidarr = $this->validateInput($request, $scheme_id, $row, $action_type, $schema, 'oap_wcd', $request->new_aadhar_no, $request->new_mobile_no, NULL, trim($row->bank_code), trim($row->bank_ifsc), $row->aadhar_no, $row->mobile_no, NULL);
           if ($isValidarr['is_valid'] == false) {
             return back()->with('errors', $isValidarr['errors'])->withInput(Input::all());
@@ -1563,7 +1748,17 @@ class WorkflowLb60Controller extends Controller
           //dd($isValidarr['is_valid']);
           if ($isValidarr['is_valid'] == true) {
             try {
-              //dd($request);
+              if (is_null(trim($request->reject_revert_cause)) || trim($request->reject_revert_cause) == '') {
+                $return_text = 'Please Specify Cause';
+                $return_msg = array("" . $return_text);
+                return redirect("View60lbapplication?id=" . $request->id . "&scheme_id=" . $scheme_id)->with('errors', $return_msg);
+              }
+              $reject_revert_cause_count = RejectRevertReason::where('status', true)->where('id', trim($request->reject_revert_cause))->count();
+              if ($reject_revert_cause_count == 0) {
+                $return_text = 'Cause is Invalid';
+                $return_msg = array("" . $return_text);
+                return redirect("View60lbapplication?id=" . $request->id . "&scheme_id=" . $scheme_id)->with('errors', $return_msg);
+              }
               $rules = [];
               $attributes = array();
               $messages = array();
@@ -1590,6 +1785,7 @@ class WorkflowLb60Controller extends Controller
 
               $base_url = url('/');
               $file_path = 'keep_oap';
+              //dd($doc_type_id_arr->id);
               $image_file = $request->file('doc_' . $doc_type_id_arr->id);
               $img_data = file_get_contents($image_file);
               $extension = $image_file->getClientOriginalExtension();
@@ -1608,8 +1804,7 @@ class WorkflowLb60Controller extends Controller
               $doc_master = DocumentType::get();
 
               DB::beginTransaction();
-              DB::connection('pgsql_lb_encwrite')->beginTransaction();
-              $lb_db_upload = DB::connection('pgsql_lb_encwrite')->table('lb_scheme.ben_attach_documents')->insert($lb_doc_insert);
+              DB::connection('pgsql_encwrite')->beginTransaction();
 
 
               $fun_call = DB::connection('pgsql_encwrite')->select("SELECT jb_doc.ben_docs_insert_archive(
@@ -1630,36 +1825,48 @@ class WorkflowLb60Controller extends Controller
               );
               $doc_is_insert = $fun_call[0]->ben_docs_insert_archive;
 
-              $input = [
-                'is_transfer' => 1,
-                'transfer_to_scheme_id' => 10,
-                'lb_transfer_mobile_no' => $request->new_mobile_no,
-                'lb_transfer_aadhar_no' => trim($request->new_aadhar_no),
-                'lb_transfer_ration_card_cat' => trim($request->ration_card_cat),
-                'lb_transfer_ration_card_no' => trim($request->ration_card_no),
-                'lb_transfer_epic_voter_id' => trim($request->epic_voter_id)
+              // $input = [
+              //   'is_transfer' => 1,
+              //   'transfer_to_scheme_id' => 10,
+              //   'lb_transfer_mobile_no' => $request->new_mobile_no,
+              //   'lb_transfer_aadhar_no' => trim($request->new_aadhar_no),
+              //   'lb_transfer_ration_card_cat' => trim($request->ration_card_cat),
+              //   'lb_transfer_ration_card_no' => trim($request->ration_card_no),
+              //   'lb_transfer_epic_voter_id' => trim($request->epic_voter_id)
 
-              ];
-              $transfer_to_status = DB::table($schema . '.beneficiaries')->where('id', $request->id)->whereNull('back_lb')->whereNull('is_transfer')->update($input);
+              // ];
+              $ben_entry_model = BenEntry::where('id', $request->id)->whereNull('back_lb')->whereNull('is_transfer')->first();
+              $ben_entry_model->is_transfer = 1;
+              $ben_entry_model->transfer_from_scheme_id = $scheme_id;
+              $ben_entry_model->transfer_to_scheme_id = 10;
+              $ben_entry_model->lb_transfer_mobile_no = $request->new_mobile_no;
+              $ben_entry_model->lb_transfer_aadhar_no = trim($request->new_aadhar_no);
+              $ben_entry_model->lb_transfer_ration_card_cat = trim($request->ration_card_cat);
+              $ben_entry_model->lb_transfer_ration_card_no = trim($request->ration_card_no);
+              $ben_entry_model->lb_transfer_epic_voter_id = trim($request->epic_voter_id);
+              $ben_entry_model->action_cause_id = trim($request->reject_revert_cause);
+              $ben_entry_model->action_remark = trim($request->remarks);
+              $transfer_to_status = $ben_entry_model->save();
+              // $transfer_to_status = DB::table('pension.beneficiaries')->where('id', $request->id)->whereNull('back_lb')->whereNull('is_transfer')->update($input);
               $accept_reject_model = new AcceptRejectInfo;
+              $accept_reject_model->created_by_dist_code = $district_code;
+              $accept_reject_model->created_by_local_body_code = $created_by_local_body_code;
               $accept_reject_model->created_at = $c_time;
               $accept_reject_model->application_id = $request->id;
               $accept_reject_model->scheme_id = $scheme_id;
               $accept_reject_model->user_id = $user_id;
               $accept_reject_model->ip_address = request()->ip();
               $accept_reject_model->op_type = 'TOAPV';
-              $accept_reject_model->action_by = $user_id;
-              $accept_reject_model->action_ip_address = $request->ip();
-              $accept_reject_model->action_type = class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod() . '@' . 'TOAPV';
+              $accept_reject_model->module_name = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod() . '@' . 'TOAPV';
               $is_saved_log = $accept_reject_model->save();
-              //dd($transfer_to_status);
-              if ($transfer_to_status == 1 && $is_saved_log) {
+              // dd($transfer_to_status);
+              if ($transfer_to_status == 1 && $is_saved_log && $doc_is_insert) {
                 DB::commit();
-                DB::connection('pgsql_lb_encwrite')->commit();
+                DB::connection('pgsql_encwrite')->commit();
                 return redirect("workflow-lb60?scheme_id=" . $scheme_id)->with('success', $action_msg)->with('lb_id', $row->lb_application_id);
               } else {
                 DB::rollback();
-                DB::connection('pgsql_lb_encwrite')->rollback();
+                DB::connection('pgsql_encwrite')->rollback();
                 $return_text = 'Error.. Please try again';
                 $return_msg = array("" . $return_text);
                 return redirect("View60lbapplication?id=" . $request->id . "&scheme_id=" . $scheme_id)->with('errors', $return_msg);
@@ -1668,44 +1875,47 @@ class WorkflowLb60Controller extends Controller
 
 
             } catch (\Exception $e) {
-              //dd($e);
+              dd($e);
               $return_text = 'Error.. Please try again';
               $return_msg = array("" . $return_text);
               return redirect("View60lbapplication?id=" . $request->id . "&scheme_id=" . $scheme_id)->with('errors', $return_msg);
             }
           }
-        } else if (AuthChecker::ApproverChecker()) {
+        } else if (AuthChecker::ApproverPermission()) {
           DB::beginTransaction();
           DB::connection('pgsql_encwrite')->beginTransaction();
           if ($scheme_id == 1) {
-            $transfer_to_arr = DB::select("select pension.transfer_from_johar_to_oap_lb(
+            //dd($request->id);
+            $transfer_to_arr = DB::select("select pension.lb_transfer(
               in_op_type => 'TOAPA',
               in_scheme_id =>" . $scheme_id . ",
               in_transfer_to_scheme_id =>10,
               in_c_time => '" . $c_time . "',
               in_user_id => " . $user_id . ",
+              in_ip_address => '" . request()->ip() . "',
               in_ben_id =>" . $request->id . ")");
-            $transfer_status = $transfer_to_arr[0]->transfer_from_johar_to_oap_lb;
+            $transfer_status = $transfer_to_arr[0]->lb_transfer;
             $update_arr = array();
-            $update_arr['beneficiary_id'] = $transfer_status;
+            $update_arr['beneficiary_id'] = $request->id;
             $update_arr['scheme_id'] = 10;
             $doc_updated_status = BenDocs::where('scheme_id', $scheme_id)->where('created_by_dist_code', $district_code)->where('beneficiary_id', $request->id)->update($update_arr);
           } else if ($scheme_id == 3) {
 
-            $transfer_to_arr = DB::select("select pension.transfer_from_bandhu_to_oap_lb(
+            $transfer_to_arr = DB::select("select pension.lb_transfer(
               in_op_type => 'TOAPA',
               in_scheme_id =>" . $scheme_id . ",
               in_transfer_to_scheme_id =>10,
               in_c_time => '" . $c_time . "',
               in_user_id => " . $user_id . ",
+              in_ip_address => '" . request()->ip() . "',
               in_ben_id =>" . $request->id . ")");
-            $transfer_status = $transfer_to_arr[0]->transfer_from_bandhu_to_oap_lb;
+            $transfer_status = $transfer_to_arr[0]->lb_transfer;
             $update_arr = array();
-            $update_arr['beneficiary_id'] = $transfer_status;
+            $update_arr['beneficiary_id'] = $request->id;
             $update_arr['scheme_id'] = 10;
             $doc_updated_status = BenDocs::where('scheme_id', $scheme_id)->where('created_by_dist_code', $district_code)->where('beneficiary_id', $request->id)->update($update_arr);
           }
-          // dd($import_from_lb_status);
+          // dump($transfer_status);dd($doc_updated_status);
           if ($transfer_status && $doc_updated_status) {
             DB::commit();
             DB::connection('pgsql_encwrite')->commit();
@@ -1721,9 +1931,22 @@ class WorkflowLb60Controller extends Controller
           }
         }
       } else if ($action_type == -100) {
+        return redirect("View60lbapplication?id=" . $request->id . "&scheme_id=" . $scheme_id);
+
         $back_url = 'View60lbapplication?id=' . $request->id . '&scheme_id=' . $scheme_id;
         $c_time = date('Y-m-d H:i:s', time());
         try {
+          if (is_null(trim($request->reject_revert_cause)) || trim($request->reject_revert_cause) == '') {
+            $return_text = 'Please Specify Cause';
+            $return_msg = array("" . $return_text);
+            return redirect("View60lbapplication?id=" . $request->id . "&scheme_id=" . $scheme_id)->with('errors', $return_msg);
+          }
+          $reject_revert_cause_count = RejectRevertReason::where('status', true)->where('id', trim($request->reject_revert_cause))->count();
+          if ($reject_revert_cause_count == 0) {
+            $return_text = 'Cause is Invalid';
+            $return_msg = array("" . $return_text);
+            return redirect("View60lbapplication?id=" . $request->id . "&scheme_id=" . $scheme_id)->with('errors', $return_msg);
+          }
           DB::beginTransaction();
           $accept_reject_model = new AcceptRejectInfo;
           $accept_reject_model->created_at = $c_time;
@@ -1733,32 +1956,42 @@ class WorkflowLb60Controller extends Controller
 
           $accept_reject_model->ip_address = request()->ip();
           //dd($designation_id);
-          if (AuthChecker::ApproverChecker()) {
-            $accept_reject_model->op_type = class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod().'@LRA';
+          if (AuthChecker::ApproverPermission()) {
+            $accept_reject_model->op_type = '@LRA';
             $reject_dup_adjustment = 1;
           } else {
-            $accept_reject_model->op_type = class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod().'@LRV';
+            $accept_reject_model->op_type = '@LRV';
             $reject_dup_adjustment = 1;
           }
-
-          $accept_reject_model->action_by = $user_id;
-          $accept_reject_model->action_ip_address = $request->ip();
-          $accept_reject_model->action_type = class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod();
+          $accept_reject_model->module_name = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod();
           $is_saved_log = $accept_reject_model->save();
-          $input = [
-            'next_level_role_id' => -3,
-            'is_rejected' => 1,
-            'is_approved' => 2,
-            'is_verified' => 2,
-            'rejected_date' => $c_time,
-            'rejected_by' => $user_id,
-            'is_clean' => 10
-          ];
-          $lb_update = DB::table($schema . '.beneficiaries')->where($condition)->update($input);
+          // $input = [
+          //   'next_level_role_id' => -3,
+          //   'is_rejected' => 1,
+          //   'is_approved' => 2,
+          //   'is_verified' => 2,
+          //   'rejected_date' => $c_time,
+          //   'rejected_by' => $user_id,
+          //   'is_clean' => 10
+          // ];
+
+
+          // $lb_update = DB::table('pension.beneficiaries')->where($condition)->update($input);
+          $ben_entry_model = BenEntry::where($condition)->first();
+          $ben_entry_model->next_level_role_id = -3;
+          $ben_entry_model->is_rejected = 1;
+          $ben_entry_model->is_approved = 2;
+          $ben_entry_model->is_verified = 2;
+          $ben_entry_model->rejected_date = $c_time;
+          $ben_entry_model->rejected_by = $user_id;
+          $ben_entry_model->action_cause_id = trim($request->reject_revert_cause);
+          $ben_entry_model->action_remark = trim($request->remarks);
+          $ben_entry_model->is_clean = 10;
+          $lb_update = $ben_entry_model->save();
           if ($is_saved_log && $lb_update) {
 
             DB::commit();
-            return redirect('workflow-lb60?scheme_id=' . $scheme_id)->with('message', 'Application with LB Id ' . $request->id . ' has been Rejected Succesfully!');
+            return redirect('workflow-lb60?scheme_id=' . $scheme_id)->with('message', 'Application with LB Id ' . $row->lb_application_id . ' has been Rejected Succesfully!');
           } else {
             DB::rollback();
             return redirect($back_url)->with('error', 'Error! Please try again.');
@@ -1772,22 +2005,43 @@ class WorkflowLb60Controller extends Controller
       } else if ($action_type == 85) {
         // dd($designation_id);
         //For Approve
-        if (AuthChecker::ApproverChecker()) {
+        if (!AuthChecker::ApproverPermission()) {
           return redirect("/")->with('danger', 'Not Allowed');
         }
-
+        if (is_null(trim($request->reject_revert_cause)) || trim($request->reject_revert_cause) == '') {
+          $return_text = 'Please Specify Cause';
+          $return_msg = array("" . $return_text);
+          return redirect("View60lbapplication?id=" . $request->id . "&scheme_id=" . $scheme_id)->with('errors', $return_msg);
+        }
+        $reject_revert_cause_count = RejectRevertReason::where('status', true)->where('id', trim($request->reject_revert_cause))->count();
+        if ($reject_revert_cause_count == 0) {
+          $return_text = 'Cause is Invalid';
+          $return_msg = array("" . $return_text);
+          return redirect("View60lbapplication?id=" . $request->id . "&scheme_id=" . $scheme_id)->with('errors', $return_msg);
+        }
         $back_url = 'View60lbapplication?id=' . $request->id . '&scheme_id=' . $scheme_id;
         //dd($next_level_role_id_verified = $role->parent_id);
         try {
+          $next_level_role_id_operator = SchemeStepRank::getSchemeParentId($scheme_id, 1);
           DB::beginTransaction();
-          $input = [
-            'next_level_role_id' => NULL,
-            'is_reverted' => 1,
-            'is_approved' => 0,
-            'is_rejected' => 0,
-            'is_verified' => 0
-          ];
-          $revert_status = DB::table($schema . '.beneficiaires')->where('id', $request->id)->where('created_by_dist_code', $district_code)->update($input);
+          // $input = [
+          //   'next_level_role_id' => NULL,
+          //   'is_reverted' => 1,
+          //   'is_approved' => 0,
+          //   'is_rejected' => 0,
+          //   'is_verified' => 0
+          // ];
+          // $revert_status = DB::table($schema . '.beneficiaires')->where('id', $request->id)->where('created_by_dist_code', $district_code)->update($input);
+          $ben_entry_model = BenEntry::where('id', $request->id)->where('created_by_dist_code', $district_code)->first();
+          $ben_entry_model->next_level_role_id = $next_level_role_id_operator;
+          $ben_entry_model->is_reverted = 1;
+          $ben_entry_model->is_approved = 0;
+          $ben_entry_model->is_rejected = 0;
+          $ben_entry_model->is_verified = 0;
+          $ben_entry_model->action_cause_id = trim($request->reject_revert_cause);
+          $ben_entry_model->action_remark = trim($request->remarks);
+          $revert_status = $ben_entry_model->save();
+
           $accept_reject_model = new AcceptRejectInfo;
           $accept_reject_model->created_at = $c_time;
           $accept_reject_model->application_id = $request->id;
@@ -1796,9 +2050,7 @@ class WorkflowLb60Controller extends Controller
           $accept_reject_model->op_type = 'REVERTLB';
           $accept_reject_model->ip_address = request()->ip();
           $accept_reject_model->created_by_dist_code = $district_code;
-          $accept_reject_model->action_by = $user_id;
-          $accept_reject_model->action_ip_address = $request->ip();
-          $accept_reject_model->action_type = class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod() . '@' . 'REVERTLB';
+          $accept_reject_model->module_name = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod() . '@' . 'REVERTLB';
           $is_saved_log = $accept_reject_model->save();
 
           //dd($is_inserted_status);
@@ -1808,10 +2060,10 @@ class WorkflowLb60Controller extends Controller
             return redirect('workflow-lb60?scheme_id=' . $scheme_id)->with('message', 'Application with LB Id ' . $row->lb_application_id . ' has been Reverted Succesfully!');
           } else {
             DB::rollback();
-            return redirect($back_url)->with('error', 'Error! Please try again.');
+            return redirect($back_url)->with('error', 'Error! Please try again.!');
           }
         } catch (\Exception $e) {
-          // dd($e);
+          //dd($e);
           DB::rollback();
           return redirect($back_url)->with('error', 'Error! Please try again.');
         }
@@ -1880,7 +2132,7 @@ class WorkflowLb60Controller extends Controller
       $condition = array();
       $condition['id'] = $ben_id;
       $condition['created_by_dist_code'] = $duty_obj->district_code;
-      if (AuthChecker::VerifierChecker() || AuthChecker::OperatorChecker()) {
+      if (AuthChecker::VerifierPermission() || AuthChecker::OperatorChecker()) {
         if ($duty_obj->mapping_level == "Subdiv") {
           $created_by_local_body_code = $duty_obj->urban_body_code;
         }
@@ -1889,7 +2141,7 @@ class WorkflowLb60Controller extends Controller
         }
         $condition['created_by_local_body_code'] = $created_by_local_body_code;
       }
-      $row = DB::table($schema . '.beneficiaries')->where($condition)->first();
+      $row = DB::table('pension.beneficiaries')->where($condition)->first();
       if (empty($row)) {
         $return_status = 0;
         $return_text = 'Application Id Not Valid';
@@ -1940,7 +2192,7 @@ class WorkflowLb60Controller extends Controller
           return response()->json(['return_status' => $return_status, 'return_msg' => $return_text]);
         }
 
-        if (AuthChecker::ApproverChecker()) {
+        if (AuthChecker::ApproverPermission()) {
           $mapping_level = NULL;
           $created_by_local_body_code = 0;
           //  $row = DB::table($schema . '.beneficiary')->where('id',$ben_id)->first();
@@ -1981,9 +2233,7 @@ class WorkflowLb60Controller extends Controller
         $accept_reject_model->scheme_id = $scheme_id;
         $accept_reject_model->user_id = $user_id;
         $accept_reject_model->op_type = 'DOCUPLOAD';
-        $accept_reject_model->action_by = $user_id;
-        $accept_reject_model->action_ip_address = $request->ip();
-        $accept_reject_model->action_type = class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod() . '@' . 'DOCUPLOAD';
+        $accept_reject_model->module_name = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod() . '@' . 'DOCUPLOAD';
         $is_saved_log = $accept_reject_model->save();
 
         //          if($request->ben_id==11457428)
@@ -2029,7 +2279,7 @@ class WorkflowLb60Controller extends Controller
 
     // $designation_id = Auth::user()->designation_id;
     $user_id = AuthChecker::getUserId();
-    if (AuthChecker::ApproverChecker()) {
+    if (AuthChecker::ApproverPermission()) {
       //dd('ok');
       $scheme_id = $request->scheme_id;
       // dd($scheme_id);
@@ -2058,8 +2308,9 @@ class WorkflowLb60Controller extends Controller
         $id_length = NULL;
       }
 
-      $role = MapLavel::where('scheme_id', $scheme_id)->where('role_name', 'Verifier')->first();
-      $next_level_role_id_verified = $role->parent_id;
+      // $role = MapLavel::where('scheme_id', $scheme_id)->where('role_name', 'Verifier')->first();
+      // $next_level_role_id_verified = $role->parent_id;
+      $next_level_role_id_verified = Workflow::getParentId($scheme_id, 'Verifier');
 
       $back_url = 'workflow-lb60?scheme_id=' . $scheme_id;
       $applicationid_arr = array();
@@ -2073,13 +2324,15 @@ class WorkflowLb60Controller extends Controller
       //dd($in_pension_id);
       try {
         DB::beginTransaction();
-        $is_inserted_status_arr = DB::select("select " . $schema . ".approve_data_bulk_lb(in_verified_next_level_role_id => " . $next_level_role_id_verified . ",in_ben_id => $in_pension_id,in_scheme_id => $scheme_id,in_district_code => $district_code,in_user_id => $user_id,in_op_type => 'LA')");
+        $ip_address = request()->ip();
+        $is_inserted_status_arr = DB::select("select pension.approve_data_bulk_lb(in_verified_next_level_role_id => " . $next_level_role_id_verified . ",in_ben_id => $in_pension_id,in_scheme_id => $scheme_id,in_district_code => $district_code,in_user_id => $user_id,in_ip_address => '" . $ip_address . "',in_op_type => 'LA')");
         //dd($is_inserted_status_arr);
         $is_inserted_status = $is_inserted_status_arr[0]->approve_data_bulk_lb;
+        //dd($is_inserted_status_arr);
         if ($is_inserted_status == 1) {
 
           DB::commit();
-          return redirect('workflow-lb60?scheme_id=' . $scheme_id)->with('message', 'Applications  has been Approved Succesfully!');
+          return redirect('workflow-lb60?scheme_id=' . $scheme_id)->with('message', 'LB60 Applications  has been Approved Succesfully!');
 
         } else {
           DB::rollback();
@@ -2091,7 +2344,7 @@ class WorkflowLb60Controller extends Controller
         return redirect($back_url)->with('error', 'Error! Please try again.');
       }
     }
-    if (AuthChecker::VerifierChecker()) {
+    if (AuthChecker::VerifierPermission()) {
       $scheme_id = $request->scheme_id;
       $back_url = 'workflow-lb60?scheme_id=' . $scheme_id;
       $c_time = date('Y-m-d H:i:s', time());
@@ -2127,19 +2380,51 @@ class WorkflowLb60Controller extends Controller
       $comments = NULL;
       $implode_application_arr = implode("','", $inputs);
       $in_pension_id = 'ARRAY[' . "'$implode_application_arr'" . ']';
-      $role = MapLavel::where('scheme_id', $scheme_id)->where('role_name', 'Verifier')->first();
-      $next_level_role_id_verified = $role->parent_id;
+      // $role = MapLavel::where('scheme_id', $scheme_id)->where('role_name', 'Verifier')->first();
+      // $next_level_role_id_verified = $role->parent_id;
+      $next_level_role_id_verified = SchemeStepRank::getSchemeParentId($scheme_id, 2);
+      $next_level_role_id_operator = SchemeStepRank::getSchemeParentId($scheme_id, 1);
       try {
         DB::beginTransaction();
-        $is_inserted_status_arr = DB::select("select " . $schema . ".import_from_lb_bulk(
-          in_verified_next_level_role_id => " . $next_level_role_id_verified . ",
-          in_op_type => 'LV',
-          in_ben_id => $in_pension_id,
-          in_scheme_id => $scheme_id, 
-          in_c_time => '" . $c_time . "',
-          in_user_id => " . $user_id . ")");
-        //dd($is_inserted_status_arr);
-        $is_inserted_status = $is_inserted_status_arr[0]->import_from_lb_bulk;
+        if ($scheme_id = 1) {
+          $is_inserted_status_arr = DB::select("select pension.import_from_lb_bulk_st(
+            in_verified_next_level_role_id => " . $next_level_role_id_verified . ",
+            in_operator_next_level_role_id => " . $next_level_role_id_operator . ",
+            in_op_type => 'LV',
+            in_ben_id => $in_pension_id,
+            in_scheme_id => $scheme_id, 
+            in_c_time => '" . $c_time . "',
+            in_user_id => " . $user_id . ")");
+          //dd($is_inserted_status_arr);
+          $is_inserted_status = $is_inserted_status_arr[0]->import_from_lb_bulk;
+
+        }
+        if ($scheme_id = 3) {
+          $is_inserted_status_arr = DB::select("select pension.import_from_lb_bulk_sc(
+            in_verified_next_level_role_id => " . $next_level_role_id_verified . ",
+            in_operator_next_level_role_id => " . $next_level_role_id_operator . ",
+            in_op_type => 'LV',
+            in_ben_id => $in_pension_id,
+            in_scheme_id => $scheme_id, 
+            in_c_time => '" . $c_time . "',
+            in_user_id => " . $user_id . ")");
+          //dd($is_inserted_status_arr);
+          $is_inserted_status = $is_inserted_status_arr[0]->import_from_lb_bulk;
+
+        }
+        if ($scheme_id = 10) {
+          $is_inserted_status_arr = DB::select("select pension.import_from_lb_bulk_oap(
+            in_verified_next_level_role_id => " . $next_level_role_id_verified . ",
+            in_operator_next_level_role_id => " . $next_level_role_id_operator . ",
+            in_op_type => 'LV',
+            in_ben_id => $in_pension_id,
+            in_scheme_id => $scheme_id, 
+            in_c_time => '" . $c_time . "',
+            in_user_id => " . $user_id . ")");
+          //dd($is_inserted_status_arr);
+          $is_inserted_status = $is_inserted_status_arr[0]->import_from_lb_bulk;
+        }
+
         if ($is_inserted_status == 1) {
 
           DB::commit();
@@ -2168,21 +2453,21 @@ class WorkflowLb60Controller extends Controller
       $c_date = $c_time->format("Y-m-d");
       $is_active = 0;
       $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
-      
-    // $designation_id = Auth::user()->designation_id;
+
+      // $designation_id = Auth::user()->designation_id;
       $userId = Auth::user()->id;
       $district_visible = $is_urban_visible = $block_visible = 1;
       $municipality_visible = 0;
       $gp_ward_visible = 0;
       $muncList = collect([]);
       $gpList = collect([]);
-      if (AuthChecker::ReportCheckerCommon()) {
+      if (AuthChecker::HODChecker() || AuthChecker::DashboardChecker()) {
         $district_visible = $is_urban_visible = $block_visible = 1;
         if ($userId == 3378)
           $scsctvisible = 1;
         else
           $scsctvisible = 0;
-      } else if (AuthChecker::ApproverChecker() || AuthChecker::VerifierChecker()) {
+      } else if (AuthChecker::ApproverPermission() || AuthChecker::VerifierPermission()) {
         $district_code = NULL;
         $is_urban = NULL;
         $blockCode = NULL;
@@ -2435,8 +2720,9 @@ class WorkflowLb60Controller extends Controller
       $scheme_length = NULL;
       $id_length = NULL;
     }
-    $role = MapLavel::where('scheme_id', $scheme_id)->where('role_name', 'Approver')->where('stack_level', 'District')->first();
-    $next_level_role_id_verified = $role->parent_id;
+    // $role = MapLavel::where('scheme_id', $scheme_id)->where('role_name', 'Approver')->where('stack_level', 'District')->first();
+    $next_level_role_id_operator = SchemeStepRank::getSchemeParentId($scheme_id, 1);
+    // $next_level_role_id_verified = $role->parent_id;
     $next_level_role_id_approved = 0;
     $dateFromat = 'YYYY/MM/DD';
     $whereCon = "where 1=1";
@@ -2466,7 +2752,7 @@ class WorkflowLb60Controller extends Controller
     (select
                 count(1)  as total_data,
                 count(1) filter(where is_rejected=1) as total_rejected,
-                count(1) filter(where next_level_role_id IS NULL) as total_normal_action,
+                count(1) filter(where next_level_role_id = " . $next_level_role_id_operator . ") as total_normal_action,
                 count(1) filter(where is_verified=1 and is_approved=0) as total_normal_verified,
                 count(1) filter(where  next_level_role_id=" . $next_level_role_id_approved . " ) as total_normal_approved,
                 count(1) filter(where back_lb=1 and back_lb_finalize IS NULL) as total_backlb_verified,
@@ -2486,7 +2772,7 @@ class WorkflowLb60Controller extends Controller
                  count(1) filter(where jb_dup_aadhar=1 and  jb_dup_bank IS NULL and jb_dup_caste_certificate_no IS NULL) as total_sys_aadhaar,
                  count(1) filter(where jb_dup_caste_certificate_no=1 and jb_dup_aadhar IS NULL and jb_dup_bank IS NULL) as total_sys_caste,
                  created_by_dist_code
-                 from " . $schema . ". beneficiary_dup_lb where scheme_id=" . $scheme_id . "   
+                 from pension.beneficiary_dup_lb where scheme_id=" . $scheme_id . "   
       group by created_by_dist_code) as D ON A.location_id=D.created_by_dist_code";
 
     //echo $query;    die;
@@ -2505,9 +2791,10 @@ class WorkflowLb60Controller extends Controller
       $scheme_length = NULL;
       $id_length = NULL;
     }
-    $role = MapLavel::where('scheme_id', $scheme_id)->where('role_name', 'Verifier')->first();
-    $next_level_role_id_verified = $role->parent_id;
+    // $role = MapLavel::where('scheme_id', $scheme_id)->where('role_name', 'Verifier')->first();
+    // $next_level_role_id_verified = $role->parent_id;
     $next_level_role_id_approved = 0;
+    $next_level_role_id_operator = SchemeStepRank::getSchemeParentId($scheme_id, 1);
     $whereMain = "where  district_code=" . $district_code;
 
     $query = "select A.location_id,A.location_name,
@@ -2536,7 +2823,7 @@ class WorkflowLb60Controller extends Controller
     (select 
                 count(1)  as total_data,
                 count(1) filter(where is_rejected=1) as total_rejected,
-                count(1) filter(where next_level_role_id IS NULL) as total_normal_action,
+                count(1) filter(where next_level_role_id = " . $next_level_role_id_operator . ") as total_normal_action,
                 count(1) filter(where is_verified=1 and is_approved=0) as total_normal_verified,
                 count(1) filter(where  next_level_role_id=" . $next_level_role_id_approved . " ) as total_normal_approved,
                 count(1) filter(where back_lb=1 and back_lb_finalize IS NULL) as total_backlb_verified,
@@ -2557,7 +2844,7 @@ class WorkflowLb60Controller extends Controller
                  count(1) filter(where jb_dup_caste_certificate_no=1 and jb_dup_aadhar IS NULL and jb_dup_bank IS NULL) as total_sys_caste,
 
                  created_by_local_body_code
-                 from " . $schema . ". beneficiary_dup_lb  where scheme_id=" . $scheme_id . " and  created_by_dist_code= " . $district_code . "   
+                 from pension.beneficiary_dup_lb  where scheme_id=" . $scheme_id . " and  created_by_dist_code= " . $district_code . "   
       group by created_by_local_body_code) as D ON A.location_id=D.created_by_local_body_code";
     $result = DB::connection('pgsql_mis')->select($query);
     return $result;
@@ -2574,9 +2861,10 @@ class WorkflowLb60Controller extends Controller
       $scheme_length = NULL;
       $id_length = NULL;
     }
-    $role = MapLavel::where('scheme_id', $scheme_id)->where('role_name', 'Verifier')->first();
-    $next_level_role_id_verified = $role->parent_id;
+    // $role = MapLavel::where('scheme_id', $scheme_id)->where('role_name', 'Verifier')->first();
+    // $next_level_role_id_verified = $role->parent_id;
     $next_level_role_id_approved = 0;
+    $next_level_role_id_operator = SchemeStepRank::getSchemeParentId($scheme_id, 1);
     $whereMain = "where  district_code=" . $district_code;
     $query = "select A.location_id,A.location_name,
     COALESCE(C.total_data,0) as total_data,
@@ -2604,7 +2892,7 @@ class WorkflowLb60Controller extends Controller
     (select   
                 count(1)  as total_data,
                 count(1) filter(where is_rejected=1) as total_rejected,
-                count(1) filter(where next_level_role_id IS NULL) as total_normal_action,
+                count(1) filter(where next_level_role_id = " . $next_level_role_id_operator . ") as total_normal_action,
                 count(1) filter(where is_verified=1 and is_approved=0) as total_normal_verified,
                 count(1) filter(where  next_level_role_id=" . $next_level_role_id_approved . " ) as total_normal_approved,
                 count(1) filter(where back_lb=1 and back_lb_finalize IS NULL) as total_backlb_verified,
@@ -2624,7 +2912,7 @@ class WorkflowLb60Controller extends Controller
                  count(1) filter(where jb_dup_aadhar=1 and  jb_dup_bank IS NULL and jb_dup_caste_certificate_no IS NULL) as total_sys_aadhaar,
                  count(1) filter(where jb_dup_caste_certificate_no=1 and jb_dup_aadhar IS NULL and jb_dup_bank IS NULL) as total_sys_caste,
                  created_by_local_body_code
-                 from " . $schema . ". beneficiary_dup_lb  where scheme_id=" . $scheme_id . " and  created_by_dist_code= " . $district_code . "   
+                 from pension.beneficiary_dup_lb  where scheme_id=" . $scheme_id . " and  created_by_dist_code= " . $district_code . "   
       group by created_by_local_body_code) as D ON A.location_id=D.created_by_local_body_code";
     $result = DB::connection('pgsql_mis')->select($query);
     return $result;
@@ -2680,8 +2968,9 @@ class WorkflowLb60Controller extends Controller
         return redirect("/")->with('error', 'Scheme Not Valid');
       }
       $scheme_obj = Scheme::where('id', $scheme_id)->where('is_active', 1)->first();
-      $role_obj = MapLavel::where('scheme_id', $scheme_id)->where('role_name', 'Verifier')->where('is_active', 1)->first();
-      $next_level_role_id = $role_obj->parent_id;
+      // $role_obj = MapLavel::where('scheme_id', $scheme_id)->where('role_name', 'Verifier')->where('is_active', 1)->first();
+      // $next_level_role_id = $role_obj->parent_id;
+      $next_level_role_id = Workflow::getParentId($scheme_id, 'Verifier');
       if (empty($scheme_obj)) {
         return redirect("/")->with('danger', 'Scheme Not Found');
       }
@@ -2704,11 +2993,17 @@ class WorkflowLb60Controller extends Controller
       $report_type = $request->report_type;
       $report_type_name = 'LB Imported Beneficiary List';
       if ($request->application_type == 5) {
-        $query = DB::connection('pgsql_mis')->table($schema . '.beneficiary_dup_lb');
+        $query = DB::connection('pgsql_mis')->table('pension.beneficiary_dup_lb');
       } else
-        $query = DB::connection('pgsql_mis')->table($schema . 'beneficiaries')->where('is_lb_imported', 1);
-      $role_arr_verfied = MapLavel::where('scheme_id', $scheme_id)->where('role_name', 'Verifier')->first();
-      $next_level_role_id = $role_arr_verfied->parent_id;
+        $query = DB::connection('pgsql_mis')->table('pension.beneficiaries')->where('is_lb_imported', 1);
+      // $role_arr_verfied = MapLavel::where('scheme_id', $scheme_id)->where('role_name', 'Verifier')->first();
+      $next_level_role_id_verified = SchemeStepRank::getSchemeParentId($scheme_id, 1);
+      if (AuthChecker::ApproverPermission()) {
+        $next_level_role_id = Workflow::getParentId($scheme_id, 'Approver');
+      } else {
+
+        $next_level_role_id = Workflow::getParentId($scheme_id, Auth::user()->designation_id);
+      }
       $application_type = $request->application_type;
       //dd($application_type);
       $dist_code = $request->dist_code;
@@ -2745,10 +3040,10 @@ class WorkflowLb60Controller extends Controller
       if (!empty($request->application_type)) {
         if ($request->application_type == 1) {
           $report_type_name = ' Pending ' . $report_type_name;
-          if (AuthChecker::ApproverChecker()) {
+          if (AuthChecker::ApproverPermission()) {
             $query = $query->where('next_level_role_id', $next_level_role_id);
           } else {
-            $query->whereNull('next_level_role_id')->whereNull('transfer_to_scheme_id')->whereNull('is_transfer')->whereNull('back_lb');
+            $query->where('next_level_role_id', $next_level_role_id_verified)->whereNull('transfer_to_scheme_id')->whereNull('is_transfer')->whereNull('back_lb');
           }
         } else if ($request->application_type == 2) {
           $query = $query->where('next_level_role_id', $next_level_role_id);
@@ -2766,13 +3061,13 @@ class WorkflowLb60Controller extends Controller
           $report_type_name = 'Probable duplicate list ' . $report_type_name;
         } else if ($request->application_type == 6) {
           //Received from bandhu
-          $query = $query->whereNull('next_level_role_id')->where('transfer_from_scheme_id', 3);
+          $query = $query->where('next_level_role_id', $next_level_role_id_verified)->where('transfer_from_scheme_id', 3);
         } else if ($request->application_type == 7) {
           //Transfer to Bandhu
           $query = $query->where('is_transfer', 1)->where('transfer_to_scheme_id', 3);
         } else if ($request->application_type == 9) {
           //Received from Johar
-          $query = $query->whereNull('next_level_role_id')->where('transfer_from_scheme_id', 1);
+          $query = $query->where('next_level_role_id', $next_level_role_id_verified)->where('transfer_from_scheme_id', 1);
         } else if ($request->application_type == 10) {
           //Transfer to Johar
           $query = $query->where('is_transfer', 1)->where('transfer_to_scheme_id', 1);
@@ -2781,10 +3076,10 @@ class WorkflowLb60Controller extends Controller
           $query = $query->where('is_transfer', 1)->where('transfer_to_scheme_id', 10);
         } else if ($request->application_type == 12) {
           //Received from Bandhu
-          $query = $query->whereNull('next_level_role_id')->where('transfer_from_scheme_id', 3);
+          $query = $query->where('next_level_role_id', $next_level_role_id_verified)->where('transfer_from_scheme_id', 3);
         } else if ($request->application_type == 13) {
           //Received from Johar
-          $query = $query->whereNull('next_level_role_id')->where('transfer_from_scheme_id', 1);
+          $query = $query->where('next_level_role_id', $next_level_role_id_verified)->where('transfer_from_scheme_id', 1);
         } else if ($request->application_type == 14) {
           //Received from Johar
           $query = $query->where('back_lb', 1);
@@ -2808,7 +3103,8 @@ class WorkflowLb60Controller extends Controller
           'mobile_no',
           'jb_dup_bank',
           'jb_dup_aadhar',
-          'jb_dup_caste_certificate_no'
+          'jb_dup_caste_certificate_no',
+          'scheme_id'
         ]);
       } else {
         $data = $query->orderBy('lb_application_id', 'ASC')->get([
@@ -2833,6 +3129,7 @@ class WorkflowLb60Controller extends Controller
           'transfer_to_scheme_id',
           'back_lb',
           'back_lb_finalize',
+          'scheme_id'
         ]);
       }
       //dd($data->toArray());
@@ -3006,7 +3303,7 @@ class WorkflowLb60Controller extends Controller
       $errormsg = array();
       $is_error = 0;
       if (!empty($bank_code) && !empty($bank_ifsc)) {
-        $bank_count = DB::table($schema . '.ben_bank_account_no_unique')->where('bank_code', $bank_code)->where('bank_ifsc', $bank_ifsc)->count('bank_code');
+        $bank_count = DB::table('pension.beneficiaries')->where('scheme_id', $schema_v)->where('bank_code', $bank_code)->where('bank_ifsc', $bank_ifsc)->count('bank_code');
         if ($bank_count > 0) {
           $is_error = 1;
           $return_arr['is_valid'] = false;
@@ -3015,7 +3312,7 @@ class WorkflowLb60Controller extends Controller
       }
 
       if (!empty($sp_aadhar_no_new)) {
-        $aadhar_count = DB::table($schema . '.ben_aadhar_no_unique')->where('aadhar_no', trim($sp_aadhar_no_new))->count('aadhar_no');
+        $aadhar_count = DB::table('pension.beneficiaries')->where('scheme_id', $schema_v)->where('aadhar_no', trim($sp_aadhar_no_new))->count('aadhar_no');
         if ($aadhar_count > 0) {
           $is_error = 1;
           $return_arr['is_valid'] = false;
@@ -3026,7 +3323,7 @@ class WorkflowLb60Controller extends Controller
       }
 
       if (!empty($old_aadhar_no) && $aadhar_count == 0 && is_null($sp_aadhar_no_new)) {
-        $aadhar_count = DB::table($schema . '.ben_aadhar_no_unique')->where('aadhar_no', trim($old_aadhar_no))->count('aadhar_no');
+        $aadhar_count = DB::table('pension.beneficiaries')->where('scheme_id', $schema_v)->where('aadhar_no', trim($old_aadhar_no))->count('aadhar_no');
         if ($aadhar_count > 0) {
           $is_error = 1;
           $return_arr['is_valid'] = false;
@@ -3034,7 +3331,7 @@ class WorkflowLb60Controller extends Controller
         }
       }
       if (!empty($sp_mobile_new)) {
-        $mobile_count = DB::table($schema . '.ben_mobile_no_unique')->where('mobile_no', $sp_mobile_new)->count('mobile_no');
+        $mobile_count = DB::table('pension.beneficiaries')->where('scheme_id', $schema_v)->where('mobile_no', $sp_mobile_new)->count('mobile_no');
         if ($mobile_count > 0) {
           $is_error = 1;
           $return_arr['is_valid'] = false;
@@ -3044,7 +3341,7 @@ class WorkflowLb60Controller extends Controller
         $mobile_count = 0;
       }
       if (!empty($old_mobile_no) && $old_mobile_no > 0 && $mobile_count == 0 && is_null($sp_mobile_new)) {
-        $mobile_count = DB::table($schema . '.ben_mobile_no_unique')->where('mobile_no', $old_mobile_no)->count('mobile_no');
+        $mobile_count = DB::table('pension.beneficiaries')->where('scheme_id', $schema_v)->where('mobile_no', $old_mobile_no)->count('mobile_no');
         if ($mobile_count > 0) {
           $is_error = 1;
           $return_arr['is_valid'] = false;
@@ -3061,7 +3358,7 @@ class WorkflowLb60Controller extends Controller
 
           //dd($sp_caste_certificate_no_new);
           if (!empty($sp_caste_certificate_no_new)) {
-            $caste_count = DB::table($schema . '.ben_caste_certificate_no_unique')->where('caste_certificate_no', $sp_caste_certificate_no_new)->count('caste_certificate_no');
+            $caste_count = DB::table('pension.beneficiaries')->where('scheme_id', $scheme_id)->where('caste_certificate_no', $sp_caste_certificate_no_new)->count('caste_certificate_no');
             if ($caste_count > 0) {
               $is_error = 1;
               $return_arr['is_valid'] = false;
@@ -3071,7 +3368,7 @@ class WorkflowLb60Controller extends Controller
             $caste_count = 0;
           }
           if (!empty($old_caste_certificate_no) && $caste_count == 0 && is_null($sp_caste_certificate_no_new)) {
-            $caste_count = DB::table($schema . '.ben_caste_certificate_no_unique')->where('caste_certificate_no', $old_caste_certificate_no)->count('caste_certificate_no');
+            $caste_count = DB::table('pension.beneficiaries')->where('scheme_id', $scheme_id)->where('caste_certificate_no', $old_caste_certificate_no)->count('caste_certificate_no');
             if ($caste_count > 0) {
               $is_error = 1;
               $return_arr['is_valid'] = false;
@@ -3088,6 +3385,8 @@ class WorkflowLb60Controller extends Controller
   private function getStatus($data, $application_type, $next_level_role_id_verified, $is_excel)
   {
     $return_arr = array('can_view' => false, 'bulk_approve' => false, 'status' => '');
+    $next_level_role_id_approver = Workflow::getParentId($data->scheme_id, 'Approver');
+
     if ($application_type == 5) {
       if ($data->jb_dup_bank == 1)
         $status = 'Probable duplicate list Due to Duplicate Bank Info';
@@ -3102,11 +3401,11 @@ class WorkflowLb60Controller extends Controller
       if ($data->is_rejected == 1) {
         $status = 'Rejected';
       } else {
-        if ($data->next_level_role_id == 0 && !is_null($data->next_level_role_id)) {
+        if ($data->next_level_role_id == 0) {
           $status = 'Verified and Approved';
 
-        } else if ($data->next_level_role_id == $next_level_role_id_verified) {
-          if (AuthChecker::ApproverChecker()) {
+        } else if ($data->next_level_role_id == $next_level_role_id_approver) {
+          if (AuthChecker::ApproverPermission()) {
             $status = 'Verified but Approval Pending';
             $return_arr['can_view'] = true;
             $return_arr['bulk_approve'] = true;
@@ -3118,28 +3417,29 @@ class WorkflowLb60Controller extends Controller
           if ($data->back_lb_finalize == 1) {
             $status = 'Back to LB Request has been Approved';
           } else if (is_null($data->back_lb_finalize)) {
-            if (AuthChecker::VerifierChecker()) {
+            if (AuthChecker::VerifierPermission()) {
               $status = 'Back to LB Request';
               $return_arr['can_view'] = true;
             } else {
+              $return_arr['can_view'] = true;
               $status = 'Back to LB Request has been send to Approver for Approval';
             }
           }
         } else if ($data->is_transfer == 1) {
           if ($data->transfer_to_scheme_id == 10) {
-            $to_scheme = 'Pension';
+            $to_scheme = 'OAP';
 
           } else if ($data->transfer_to_scheme_id == 1) {
-            $to_scheme = 'Pension';
+            $to_scheme = 'Jai Johar';
 
           } else if ($data->transfer_to_scheme_id == 3) {
-            $to_scheme = 'Pension';
+            $to_scheme = 'Tapasoli Bandhu';
 
           }
           if ($data->transfer_finalize == 1) {
             $status = 'Transfer Request to ' . $to_scheme . ' has been Approved';
           } else if (is_null($data->transfer_finalize)) {
-            if (AuthChecker::ApproverChecker()) {
+            if (AuthChecker::ApproverPermission()) {
               $return_arr['can_view'] = true;
               $status = 'Transfer Request to ' . $to_scheme;
             } else {
@@ -3148,13 +3448,13 @@ class WorkflowLb60Controller extends Controller
           }
         } else if (!is_null($data->transfer_from_scheme_id) && $data->transfer_from_scheme_id > 0) {
           if ($data->transfer_from_scheme_id == 10) {
-            $from_scheme = 'Pension';
+            $from_scheme = 'OAP';
 
           } else if ($data->transfer_from_scheme_id == 1) {
-            $from_scheme = 'Pension';
+            $from_scheme = 'Jai Johar';
 
           } else if ($data->transfer_from_scheme_id == 3) {
-            $from_scheme = 'Pension';
+            $from_scheme = 'Taposali Bandhu ';
 
           }
           $return_arr['can_view'] = true;

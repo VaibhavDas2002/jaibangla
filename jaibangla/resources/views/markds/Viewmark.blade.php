@@ -465,14 +465,13 @@ margin: 10px 0px 10px 0px !important;
                </div>
                @endif
                @php
-              $visible=0;
-              if(is_null($row->sm_ds_mark)){
+             
                 $visible=1;
-                $btntext='Mark as Duare Sarkar '.$camp_roman;
-              }
+                $btntext='Mark as CMO ENTRY';
+              
              
               @endphp
-              @if($visible==1)
+              @if($already_mark==0 && (intval($row->is_approved)==0))
                 <div class="row">
                 <form method="POST" action="{{route('DsmarkPost')}}"  name="formReject" id="formReject">
                 <input type="hidden" name="_token" value="{{ csrf_token() }}">
@@ -490,7 +489,15 @@ margin: 10px 0px 10px 0px !important;
                   
                   </div>
                 </div>
-                 
+                <div class="row">
+                  <div class="form-group col-md-12" >
+                    <label class="">Camp Date</label>
+                    <input type="date" name="ds_date" id="ds_date" class="form-control"
+                    max="<?php echo date("Y-m-d"); ?>" value="" />
+                   
+                  
+                  </div>
+                </div>
                 <button type="button"  class="btn btn-success success btn-lg" id="modal-submit" style="margin-top:20px;">{{$btntext}}</button>
                         <button type="button" id="submitting" value="Submit" class="btn btn-danger btn-lg"
                           disabled style="display:none;">Submitting please wait</button>
@@ -529,10 +536,12 @@ $(document).ready(function(){
     
   $('#modal-submit').on('click',function(e){
     var ds_mark_phase=$('#ds_mark_phase').val();
-        var pass_ds_registration_no=1;
+           var pass_ds_registration_no=0;
+           var pass_ds_date=0;
         var ds_registration_no=$('#ds_registration_no').val();
-     /*    if(ds_registration_no==''){
+        if(ds_registration_no==''){
           alert('Please Enter Camp Registration No.');
+          $("#ds_registration_no").focus();
           return false;
          }
          else{
@@ -540,6 +549,7 @@ $(document).ready(function(){
           if($.trim($('#ds_registration_no').val()).length < 24)
           {
             alert('Please Enter Valid Camp Registration No.');
+            $("#ds_registration_no").focus();
             return false;
           }
           else{
@@ -547,9 +557,20 @@ $(document).ready(function(){
           }
          
       }
-      */
+      var ds_date=$('#ds_date').val();
+         if(ds_date==''){
+          alert('Please Enter Camp Date.');
+          $("#ds_date").focus();
+          return false;
+         }
+         else{
+          
+          var pass_ds_date=1;
+          
+         }
+      
    
-   if(pass_ds_registration_no==1){
+   if(pass_ds_registration_no==1 && pass_ds_date==1){
     $("#modal-submit").hide();
     $("#submitting").show();
     $("#submit_loader").show();

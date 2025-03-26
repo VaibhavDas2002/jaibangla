@@ -160,6 +160,38 @@ $(document).ready(function () {
     $("#av_status_modal").text($("#av_status option:selected").text());
     // }
 
+    $(".receive-pension").click(function(){        
+
+      var selectedRP = new Array();
+      var n1 = jQuery(".receive-pension:checked").length;
+      if (n1 > 0){
+       
+          jQuery(".receive-pension:checked").each(function(){
+              selectedRP.push( $(this).val());
+          });
+      }  
+
+      $("#receive-pension-modal").text(selectedRP)
+      
+  });
+
+
+  $(".social-security-pension").click(function(){ 
+
+    var selectedCategory = new Array();
+    var n2 = jQuery(".social-security-pension:checked").length;
+    if (n2 > 0){
+     
+        jQuery(".social-security-pension:checked").each(function(){
+            selectedCategory.push($(this).val());
+        });
+    }  
+
+    $("#checkbox-tick-modal").text(selectedCategory)
+
+   
+});
+
     $("#text_1_modal").text($("#text_1").val());
     $("#text_2_modal").text($("#text_2").val());
     $("#receiving_pension_other_source_1_txt").text(

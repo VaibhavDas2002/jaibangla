@@ -65,6 +65,7 @@ class OAPWCDformController extends Controller
 
     public function __construct()
     {
+        return redirect("/")->with('danger', 'User Disabled');
         $this->middleware('auth');
         date_default_timezone_set('Asia/Kolkata');
         $this->scheme_id = 10;

@@ -22,7 +22,8 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 use Elibyy\TCPDF\Facades\TCPDF as PDF;
 use Illuminate\Support\Facades\Config;
-
+use App\Workflow;
+use App\SchemeStepRank;
 use App\Helpers\AuthChecker;
 
 class TrackApplicationStatusController extends Controller
@@ -107,13 +108,14 @@ class TrackApplicationStatusController extends Controller
       $role_id = $request->session()->get('role_id');
 
       // Get Dynamic Schema Name scheme wise
+      $next_level_role_id_operator=SchemeStepRank::getSchemeParentId($scheme_id, 1);
       $table_name = 'pension.beneficiaries';
       $query = '';
       $query = "select b.*, m.district_name, md.district_name as loc_dist, bl_div.block_subdiv_name, ms.scheme_name,  
         CASE 
-					WHEN b.next_level_role_id is null and b.is_reverted is null THEN 'Applied (Verification Pending)' 
+					WHEN b.next_level_role_id = ".$next_level_role_id_operator." and b.is_reverted is null THEN 'Applied (Verification Pending)' 
 					WHEN b.is_verified=1 and b.is_approved=0 and b.is_rejected=0	THEN 'Verified (Approval Pending)'
-          WHEN b.is_reverted=1 and b.is_approved=0 and b.is_rejected=0 and b.next_level_role_id is null	THEN 'Application is reverted (Application will be found in Operator end)'
+          WHEN b.is_reverted=1 and b.is_approved=0 and b.is_rejected=0 and b.next_level_role_id =".$next_level_role_id_operator. "	THEN 'Application is reverted (Application will be found in Operator end)'
           WHEN b.next_level_role_id = 0 THEN 
             CASE 
               WHEN b.dup_bank = 1 THEN 'Approved but due to Duplicate Bank A/c, payment has been stopped..' 
@@ -191,6 +193,8 @@ class TrackApplicationStatusController extends Controller
       }
       $data = DB::connection('pgsql_mis')->select($query);
       // print_r($data);
+
+      $next_level_role_id_operator = SchemeStepRank::getSchemeParentId($scheme_id, 1);
       return datatables()->of($data)
         // ->addIndexColumn()
         ->addColumn('ben_id_text', function ($data) {
@@ -201,8 +205,8 @@ class TrackApplicationStatusController extends Controller
           }
           return $ben_id_text;
         })
-        ->addColumn('action_needs_to_taken', function ($data) {
-          if ($data->next_level_role_id >= 0 || is_null($data->next_level_role_id)) {
+        ->addColumn('action_needs_to_taken', function ($data) use($next_level_role_id_operator) {
+          if ($data->next_level_role_id >= 0 || $data->next_level_role_id == $next_level_role_id_operator) {
             $action_need = $this->getActionNeedToTaken($data);
             return '<span style="font-weight: bold;" class="text-primary">' . $action_need . '</span>';
           }
@@ -630,7 +634,7 @@ class TrackApplicationStatusController extends Controller
     try {
       // Duplicate Aadhaar
       if ($data->dup_aadhar == 1 && is_null($data->dup_aadhar_edit_role_id)) {
-        array_push($need_act, 'Duplicate Aadhaar correction pending at Operator end.');
+        array_push($need_act, 'Duplicate Aadhaar correction pending at Verifier/Approver end.');
       } else if ($data->dup_aadhar == 1 && $data->dup_aadhar_edit_role_id == 1) {
         array_push($need_act, 'Duplicate Aadhaar correction verification pending at Verifier end.');
       } else if ($data->dup_aadhar == 1 && $data->dup_aadhar_edit_role_id == 2) {
@@ -642,7 +646,7 @@ class TrackApplicationStatusController extends Controller
     try {
       // Duplicate Mobile
       if ($data->dup_mobile == 1 && is_null($data->dup_mobile_edit_role_id)) {
-        array_push($need_act, 'Duplicate Mobile correction pending at Operator end.');
+        array_push($need_act, 'Duplicate Mobile correction pending at Verifier/Approver end.');
       } else if ($data->dup_mobile == 1 && $data->dup_mobile_edit_role_id == 1) {
         array_push($need_act, 'Duplicate Mobile correction verification pending at Verifier end.');
       } else if ($data->dup_mobile == 1 && $data->dup_mobile_edit_role_id == 2) {
@@ -654,7 +658,7 @@ class TrackApplicationStatusController extends Controller
     try {
       // No Aadhaar
       if ($data->no_aadhar == 1 && is_null($data->next_level_role_id_edit) && ($data->no_aadhar_mobile_flag == 1 || is_null($data->no_aadhar_mobile_flag))) {
-        array_push($need_act, 'No Aadhaar correction pending at Operator end.');
+        array_push($need_act, 'No Aadhaar correction pending at Verifier/Approver end.');
       } else if ($data->no_aadhar == 1 && $data->next_level_role_id_edit == 999 && $data->no_aadhar_mobile_flag == 1) {
         array_push($need_act, 'No Aadhaar correction verification pending at Verifier end.');
       } else if ($data->no_aadhar == 1 && ($data->next_level_role_id_edit > 0 && $data->next_level_role_id_edit != 999) && $data->no_aadhar_mobile_flag == 1) {
@@ -666,7 +670,7 @@ class TrackApplicationStatusController extends Controller
     try {
       // No Mobile
       if ($data->no_mobile == 1 && is_null($data->next_level_role_id_edit) && is_null($data->no_aadhar_mobile_flag)) {
-        array_push($need_act, 'No Mobile correction pending at Operator end.');
+        array_push($need_act, 'No Mobile correction pending at Verifier/Approver end.');
       } else if ($data->no_mobile == 1 && $data->next_level_role_id_edit == 999 && $data->no_aadhar_mobile_flag == 1) {
         array_push($need_act, 'No Mobile correction verification pending at Verifier end.');
       } else if ($data->no_mobile == 1 && $data->next_level_role_id_edit > 0 && $data->no_aadhar_mobile_flag == 1) {

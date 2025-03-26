@@ -15,19 +15,10 @@ use Illuminate\Support\Facades\Validator;
 use DateTime;
 use Illuminate\Support\Facades\Config;
 use App\Configduty;
-use Maatwebsite\Excel\Facades\Excel;
-use App\DataSourceCommon;
-use App\getModelFunc;
-use Illuminate\Support\Facades\Crypt;
 use App\RejectRevertReason;
-use App\AadharDuplicateTrail;
 use App\SubDistrict;
 use App\Taluka;
 use App\DocumentType;
-use Illuminate\Support\Facades\Storage;
-use App\SchemeDocMap;
-use File;
-use App\BankDetails;
 use App\UrbanBody;
 use App\Ward;
 use App\GP;
@@ -37,6 +28,8 @@ use App\AcceptRejectInfo;
 use App\Traits\TraitAadharValidate;
 use App\Helpers\DupCheck;
 use App\Helpers\AuthChecker;
+use Illuminate\Support\Facades\Route;
+use App\BenEntry;
 
 class wBPdsChangeController extends Controller
 {
@@ -59,8 +52,9 @@ class wBPdsChangeController extends Controller
   function selectschemeOp(Request $request)
   {
     $this->middleware('auth');
-    $roleArray = Configduty::where('user_id', $user_id)->where('is_active', 1)->get()->toArray();;
-    $designation_id = Auth::user()->designation_id;
+    $user_id = Auth::user()->id;
+    $roleArray = Configduty::where('user_id', $user_id)->where('is_active', 1)->get()->toArray();
+    ;
     $userId = Auth::user()->id;
     $type = $request->type;
     if (!in_array($type, array(1, 2))) {
@@ -72,7 +66,7 @@ class wBPdsChangeController extends Controller
       'wbpds.selectSchemeOp',
       [
         'scheme_list' => $scheme_list,
-        'designation_id' => $designation_id,
+        // 'designation_id' => $designation_id,
         'type' => $type
       ]
     );
@@ -80,9 +74,10 @@ class wBPdsChangeController extends Controller
   public function namemismatchdlist(Request $request)
   {
     $this->middleware('auth');
-    $designation_id = Auth::user()->designation_id;
-    //dd($designation_id);
-    $user_id = AuthChecker::getUserId();
+
+    $is_verifier = AuthChecker::VerifierPermission();
+    $is_approver = AuthChecker::ApproverPermission();
+    $user_id = Auth::user()->id;
     $scheme_id = $request->scheme_id;
     // var_dump($scheme_id);
     if (!ctype_digit($scheme_id)) {
@@ -112,7 +107,7 @@ class wBPdsChangeController extends Controller
     $district_list_obj = collect([]);
     if (!empty($scheme_obj->short_code)) {
       $schema = $scheme_obj->short_code;
-      $scheme_length =  $scheme_obj->scheme_length;
+      $scheme_length = $scheme_obj->scheme_length;
       $id_length = $scheme_obj->id_length;
     } else {
       $schema = "pension";
@@ -154,9 +149,8 @@ class wBPdsChangeController extends Controller
       $application_type = $request->application_type;
       $process_type = $request->process_type;
       // dd($process_type);
-      $query = DB::table($schema . '.beneficiaries')
-        ->where('created_by_dist_code', $district_code)->where('scheme_id', $scheme_id)->whereIn('next_level_role_id', array(0, -57))->whereRaw(" (freezing_modify_aadhar=0 OR freezing_modify_aadhar IS NULL) ");
-      if ($designation_id == 'Verifier') {
+      $query =BenEntry::where('created_by_dist_code', $district_code)->where('scheme_id', $scheme_id)->whereIn('next_level_role_id', array(0, -57))->whereRaw(" (freezing_modify_aadhar=0 OR freezing_modify_aadhar IS NULL) ");
+      if (AuthChecker::VerifierPermission()) {
         $query = $query->where('created_by_local_body_code', $created_by_local_body_code);
         if (!empty($application_type)) {
           if ($application_type == 1)
@@ -187,7 +181,7 @@ class wBPdsChangeController extends Controller
       if (!empty($request->gp_ward_code)) {
         $query = $query->where('gp_ward_code', $request->gp_ward_code);
       }
-      if ($designation_id == 'Approver') {
+      if (AuthChecker::ApproverPermission()) {
         // dd($process_type);
         if ($application_type != '') {
           if ($application_type == 1)
@@ -212,10 +206,30 @@ class wBPdsChangeController extends Controller
       if (empty($serachvalue)) {
         $totalRecords = $query->count();
         $data = $query->orderBy('id', 'ASC')->offset($offset)->limit($limit)->get([
-          'id', 'created_by_dist_code', 'dob', 'assembly_name',
-          'bank_code', 'ben_fname', 'ben_lname', 'ben_mname', 'gender', 'ben_age', 'block_ulb_name', 'gp_ward_name', 'bank_ifsc', 'village_town_city',
-          'scheme_id', 'lot_generated', 'payment_count', 'next_level_role_id', 'next_level_role_id_aadhar_validation',
-          'process_acc_validated_aadhar', 'mobile_no', 'acc_validated_aadhar', 'wbpds_name_as_in_aadhar_sr','payment_suspended'
+          'id',
+          'created_by_dist_code',
+          'dob',
+          'assembly_name',
+          'bank_code',
+          'ben_fname',
+          'ben_lname',
+          'ben_mname',
+          'gender',
+          'ben_age',
+          'block_ulb_name',
+          'gp_ward_name',
+          'bank_ifsc',
+          'village_town_city',
+          'scheme_id',
+          'lot_generated',
+          'payment_count',
+          'next_level_role_id',
+          'next_level_role_id_aadhar_validation',
+          'process_acc_validated_aadhar',
+          'mobile_no',
+          'acc_validated_aadhar',
+          'wbpds_name_as_in_aadhar_sr',
+          'payment_suspended'
         ]);
         $filterRecords = count($data);
       } else {
@@ -228,10 +242,30 @@ class wBPdsChangeController extends Controller
           $totalRecords = $query->count();
           $data = $query->orderBy('id', 'ASC')->offset($offset)->limit($limit)->get(
             [
-              'id', 'created_by_dist_code', 'dob', 'assembly_name',
-              'bank_code', 'ben_fname', 'ben_lname', 'ben_mname', 'gender', 'ben_age', 'block_ulb_name', 'gp_ward_name', 'bank_ifsc', 'village_town_city',
-              'scheme_id', 'lot_generated', 'payment_count', 'next_level_role_id', 'next_level_role_id_aadhar_validation',
-              'process_acc_validated_aadhar', 'mobile_no', 'acc_validated_aadhar', 'wbpds_name_as_in_aadhar_sr','payment_suspended'
+              'id',
+              'created_by_dist_code',
+              'dob',
+              'assembly_name',
+              'bank_code',
+              'ben_fname',
+              'ben_lname',
+              'ben_mname',
+              'gender',
+              'ben_age',
+              'block_ulb_name',
+              'gp_ward_name',
+              'bank_ifsc',
+              'village_town_city',
+              'scheme_id',
+              'lot_generated',
+              'payment_count',
+              'next_level_role_id',
+              'next_level_role_id_aadhar_validation',
+              'process_acc_validated_aadhar',
+              'mobile_no',
+              'acc_validated_aadhar',
+              'wbpds_name_as_in_aadhar_sr',
+              'payment_suspended'
             ]
           );
         } else {
@@ -244,10 +278,30 @@ class wBPdsChangeController extends Controller
           $totalRecords = $query->count();
           $data = $query->orderBy('id', 'ASC')->offset($offset)->limit($limit)->get(
             [
-              'id', 'created_by_dist_code', 'dob', 'assembly_name',
-              'bank_code', 'ben_fname', 'ben_lname', 'ben_mname', 'gender', 'ben_age', 'block_ulb_name', 'gp_ward_name', 'bank_ifsc', 'village_town_city',
-              'scheme_id', 'lot_generated', 'payment_count', 'next_level_role_id', 'next_level_role_id_aadhar_validation',
-              'process_acc_validated_aadhar', 'mobile_no', 'acc_validated_aadhar', 'wbpds_name_as_in_aadhar_sr','payment_suspended'
+              'id',
+              'created_by_dist_code',
+              'dob',
+              'assembly_name',
+              'bank_code',
+              'ben_fname',
+              'ben_lname',
+              'ben_mname',
+              'gender',
+              'ben_age',
+              'block_ulb_name',
+              'gp_ward_name',
+              'bank_ifsc',
+              'village_town_city',
+              'scheme_id',
+              'lot_generated',
+              'payment_count',
+              'next_level_role_id',
+              'next_level_role_id_aadhar_validation',
+              'process_acc_validated_aadhar',
+              'mobile_no',
+              'acc_validated_aadhar',
+              'wbpds_name_as_in_aadhar_sr',
+              'payment_suspended'
             ]
           );
         }
@@ -261,32 +315,32 @@ class wBPdsChangeController extends Controller
           $app_id = $data->created_by_dist_code . substr('0' . $data->scheme_id, -$scheme_length) . substr('0000000' . $data->id, -$id_length);
 
           return $app_id;
-        })->addColumn('view', function ($data) use ($scheme_id, $designation_id, $type) {
+        })->addColumn('view', function ($data) use ($scheme_id, $is_verifier, $is_approver, $type) {
 
-          if ($designation_id == 'Verifier') {
+          if ($is_verifier) {
             if ($data->process_acc_validated_aadhar == -57) {
               $action = 'Rejected';
             } else if ($data->acc_validated_aadhar == -2 && $data->next_level_role_id_aadhar_validation == 1) {
               $action = 'Approval Pending';
             } else if ($data->acc_validated_aadhar == -2 && is_null($data->next_level_role_id_aadhar_validation)) {
-              if($data->payment_suspended == 1){
+              if ($data->payment_suspended == 1) {
                 $action = '<b>Mark due to JNMP</b>';
-              }else{
+              } else {
                 $action = '<a href="Viewpdsnamemismatch?id=' . $data->id . '&scheme_id=' . $scheme_id . '&type=' . $type . '" class="btn btn-xs btn-primary"><i class="glyphicon glyphicon-edit"></i> View</a>';
               }
             } else {
               $action = '';
             }
           }
-          if ($designation_id == 'Approver') {
+          if ($is_approver) {
             if ($data->next_level_role_id_aadhar_validation == -57) {
               $action = 'Rejected';
             } else if ($data->next_level_role_id_aadhar_validation == 0) {
               $action = 'Approved';
             } else if ($data->acc_validated_aadhar == -2 && $data->next_level_role_id_aadhar_validation == 1) {
-              if($data->payment_suspended == 1){
+              if ($data->payment_suspended == 1) {
                 $action = '<b>Mark due to JNMP</b>';
-              }else{
+              } else {
                 $action = '<a href="Viewpdsnamemismatch?id=' . $data->id . '&scheme_id=' . $scheme_id . '&type=' . $type . '" class="btn btn-xs btn-primary"><i class="glyphicon glyphicon-edit"></i> View</a>';
               }
             } else {
@@ -294,8 +348,8 @@ class wBPdsChangeController extends Controller
             }
           }
           return $action;
-        })->addColumn('check', function ($data) use ($designation_id) {
-          if ($designation_id == 'Approver') {
+        })->addColumn('check', function ($data) use ($is_approver) {
+          if ($is_approver) {
             if ($data->next_level_role_id_aadhar_validation == 1) {
               return '<input type="checkbox" name="approvalcheck[]" onClick="controlCheckBox()" value="' . $data->id . '">';
             } else
@@ -362,7 +416,6 @@ class wBPdsChangeController extends Controller
     return view(
       'wbpds.linelistingmismatch',
       [
-        'designation_id' => $designation_id,
         'verifier_type' => $verifier_type,
         'created_by_local_body_code' => $created_by_local_body_code,
         'is_rural' => $is_rural,
@@ -370,18 +423,18 @@ class wBPdsChangeController extends Controller
         'scheme_name' => $scheme_obj->scheme_name,
         'gps' => $gps,
         'urban_bodys' => $urban_bodys,
-        'gps' => $gps,
         'district_code' => $district_code,
         'type' => $type,
-        'type_des' => $type_des
+        'type_des' => $type_des,
+        'is_approver' => $is_approver,
+        'is_verifier' => $is_verifier,
       ]
     );
   }
   public function ViewMismatchName(Request $request)
   {
     $this->middleware('auth');
-    $designation_id = Auth::user()->designation_id;
-    $user_id = AuthChecker::getUserId();
+    $user_id = Auth::user()->id;
 
     $scheme_id = $request->scheme_id;
     if (!ctype_digit($scheme_id)) {
@@ -413,7 +466,7 @@ class wBPdsChangeController extends Controller
     $district_code = $duty_obj->district_code;
     if (!empty($scheme_obj->short_code)) {
       $schema = $scheme_obj->short_code;
-      $scheme_length =  $scheme_obj->scheme_length;
+      $scheme_length = $scheme_obj->scheme_length;
       $id_length = $scheme_obj->id_length;
       $file_path = $scheme_obj->file_path;
     } else {
@@ -422,8 +475,7 @@ class wBPdsChangeController extends Controller
       $id_length = NULL;
       $file_path = $scheme_obj->file_path;
     }
-    $query = DB::table($schema . '.beneficiaries')
-      ->where('created_by_dist_code', $district_code)
+    $query = BenEntry::where('created_by_dist_code', $district_code)
       ->where('id', $request->id);
     if ($type == 1) {
       $query = $query->where('acc_validated_aadhar', -1);
@@ -437,7 +489,7 @@ class wBPdsChangeController extends Controller
     if (empty($row)) {
       return redirect("/")->with('danger', 'Not Allowed');
     }
-    if($row->payment_suspended == 1){
+    if ($row->payment_suspended == 1) {
       return redirect("/")->with('danger', 'Mark due to JNMP');
     }
     $app_id = $row->created_by_dist_code . substr('0' . $row->scheme_id, -$scheme_length) . substr('0000000' . $row->id, -$id_length);
@@ -474,12 +526,12 @@ class wBPdsChangeController extends Controller
       if ($row->rural_urban_id == 1) {
         $gp_ward = Ward::where('urban_body_ward_code', '=', $row->gp_ward_code)->first();
         if (!empty($gp_ward)) {
-          $gp_name =  $gp_ward->urban_body_ward_name;
+          $gp_name = $gp_ward->urban_body_ward_name;
         }
       } else {
         $gp = GP::where('gram_panchyat_code', '=', $row->gp_ward_code)->get(['gram_panchyat_code', 'gram_panchyat_name'])->first();
         if (!empty($gp)) {
-          $gp_name =  $gp->gram_panchyat_name;
+          $gp_name = $gp->gram_panchyat_name;
         }
       }
     }
@@ -487,7 +539,7 @@ class wBPdsChangeController extends Controller
     $doc_type_id = $this->doc_type_id;
     // $docs = DB::table($schema . '.ben_docs')->where('ben_id', $request->id)->where('doc_type_id', $doc_type_id)->first();
     $encolserdata = DB::connection('pgsql_encwrite')->table('jb_doc.ben_attach_documents')->where('created_by_dist_code', $district_code)->where('beneficiary_id', $request->id)->where('scheme_id', $scheme_id)->where('document_type', $doc_type_id)->first();
-    if ($designation_id == 'Approver') {
+    if (AuthChecker::ApproverChecker()) {
       // $docs_new = DB::table($schema . '.ben_docs')->where('ben_id', $request->id)->where('doc_type_id', $doc_type_id)->first();
       $encolserdata = DB::connection('pgsql_encwrite')->table('jb_doc.ben_attach_documents')->where('created_by_dist_code', $district_code)->where('beneficiary_id', $request->id)->where('scheme_id', $scheme_id)->where('document_type', $doc_type_id)->first();
     } else {
@@ -496,10 +548,13 @@ class wBPdsChangeController extends Controller
     //dd($docs_new);
     $doc_man = DocumentType::get(['id', 'doc_name', 'doc_type', 'doc_mime_type', 'doc_size_kb'])->where("id", $doc_type_id)->first()->toArray();
     //dd($docs_new);
+    // 
+    $is_verifier = AuthChecker::VerifierPermission();
+    $is_approver = AuthChecker::ApproverPermission();
     return view(
       'wbpds.ViewMismatchName',
       [
-        'designation_id' => $designation_id,
+        // 'designation_id' => $designation_id,
         'scheme_id' => $scheme_id,
         'row' => $row,
         'district_name' => $district_name,
@@ -508,7 +563,10 @@ class wBPdsChangeController extends Controller
         'doc_man' => $doc_man,
         'encolserdata' => $encolserdata,
         'reject_revert_cause_list' => $reject_revert_cause_list,
-        'type' => $type
+        'type' => $type,
+        'is_verifier' => $is_verifier,
+        'is_approver' => $is_approver,
+        // 'designation_id' => $designation_id,
       ]
     );
   }
@@ -517,9 +575,9 @@ class wBPdsChangeController extends Controller
     $this->middleware('auth');
     //dd('ok2');
     $doc_type_id = $this->doc_type_id;
-    $designation_id = Auth::user()->designation_id;
-    $user_id = AuthChecker::getUserId();
+    $user_id = Auth::user()->id;
     $id = $request->id;
+
     //dd($request->id);
     $scheme_id = $request->scheme_id;
     //dd($request);
@@ -574,7 +632,7 @@ class wBPdsChangeController extends Controller
     $condition = array();
     $condition['id'] = $request->id;
     $district_code = $duty_obj->district_code;
-    if ($designation_id == 'Verifier') {
+    if (AuthChecker::VerifierPermission()) {
       if ($duty_obj->mapping_level == "Subdiv") {
         $created_by_local_body_code = $duty_obj->urban_body_code;
       }
@@ -585,7 +643,7 @@ class wBPdsChangeController extends Controller
     }
     if (!empty($scheme_obj->short_code)) {
       $schema = $scheme_obj->short_code;
-      $scheme_length =  $scheme_obj->scheme_length;
+      $scheme_length = $scheme_obj->scheme_length;
       $id_length = $scheme_obj->id_length;
       $file_path = $scheme_obj->file_path;
       $file_arc_path = $scheme_obj->file_arc_path;
@@ -597,8 +655,7 @@ class wBPdsChangeController extends Controller
       $file_path = 'keep';
       $file_arc_path = 'keep_back';
     }
-    $query = DB::table($schema . '.beneficiary')
-      ->where($condition);
+    $query = BenEntry::where($condition);
     $row = $query->first();
     if (empty($row)) {
       return redirect("/")->with('danger', 'Not Allowed');
@@ -613,52 +670,54 @@ class wBPdsChangeController extends Controller
         return redirect("/Viewpdsnamemismatch?scheme_id=" . $scheme_id . "&type=" . $type . "&id=" . $request->id)->with('errors', $errorMsg);
       }
 
+
+
       // Check Duplicate aadhar card
       $check_condition_str = Helper::getCheckNextLevelRoleIdCon($scheme_id);
-      $count = DB::table($schema . '.beneficiary')->where('aadhar_no', trim($aadhar_no))->where('id', '!=', $request->id)->whereRaw("(" . $check_condition_str . ")")->count('id');
+      $count = BenEntry::where('aadhar_no', trim($aadhar_no))->where('id', '!=', $request->id)->whereRaw("(" . $check_condition_str . ")")->count('id');
       if ($count > 0) {
         $errors = array();
         $errorMsg = "Aadhaar Number Already Exist in the scheme! Please try different.";
         array_push($errors, $errorMsg);
         return redirect("/Viewpdsnamemismatch?scheme_id=" . $scheme_id . "&type=" . $type . "&id=" . $request->id)->with('errors', $errorMsg);
       }
-      if($scheme_id == 10 || $scheme_id == 11 ||$scheme_id == 1 ||$scheme_id == 3){
-        if($scheme_id == 10){
-          $aadharDupCheckWP = DupCheck::getDupCheckAadhar(11,$aadhar_no);
-          if(!empty($aadharDupCheckWP)){
+      if ($scheme_id == 10 || $scheme_id == 11 || $scheme_id == 1 || $scheme_id == 3) {
+        if ($scheme_id == 10) {
+          $aadharDupCheckWP = DupCheck::getDupCheckAadhar(11, $aadhar_no);
+          if (!empty($aadharDupCheckWP)) {
             $errors = array();
             $errorMsg = "Duplicate Aadhaar Number present in Widow Pension Scheme with Beneficiary ID- $aadharDupCheckWP";
             array_push($errors, $errorMsg);
             return redirect("/Viewpdsnamemismatch?scheme_id=" . $scheme_id . "&type=" . $type . "&id=" . $request->id)->with('errors', $errorMsg);
           }
 
-          $aadharDupCheckLB = DupCheck::getDupCheckAadhar(20,$aadhar_no);
-          if(!empty($aadharDupCheckLB)){
+          $aadharDupCheckLB = DupCheck::getDupCheckAadhar(20, $aadhar_no);
+          if (!empty($aadharDupCheckLB)) {
             $errors = array();
             $errorMsg = "Duplicate Aadhaar Number present in Lakshmir Bhandar Scheme with Application ID- $aadharDupCheckLB";
             array_push($errors, $errorMsg);
             return redirect("/Viewpdsnamemismatch?scheme_id=" . $scheme_id . "&type=" . $type . "&id=" . $request->id)->with('errors', $errorMsg);
           }
         }
-        if($scheme_id == 11){
-          $aadharDupCheckOAP = DupCheck::getDupCheckAadhar(10,$aadhar_no);
-          if(!empty($aadharDupCheckOAP)){
+        if ($scheme_id == 11) {
+          $aadharDupCheckOAP = DupCheck::getDupCheckAadhar(10, $aadhar_no);
+          if (!empty($aadharDupCheckOAP)) {
             $errors = array();
             $errorMsg = "Duplicate Aadhaar Number present in Old Age Pension Scheme with Beneficiary ID- $aadharDupCheckOAP";
             array_push($errors, $errorMsg);
             return redirect("/Viewpdsnamemismatch?scheme_id=" . $scheme_id . "&type=" . $type . "&id=" . $request->id)->with('errors', $errorMsg);
           }
         }
-        if($scheme_id == 1 || $scheme_id == 3){
-          $aadharDupCheckLB = DupCheck::getDupCheckAadhar(20,$aadhar_no);
-          if(!empty($aadharDupCheckLB)){
+        if ($scheme_id == 1 || $scheme_id == 3) {
+          $aadharDupCheckLB = DupCheck::getDupCheckAadhar(20, $aadhar_no);
+          if (!empty($aadharDupCheckLB)) {
             $errors = array();
             $errorMsg = "Duplicate Aadhaar Number present in Lakshmir Bhandar Scheme with Application ID- $aadharDupCheckLB";
             array_push($errors, $errorMsg);
             return redirect("/Viewpdsnamemismatch?scheme_id=" . $scheme_id . "&type=" . $type . "&id=" . $request->id)->with('errors', $errorMsg);
           }
-          $aadharDupCheckOAP = DupCheck::getDupCheckAadhar(10,$aadhar_no);
-          if(!empty($aadharDupCheckOAP)){
+          $aadharDupCheckOAP = DupCheck::getDupCheckAadhar(10, $aadhar_no);
+          if (!empty($aadharDupCheckOAP)) {
             $errors = array();
             $errorMsg = "Duplicate Aadhaar Number present in Old Age Pension Scheme with Beneficiary ID- $aadharDupCheckOAP";
             array_push($errors, $errorMsg);
@@ -749,7 +808,7 @@ class wBPdsChangeController extends Controller
     } else {
       $sp_mobile = 0;
     }
-    if ($designation_id == 'Verifier') {
+    if (AuthChecker::VerifierPermission()) {
       $inputMain = [
         'failed_process_type_aadhaar' => $process_type,
         // 'failed_process_type_aadhaar' => $process_type,
@@ -789,13 +848,14 @@ class wBPdsChangeController extends Controller
       $insertUpdateBenDetails = [
         'old_data' => json_encode($old_value),
         'new_data' => json_encode($new_value),
-        'original_application_id' => $id,
-        'dist_code' => $district_code,
+        'application_id' => $id,
+        'created_by_dist_code' => $district_code,
         'user_id' => $user_id,
         'scheme_id' => $scheme_id,
         'created_at' => $c_time,
-        'update_code' => 25,
-        'ip_address' => $request->ip()
+        'op_type' => 25,
+        'ip_address' => $request->ip(),
+        'module_name' => class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod(),
       ];
 
       // $docs_bank_pre_obj = DB::table($schema . '.ben_docs')->where('ben_id', $request->id)->where('doc_type_id', $doc_type_id)->first();
@@ -806,7 +866,7 @@ class wBPdsChangeController extends Controller
         DB::beginTransaction();
         DB::connection('pgsql_encwrite')->beginTransaction();
         if ($ag_update == 1) {
-          $is_inserted_status_arr = DB::select("select " . $schema . ".dup_adjustment_insert_update(new_aadhar_no => '" . $sp_new_aadhar_no . "',old_aadhar_no => '" . $sp_old_aadhar_no . "')");
+          $is_inserted_status_arr = DB::select("select pension.dup_adjustment_insert_update(new_aadhar_no => '" . $sp_new_aadhar_no . "',old_aadhar_no => '" . $sp_old_aadhar_no . "')");
           $is_inserted_status = $is_inserted_status_arr[0]->dup_adjustment_insert_update;
         } else {
           $is_inserted_status = 1;
@@ -836,7 +896,7 @@ class wBPdsChangeController extends Controller
           $return_msg = array("" . $return_text);
           return redirect("/Viewpdsnamemismatch?type=" . $type . "&scheme_id=" . $scheme_id . "&id=" . $request->id)->with('errors', $return_msg);
         } else if ($is_inserted_status == 1) {
-          $main_update = DB::table($schema . '.beneficiary')->where(['id' => $id, 'created_by_local_body_code' => $created_by_local_body_code, 'created_by_dist_code' => $district_code, 'scheme_id' => $scheme_id])->update($inputMain);
+          $main_update = BenEntry::where(['id' => $id, 'created_by_local_body_code' => $created_by_local_body_code, 'created_by_dist_code' => $district_code, 'scheme_id' => $scheme_id])->update($inputMain);
           if ($main_update) {
             //dd($file_passport);
             if ($file_passport) {
@@ -859,7 +919,7 @@ class wBPdsChangeController extends Controller
             }
             $ben_fullname = $request->first_name . ' ' . $request->middle_name . ' ' . $request->last_name;
             if ($doc_inserted) {
-              $is_saved_log = DB::table('public.update_ben_details')
+              $is_saved_log = DB::table('public.ben_accept_reject_info')
                 ->insert($insertUpdateBenDetails);
               if ($is_saved_log) {
                 DB::commit();
@@ -868,16 +928,16 @@ class wBPdsChangeController extends Controller
                   $data = $this->RationcheckInsert($district_code, $request->id, $scheme_id, $ben_fullname, $request->ip(), $aadhar_no, $created_by_local_body_code, $user_id, $request->dob);
                 } catch (\Exception $e) {
                   $inputMain['aadhaar_no_checked'] = -1;
-                  $upadated_main = DB::table($schema . '.beneficiary')
-                  ->where([
-                    'id' => $request->id, 'created_by_local_body_code' => $created_by_local_body_code,
-                    'created_by_dist_code' => $district_code
-                  ])->update($inputMain);
+                  $upadated_main = BenEntry::where([
+                      'id' => $request->id,
+                      'created_by_local_body_code' => $created_by_local_body_code,
+                      'created_by_dist_code' => $district_code
+                    ])->update($inputMain);
                 }
 
                 // $data = $this->RationcheckInsert($district_code, $request->id, $scheme_id, $ben_fullname, $request->ip(), $aadhar_no, $created_by_local_body_code, $user_id, $request->dob);
 
-                $ben_details = DB::table($schema . '.beneficiary')->where('id', $request->id)->first();
+                $ben_details = BenEntry::where('id', $request->id)->first();
                 if ($process_type == 3) {
                   $return_text = 'Beneficiary with  Id:' . $id . ' Rejected Successfully and Sent to Approver for Approval';
                 } else {
@@ -892,7 +952,7 @@ class wBPdsChangeController extends Controller
                     $dob = $ben_details->dob;
                   }
                 }
-                return redirect("pdsnamemismatchlist?type=" . $type . "&scheme_id=" . $scheme_id)->with('success', $return_text)->with('id',  $row->id)
+                return redirect("pdsnamemismatchlist?type=" . $type . "&scheme_id=" . $scheme_id)->with('success', $return_text)->with('id', $row->id)
                   ->with('aadhaar_no_checked', $aadhaar_no_checked)
                   ->with('aadhaar_no_checked_lastdatetime', $aadhaar_no_checked_lastdatetime)
                   ->with('aadhaar_no_checked_pass', $aadhaar_no_checked_pass)
@@ -936,14 +996,12 @@ class wBPdsChangeController extends Controller
   }
   public function bulkApprove(Request $request)
   {
-   
+    // dd($request->all());
     $this->middleware('auth');
-    //dd('ok');
-    $designation_id = Auth::user()->designation_id;
-    if ($designation_id != 'Approver') {
+    if (!AuthChecker::ApproverChecker()) {
       return redirect("/")->with('error', 'Not Allowed');
     }
-    $user_id = AuthChecker::getUserId();
+    $user_id = Auth::user()->id;
     $scheme_id = $request->scheme_id;
     $process_type = $request->process_type;
     $action_type = $request->action_type;
@@ -979,7 +1037,7 @@ class wBPdsChangeController extends Controller
     $district_code = $duty_obj->district_code;
     if (!empty($scheme_obj->short_code)) {
       $schema = $scheme_obj->short_code;
-      $scheme_length =  $scheme_obj->scheme_length;
+      $scheme_length = $scheme_obj->scheme_length;
       $id_length = $scheme_obj->id_length;
     } else {
       $schema = "pension";
@@ -994,7 +1052,7 @@ class wBPdsChangeController extends Controller
       array_push($applicationid_arr, $input);
     }
     if ($process_type == 2) {
-      $rowcount = DB::table($schema . '.beneficiary')->where('acc_validated_aadhar', $check_acc_validate)->where('next_level_role_id_aadhar_validation', 1)->where('created_by_dist_code', $district_code)->whereIn('id', $applicationid_arr)->count();
+      $rowcount = BenEntry::where('acc_validated_aadhar', $check_acc_validate)->where('next_level_role_id_aadhar_validation', 1)->where('created_by_dist_code', $district_code)->whereIn('id', $applicationid_arr)->count();
       if ($rowcount != count($applicationid_arr)) {
         return redirect("/")->with('danger', 'Not Allowed');
       }
@@ -1007,10 +1065,10 @@ class wBPdsChangeController extends Controller
       if ($action_type == 1) {
         DB::beginTransaction();
         if ($process_type == 2) {
-          $is_inserted_status_arr = DB::select("select " . $schema . ".aadhaar_validation_request_bulk_new(in_application_id => $in_pension_id,in_scheme_id => $scheme_id,in_district_code => $district_code,in_user_id => $user_id,in_op_type => 'DT', in_custom_comment => '" . $comments . "')");
+          $is_inserted_status_arr = DB::select("select pension.aadhaar_validation_request_bulk_new(in_application_id => $in_pension_id,in_scheme_id => $scheme_id,in_district_code => $district_code,in_user_id => $user_id,in_op_type => 'DT', in_custom_comment => '" . $comments . "')");
           $is_inserted_status = $is_inserted_status_arr[0]->aadhaar_validation_request_bulk_new;
         } else if ($process_type == 1) {
-          $is_inserted_status_arr = DB::select("select " . $schema . ".aadhaar_validation_request_bulk_same(in_application_id => $in_pension_id,in_scheme_id => $scheme_id,in_district_code => $district_code,in_user_id => $user_id,in_op_type => 'DF', in_custom_comment => '" . $comments . "')");
+          $is_inserted_status_arr = DB::select("select pension.aadhaar_validation_request_bulk_same(in_application_id => $in_pension_id,in_scheme_id => $scheme_id,in_district_code => $district_code,in_user_id => $user_id,in_op_type => 'DF', in_custom_comment => '" . $comments . "')");
           $is_inserted_status = $is_inserted_status_arr[0]->aadhaar_validation_request_bulk_same;
         }
         if ($is_inserted_status == 1) {
@@ -1022,56 +1080,58 @@ class wBPdsChangeController extends Controller
         }
       } else if ($action_type == 2) {
         // echo $action_type;die;
-        
+
         // dd('ok');
         // DB::beginTransaction();
         foreach ($applicationid_arr as $appItem) {
           $application_id = $appItem;
+          // dd($application_id);
           //array_push($applicationid_arr, $input);
 
-        }
-        // dd($application_id);
-        $row = DB::table($schema . '.beneficiary')->where('acc_validated_aadhar', $check_acc_validate)->where('next_level_role_id_aadhar_validation', 1)->where('created_by_dist_code', $district_code)->where('id', $application_id)->first();
+          // dd($application_id);
+          $row = BenEntry::where('acc_validated_aadhar', $check_acc_validate)->where('next_level_role_id_aadhar_validation', 1)->where('created_by_dist_code', $district_code)->where('id', $application_id)->first();
 
-        DB::beginTransaction();
-        
-        $accept_reject_model = new AcceptRejectInfo;
-        $accept_reject_model->created_at = $c_time;
-        $accept_reject_model->application_id = $application_id;
-        $accept_reject_model->scheme_id = $scheme_id;
-        $accept_reject_model->user_id = $user_id;
-        $accept_reject_model->op_type = 'DG';
-        // die($accept_reject_model);
-        $is_saved_log = $accept_reject_model->save();
-        $inputMain = [
-          'failed_process_type_aadhaar' => NULL, 'next_level_role_id_aadhar_validation' => NULL,
-          'process_acc_validated_aadhar' => NULL,
-          'new_aadhar_no' => NULL, 'acc_validated_aadhaar_new' => NULL
-        ];
-        $inputFail = [
-          'next_level_role_id_aadhar_validation' => NULL,
-          'acc_validated_aadhaar_new' => NULL,
-          'failed_process_type_aadhaar' => NULL,
-          'process_acc_validated_aadhar' => NULL
-        ];
-        $main_update = DB::table($schema . '.beneficiary')
-          ->where('created_by_dist_code', $district_code)
-          ->where('next_level_role_id_aadhar_validation', 1)->where('id', $application_id)->update($inputMain);
-        //  $failed_update = DB::table('pension.failed_payment_details')
-        //  ->where('validation_type', 2)
-        //  ->where('ben_id', $application_id)->update($inputFail);
-        if ($row->failed_process_type_aadhaar == 2) {
-          $delete_arch = DB::table($schema . '.ben_docs')->where('ben_id', $application_id)->whereNotNull('new_doc_name')->where('new_doc_type_id', 10)->where('is_active', FALSE)->delete();
-        } else
-          $delete_arch = 1;
-        //dump($reject_dup_adjustment); dump($is_saved_log); dump($main_update); dump($failed_update);dd($delete_arch);
-        if ($is_saved_log &&  $main_update  &&  $delete_arch) {
-          DB::commit();
-          return redirect($back_url)->with('message', 'Applications with id ' . $application_id . ' Aadhaar information change request has been Reverted Succesfully!');
-        } else {
+          DB::beginTransaction();
 
-          DB::rollback();
-          return redirect($back_url)->with('error', 'Error! Please try again..');
+          $accept_reject_model = new AcceptRejectInfo;
+          $accept_reject_model->created_at = $c_time;
+          $accept_reject_model->application_id = $application_id;
+          $accept_reject_model->scheme_id = $scheme_id;
+          $accept_reject_model->user_id = $user_id;
+          $accept_reject_model->op_type = 'DG';
+          // die($accept_reject_model);
+          $is_saved_log = $accept_reject_model->save();
+          $inputMain = [
+            'failed_process_type_aadhaar' => NULL,
+            'next_level_role_id_aadhar_validation' => NULL,
+            'process_acc_validated_aadhar' => NULL,
+            'new_aadhar_no' => NULL,
+            'acc_validated_aadhaar_new' => NULL
+          ];
+          $inputFail = [
+            'next_level_role_id_aadhar_validation' => NULL,
+            'acc_validated_aadhaar_new' => NULL,
+            'failed_process_type_aadhaar' => NULL,
+            'process_acc_validated_aadhar' => NULL
+          ];
+          $main_update = BenEntry:: where('created_by_dist_code', $district_code)
+            ->where('next_level_role_id_aadhar_validation', 1)->where('id', $application_id)->update($inputMain);
+          //  $failed_update = DB::table('pension.failed_payment_details')
+          //  ->where('validation_type', 2)
+          //  ->where('ben_id', $application_id)->update($inputFail);
+          if ($row->failed_process_type_aadhaar == 2) {
+            $delete_arch = DB::table($schema . '.ben_docs')->where('ben_id', $application_id)->whereNotNull('new_doc_name')->where('new_doc_type_id', 10)->where('is_active', FALSE)->delete();
+          } else
+            $delete_arch = 1;
+          //dump($reject_dup_adjustment); dump($is_saved_log); dump($main_update); dump($failed_update);dd($delete_arch);
+          if ($is_saved_log && $main_update && $delete_arch) {
+            DB::commit();
+            return redirect($back_url)->with('message', 'Applications with id ' . $application_id . ' Aadhaar information change request has been Reverted Succesfully!');
+          } else {
+
+            DB::rollback();
+            return redirect($back_url)->with('error', 'Error! Please try again..');
+          }
         }
       } else if ($action_type == 3) {
         // dd($action_type);
@@ -1080,71 +1140,73 @@ class wBPdsChangeController extends Controller
           // dd($application_id);
           //array_push($applicationid_arr, $input);
 
-        }
-        $row = DB::table($schema . '.beneficiary')->where('acc_validated_aadhar', $check_acc_validate)->where('next_level_role_id_aadhar_validation', 1)->where('created_by_dist_code', $district_code)->where('id', $application_id)->first();
-        if (!empty(trim($row->mobile_no))) {
-          $sp_mobile = $row->mobile_no;
-        } else {
-          $sp_mobile = 0;
-        }
-        DB::beginTransaction();
-        DB::connection('pgsql_paywrite')->beginTransaction();
-        $inputMain = [
-          'next_level_role_id' => -57,
-          'rejected_date' => $c_time,
-          'rejected_by' => $user_id,
-          'next_level_role_id_aadhar_validation' => -57,
-          'is_approved' => 2, 'is_verified' => 2, 'is_rejected' => 1
-        ];
-        $inputFail = [
-          'next_level_role_id' => -57,
-          'next_level_role_id_aadhar_validation' => -57
-        ];
-        // dd($application_id);
-        $main_update = DB::table($schema . '.beneficiary')->where(['id' => $application_id, 'created_by_dist_code' => $district_code, 'scheme_id' => $scheme_id])->update($inputMain);
-        $ben_details = DB::connection('pgsql_paywrite')->table('payment.ben_payment_details')->where('ben_id', $application_id)->where('scheme_id',$scheme_id)->count(); 
-        if($main_update && $ben_details >0 ){
-            $final_update = DB::connection('pgsql_paywrite')->select("Select payment.reject_update_bank(in_ben_id => ARRAY[". $application_id."], in_scheme_id => ".$scheme_id.", in_rejected =>11)");
-        } else{
-          $final_update = 1;
-        }
-        // $failed_update = DB::table('pension.failed_payment_details')->where(['validation_type'=>2,'ben_id' => $application_id,'scheme_id' => $scheme_id])->update($inputFail);
+          $row = BenEntry::where('acc_validated_aadhar', $check_acc_validate)->where('next_level_role_id_aadhar_validation', 1)->where('created_by_dist_code', $district_code)->where('id', $application_id)->first();
+          if (!empty(trim($row->mobile_no))) {
+            $sp_mobile = $row->mobile_no;
+          } else {
+            $sp_mobile = 0;
+          }
+          DB::beginTransaction();
+          DB::connection('pgsql_paywrite')->beginTransaction();
+          $inputMain = [
+            'next_level_role_id' => -57,
+            'rejected_date' => $c_time,
+            'rejected_by' => $user_id,
+            'next_level_role_id_aadhar_validation' => -57,
+            'is_approved' => 2,
+            'is_verified' => 2,
+            'is_rejected' => 1
+          ];
+          $inputFail = [
+            'next_level_role_id' => -57,
+            'next_level_role_id_aadhar_validation' => -57
+          ];
+          // dd($application_id);
+          $main_update = BenEntry::where(['id' => $application_id, 'created_by_dist_code' => $district_code, 'scheme_id' => $scheme_id])->update($inputMain);
+          $ben_details = DB::connection('pgsql_paywrite')->table('payment.ben_payment_details')->where('ben_id', $application_id)->where('scheme_id', $scheme_id)->count();
+          if ($main_update && $ben_details > 0) {
+            $final_update = DB::connection('pgsql_paywrite')->select("Select payment.reject_update_bank(in_ben_id => ARRAY[" . $application_id . "], in_scheme_id => " . $scheme_id . ", in_rejected =>11)");
+          } else {
+            $final_update = 1;
+          }
+          // $failed_update = DB::table('pension.failed_payment_details')->where(['validation_type'=>2,'ben_id' => $application_id,'scheme_id' => $scheme_id])->update($inputFail);
 
-        $scheme_dedup_list = Config::get('constants.bank_mob_aadhar_update_check');
-        //$scheme_dedup_list=array(2,10,11);
-        // dd($scheme_dedup_list);
-        if (in_array($scheme_id, $scheme_dedup_list)) {
-          $free_pending_bank_duplicate_arr = DB::select("select " . $schema . ".free_pending_bank_duplicate_data(in_scheme_id => " . $scheme_id . ", in_district_code => " . $district_code . ")");
-          $free_pending_bank_duplicate_data = $free_pending_bank_duplicate_arr[0]->free_pending_bank_duplicate_data;
-          $reject_dup_adjustment_arr1 = DB::select("select " . $schema . ".reject_dup_adjustment(
+          $scheme_dedup_list = Config::get('constants.bank_mob_aadhar_update_check');
+          //$scheme_dedup_list=array(2,10,11);
+          // dd($scheme_dedup_list);
+          if (in_array($scheme_id, $scheme_dedup_list)) {
+            $free_pending_bank_duplicate_arr = DB::select("select pension.free_pending_bank_duplicate_data(in_scheme_id => " . $scheme_id . ", in_district_code => " . $district_code . ")");
+            $free_pending_bank_duplicate_data = $free_pending_bank_duplicate_arr[0]->free_pending_bank_duplicate_data;
+            $reject_dup_adjustment_arr1 = DB::select("select pension.reject_dup_adjustment(
           in_old_bank_ifsc => '" . $row->bank_ifsc . "', 
           in_old_bank_code => '" . $row->bank_code . "', 
           in_old_aadhar_no => '" . $row->aadhar_no . "', 
           in_old_mobile_no => " . $sp_mobile . "
           )");
-          $reject_dup_adjustment1 = $reject_dup_adjustment_arr1[0]->reject_dup_adjustment;
-          if ($row->failed_process_type_aadhaar == 2) {
-            $reject_dup_adjustment_arr2 = DB::select("select " . $schema . ".reject_dup_adjustment(
+            $reject_dup_adjustment1 = $reject_dup_adjustment_arr1[0]->reject_dup_adjustment;
+            if ($row->failed_process_type_aadhaar == 2) {
+              $reject_dup_adjustment_arr2 = DB::select("select pension.reject_dup_adjustment(
               in_old_aadhar_no => '" . $row->new_aadhar_no . "'
               )");
-            $reject_dup_adjustment2 = $reject_dup_adjustment_arr2[0]->reject_dup_adjustment;
+              $reject_dup_adjustment2 = $reject_dup_adjustment_arr2[0]->reject_dup_adjustment;
+            } else {
+              $reject_dup_adjustment2 = 1;
+            }
           } else {
+            $free_pending_bank_duplicate_data = 1;
+            $reject_dup_adjustment1 = 1;
             $reject_dup_adjustment2 = 1;
           }
-        } else {
-          $free_pending_bank_duplicate_data = 1;
-          $reject_dup_adjustment1 = 1;
-          $reject_dup_adjustment2 = 1;
-        }
-        // dump($main_update);dump($reject_dup_adjustment1);dump($reject_dup_adjustment2);dump($free_pending_bank_duplicate_data);die;
-        if ($main_update  && $reject_dup_adjustment1 == 1  && $reject_dup_adjustment2 == 1 && $free_pending_bank_duplicate_data == 1 && $final_update == 1) {
-          DB::commit();
-          DB::connection('pgsql_paywrite')->commit();
-          return redirect($back_url)->with('message', 'Application Rejected Succesfully!');
-        } else {
-          DB::rollback();
-          DB::connection('pgsql_paywrite')->rollback();
-          return redirect($back_url)->with('error', 'Error! Please try again...');
+          // dump($main_update);dump($reject_dup_adjustment1);dump($reject_dup_adjustment2);dump($free_pending_bank_duplicate_data);die;
+          if ($main_update && $reject_dup_adjustment1 == 1 && $reject_dup_adjustment2 == 1 && $free_pending_bank_duplicate_data == 1 && $final_update == 1) {
+            DB::commit();
+            DB::connection('pgsql_paywrite')->commit();
+            return redirect($back_url)->with('message', 'Application Rejected Succesfully!');
+          } else {
+            DB::rollback();
+            DB::connection('pgsql_paywrite')->rollback();
+            return redirect($back_url)->with('error', 'Error! Please try again...');
+          }
         }
       }
     } catch (\Exception $e) {
@@ -1203,24 +1265,23 @@ class wBPdsChangeController extends Controller
   function aadharNameValidMIS(Request $request)
   {
 
-
+    $user_id = Auth::user()->id;
     $this->middleware('auth');
-    $base_date  = '2020-01-01';
+    $base_date = '2020-01-01';
     date_default_timezone_set('Asia/Kolkata');
     $c_time = Carbon::now();
     $c_date = $c_time->format("Y-m-d");
     $is_active = 0;
-    $roleArray = Configduty::where('user_id', $user_id)->where('is_active', 1)->get()->toArray();;
-    $designation_id = Auth::user()->designation_id;
+    $roleArray = Configduty::where('user_id', $user_id)->where('is_active', 1)->get()->toArray();
     $userId = Auth::user()->id;
     $district_visible = $is_urban_visible = $block_visible = 1;
     $municipality_visible = 0;
     $gp_ward_visible = 0;
     $muncList = collect([]);
     $gpList = collect([]);
-    if ($designation_id == 'Admin' || $designation_id == 'HOD' || $designation_id == 'HOP' ||  $designation_id == 'Dashboard' || $designation_id == 'MisState' || $designation_id == 'DDO') {
+    if (AuthChecker::AdminChecker() || AuthChecker::HODChecker() || AuthChecker::HOPChecker() || AuthChecker::DashboardChecker() || AuthChecker::MisStateChecker() || AuthChecker::DDOChecker()) {
       $district_visible = $is_urban_visible = $block_visible = 1;
-    } else if ($designation_id == 'Approver' || $designation_id == 'Verifier') {
+    } else if (AuthChecker::ApproverPermission() || AuthChecker::VerifierPermission()) {
       $district_code = NULL;
       $is_urban = NULL;
       $blockCode = NULL;
@@ -1303,7 +1364,7 @@ class wBPdsChangeController extends Controller
 
     if (!empty($scheme_obj->short_code)) {
       $schema = $scheme_obj->short_code;
-      $scheme_length =  $scheme_obj->scheme_length;
+      $scheme_length = $scheme_obj->scheme_length;
       $id_length = $scheme_obj->id_length;
     } else {
       $schema = "pension";
@@ -1319,7 +1380,7 @@ class wBPdsChangeController extends Controller
     $caste = $request->caste_category;
     $from_date = $request->from_date;
     $to_date = $request->to_date;
-    $base_date  = '2020-08-16';
+    $base_date = '2020-08-16';
     $c_time = Carbon::now();
     $c_date = $c_time->format("Y-m-d");
     $heading_msg = '';
@@ -1392,11 +1453,11 @@ class wBPdsChangeController extends Controller
       if (!empty($gp_ward)) {
         if ($urban_code == 1) {
           $column = "Ward";
-          $heading_msg =  $user_msg . ' of the Ward ' . $gp_ward_name;
+          $heading_msg = $user_msg . ' of the Ward ' . $gp_ward_name;
           $data = $this->getWardWise($district, $block, $muncid, $gp_ward, $from_date, $to_date, $caste, $schema);
         } else {
           $column = "GP";
-          $heading_msg =  $user_msg . ' of the GP ' . $gp_ward_name;
+          $heading_msg = $user_msg . ' of the GP ' . $gp_ward_name;
           $data = $this->getGpWise($district, $block, NULL, $gp_ward, $from_date, $to_date, $caste, $schema);
         }
       } else if (!empty($muncid)) {
@@ -1497,7 +1558,7 @@ class wBPdsChangeController extends Controller
             count(1) filter(WHERE failed_process_type_aadhaar = 3 AND next_level_role_id_aadhar_validation= 1) as total_send_rejection,
             count(1) filter(WHERE failed_process_type_aadhaar = 3 AND next_level_role_id = -57) as total_request_approved,
             created_by_dist_code
-            from $schema .beneficiaries where scheme_id = ".$scheme_id." and acc_validated_aadhar is not null AND (next_level_role_id=0 or next_level_role_id=-57)
+            from $schema .beneficiaries where scheme_id = " . $scheme_id . " and acc_validated_aadhar is not null AND (next_level_role_id=0 or next_level_role_id=-57)
          group by created_by_dist_code) as C ON A.location_id=C.created_by_dist_code";
 
     //echo $query;die;
@@ -1536,7 +1597,7 @@ class wBPdsChangeController extends Controller
             count(1) filter(WHERE failed_process_type_aadhaar = 3 AND next_level_role_id_aadhar_validation= 1) as total_send_rejection,
             count(1) filter(WHERE failed_process_type_aadhaar = 3 AND next_level_role_id = -57) as total_request_approved,
             created_by_local_body_code
-            from $schema .beneficiaries where scheme_id = ".$scheme_id." and acc_validated_aadhar is not null AND (next_level_role_id=0 or next_level_role_id=-57) and  created_by_dist_code= " . $district_code . " 
+            from $schema .beneficiaries where scheme_id = " . $scheme_id . " and acc_validated_aadhar is not null AND (next_level_role_id=0 or next_level_role_id=-57) and  created_by_dist_code= " . $district_code . " 
         group by created_by_local_body_code) as C ON A.location_id=C.created_by_local_body_code";
 
     $result = DB::connection('pgsql_mis')->select($query);
@@ -1572,7 +1633,7 @@ class wBPdsChangeController extends Controller
             count(1) filter(WHERE failed_process_type_aadhaar = 3 AND next_level_role_id_aadhar_validation= 1) as total_send_rejection,
             count(1) filter(WHERE failed_process_type_aadhaar = 3 AND next_level_role_id = -57) as total_request_approved,
             created_by_local_body_code
-            from $schema .beneficiaries where scheme_id = ".$scheme_id." and  acc_validated_aadhar is not null AND (next_level_role_id=0 or next_level_role_id=-57) and  created_by_dist_code= " . $district_code . "    
+            from $schema .beneficiaries where scheme_id = " . $scheme_id . " and  acc_validated_aadhar is not null AND (next_level_role_id=0 or next_level_role_id=-57) and  created_by_dist_code= " . $district_code . "    
         group by created_by_local_body_code) as C ON A.location_id=C.created_by_local_body_code";
 
     $result = DB::connection('pgsql_mis')->select($query);

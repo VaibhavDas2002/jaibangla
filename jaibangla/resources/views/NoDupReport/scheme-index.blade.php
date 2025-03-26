@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+
+<!--
+This is a starter template page. Use this page to start your new project from
+scratch. This page gets rid of all links and provides the needed markup only.
+-->
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>JB | Jai bangla</title>
+    <!-- Tell the browser to be responsive to screen width -->
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <!-- Bootstrap 3.3.6 -->
+    <link href="{{ asset('/bower_components/AdminLTE/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet"
+        type="text/css" />
+    <link href="{{ asset('css/select2.min.css') }}" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.5.0/css/font-awesome.min.css">
+    <!-- Ionicons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/ionicons/2.0.1/css/ionicons.min.css">
+    <!-- Theme style -->
+    <link href="{{ asset('/bower_components/AdminLTE/dist/css/AdminLTE.min.css') }}" rel="stylesheet" type="text/css" />
+    <!-- AdminLTE Skins. We have chosen the skin-blue for this starter
+        page. However, you can choose any other skin. Make sure you
+        apply the skin class to the body tag so the changes take effect.
+  -->
+    <link href="{{ asset('/bower_components/AdminLTE/dist/css/skins/skin-blue.min.css') }}" rel="stylesheet"
+        type="text/css" />
+
+    <!-- bootstrap wysihtml5 - text editor -->
+    <!-- <link rel="stylesheet" href="{{ asset('/plugins/bootstrap-wysihtml5/bootstrap3-wysihtml5.min.css') }}"> -->
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+  <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+  <![endif]-->
+    <link href="{{ asset('/bower_components/AdminLTE/plugins/datatables/dataTables.bootstrap.css') }}" rel="stylesheet"
+        type="text/css" />
+
+    <style>
+        .box {
+            width: 800px;
+            margin: 0 auto;
+        }
+
+        .active_tab1 {
+            background-color: #fff;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .inactive_tab1 {
+            background-color: #f5f5f5;
+            color: #333;
+            cursor: not-allowed;
+        }
+
+        .has-error {
+            border-color: #cc0000;
+            background-color: #ffff99;
+        }
+
+        .select2 {
+            width: 100% !important;
+        }
+
+        .select2 .has-error {
+            border-color: #cc0000;
+            background-color: #ffff99;
+        }
+
+        .modal_field_name {
+            float: left;
+            font-weight: 700;
+            margin-right: 1%;
+            padding-top: 1%;
+            margin-top: 1%;
+        }
+
+        .modal_field_value {
+            margin-right: 1%;
+            padding-top: 1%;
+            margin-top: 1%;
+        }
+
+        .row {
+            margin-right: 0px !important;
+            margin-left: 0px !important;
+            margin-top: 1% !important;
+        }
+
+        .section1 {
+            border: 1.5px solid #9187878c;
+            margin: 2%;
+            padding: 2%;
+        }
+
+        .color1 {
+            margin: 0% !important;
+            background-color: #5f9ea061;
+        }
+
+        .modal-header {
+            background-color: #7fffd4;
+        }
+
+        .required-field::after {
+            content: "*";
+            color: red;
+        }
+
+        .imageSize {
+            font-size: 9px;
+            color: #333;
+        }
+
+        #divScrool {
+            overflow-x: scroll;
+        }
+    </style>
+
+
+</head>
+<!--
+BODY TAG OPTIONS:
+=================
+Apply one or more of the following classes to get the
+desired effect
+|---------------------------------------------------------|
+| SKINS         | skin-blue                               |
+|               | skin-black                              |
+|               | skin-purple                             |
+|               | skin-yellow                             |
+|               | skin-red                                |
+|               | skin-green                              |
+|---------------------------------------------------------|
+|LAYOUT OPTIONS | fixed                                   |
+|               | layout-boxed                            |
+|               | layout-top-nav                          |
+|               | sidebar-collapse                        |
+|               | sidebar-mini                            |
+|---------------------------------------------------------|
+-->
+
+<body class="hold-transition skin-blue sidebar-mini">
+    <div class="wrapper">
+
+        <!-- Main Header -->
+        @include('layouts.header')
+        <!-- Sidebar -->
+        @include('layouts.sidebar')
+
+        <!-- Content Wrapper. Contains page content -->
+        <div class="content-wrapper">
+            <!-- Content Header (Page header) -->
+            <section class="content">
+                <div class="row">
+                    <!-- left column -->
+                    <div class="col-md-12">
+                        <!-- general form elements -->
+                        <div> <!-- class="box box-primary" -->
+                            <div class="box-header with-border">
+                                <h3 class="box-title"><b>
+
+                                Scheme Based Incomplete Details
+
+                                    </b></h3>
+                                <!-- <p><h3 class="box-title"><b>Bandhu Prakalpa (for SC)</b></h3></p> -->
+                            </div>
+
+                            <div>
+                                @if (($message = Session::get('success')) && ($id = Session::get('id')))
+                                    <div class="alert alert-success alert-block">
+                                        <button type="button" class="close" data-dismiss="alert">×</button>
+                                        <strong>{{ $message }} with Application ID: {{ $id }}</strong>
+
+
+                                    </div>
+                                @endif
+                                @if ($message = Session::get('error'))
+                                    <div class="alert alert-danger alert-block">
+                                        <button type="button" class="close" data-dismiss="alert">×</button>
+                                        <strong>{{ $message }}</strong>
+
+
+                                    </div>
+                                @endif
+                                @if (count($errors) > 0)
+                                    <div class="alert alert-danger alert-block">
+                                        <ul>
+                                            @foreach ($errors->all() as $error)
+                                                <li><strong> {{ $error }}</strong></li>
+                                            @endforeach
+                                        </ul>
+                                    </div>
+                                @endif
+                                <!--   @if ($message = Session::get('failure'))
+<div class="alert alert-success alert-block">
+                <button type="button" class="close" data-dismiss="alert">×</button>
+                      <strong>{{ $message }}</strong>
+              </div>
+@endif -->
+                            </div>
+                            <!-- /.box-header -->
+                            <!-- form start -->
+                            <form method="post" id="register_form" action="{{ url('wcd20210202ReportPost') }}"
+                                class="submit-once">
+                                {{ csrf_field() }}
+
+
+
+
+
+                                <div class="tab-content" style="margin-top:16px;">
+
+
+
+
+
+
+                                    <div class="tab-pane active" id="personal_details">
+                                        <div class="panel panel-default">
+                                            <div class="panel-heading">
+                                                <h4><b>Search Criteria</b></h4>
+                                            </div>
+                                            <div class="panel-body">
+
+
+
+                                                <div class="row">
+                                                    <div class="form-group col-md-3">
+                                                        <label for="cars" class="required-field">Select Scheme</label>
+                                                         <select name="scheme_id" id="scheme_id" class="form-control">
+                                                             <option value="">--All--</option>
+                                                           @foreach ($scheme as $schemes )
+                                                           <option value="{{ $schemes->id }}">{{ $schemes->scheme_name }}</option>
+                                                               
+                                                           @endforeach
+                                                         </select>
+                                                        <span id="error_minor_mismatch" class="text-danger"></span>
+                                                    </div>
+                                                    <!-- <div class="form-group col-md-3">
+                                                        <label for="cars" class="required-field">Choose Score:</label>
+                                                         <select name="minor_mismatch" id="minor_mismatch" class="form-control">
+                                                           <option value="1">90% - 100%</option>
+                                                         </select>
+                                                        <span id="error_minor_mismatch" class="text-danger"></span>
+                                                    </div> -->
+                                                    <!-- @if ($district_visible)
+                                                        <div class="form-group col-md-4">
+                                                            <label class="">District</label>
+                                                            <select name="district" id="district" class="form-control"
+                                                                tabindex="6">
+                                                                <option value="">--All --</option>
+                                                                @foreach ($districts as $district)
+                                                                    <option value="{{ $district->district_code }}"
+                                                                        @if (old('district') == $district->district_code) selected @endif>
+                                                                        {{ $district->district_name }}</option>
+                                                                @endforeach
+                                                            </select>
+                                                            <span id="error_district" class="text-danger"></span>
+
+                                                        </div>
+                                                    @else
+                                                        <input type="hidden" name="district" id="district"
+                                                            value="{{ $district_code_fk }}" />
+                                                    @endif -->
+                                                    <!-- @if ($is_urban_visible)
+                                                        <div class="form-group col-md-4" id="divUrbanCode">
+                                                            <label>Rural/ Urban</label>
+
+                                                            <select name="urban_code" id="urban_code"
+                                                                class="form-control" tabindex="11">
+                                                                <option value="">--All --</option>
+                                                                @foreach (Config::get('constants.rural_urban') as $key => $val)
+                                                                    <option value="{{ $key }}"
+                                                                        @if (old('urban_code') == $key) selected @endif>
+                                                                        {{ $val }}</option>
+                                                                @endforeach
+
+                                                            </select>
+                                                            <span id="error_urban_code" class="text-danger"></span>
+                                                        </div>
+                                                    @else
+                                                        <input type="hidden" name="urban_code" id="urban_code"
+                                                            value="{{ $rural_urban_fk }}" />
+
+                                                    @endif -->
+                                                    <!-- @if ($block_visible)
+                                                        <div class="form-group col-md-4" id="divBodyCode">
+                                                            <label class="" id="blk_sub_txt">Block/Sub
+                                                                Division.</label>
+
+                                                            <select name="block" id="block" class="form-control"
+                                                                tabindex="16">
+                                                                <option value="">--All --</option>
+
+
+                                                            </select>
+                                                            <span id="error_block" class="text-danger"></span>
+                                                        </div>
+                                                    @else
+                                                        <input type="hidden" name="block" id="block"
+                                                            value="{{ $block_munc_corp_code_fk }}" />
+                                                    @endif -->
+
+                                                    {{-- <div class="form-group col-md-4" id="municipality_div" style="{{$municipality_visible?'':'display:none'}}">
+                <label class="">Municipality</label>
+                
+                <select name="muncid" id="muncid" class="form-control" tabindex="16" >
+                  <option value="">--All --</option>
+                    @foreach ($muncList as $munc)
+                  <option value="{{$munc->urban_body_code}}"> {{$munc->urban_body_name}}</option>
+                  @endforeach
+                   
+                </select>
+                  <span id="error_muncid" class="text-danger"></span>
+              </div> --}}
+
+
+                                                    {{-- <div class="form-group col-md-4" id="gp_ward_div" style="{{$gp_ward_visible?'':'display:none'}}">
+                <label class="" id="gp_ward_txt">GP/Ward</label>
+                
+                <select name="gp_ward" id="gp_ward" class="form-control" tabindex="17" >
+                  <option value="">--All --</option>
+                   @foreach ($gpList as $gp)
+                  <option value="{{$gp->gram_panchyat_code}}"> {{$gp->gram_panchyat_name}}</option>
+                  @endforeach
+                   
+                </select>
+                  <span id="error_gp_ward" class="text-danger"></span>
+              </div> --}}
+
+
+                                                </div>
+                                                <div class="row">
+                                                    
+                                                    <div class="col-md-12" align="center">
+
+                                                        <button type="button" id="submitting" value="Submit"
+                                                            class="btn btn-success success btn-lg modal-search form-submitted">Search
+                                                        </button>
+
+                                                        <div class=""><img src="{{ asset('images/ZKZg.gif') }}"
+                                                                id="submit_loader1" width="50px" height="50px"
+                                                                style="display:none;"></div>
+
+                                                        <!--<button type="button" name="btn_personal_details" id="btn_personal_details" class="btn btn-info btn-lg">Next</button>-->
+                                                    </div>
+                                                    <br />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="tab-content" style="margin-top:16px;">
+
+
+                                            <div class="alert print-error-msg" style="display:none;" id="errorDiv">
+                                                <button type="button" class="close" aria-label="Close"
+                                                    onclick="closeError('errorDiv')"><span
+                                                        aria-hidden="true">&times;</span></button>
+                                                <ul></ul>
+                                            </div>
+
+
+
+                                            <div class="tab-pane active" id="search_details" style="display:none;">
+                                                <div class="panel panel-default">
+                                                    <div class="panel-heading" id="heading_msg">
+                                                        <h4><b>Search Result</b></h4>
+                                                    </div>
+                                                    <div class="panel-body">
+
+                                                        {{-- <div class="pull-right">Report Generated on:<b><span
+                                                                    id="report_generation_text"></span></b></div> --}}
+
+                                                        <button class="btn btn-info exportToExcel"
+                                                            type="button">Export to Excel</button><br /><br /><br />
+                                                        <div id="divScrool">
+                                                        <table id="example"
+                                                            class="table table-striped table-bordered table2excel"
+                                                            style="width:100%">
+                                                            <thead>
+                                                                <tr>
+                                                                    <td colspan="21" align="center"
+                                                                        style="display:none;" id="heading_excel">
+                                                                        Heading</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th id="" rowspan="2">Sl No.(A)
+                                                                    </th>
+                                                                    <th id="location_id" rowspan="2">Scheme Name</th>
+                                                                    <th>Total Applicant with Incomplete Details</th>
+                                                                    <th>Total Applicant with No Aadhar</th>
+                                                                    <th>Total Applicant with Duplicate Aadhar </th>
+                                                                    <th>Total Applicant with No Mobile</th>
+                                                                    <th>Total Applicant with Duplicate Mobile</th>
+                                                                    <th>Total Applicant with Duplicate Bank Account</th>
+                                                                    <th>Total Applicant with Account Validation Failed
+                                                                    </th>
+                                                                    <th>Total Applicant with Name Validation Failed</th>
+                                                                    <th>Total Applicant with SBI Payment Failed</th>
+                                                                    <th>Total Applicant with RBI Payment Failed</th>
+                                                                    <th>Total Applicant with IFMS Payment Failed</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+
+                                                            </tbody>
+                                                            <tfoot>
+                                                                <tr id="fotter_id"></tr>
+                                                                <tr>
+                                                                    <td colspan="21" align="center"
+                                                                        style="display:none;" id="fotter_excel">
+                                                                        Heading</td>
+                                                                </tr>
+                                                            </tfoot>
+                                                        </table>
+                                                        </div>
+
+
+
+
+                                                    </div>
+                                                </div>
+                                            </div>
+
+
+                                        </div>
+                                    </div>
+                                </div>
+
+
+
+
+
+                        </div>
+
+
+
+
+
+                        </form>
+                    </div>
+                    <!-- /.box -->
+                </div>
+                <!--/.col (left) -->
+
+        </div>
+        <!--  @if (session()->has('success'))
+<div class="alert alert-success">
+            {{ session()->get('success') }}
+        </div>
+@endif -->
+        <!-- /.row -->
+
+
+        </section>
+
+        <!-- Main content -->
+        <!--  <section class="content">
+
+      Your Page Content Here
+
+
+
+    </section> -->
+        <!-- /.content -->
+    </div>
+    <!-- /.content-wrapper -->
+
+    <!-- Footer -->
+    @include('layouts.footer')
+
+    <!-- ./wrapper -->
+
+    <!-- REQUIRED JS SCRIPTS -->
+
+    <!-- jQuery 2.1.3 -->
+    <script src="{{ asset('/bower_components/AdminLTE/plugins/jQuery/jquery-2.2.3.min.js') }}"></script>
+    <script src="{{ asset('/bower_components/AdminLTE/plugins/datatables/jquery.dataTables.min.js') }}"
+        type="text/javascript"></script>
+    <script src="{{ asset('/bower_components/AdminLTE/plugins/datatables/dataTables.bootstrap.min.js') }}"
+        type="text/javascript"></script>
+    <script src="{{ asset('js/select2.full.min.js') }}"></script>
+
+    <!-- Bootstrap 3.3.2 JS -->
+    <script src="{{ asset('/bower_components/AdminLTE/bootstrap/js/bootstrap.min.js') }}" type="text/javascript"></script>
+    <script src="{{ URL::asset('js/site.js') }}"></script>
+
+    <script src="{{ URL::asset('js/master-data-v2.js') }}"></script>
+    <!-- AdminLTE App -->
+    <script src="{{ asset('/bower_components/AdminLTE/dist/js/app.min.js') }}" type="text/javascript"></script>
+    <script src="{{ asset('js/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ asset('js/jquery.table2excel.js') }}"></script>
+
+    <script>
+        
+        //alert(base_date);
+
+        $(document).ready(function() {
+            $('.sidebar-menu li').removeClass('active');
+            // $('.sidebar-menu #lk-main').addClass("active"); 
+            $('.sidebar-menu #misReportWithNormal').addClass("active");
+            //loadDataTable();
+            $(".exportToExcel").click(function(e) {
+                // alert('ok');
+                $(".table2excel").table2excel({
+                    // exclude CSS class
+                    exclude: ".noExl",
+                    name: "Worksheet Name",
+                    filename: "Jai Bangla Minor Mismatch(90% - 100%) MIS Report", //do not include extension
+                    fileext: ".xls" // file extension
+                });
+            });
+
+
+            
+            $('.modal-search').on('click', function() {
+
+               
+               
+                    loadDataTable();
+                
+            });
+        });
+
+        function loadDataTable() {
+            $("#submit_loader1").show();
+            $("#submitting").hide();
+            $('#search_details').hide();
+
+            $.ajax({
+                type: 'post',
+                dataType: 'json',
+                url: "{{ route('schemereportPost') }}",
+                data: {
+                        scheme_id: $('#scheme_id').val(),
+                        _token: '{{ csrf_token() }}'
+                    },
+                success: function (data) {
+                    if (data.return_status) {
+                        $('#search_details').show();
+                        $("#heading_msg").html("<h4><b>" + data.heading_msg + "</b></h4>");
+                        $("#heading_excel").html("<b>" + data.heading_msg + "</b>");
+                        $("#fotter_excel").html("<b>" + $('#report_generation_text').text() + "</b>");
+                        $("#location_id").text(data.column + '(B)');
+                        $("#report_generation_text").text(data.report_geneartion_time);
+                        $("#example > tbody").html("");
+
+                        var table = $("#example tbody");
+                        var slno = 1;
+                        var fotter_1 = 0, fotter_2 = 0, fotter_3 = 0, fotter_4 = 0;
+                        var fotter_5 = 0, fotter_6 = 0, fotter_7 = 0, fotter_8 = 0;
+                        var fotter_9 = 0, fotter_10 = 0, fotter_11 = 0;
+
+                        $.each(data.row_data, function (i, item) {
+                            var total_incomplete = isNaN(parseInt(item.total_incomplete)) ? 0 : parseInt(item.total_incomplete);
+                            var total_no_aadhar = isNaN(parseInt(item.total_no_aadhar)) ? 0 : parseInt(item.total_no_aadhar);
+                            var total_dup_aadhar = isNaN(parseInt(item.total_dup_aadhar)) ? 0 : parseInt(item.total_dup_aadhar);
+                            var total_no_mobile = isNaN(parseInt(item.total_no_mobile)) ? 0 : parseInt(item.total_no_mobile);
+                            var total_dup_mobile = isNaN(parseInt(item.total_dup_mobile)) ? 0 : parseInt(item.total_dup_mobile);
+                            var total_dup_bank = isNaN(parseInt(item.total_dup_bank)) ? 0 : parseInt(item.total_dup_bank);
+                            var total_acc_failed = isNaN(parseInt(item.total_acc_failed)) ? 0 : parseInt(item.total_acc_failed);
+                            var total_name_failed = isNaN(parseInt(item.total_name_failed)) ? 0 : parseInt(item.total_name_failed);
+                            var total_sbi_bank = isNaN(parseInt(item.total_sbi_bank)) ? 0 : parseInt(item.total_sbi_bank);
+                            var total_rbi_bank = isNaN(parseInt(item.total_rbi_bank)) ? 0 : parseInt(item.total_rbi_bank);
+                            var total_ifms_bank = isNaN(parseInt(item.total_ifms_bank)) ? 0 : parseInt(item.total_ifms_bank);
+
+                            fotter_1 += total_incomplete;
+                            fotter_2 += total_no_aadhar;
+                            fotter_3 += total_dup_aadhar;
+                            fotter_4 += total_no_mobile;
+                            fotter_5 += total_dup_mobile;
+                            fotter_6 += total_dup_bank;
+                            fotter_7 += total_acc_failed;
+                            fotter_8 += total_name_failed;
+                            fotter_9 += total_sbi_bank;
+                            fotter_10 += total_rbi_bank;
+                            fotter_11 += total_ifms_bank;
+
+                            table.append("<tr><td>" + (i + 1) + "</td><td>" + item.scheme_name +
+                                "</td><td>" + total_incomplete + "</td><td>" + total_no_aadhar + "</td><td>" + total_dup_aadhar + "</td><td>" + total_no_mobile + "</td><td>" + total_dup_mobile + "</td><td>" + total_dup_bank + "</td><td>" + total_acc_failed + "</td><td>" + total_name_failed + "</td><td>" + total_sbi_bank + "</td><td>" + total_rbi_bank + "</td><td>" + total_ifms_bank + "</td></tr>");
+                        });
+
+                        $("#example > tfoot #fotter_id").html(
+                            "<th></th><th>Total</th><th>" + fotter_1 +
+                            "</th><th>" + fotter_2 + "</th><th>" + fotter_3 +
+                            "</th><th>" + fotter_4 + "</th><th>" + fotter_5 +
+                            "</th><th>" + fotter_6 + "</th><th>" + fotter_7 +
+                            "</th><th>" + fotter_8 + "</th><th>" + fotter_9 +
+                            "</th><th>" + fotter_10 + "</th><th>" + fotter_11 + "</th>"
+                        );
+
+                        $("#example").show();
+                    } else {
+                        $('#search_details').hide();
+                        $("#example").hide();
+                        printMsg(data.return_msg, '0', 'errorDiv');
+                    }
+                    $("#submit_loader1").hide();
+                    $("#submitting").show();
+                },
+                error: function (ex) {
+                    $("#submit_loader1").hide();
+                    $("#submitting").show();
+                }
+            });
+        }
+
+        function printMsg(msg, msgtype, divid) {
+            $("#" + divid).find("ul").html('');
+            $("#" + divid).css('display', 'block');
+
+            if (msgtype == '0') {
+                $("#" + divid).removeClass('alert-success').addClass('alert-warning');
+            } else {
+                $("#" + divid).removeClass('alert-warning').addClass('alert-success');
+            }
+
+            if (Array.isArray(msg)) {
+                $.each(msg, function (key, value) {
+                    $("#" + divid).find("ul").append('<li>' + value + '</li>');
+                });
+            } else {
+                $("#" + divid).find("ul").append('<li>' + msg + '</li>');
+            }
+        }
+
+        function closeError(divId) {
+            $('#' + divId).hide();
+        }
+    </script>
+</body>
+
+</html>

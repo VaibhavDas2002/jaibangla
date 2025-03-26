@@ -727,13 +727,13 @@ class ManabikWCDformNewController extends Controller
         } else {
             $query = PensionManabikWCD::where(['id' => $id, 'created_by_dist_code' => $distCode, 'scheme_id' => $scheme_id]);
         }
-        if (AuthChecker::VerifierChecker()) {
+        if (AuthChecker::VerifierPermission()) {
             if ($is_state_login) {
                 $query = $query->where('next_level_role_id', $this->state_login_next_level_role_id_arr['entry']);
             } else {
                 $query = $query->whereNull('next_level_role_id');
             }
-        } else if (AuthChecker::ApproverChecker()) {
+        } else if (AuthChecker::ApproverPermission()) {
             if ($is_state_login) {
                 $query = $query->where('next_level_role_id', $this->state_login_next_level_role_id_arr['verified']);
             } else {

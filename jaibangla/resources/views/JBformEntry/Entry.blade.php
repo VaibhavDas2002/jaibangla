@@ -21,6 +21,31 @@
                 </ul>
             </div>
         @endif
+        @if ((Session::get('dup_btn_visible')))
+        <div style="float:right">
+        <form method="get" id="ds_phase_marking" action="{{url('markdslist')}}">
+           
+            <input type="hidden" name="scheme_id" id="scheme_id" value="{{$scheme_id}}" />
+            <input type="hidden" name="type" id="type" value="3" />
+            <input type="hidden" name="ds_mark_phase" id="ds_mark_phase"  value="{{$cur_ds_phase_arr->phase_code}}" />
+            <input type="submit" class="btn btn-info" value="Mark as {{$cur_ds_phase_arr->phase_des}} Camp"/>
+         </form>
+        </div>
+         <br/>
+        @endif
+
+        @if((Session::get('cmo_dup_btn_visible')))
+        <div style="float:right">
+        <form method="get" id="cmo_marking" action="{{url('markcmolist')}}">
+           
+            <input type="hidden" name="scheme_id" id="scheme_id" value="{{$scheme_id}}" />
+            <input type="hidden" name="type" id="type" value="3" />
+            <input type="hidden" name="grievance_id" value="{{ $grievance_id }}" />
+            <input type="submit" class="btn btn-info" value="Mark as CMO Entry"/>
+         </form>
+        </div>
+         <br/>
+         @endif
         @if (($message = Session::get('success')))
             <div class="alert alert-success alert-block">
                 <button type="button" class="close" data-dismiss="alert">×</button>
@@ -233,18 +258,31 @@
                         _token: '{{ csrf_token() }}'
                     },
                     success: function (data) {
-                        if (!data || data.length === 0) {
-                            $('#error_bank_ifsc_code').text('No data found with the IFSC');
-                            $('#bank_ifsc_code').addClass('has-error');
+                        if (data == 'null') {
+                            alert("The IFSC within the West Bengal only be accepted.");
+                            $('#name_of_bank').val('');
+                            $('#bank_branch').val('');
                             $('#error_name_of_bank').html('');
                             $('#error_bank_branch').html('');
-                            return;
+                        } else {
+                            data = JSON.parse(data);
+                            $('#name_of_bank').val(data.bank);
+                            $('#bank_branch').val(data.branch);
+                            $('#error_name_of_bank').html('');
+                            $('#error_bank_branch').html('');
                         }
-                        data = JSON.parse(data);
-                        $('#name_of_bank').val(data.bank);
-                        $('#bank_branch').val(data.branch);
-                        $('#error_name_of_bank').html('');
-                        $('#error_bank_branch').html('');
+                        // if (!data || data.length === 0) {
+                        //     $('#error_bank_ifsc_code').text('No data found with the IFSC');
+                        //     $('#bank_ifsc_code').addClass('has-error');
+                        //     $('#error_name_of_bank').html('');
+                        //     $('#error_bank_branch').html('');
+                        //     return;
+                        // }
+                        // data = JSON.parse(data);
+                        // $('#name_of_bank').val(data.bank);
+                        // $('#bank_branch').val(data.branch);
+                        // $('#error_name_of_bank').html('');
+                        // $('#error_bank_branch').html('');
                     },
                     error: function () {
                         $('#error_bank_ifsc_code').text('Data fetch error');

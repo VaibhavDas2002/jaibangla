@@ -188,7 +188,6 @@ desired effect
             <form method="post" id="register_form"   class="submit-once" >
               {{ csrf_field() }}
         
-            <input type="hidden" name="desgisnation_id" id="desgisnation_id" value="{{$designation_id}}"/>
             <input type="hidden" name="type" id="type" value="{{$type}}"/>
 
 

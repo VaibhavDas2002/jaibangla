@@ -34,7 +34,7 @@ class AuthChecker
             return redirect('/login');
         }
         $designation_id = $user->designation_id;
-        if ($designation_id === 'DelegatedOperator') {
+        if ($designation_id === 'Delegated Operator') {
             return true;
         } else {
             return false;
@@ -63,7 +63,7 @@ class AuthChecker
             return redirect('/login');
         }
         $designation_id = $user->designation_id;
-        if ($designation_id === 'DelegatedVerifier') {
+        if ($designation_id === 'Delegated Verifier') {
             return true;
         } else {
             return false;
@@ -91,7 +91,7 @@ class AuthChecker
             return redirect('/login');
         }
         $designation_id = $user->designation_id;
-        if ($designation_id === 'DelegatedApprover') {
+        if ($designation_id === 'Delegated Approver') {
             return true;
         } else {
             return false;
@@ -207,6 +207,54 @@ class AuthChecker
         }
     }
 
+    public static function SpecialStatusCheckChecker()
+    {
+        $user = Auth::user();
+        if (empty($user)) {
+            return redirect('/login');
+        }
+        $designation_id = $user->designation_id;
+        if ($designation_id === 'SpecialStatusCheck') {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    //AuditOfficerChecker
+    public static function AuditOfficerChecker()
+    {
+        $user = Auth::user();
+        if (empty($user)) {
+            return redirect('/login');
+        }
+        $designation_id = $user->designation_id;
+        if ($designation_id === 'AuditOfficer') {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+
+    //Special LAO Checker
+
+
+    public static function SpecialLAOChecker()
+    {
+        $user = Auth::user();
+        if (empty($user)) {
+            return redirect('/login');
+        }
+        $designation_id = $user->designation_id;
+        if ($designation_id === 'Special LAO') {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+
     public static function StatusCheckerDistrictChecker()
     {
         $user = Auth::user();
@@ -251,7 +299,7 @@ class AuthChecker
     public static function ReportChecker()
     {
         // Fixed logic to call the static methods properly using `self::`
-        if (self::OperatorChecker() || self::VerifierChecker() || self::ApproverChecker()) {
+        if (self::OperatorPermission() || self::VerifierPermission() || self::ApproverPermission() || self::HODChecker()) {
             return true;
         } else {
             return false;
@@ -260,7 +308,7 @@ class AuthChecker
     public static function ReportCheckerCommon()
     {
         // Fixed logic to call the static methods properly using `self::`
-        if (self::OperatorChecker() || self::VerifierChecker() || self::ApproverChecker() || self::HODChecker() || self::AdminChecker() || self::HOPChecker()) {
+        if (self::OperatorPermission() || self::VerifierPermission() || self::ApproverPermission() || self::HODChecker() || self::AdminChecker() || self::HOPChecker() || self::StatusCheckerDistrictChecker() || self::SpecialStatusCheckPermission()) {
             return true;
         } else {
             return false;
@@ -331,6 +379,13 @@ class AuthChecker
     public static function ApproverPermission()
     {
         if (self::DelegatedApproverChecker() || self::ApproverChecker())
+            return true;
+        else
+            return false;
+    }
+    public static function SpecialStatusCheckPermission()
+    {
+        if (self::SpecialStatusCheckChecker())
             return true;
         else
             return false;

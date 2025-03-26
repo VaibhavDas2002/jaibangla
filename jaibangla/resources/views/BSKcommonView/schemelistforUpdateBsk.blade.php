@@ -15,9 +15,7 @@
                                 <select onchange="la(this.value)" class="form-control" name="scheme"  id="scheme">
                                     <option value="">--Select--</option>
                                     @foreach ($scheme_list as $scheme)
-                                    @if($scheme->id == '2')
                                     <option value="{{ url('application-list-read-only-edit-bsk') }}?pr1={{$scheme->short_code}}">{{$scheme->display_name}}</option>
-                                    @endif
                                     @endforeach
                                                           
                                 </select>

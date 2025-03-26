@@ -10,6 +10,8 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\District;
 use App\UrbanBody;
 use App\Taluka;
+use App\Helpers\AuthChecker;
+// use App\Http\Controllers\AuthChecker;
 
 class ReportPurohitMonthlyBeneficiaryController extends Controller
 {
@@ -21,10 +23,10 @@ class ReportPurohitMonthlyBeneficiaryController extends Controller
     }
 
     public function index(){
-    	$user_id = AuthChecker::getUserId();
+    	$user_id = Auth::user()->id;
         $schemes=Configduty::where('user_id','=',$user_id)->first();
         $dist_code = $schemes->district_code;
-        if (Auth::user()->designation_id == 'Approver') {
+        if (AuthChecker::ApproverPermission()) {
         	$block_ulb = DB::select(DB::raw("select distinct block_ulb_code ,p.block_ulb_name|| (case when p.block_ulb_code<10000 then ' Block' else ' Municipality' end) block_ulb_name 
 				from pension.beneficiaries p where dist_code=".$dist_code.";"));
 	        $result = DB::select(DB::raw("select p.dist_code dist_code,p.block_ulb_code block_ulb_code,d.district_name as district_name,p.block_ulb_name|| (case when p.block_ulb_code<10000 then ' Block' else ' Municipality' end) as block_ulb_name ,p.app_phase as app_phase,

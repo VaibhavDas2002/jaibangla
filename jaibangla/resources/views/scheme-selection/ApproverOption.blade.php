@@ -18,7 +18,7 @@
                                     @foreach ($return_arr as  $arr)
                                    
                                     @if($arr['active']==1)
-                                     <option value="{{$arr['approval_url']}}?pr1={{$arr['pr1_code']}}&id={{$arr['scheme_id']}}">{{$arr['display_name']}}</option>
+                                     <option value="{{$arr['approval_url']}}?pr1={{$arr['pr1_code']}}">{{$arr['display_name']}}</option>
                                      @else
                                       <option value="#" disabled >{{$arr['display_name']}}</option>
                                      @endif   

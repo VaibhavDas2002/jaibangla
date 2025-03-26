@@ -16,7 +16,8 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\AcceptRejectInfo;
 use App\DsPhase;
 use App\Helpers\AuthChecker;
-
+use App\Workflow;
+use App\SchemeStepRank;
 class PensionformReportController extends Controller
 {
     public function __construct()
@@ -39,7 +40,9 @@ class PensionformReportController extends Controller
     }
     public function schemeSelection(Request $request)
     {
-        $auth = AuthChecker::ReportChecker();
+        $auth = AuthChecker::ReportCheckerCommon();
+        $user_id = AuthChecker::getUserId();
+
         if ($auth) {
             $report_type = '';
 
@@ -65,22 +68,20 @@ class PensionformReportController extends Controller
             } else {
                 return redirect('/')->with('error', 'Signature Error: Report Type not selected');
             }
-            $user_id = AuthChecker::getUserId();
-            $duty_schemes = Configduty::where('user_id', '=', $user_id)->where('is_active', 1)->get()->pluck('scheme_id')->toArray();
-            $scheme_list_constants = Config::get('constants.scheme_code_map');
-            $scheme_list = array();
-            foreach ($scheme_list_constants as $key => $arr) {
-                $list_arr = array();
-                if (in_array($key, $duty_schemes)) {
-                    $list_arr['scheme_id'] = $arr['scheme_id'];
-                    $list_arr['model_name'] = $arr['model_name'];
-                    $list_arr['scheme_name'] = $arr['scheme_name'];
-                    array_push($scheme_list, $list_arr);
+            $scheme_not_re = array(4, 12, 14, 15, 16, 18);
+            $return_arr = array();
+            $schemes = DB::select(DB::raw("select id,scheme_name,pr1_code,entry_url,display_name from m_scheme where id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . ") order by rank"));
+            $i = 0;
+            foreach ($schemes as $scheme_arr) {
+              if (in_array($scheme_arr->id, $scheme_not_re)) {
+                  continue;
                 }
-            }
-            $mod_list = array_values($scheme_list);
-            // dd($mod_list);
-            return view('pensionreport.scheme', ['scheme_list' => $mod_list, 'type' => $report_type, 'report_type_name' => $report_type_name]);
+              $return_arr[$i]['id'] = $scheme_arr->id;
+              $return_arr[$i]['display_name'] = $scheme_arr->display_name;
+               $i++;
+              }
+             //dd($return_arr);
+            return view('pensionreport.scheme', ['scheme_list' => $return_arr, 'type' => $report_type, 'report_type_name' => $report_type_name]);
 
         }
 
@@ -145,91 +146,94 @@ class PensionformReportController extends Controller
 
     public function applicationStatusList(Request $request)
     {
-        //  dd($request->all());
+        $user_id = AuthChecker::getUserId();
         $phase_list = DsPhase::orderBy('id')->get();
         $designation_id = Auth::user()->designation_id;
-        if (!$request->has('pr1')) {
+        $scheme_id=$request->scheme_id;
+        if (!$request->has('scheme_id')) {
             return redirect('/')->with('error', 'Signature Error: Scheme Type not selected');
         }
-        // $scheme_id= $request->get('pr1');
-        // dd($scheme_id);
-        if ($status = $this->schemeSessionCheck($request)) {
-            if ($status == -1) {
-                return redirect('/')->with('error', 'Error: Scheme Not Configured');
-            }
-            $role_name = $request->session()->get('role_name');
-            $scheme_id = $request->session()->get('scheme_id');
-
-            $mappingLevel = $request->session()->get('level');
-            $download_excel = 0;
-            $district_visible = 0;
-            $is_rural_visible = 0;
-            $urban_visible = 0;
-            $munc_visible = 0;
-            $gp_ward_visible = 0;
-            $districtList = collect([]);
-            $muncList = collect([]);
-            $gpwardList = collect([]);
-            if ($role_name == 'Approver' || $role_name == 'StatusCheckerDistrict') {
-                $is_urban = $request->rural_urbanid;
-                $district_code = $request->session()->get('distCode');
-                $urban_body_code = $request->urban_body_code;
+        $scheme_row=Scheme::where('id',$scheme_id)->where('is_active',1)->first();
+        if (AuthChecker::ReportCheckerCommon()) {
+            $is_active = 1;
+          } else {
+            $is_active = 0;
+          }
+          if ($is_active == 0) {
+            return redirect("/")->with('error', 'User Disabled. ');
+          }
+          $duty_obj = Configduty::where('user_id', $user_id)->where('scheme_id', $scheme_id)->first();
+          $distCode = $duty_obj->district_code;
+          $is_urban = $duty_obj->is_urban;
+          $mapping_level = $duty_obj->mapping_level;
+          $blockCode = $duty_obj->is_urban == 1 ? $duty_obj->urban_body_code : $duty_obj->taluka_code;
+          $download_excel = 0;
+          $district_visible = 0;
+          $is_rural_visible = 0;
+          $urban_visible = 0;
+          $munc_visible = 0;
+          $gp_ward_visible = 0;
+          $districtList = collect([]);
+          $muncList = collect([]);
+          $gpwardList = collect([]);
+          if($mapping_level=='District'){
+            $is_urban = $request->rural_urbanid;
+            $district_code = $distCode;
+            $urban_body_code = $request->urban_body_code;
+            $block_ulb_code = $request->block_ulb_code;
+            $is_rural_visible = 1;
+            $urban_visible = 1;
+            $munc_visible = 1;
+            $gp_ward_visible = 1;
+            $download_excel = 1;
+          }else if ($mapping_level=='Block' || $mapping_level=='Subdiv'){
+            $district_code = $distCode;
+            if ($mapping_level == 'Block') {
+                $block_ulb_code = NULL;
+                $is_rural_visible = 0;
+                $is_urban = 2;
+                $munc_visible = 0;
+                $urban_body_code = $blockCode;
+                $block_ulb_code = NULL;
+                $gpwardList = GP::where('block_code', $urban_body_code)->get();
+                $gp_ward_visible = 1;
+            } else if ($mapping_level == 'Subdiv') {
                 $block_ulb_code = $request->block_ulb_code;
-                $is_rural_visible = 1;
-                $urban_visible = 1;
+                $urban_body_code = $blockCode;
+                $is_rural_visible = 0;
+                $is_urban = 1;
                 $munc_visible = 1;
                 $gp_ward_visible = 1;
-                $download_excel = 1;
-            } else if ($role_name == 'Verifier' || $role_name == 'Operator' || $role_name == 'StatusCheckerField' || $role_name == 'MIS User') {
-                $district_code = $request->session()->get('distCode');
-                if ($mappingLevel == 'Block') {
-                    $block_ulb_code = NULL;
-                    $is_rural_visible = 0;
-                    $is_urban = 2;
-                    $munc_visible = 0;
-                    $urban_body_code = $request->session()->get('bodyCode');
-                    $block_ulb_code = NULL;
-                    $gpwardList = GP::where('block_code', $urban_body_code)->get();
-                    $gp_ward_visible = 1;
-                } else if ($mappingLevel == 'Subdiv') {
-                    $block_ulb_code = $request->block_ulb_code;
-                    $urban_body_code = $request->session()->get('bodyCode');
-                    $is_rural_visible = 0;
-                    $is_urban = 1;
-                    $munc_visible = 1;
-                    $gp_ward_visible = 1;
-                    $muncList = UrbanBody::where('sub_district_code', $urban_body_code)->get();
-                    $block_ulb_code = $request->block_ulb_code;
-                }
-                $download_excel = 1;
-            } else {
-                $district_visible = 1;
-                $is_urban = NULL;
-                $districtList = District::get();
-                $district_code = $request->district_code;
-                $urban_body_code = $request->urban_body_code;
+                $muncList = UrbanBody::where('sub_district_code', $urban_body_code)->get();
                 $block_ulb_code = $request->block_ulb_code;
-                $is_rural_visible = 1;
-                $munc_visible = 1;
-                $gp_ward_visible = 1;
-                $urban_visible = 1;
-                if ($scheme_id == 5) {
-                    $download_excel = 1;
-                }
             }
-            $condition = array();
-            //$download_excel = 0;
-            //$report_type N - Total List, V-Verified List, R-Recomender List, A-Approved List, T- Rejected List 
-            $report_type = 'N';
+            $download_excel = 1;
+          }else {
+            $district_visible = 1;
+            $is_urban = NULL;
+            $districtList = District::get();
+            $district_code = $request->district_code;
+            $urban_body_code = $request->urban_body_code;
+            $block_ulb_code = $request->block_ulb_code;
+            $is_rural_visible = 1;
+            $munc_visible = 1;
+            $gp_ward_visible = 1;
+            $urban_visible = 1;
+            if ($scheme_id == 5) {
+                $download_excel = 1;
+            }
+        }
+        $condition = array();
+        $report_type = 'N';
 
             $report_type_name = 'Beneficiary List';
             if ($request->has('type')) {
                 $report_type = $request->get('type');
                 if ($report_type == 'F') {
-                    $report_type_name = 'Fresh Beneficiary List';
+                    $report_type_name = 'Yet to be Verified and Yet to be Approved Beneficiary List';
                     // $condition['next_level_role_id']='is not null';
                 } else if ($report_type == 'V') {
-                    $report_type_name = 'Verified Beneficiary List';
+                    $report_type_name = 'Verified but Yet to be Approved Beneficiary List';
                     // $condition['next_level_role_id']='is not null';
                 } else if ($report_type == 'A') {
                     $report_type_name = 'Approved Beneficiary List';
@@ -252,9 +256,6 @@ class PensionformReportController extends Controller
                 return redirect('/')->with('error', 'Signature Error: Report Type not selected');
             }
             if (request()->ajax()) {
-                // dd($request->all());
-                $scheme_id = $request->session()->get('scheme_id');
-                // dd($scheme_id);
                 if (!empty($district_code)) {
                     $condition["created_by_dist_code"] = $district_code;
                 }
@@ -283,13 +284,7 @@ class PensionformReportController extends Controller
                     $condition["gp_ward_code"] = $request->gp_ward_code;
                     $download_excel = 1;
                 }
-
-
-
-
-
-
-
+               
                 $serachvalue = $request->search['value'];
                 $limit = $request->input('length');
                 $offset = $request->input('start');
@@ -297,76 +292,44 @@ class PensionformReportController extends Controller
                 $totalRecords = 0;
                 $filterRecords = 0;
                 $data = array();
-                $scheme_length = NULL;
-                $id_length = NULL;
-                if (!empty($scheme_id)) {
-                    $scheme_row = Scheme::where('id', $scheme_id)->first();
-                    // dd($scheme_row->toArray());
-                    if (!empty($scheme_row)) {
-                        $scheme_schema = $scheme_row->short_code;
-                        if (!empty($scheme_schema)) {
-                            $table = $scheme_schema;
-                            //dd($table);
-                            $query = DB::connection('pgsql5')->table('' . $table . '.beneficiaries')->where($condition)->where('scheme_id', $scheme_id);
-                            // $query = DB::table::on('pgsql_mis')->where($condition);
-                        } else {
-                            $model_name = $request->session()->get('model_name');
-                            $query = $model_name::where($condition);
-                        }
-                        $scheme_length = $scheme_row->scheme_length;
-                        $id_length = $scheme_row->id_length;
-                    } else {
-                        $model_name = $request->session()->get('model_name');
-                        $query = $model_name::where($condition);
-                        $scheme_length = NULL;
-                        $id_length = NULL;
-                    }
-                } else {
-                    $model_name = $request->session()->get('model_name');
-                    $query = $model_name::where($condition);
-                    $scheme_length = NULL;
-                    $id_length = NULL;
-                }
-
-
-                //Report Type Filter
+                $next_level_role_id_operator=SchemeStepRank::getSchemeParentId($scheme_id, 1);
+                $query = DB::connection('pgsql_mis')->table('pension.beneficiaries')->where($condition)->where('scheme_id', $scheme_id);
                 if ($report_type == 'F') { // Fresh List
-                    $query = $query->whereNull('next_level_role_id')->where('is_rejected', 0);
-                    if ($scheme_id == 11) {
-                        $query = $query->whereNull('process_nsap_flag');
-                    }
+                    
+                    $query = $query->where('next_level_role_id',$next_level_role_id_operator)->where('is_rejected', 0);
+                    
                 }
                 if ($report_type == 'T') {
                     $query = $query->where('is_rejected', 1);
                 }
                 if ($report_type == 'V') { //Verified List
-                    if ($scheme_id == 17) { //For Purohit
-                        $query = $query->where('next_level_role_id', 107);
-                    } else {
-                        $query = $query->where('is_verified', 1)->where('is_approved', 0)->where('is_rejected', 0);
-                    }
+                    
+                    $query = $query->where('is_verified', 1)->where('is_approved', 0)->where('is_rejected', 0);
+                    
                 }
-                if ($report_type == 'NSAP') {
-                    $query = $query->where('process_nsap_flag', 1);
-                }
+                
 
                 // if (!empty($request->phase_code))  {
                 //     $query = $query->where('ds_phase', $request->phase_code);
                 // }
-                if ($scheme_id == 10) {
-                    if (!empty($request->phase_code)) {
-                        $query = $query->whereRaw('(ds_phase=' . $request->phase_code . ' or (mark_ds_phase=' . $request->phase_code . ' and sm_ds_mark=1))');
-                    }
-                    if (!empty($request->sm_ds_flag)) {
-                        $query = $query->where('sm_flag', 1);
-                    }
-                } else {
-                    if (!empty($request->phase_code)) {
-                        $query = $query->where('ds_phase', $request->phase_code);
-                    }
+                if (!empty($request->sm_ds_flag)) {
+                    $query = $query->where('sm_flag', 1);
                 }
+                if (!empty($request->phase_code) && $request->phase_code>0) {
+                    $query = $query->whereRaw(' (ds_phase=' . $request->phase_code . ' or  cur_mark_ds_phase=' . $request->phase_code . ') ');
+                }
+                if ($request->phase_code==-1) {
+                    $query = $query->whereRaw(' ds_phase IS NULL and sm_ds_mark IS NULL');
+                }
+           
                 if (!empty($request->caste)) {
                     $query = $query->where('caste', $request->caste);
+                }
+                if (!empty($request->from_date)) {
+                    $query = $query->whereraw(" date(created_at)>='$request->from_date'");
+                }
+                if (!empty($request->to_date)) {
+                    $query = $query->whereraw(" date(created_at)<='$request->to_date'");
                 }
                 if (empty($serachvalue)) {
                     $totalRecords = $query->count();
@@ -403,242 +366,182 @@ class PensionformReportController extends Controller
                     }
                     $filterRecords = count($data);
                 }
-
                 return datatables()
-                    ->of($data)
-                    ->setTotalRecords($totalRecords)
-                    ->setFilteredRecords($filterRecords)
-                    ->skipPaging()
-                    ->addColumn('application_id', function ($data) use ($scheme_length, $id_length) {
-
-                        $app_id = $data->created_by_dist_code . substr('0' . $data->scheme_id, -$scheme_length) . substr('0000000' . $data->id, -$id_length);
-
-                        return $app_id;
-                    })
+                ->of($data)
+                ->setTotalRecords($totalRecords)
+                ->setFilteredRecords($filterRecords)
+                ->skipPaging()
+                ->addColumn('application_id', function ($data)  {
 
 
-                    ->addColumn('ben_name', function ($data) {
-                        // return $data->getName();
-                        return $data->ben_fname . ' ' . $data->ben_mname . ' ' . $data->ben_lname;
-                    })
-                    ->addColumn('benf_name', function ($data) {
-                        return "Father Name";
-                    })
-                    ->addColumn('ben_age', function ($data) {
-                        return $data->ben_age;
-                    })
-                    ->addColumn('gender', function ($data) {
-                        return $data->gender;
-                    })
-                    ->addColumn('caste', function ($data) {
-                        $caste = '';
-                        if ($data->caste == 1 || $data->caste == 2 || $data->caste == 3 || $data->caste == 4 || $data->caste == 5) {
-                            $caste = 'Not Defined';
+                    return $data->id;
+                })
+
+
+                ->addColumn('ben_name', function ($data) {
+                    // return $data->getName();
+                    return $data->ben_fname . ' ' . $data->ben_mname . ' ' . $data->ben_lname;
+                })
+                ->addColumn('benf_name', function ($data) {
+                    return "Father Name";
+                })
+                ->addColumn('ben_age', function ($data) {
+                    return $data->ben_age;
+                })
+                ->addColumn('gender', function ($data) {
+                    return $data->gender;
+                })
+                ->addColumn('caste', function ($data) {
+                    $caste = '';
+                    if ($data->caste == 1 || $data->caste == 2 || $data->caste == 3 || $data->caste == 4 || $data->caste == 5) {
+                        $caste = 'Not Defined';
+                    } else {
+                        $caste = $data->caste;
+                    }
+                    return $caste;
+                })
+                ->addColumn('bank_ifsc', function ($data) {
+                    return $data->bank_ifsc;
+                })
+                ->addColumn('bank_code', function ($data) {
+                    return $data->bank_code;
+                })
+                ->addColumn('village_town_city', function ($data) {
+                    return trim($data->village_town_city);
+                })
+                ->addColumn('house_premise_no', function ($data) {
+                    return trim($data->house_premise_no);
+                })
+                ->addColumn('mobile_no', function ($data) {
+                    return trim($data->mobile_no);
+                })
+                ->addColumn('post_office', function ($data) {
+                    return trim($data->post_office);
+                })
+                ->addColumn('pincode', function ($data) {
+                    return trim($data->pincode);
+                })
+
+
+
+                // add 20 march
+                ->addColumn('is_state_des', function ($data) {
+                    if (($data->is_state == TRUE)) {
+                        $val = '<span class="badge badge-danger">State Entry</span>';
+                    } else {
+                        $val = '';
+                    }
+                    return $val;
+                })
+
+
+
+                ->addColumn('first_payment_pushed_at', function ($data) use ($report_type, $scheme_id) {
+                    if ($report_type == 'A' && ($scheme_id == '1' || $scheme_id == '3')) {
+                        if (!empty($data->first_payment_pushed_at)) {
+
+                            $date = date("d-m-Y", strtotime($data->first_payment_pushed_at));
                         } else {
-                            $caste = $data->caste;
+                            $date = '';
                         }
-                        return $caste;
-                    })
-                    ->addColumn('bank_ifsc', function ($data) {
-                        return $data->bank_ifsc;
-                    })
-                    ->addColumn('bank_code', function ($data) {
-                        return $data->bank_code;
-                    })
-                    ->addColumn('village_town_city', function ($data) {
-                        return trim($data->village_town_city);
-                    })
-                    ->addColumn('house_premise_no', function ($data) {
-                        return trim($data->house_premise_no);
-                    })
-                    ->addColumn('mobile_no', function ($data) {
-                        return trim($data->mobile_no);
-                    })
-                    ->addColumn('post_office', function ($data) {
-                        return trim($data->post_office);
-                    })
-                    ->addColumn('pincode', function ($data) {
-                        return trim($data->pincode);
-                    })
+                        return trim($date);
+                    } else {
+                        return '';
+                    }
+                })
+                ->addColumn('first_payment_success_at', function ($data) use ($report_type, $scheme_id) {
 
+                    if ($report_type == 'A' && ($scheme_id == '1' || $scheme_id == '3')) {
+                        if (!empty($data->first_payment_success_at)) {
 
-
-                    // add 20 march
-                    ->addColumn('is_state_des', function ($data) {
-                        if (($data->is_state == TRUE)) {
-                            $val = '<span class="badge badge-danger">State Entry</span>';
+                            $date = date("d-m-Y", strtotime($data->first_payment_success_at));
                         } else {
-                            $val = '';
+                            $date = '';
                         }
-                        return $val;
-                    })
+                        return trim($date);
+                    } else {
+                        return '';
+
+                    }
+                })
 
 
-
-                    // ->addColumn('acc_validation_pushed_at', function ($data) use ($report_type) {
-
-                    //         if ($report_type == 'A')
-                    //         {
-                    //             if(!empty($data->acc_validation_pushed_at))
-                    //             {
-
-                    //             $date=date("d-m-Y", strtotime($data->acc_validation_pushed_at));
-                    //             }
-                    //             else{
-                    //             $date='';
-                    //             }
-
-                    //             return trim($date);
-                    //             }
-                    //         else{
-                    //         return '';
-                    //         }
-
-                    // })
-                    // ->addColumn('acc_validation_success_at', function ($data) use ($report_type) {
-
-                    //     // $timestamp=$data->acc_validation_success_at;          
-                    //     // $datetime = explode(" ",$timestamp);
-                    //     // $date = $datetime[0];
-                    //         if ($report_type == 'A')
-                    //         {
-                    //             if(!empty($data->acc_validation_success_at))
-                    //             {
-
-                    //             $date=date("d-m-Y", strtotime($data->acc_validation_success_at));
-                    //             }
-                    //             else{
-                    //             $date='';
-                    //             }
-
-
-                    //         return trim($date);
-                    //         }
-                    //         else{
-                    //         return '';
-
-                    //         }
-                    // })
-                    ->addColumn('first_payment_pushed_at', function ($data) use ($report_type, $scheme_id) {
-                        if ($report_type == 'A' && ($scheme_id == '1' || $scheme_id == '3')) {
-                            if (!empty($data->first_payment_pushed_at)) {
-
-                                $date = date("d-m-Y", strtotime($data->first_payment_pushed_at));
-                            } else {
-                                $date = '';
-                            }
-                            return trim($date);
-                        } else {
-                            return '';
-                        }
-                    })
-                    ->addColumn('first_payment_success_at', function ($data) use ($report_type, $scheme_id) {
-
-                        if ($report_type == 'A' && ($scheme_id == '1' || $scheme_id == '3')) {
-                            if (!empty($data->first_payment_success_at)) {
-
-                                $date = date("d-m-Y", strtotime($data->first_payment_success_at));
-                            } else {
-                                $date = '';
-                            }
-                            return trim($date);
-                        } else {
-                            return '';
-
-                        }
-                    })
-
-
-                    ->addColumn('action', function ($data) use ($scheme_id, $report_type, $role_name) {
-                        $val = '<a href="processApplicationDetailsCommon/' . $data->id . '/' . $scheme_id . '" class="btn btn-primary ben_view_button" role="button" target="_blank">View</a>';
-                        if (($report_type == 'A') && ($data->lot_generated == 1) && ($data->payment_count > 0)) {
-                            $val = $val . '<span class="badge badge-danger">Payment has been initiated</span>';
-                        }
-                        if ($report_type == 'C') {
-                            if ($scheme_id == 11) {
-                                if (!is_null($data->next_level_role_id) && $data->next_level_role_id == 0) {
-                                    if ($data->dup_bank == 1) {
-                                        $val = '<span class="badge badge-danger">Approved but due to Duplicate Bank A/c, payment has been stopped</span>';
-                                    } else {
-                                        $val = '<span class="badge badge-danger">Approved</span>';
-                                    }
-                                } else if ($data->is_verified == 1 and $data->is_approved == 0 and $data->is_rejected == 0) {
-                                    $val = '<span class="badge badge-danger">Verified</span>';
-                                } else if (is_null($data->next_level_role_id)) {
-                                    if ($data->process_nsap_flag == 1) {
-                                        $val = '<span class="badge badge-danger">NSAP Marked</span>';
-                                    } else
-                                        $val = '<span class="badge badge-danger">Fresh</span>';
-                                } else if ($data->is_rejected == 1) {
-                                    $val = $val . '<span class="badge badge-danger">Rejected</span>';
-                                }
-                            } else {
-                                if (!isset($data->next_level_role_id)) {
-                                    $val = $val . '<span class="badge badge-primary">Fresh</span>';
-                                } else if ($data->next_level_role_id == 0) {
-                                    $val = $val . '<span class="badge badge-success">Approved</span>';
-                                } else if ($data->is_rejected == 1) {
-                                    $val = $val . '<span class="badge badge-danger">Rejected</span>';
-                                } else if ($data->next_level_role_id == 106 && $scheme_id == 17) {
-                                    $val = $val . '<span class="badge badge-info">Reverted</span>';
-                                } else if ($data->is_verified == 1 and $data->is_approved == 0 and $data->is_rejected == 0) {
-                                    $val = $val . '<span class="badge badge-dark">Verified</span>';
-                                }
-                            }
-                        }
-                        if ($report_type == 'NSAP') {
+                ->addColumn('action', function ($data) use ($scheme_id, $report_type) {
+                    $val = '<a href="processApplicationDetailsCommon/' . $data->id . '/' . $scheme_id . '" class="btn btn-primary ben_view_button" role="button" target="_blank">View</a>';
+                    if (($report_type == 'A') && ($data->lot_generated == 1) && ($data->payment_count > 0)) {
+                        $val = $val . '<span class="badge badge-danger">Payment has been initiated</span>';
+                    }
+                    if ($report_type == 'C') {
+                        if ($scheme_id == 11) {
                             if (!is_null($data->next_level_role_id) && $data->next_level_role_id == 0) {
-                                $val = '<span class="badge badge-danger">Approved</span>';
+                                if ($data->dup_bank == 1) {
+                                    $val = '<span class="badge badge-danger">Approved but due to Duplicate Bank A/c, payment has been stopped</span>';
+                                } else {
+                                    $val = '<span class="badge badge-danger">Approved</span>';
+                                }
                             } else if ($data->is_verified == 1 and $data->is_approved == 0 and $data->is_rejected == 0) {
                                 $val = '<span class="badge badge-danger">Verified</span>';
-                            } else if (is_null($data->next_level_role_id)) {
-                                if ($data->process_nsap_flag == 1) {
-                                    $val = '<span class="badge badge-danger">NSAP Marked</span>';
-                                } else
-                                    $val = '<span class="badge badge-danger">Fresh</span>';
-                            } else if ($data->is_rejected == 1) {
+                            }  else if ($data->is_rejected == 1) {
                                 $val = $val . '<span class="badge badge-danger">Rejected</span>';
                             }
-                        }
-                        if ($role_name == 'Approver' || $role_name == 'HOD') {
-                            if (($report_type == 'A' || $report_type == 'R') && ($data->lot_generated == 0) && ($data->payment_count == 0)) {
-                                // $val = $val . '<button class="btn btn-warning ben_reject_button">Reject</button>';
-                                // $val = $val . '<button class="btn btn-success ben_revert_button">Revert</button>';
+                            else{
+                                $val = '<span class="badge badge-danger">Fresh</span>';
                             }
-
-                            //else if ($report_type == 'T') {
-                            //     $val = $val . '<button class="btn btn-success ben_revert_button">Revert</button>';
-                            // }
+                        } else {
+                             if ($data->next_level_role_id == 0) {
+                                $val = $val . '<span class="badge badge-success">Approved</span>';
+                            } else if ($data->is_rejected == 1) {
+                                $val = $val . '<span class="badge badge-danger">Rejected</span>';
+                            } else if ($data->next_level_role_id == 106 && $scheme_id == 17) {
+                                $val = $val . '<span class="badge badge-info">Reverted</span>';
+                            } else if ($data->is_verified == 1 && $data->is_approved == 0 && $data->is_rejected == 0) {
+                                $val = $val . '<span class="badge badge-dark">Verified</span>';
+                            }else if ($data->is_verified == 0 && $data->is_approved == 0 && $data->is_rejected == 0) {
+                                $val = $val . '<span class="badge badge-dark">Fresh</span>';
+                            }
                         }
-                        return $val;
-                    })
-                    ->rawColumns(['ben_id', 'ben_name', 'ben_age', 'gender', 'caste', 'bank_ifsc', 'bank_code', 'village_town_city', 'action', 'is_state_des', 'house_premise_no', 'mobile_no', 'post_office', 'pincode'])
-                    ->make(true);
-            } else {
-                //Goto view
-                return view('pensionreport.index')->with('phase_list', $phase_list)->with('district_name', 'Test')->with('district_code', $request->session()->get('distCode'))->with('scheme', $request->session()->get('scheme_id'))
-                    // ->with('schemetype','$schemetype')
-                    ->with('report_type_name', $report_type_name)->with('type', $request->get('type'))
-                    ->with('pr1', $request->get('pr1'))
-                    ->with('scheme_name', $request->session()->get('scheme_name'))
-                    ->with('district_visible', $district_visible)
-                    ->with('districtList', $districtList)
-                    ->with('is_rural_visible', $is_rural_visible)
-                    ->with('is_urban', $is_urban)
-                    ->with('urban_visible', $urban_visible)
-                    ->with('urban_body_code', $urban_body_code)
-                    ->with('urban_visible', $urban_visible)
-                    ->with('munc_visible', $munc_visible)
-                    ->with('gp_ward_visible', $gp_ward_visible)
-                    ->with('muncList', $muncList)
-                    ->with('gpwardList', $gpwardList)
-                    ->with('mappingLevel', $mappingLevel)
-                    ->with('designation_id', $designation_id)
-                    ->with('download_excel', $download_excel);
+                    }
+                
+                    
+                    return $val;
+                })
+                ->rawColumns(['ben_id', 'ben_name', 'ben_age', 'gender', 'caste', 'bank_ifsc', 'bank_code', 'village_town_city', 'action', 'is_state_des', 'house_premise_no', 'mobile_no', 'post_office', 'pincode'])
+                ->make(true);
+
             }
-        } else {
-            return redirect('/')->with('error', 'User not Authorized for this scheme');
-        }
+            else{
+                if($request->get('type')=='V'){
+                    $download_excel=1;
+                }
+                else if($request->get('type')=='F'){
+                    $download_excel=1;
+                }
+                else if($request->get('type')=='A' && ($scheme_id!=10 )){
+                    $download_excel=1;
+                }
+                else
+                $download_excel=0;
+                return view('pensionreport.index')->with('phase_list', $phase_list)->with('district_name', 'Test')->with('district_code', $distCode)->with('scheme', $scheme_id)
+                // ->with('schemetype','$schemetype')
+                ->with('report_type_name', $report_type_name)->with('type', $request->get('type'))
+                ->with('scheme_id', $request->get('scheme_id'))
+                ->with('scheme_name', $scheme_row->scheme_name)
+                ->with('district_visible', $district_visible)
+                ->with('districtList', $districtList)
+                ->with('is_rural_visible', $is_rural_visible)
+                ->with('is_urban', $is_urban)
+                ->with('urban_visible', $urban_visible)
+                ->with('urban_body_code', $urban_body_code)
+                ->with('urban_visible', $urban_visible)
+                ->with('munc_visible', $munc_visible)
+                ->with('gp_ward_visible', $gp_ward_visible)
+                ->with('muncList', $muncList)
+                ->with('gpwardList', $gpwardList)
+                ->with('mappingLevel', $mapping_level)
+                ->with('designation_id', $designation_id)
+                ->with('download_excel', $download_excel);
+            }
+       
     }
 
     public function rejectApplication(Request $request)
@@ -745,11 +648,11 @@ class PensionformReportController extends Controller
         //$reject_reason = $request->reject_reason;
         $revert_reason = 'Reverted by user: ' . $user_id;
 
-
+        $next_level_role_id_operator=SchemeStepRank::getSchemeParentId($scheme_id, 1);
         DB::beginTransaction();
         try {
             $is_saved_log = $accept_reject_model->save();
-            $input_update = ['approval_rejected' => 3, 'next_level_role_id' => null, 'is_verified' => 0, 'is_approved' => 0, 'comments' => $revert_reason];
+            $input_update = ['approval_rejected' => 3, 'next_level_role_id' => $next_level_role_id_operator, 'is_verified' => 0, 'is_approved' => 0, 'comments' => $revert_reason];
             $model_name::where('id', $ben_id)->where('lot_generated', 0)->where('payment_count', 0)->where('is_rejected', 0)->update($input_update);
 
 
@@ -786,7 +689,7 @@ class PensionformReportController extends Controller
 
     public function generate_excel(Request $request)
     {
-        // dd(123);
+        dd(123);
         $scheme_code = $request->rej_scheme_code;
         $user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id', '=', $user_id)->first();

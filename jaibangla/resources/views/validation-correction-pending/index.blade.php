@@ -109,7 +109,7 @@
                                                 </select>
                                                 <span class="text-danger" id="error_scheme_type"></span>
                                             </div>
-                                            @if($mapLevel=='SubdivVerifier')
+                                            @if(($mapLevel=='SubdivVerifier'|| $mapLevel=='SubdivDelegated Verifier'))
                                                 <div class="col-md-3">
                                                     <label class=" control-label" >Municipality</label>
                                                     <select name="filter_1" id="filter_1" class="form-control select2 full-width js-municipality" >
@@ -127,7 +127,7 @@
                                                     </select>
                                                 </div> 
                                                 <input type="hidden" name="local_body" id="local_body" value={{$local_body_code}}>  
-                                            @elseif($mapLevel=='BlockVerifier')
+                                            @elseif(($mapLevel=='BlockVerifier' || $mapLevel=='BlockDelegated Verifier'))
                                                 <div class="col-md-3">
                                                     <label class=" control-label" >Gram Panchayat</label>
                                                     <select name="filter_1" id="filter_1" class="form-control select2 full-width" >
@@ -139,7 +139,7 @@
                                                     <span class="text-danger" id="error_gp_type"></span>
                                                 </div> 
                                                 <input type="hidden" name="local_body" id="local_body" value={{$local_body_code}}>
-                                            @elseif($mapLevel=='DistrictApprover')
+                                            @elseif(($mapLevel=='DistrictApprover' || $mapLevel=='DistrictDelegated Approver'))
                                                 <input type="hidden" name="local_body" id="local_body" value="">
                                                 
                                             @endif
@@ -159,6 +159,7 @@
                             </div>
                         </div>    
                     </div>
+                
                     <div id="res_div" style="display: none;">
                         <div class="panel panel-default">
                             <div class="panel-heading" id="panel_head" style="font-size: 14px; font-weight: bold; font-style: italic;">List of Beneficiary</div>
@@ -173,6 +174,7 @@
                                           <th width="10%">Beneficiary IFSC</th>
                                           <th width="10%">Block/Municipality Name</th>
                                           <th width="10%">GP/Ward Name</th>
+                                          <th width="10%">Visiting DateTime</th>
                                           <th width="5%">Action</th>
                                           <th width="15%">Download Application Form</th>
                                         </thead>
@@ -352,12 +354,18 @@
    @endsection
    {{-- @section('script') --}}
    <script src="{{ asset ("/bower_components/AdminLTE/plugins/jQuery/jquery-2.2.3.min.js") }}"></script>
-    <script src="{{ URL::asset('js/confirmation_of_bank_account_validation.js') }}"></script> 
+   <script src="{{ URL::asset('js/confirmation_of_bank_account_validation.js') }}"></script> 
    <script src="{{ URL::asset('js/confirmation_of_bank_account_validation_bangla.js') }}"></script>
-
    <script>
         $(document).ready(function(){
-            // confirmation_of_bank_account_validation_bangla();
+            $(".NumOnly").keyup(function(event) {
+              
+              $(this).val($(this).val().replace(/[^\d].+/, ""));
+                  if ((event.which < 48 || event.which > 57)) {
+                      event.preventDefault();
+                  }
+              }); 
+          
             var interval = setInterval(function () {
             var momentNow = moment();
             $('.date-part').html(momentNow.format('DD-MMMM-YYYY'));
@@ -379,12 +387,15 @@
                     $('#error_scheme_type').text(error_scheme_type);
                 }
                 else{
+                    
                     error_scheme_type = '';
                     $('#error_scheme_type').text(error_scheme_type);
                 }
                 if( error_scheme_type != ''){
                     return false;
                 }else{
+                    $("#assign_scheme_id").val('');
+                    $("#assign_scheme_id").val($('#scheme_type').val());
                     $('#loadingDi').show();
                     $('#res_div').show();
                     var msg = 'Scheme : '+$( "#scheme_type option:selected" ).text();
@@ -441,6 +452,7 @@
                             { "data": "last_ifsc"},
                             { "data": "block_ulb_name"},
                             { "data": "gp_ward_name"},
+                            { "data": "visiting_time"},
                             { "data": "view" },
                             { "data": "download" },
                         ],
@@ -490,7 +502,7 @@
                 var error_gp_type = '';
                 var error_mun_type = '';
                 $('#bengla_btn').click(function(){
-                    if($('#mapLevel').val()=='BlockVerifier'){
+                    if(($('#mapLevel').val()=='BlockVerifier' || $('#mapLevel').val()=='BlockDelegated')){
                         if($.trim($('#filter_1').val()).length == 0){
                             error_gp_type = 'Gram Panchyat is required';
                             $('#error_gp_type').text(error_gp_type);
@@ -515,7 +527,7 @@
                             bulk_bengla_download(scheme_id,gp_mun);
                         }
                     }
-                    if($('#mapLevel').val()=='SubdivVerifier'){
+                    if(($('#mapLevel').val()=='SubdivVerifier' || $('#mapLevel').val()=='SubdivDelegated')){
                         if($.trim($('#filter_1').val()).length == 0){
                             error_mun_type = 'Municipality is required';
                             $('#error_mun_type').text(error_mun_type);
@@ -543,7 +555,7 @@
                 });
 
                 $('#english_btn').click(function(){
-                    if($('#mapLevel').val()=='BlockVerifier'){
+                    if(($('#mapLevel').val()=='BlockVerifier' || $('#mapLevel').val()=='BlockDelegated')){
                         if($.trim($('#filter_1').val()).length == 0){
                             error_gp_type = 'Gram Panchyat is required';
                             $('#error_gp_type').text(error_gp_type);
@@ -568,7 +580,7 @@
                             bulk_english_download(scheme_id,gp_mun);
                         }
                     }
-                    if($('#mapLevel').val()=='SubdivVerifier'){
+                    if(($('#mapLevel').val()=='SubdivVerifier' || $('#mapLevel').val()=='SubdivDelegated')){
                         if($.trim($('#filter_1').val()).length == 0){
                             error_mun_type = 'Municipality is required';
                             $('#error_mun_type').text(error_mun_type);
@@ -614,7 +626,7 @@
                         });
                     }
                     else {
-                        const data = response.data;
+                        const data = response.data_array;
                           console.log(JSON.stringify(data));
                         // confirmation_of_bank_account_validation(data);
                         confirmation_of_bank_account_validation_bangla(data); 
@@ -646,7 +658,7 @@
                         });
                     }
                     else {
-                        const data = response.data;
+                        const data = response.data_array;
                         //  console.log(JSON.stringify(data));
                          confirmation_of_bank_account_validation(data);
                        
@@ -678,7 +690,7 @@
                         });
                     }
                     else {
-                        const data = response.data;
+                        const data = response.data_array;
                         //  console.log(JSON.stringify(data));
                         // confirmation_of_bank_account_validation(data);
                         confirmation_of_bank_account_validation_bangla(data); 
@@ -710,7 +722,7 @@
                         });
                     }
                     else {
-                        const data = response.data;
+                        const data = response.data_array;
                         //  console.log(JSON.stringify(data));
                         // confirmation_of_bank_account_validation(data);
                         confirmation_of_bank_account_validation(data); 
@@ -792,8 +804,21 @@
         }
         });
     }
+    function resetTable() {
+        // Clear all input fields within the table
+        $('#update_details').find('input[type="text"]').val('');
+        $('#update_details').find('input[type="file"]').val('');
+        
+        // Reset any displayed error messages
+        $('#update_details').find('.text-danger').text('');
+        
+        // Optionally reset read-only attributes
+        $('#bank_name').attr('readonly', true);
+        $('#branch_name').attr('readonly', true);
+    }
     $(document).on('change', '.process_type_radio', function() {
         var process_type = $(this).val();
+        resetTable();
         if (process_type == 1) {
             $('#update_details').show();
             $('#update_btn').show();
@@ -802,7 +827,7 @@
             // $('#av_name_taken').hide();
             // $('#self_declaration').show();
             $('#av_name_msg_div').show();
-            $("#new_bank_is_required").val(41);
+            $("#new_bank_is_required").val(141);
         } else if (process_type == 2) {
             $('#update_details').show();
             $('#update_btn').show();
@@ -811,7 +836,7 @@
             // $('#av_name_taken').hide();
             // $('#self_declaration').show();
             $('#av_name_msg_div').hide();
-            $("#new_bank_is_required").val(42);
+            $("#new_bank_is_required").val(142);
         } else if (process_type == 3) {
             $('#update_details').show();
             $('#update_btn').show();
@@ -820,7 +845,7 @@
             // $('#av_name_taken').show();
             // $('#self_declaration').show();
             $('#av_name_msg_div').hide();
-            $("#new_bank_is_required").val(43);
+            $("#new_bank_is_required").val(143);
             $('#aadhar_div').show();
             $('#aadhar_row').show();
         } else if (process_type == 4) {
@@ -831,7 +856,7 @@
             // $('#av_name_taken').show();
             // $('#self_declaration').show();
             $('#av_name_msg_div').hide();
-            $("#new_bank_is_required").val(44);
+            $("#new_bank_is_required").val(144);
             $('#aadhar_div').show();
             $('#aadhar_row').show();
         }else {

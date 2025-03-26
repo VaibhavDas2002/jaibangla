@@ -35,9 +35,9 @@
     <!-- Content Header (Page header) -->
     <section class="content-header">
       <h1>
-        @if ($designation=='Verifier')
+        @if ($is_verifier == 1)
           De-Activate Beneficiary
-        @elseif ($designation=='Approver')
+        @elseif ($is_approver == 1)
         Update/De-activate Beneficiary
         @endif 
 
@@ -300,11 +300,14 @@
                     <tr>
                       <th>Bank Account Number: <span class="text-danger">*</span></th>
                       <td>
-                        <input type="text" value="" name="bank_code" maxlength='20' id="bank_code">
+                        <input type="password" value="" name="bank_code" maxlength='20' id="bank_code" class="form-control NumOnly" autocomplete="off">
                         <span id="error_bank_code" class="text-danger"></span>
                       </td>
-                      <th></th>
-                      <td></td>
+                      <th>Confirm Bank Account Number: <span class="text-danger">*</span></th>
+                      <td>
+                        <input type="text" value="" name="confirm_bank_code" maxlength='20' id="confirm_bank_code" class="form-control NumOnly" autocomplete="off">
+                        <span id="error_confirm_bank_code" class="text-danger"></span>
+                      </td>
                     </tr>
                     <tr>
                       <th scope="row" class="required" style="font-size: 14px;">Upload Bank Passbook <span class="text-danger">*</span></th>
@@ -467,7 +470,9 @@
       $('.date-part').html(momentNow.format('DD-MMMM-YYYY'));
       $('.time-part').html(momentNow.format('hh:mm:ss A'));
     }, 100);
-
+    $( "#bank_code,#confirm_bank_code" ).on( "copy cut paste drop", function() {
+                return false;
+    });
     $('#loadingDiv').hide();
     $('#submit_btn').removeAttr('disabled');
     $('#fname_div').hide();
@@ -965,6 +970,7 @@
               $('#bank_name').val(response.bank_name);
               $('#bank_ifsc').val(response.bank_ifsc);
               $('#bank_code').val(response.bank_code);
+              $('#confirm_bank_code').val(response.bank_code);
               $('#branch_name').val(response.branch_name);
               $('#old_bank_ifsc').val(response.bank_ifsc);
               $('#old_bank_code').val(response.bank_code);
@@ -1065,6 +1071,7 @@
     var error_name_of_bank =''; 
     var error_bank_branch =''; 
     var error_bank_code =''; 
+    var error_confirm_bank_code ='';
     var error_bank_ifsc_code =''; 
     var error_mobile_no ='';
     var error_remarks = '';
@@ -1127,6 +1134,31 @@
      $('#error_bank_code').text(error_bank_code);
      $('#bank_code').removeClass('has-error');
     }
+    if($.trim($('#confirm_bank_code').val()).length == 0)
+    {
+    error_confirm_bank_code = 'Confirm Bank Account Number is required';
+    $('#error_confirm_bank_code').text(error_confirm_bank_code);
+    $('#confirm_bank_code').addClass('has-error');
+    }
+    else
+    {
+    error_confirm_bank_code = '';
+    $('#confirm_bank_code').text(error_confirm_bank_code);
+    $('#confirm_bank_code').removeClass('has-error');
+    }
+
+    if($.trim($('#bank_code').val()) != $.trim($('#confirm_bank_code').val()))
+    {
+      error_confirm_bank_code = 'Confirm Bank Account Number not Match with Bank Account Number';
+      $('#error_confirm_bank_code').text(error_confirm_bank_code);
+      $('#error_confirm_bank_code').addClass('has-error');
+    }
+    else
+    {
+      error_confirm_bank_code = '';
+      $('#error_confirm_bank_code').text(error_confirm_bank_code);
+      $('#error_confirm_bank_code').removeClass('has-error');
+    }
 
     if($.trim($('#bank_ifsc').val()).length == 0)
     {
@@ -1181,13 +1213,14 @@
       }
 
     
-    if(error_mobile_no != '' || error_name_of_bank !='' || error_bank_branch !=''||  error_bank_code !='' || error_bank_ifsc_code !='' || error_remarks != '' || error_file != '') {
+    if(error_mobile_no != '' || error_name_of_bank !='' || error_bank_branch !=''||  error_bank_code !='' || error_bank_ifsc_code !='' || error_remarks != '' || error_file != '' || error_confirm_bank_code !='') {
       return false;
     }
     else
     {
       var new_ifsc = $('#bank_ifsc').val();
       var new_acc = $('#bank_code').val();
+      var confirm_bank_account_number=$('#confirm_bank_code').val();
       var old_ifsc = $('#old_bank_ifsc').val();
       var old_acc = $('#old_bank_code').val();
       var upload_bank_passbook = $('#upload_bank_passbook')[0].files;
@@ -1206,6 +1239,7 @@
         var scheme_id = $('#update_scheme_id').val();
         var bank_ifsc = $('#bank_ifsc').val();
         var bank_code = $('#bank_code').val();
+        var confirm_bank_code = $('#confirm_bank_code').val();
         var bank_name = $('#bank_name').val();
         var branch_name = $('#branch_name').val();
         var mobile_no = $('#mobile_no').val();
@@ -1216,6 +1250,7 @@
         fd.append('scheme_id', scheme_id);
         fd.append('bank_ifsc', bank_ifsc);
         fd.append('bank_code', bank_code);
+        fd.append('confirm_bank_code', confirm_bank_code);
         fd.append('bank_name', bank_name);
         fd.append('branch_name', branch_name);
         fd.append('upload_bank_passbook', upload_bank_passbook[0]);

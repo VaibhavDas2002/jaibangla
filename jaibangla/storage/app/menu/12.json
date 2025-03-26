@@ -1,0 +1,519 @@
+[
+    {
+        "id": 177,
+        "menu_name": "Beneficiary Status",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "#",
+        "url_type": "1",
+        "child_menu": [
+            {
+                "menu_id": 178,
+                "menu_name": "Track & Payment Status",
+                "designation_id": "Admin",
+                "master_rank": 4,
+                "map_rank": 4,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 177,
+                "url_type": "1",
+                "link_url": "track-application-status",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 179,
+                "menu_name": "Payment Status",
+                "designation_id": "Admin",
+                "master_rank": 5,
+                "map_rank": 5,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 177,
+                "url_type": "1",
+                "link_url": "ben-payment-status",
+                "icon": "fa fa-link",
+                "menu_class": null
+            }
+        ]
+    },
+    {
+        "id": 355,
+        "menu_name": "JB To DBT Share Report",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "dbt-scheme-wise-report",
+        "url_type": "2",
+        "child_menu": []
+    },
+    {
+        "id": 268,
+        "menu_name": "De-duplicate Bank A\/c Report",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "de-duplicate-bank-report",
+        "url_type": "2",
+        "child_menu": []
+    },
+    {
+        "id": 109,
+        "menu_name": "System Management",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "#",
+        "url_type": "1",
+        "child_menu": [
+            {
+                "menu_id": 175,
+                "menu_name": "Menu Management",
+                "designation_id": "Admin",
+                "master_rank": 5,
+                "map_rank": 1,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 109,
+                "url_type": "1",
+                "link_url": "menu-management\/home",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 182,
+                "menu_name": "Scheme Onboard & Mgmt",
+                "designation_id": "Admin",
+                "master_rank": 1001,
+                "map_rank": 2,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 109,
+                "url_type": "1",
+                "link_url": "onboardscheme",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "id": 362,
+                "menu_name": "Scheme General Setting",
+                "designation_id": "Admin",
+                "map_rank": 2,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 109,
+                "icon": "fa fa-link",
+                "link_url": "scheme-general-setting",
+                "url_type": "2"
+                
+            },
+            {
+                "id": 363,
+                "menu_name": "Scheme Capacity Configuration",
+                "designation_id": "Admin",
+                "map_rank": 2,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 109,
+                "icon": "fa fa-link",
+                "link_url": "scheme-capacity",
+                "url_type": "1"
+            },
+            {
+                "id": 364,
+                "menu_name": "Scheme Required Fields Settings",
+                "designation_id": "Admin",
+                "map_rank": 2,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 109,
+                "icon": "fa fa-link",
+                "link_url": "scheme-req-field",
+                "url_type": "1"
+            },
+            {
+                "menu_id": 117,
+                "menu_name": "Document Type Master",
+                "designation_id": "Admin",
+                "master_rank": 10,
+                "map_rank": 3,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 109,
+                "url_type": "1",
+                "link_url": "document-mgmt",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 118,
+                "menu_name": "Scheme Document Map",
+                "designation_id": "Admin",
+                "master_rank": 11,
+                "map_rank": 4,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 109,
+                "url_type": "1",
+                "link_url": "scheme-doc-map",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 110,
+                "menu_name": "Department",
+                "designation_id": "Admin",
+                "master_rank": 5,
+                "map_rank": 5,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 109,
+                "url_type": "1",
+                "link_url": "system-management\/department",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 115,
+                "menu_name": "Designation",
+                "designation_id": "Admin",
+                "master_rank": 9,
+                "map_rank": 6,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 109,
+                "url_type": "1",
+                "link_url": "system-management\/designation",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 113,
+                "menu_name": "State",
+                "designation_id": "Admin",
+                "master_rank": 8,
+                "map_rank": 7,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 109,
+                "url_type": "1",
+                "link_url": "system-management\/state",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 112,
+                "menu_name": "Country",
+                "designation_id": "Admin",
+                "master_rank": 8,
+                "map_rank": 8,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 109,
+                "url_type": "1",
+                "link_url": "system-management\/country",
+                "icon": "fa fa-link",
+                "menu_class": null
+            }
+        ]
+    },
+    {
+        "id": 233,
+        "menu_name": "Beneficiary Complete Status",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "ben-app-status",
+        "url_type": "2",
+        "child_menu": []
+    },
+    {
+        "id": 119,
+        "menu_name": "Duty Management",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "userDutymanagement",
+        "url_type": "1",
+        "child_menu": []
+    },
+    {
+        "id": 120,
+        "menu_name": "District Wise Report",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "district-drill-down",
+        "url_type": "1",
+        "child_menu": []
+    },
+    {
+        "id": 121,
+        "menu_name": "IFMS Report",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "district-drill-down-consolidated",
+        "url_type": "1",
+        "child_menu": []
+    },
+    {
+        "id": 249,
+        "menu_name": "DS MIS Report",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "dsreportphaseselect",
+        "url_type": "1",
+        "child_menu": []
+    },
+    {
+        "id": 126,
+        "menu_name": "Export Benefeciary",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "districtwise-statistics",
+        "url_type": "1",
+        "child_menu": []
+    },
+    {
+        "id": 299,
+        "menu_name": "BSK Drilldown Report",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "bsk-drilldown-report",
+        "url_type": "2",
+        "child_menu": []
+    },
+    {
+        "id": 340,
+        "menu_name": "Social Registry MIS Report",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "sr-mis-report",
+        "url_type": "2",
+        "child_menu": []
+    },
+    {
+        "id": 326,
+        "menu_name": "Duplicate Check",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "dup-check",
+        "url_type": "2",
+        "child_menu": []
+    },
+    {
+        "id": 274,
+        "menu_name": "Age Cohort Reports",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "#",
+        "url_type": "2",
+        "child_menu": [
+            {
+                "menu_id": 278,
+                "menu_name": "Age Cohort Report",
+                "designation_id": "Admin",
+                "master_rank": 2,
+                "map_rank": 2,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 274,
+                "url_type": "2",
+                "link_url": "different-age-cohort-report",
+                "icon": "fa fa-link",
+                "menu_class": null
+            }
+        ]
+    },
+    {
+        "id": 283,
+        "menu_name": "Aadhar & Mobile De-duplication",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "#",
+        "url_type": "1",
+        "child_menu": [
+            {
+                "menu_id": 284,
+                "menu_name": "Mis Report",
+                "designation_id": "Admin",
+                "master_rank": 5,
+                "map_rank": 5,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 283,
+                "url_type": "2",
+                "link_url": "duplicateAadharMobileMISReport",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 285,
+                "menu_name": "Beneficiary List Report",
+                "designation_id": "Admin",
+                "master_rank": 10,
+                "map_rank": 10,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 283,
+                "url_type": "2",
+                "link_url": "dup-aadhar-mobile-ben",
+                "icon": "fa fa-link",
+                "menu_class": null
+            }
+        ]
+    },
+    {
+        "id": 309,
+        "menu_name": "LB Beneficiary Imported  Report",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "lb60misreport",
+        "url_type": "1",
+        "child_menu": []
+    },
+    {
+        "id": 185,
+        "menu_name": "De-activated Payment Report",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "report-duplicate-stop-payment",
+        "url_type": "1",
+        "child_menu": []
+    },
+    {
+        "id": 234,
+        "menu_name": "User Manual",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "#",
+        "url_type": "1",
+        "child_menu": [
+            {
+                "menu_id": 235,
+                "menu_name": "Upload User Manual",
+                "designation_id": "Admin",
+                "master_rank": 5,
+                "map_rank": 5,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 234,
+                "url_type": "1",
+                "link_url": "upload-user-manual",
+                "icon": "fa fa-link",
+                "menu_class": null
+            }
+        ]
+    },
+    {
+        "id": 254,
+        "menu_name": "Farmer",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "#",
+        "url_type": "1",
+        "child_menu": [
+            {
+                "menu_id": 280,
+                "menu_name": "Payee Beneficiary List (Farmer)",
+                "designation_id": "Admin",
+                "master_rank": 2000,
+                "map_rank": 2000,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 254,
+                "url_type": "2",
+                "link_url": "get-payee-list",
+                "icon": "fa fa-link",
+                "menu_class": null
+            }
+        ]
+    },
+    {
+        "id": 267,
+        "menu_name": "Application Drill Down Report",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "applicationstatreport",
+        "url_type": "1",
+        "child_menu": []
+    },
+    {
+        "id": 359,
+        "menu_name": "Caste Wise Beneficiary Report",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "caste-wise-console-report",
+        "url_type": "2",
+        "child_menu": []
+    },
+    {
+        "id": 275,
+        "menu_name": "User Edit Trail",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "userManagementAdmin",
+        "url_type": "1",
+        "child_menu": []
+    },
+    {
+        "id": 341,
+        "menu_name": "Change Requirement",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "daily-routine-upload",
+        "url_type": "2",
+        "child_menu": []
+    },
+    {
+        "id": 352,
+        "menu_name": "Data Pushed to DBT",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "jb-data-pushed-to-dbt",
+        "url_type": "1",
+        "child_menu": []
+    },
+    {
+        "id": 356,
+        "menu_name": "Transaction Report",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "#",
+        "url_type": "1",
+        "child_menu": [
+            {
+                "menu_id": 357,
+                "menu_name": "Payment Report",
+                "designation_id": "Admin",
+                "master_rank": 1,
+                "map_rank": 1,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 356,
+                "url_type": "2",
+                "link_url": "report-payment-lot",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 358,
+                "menu_name": "Validation Report",
+                "designation_id": "Admin",
+                "master_rank": 2,
+                "map_rank": 2,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 356,
+                "url_type": "2",
+                "link_url": "report-validation-lot",
+                "icon": "fa fa-link",
+                "menu_class": null
+            }
+        ]
+    },
+    {
+        "id": 360,
+        "menu_name": "Payment Suspended for OAP",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "payment-suspended-oap",
+        "url_type": "2",
+        "child_menu": []
+    }
+    
+]

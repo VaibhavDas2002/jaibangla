@@ -17,8 +17,7 @@ use App\UserManual;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
-use App\Helpers\AuthChecker;
-
+use App\SchemeStepRank;
 
 class DashboardController extends Controller
 {
@@ -39,14 +38,14 @@ class DashboardController extends Controller
    */
   public function index(Request $request)
   {
-    $user_id = AuthChecker::getUserId();
+    $user_id = Auth::user()->id;
     $designation_id = Auth::user()->designation_id;
 
     $role = [];
     $duty = Configduty::where('user_id', '=', $user_id)->where('is_active', 1)->get();
     foreach ($duty as $dutyObj) {
       if ($dutyObj->is_state_login) {
-        if ($designation_id == 'Approver') {
+        if ($designation_id == 'Approver' || $designation_id == 'Delegated Approver') {
           $is_first = 0;
         } else {
           $is_first = 1;
@@ -63,8 +62,7 @@ class DashboardController extends Controller
         $newArr['is_first'] = $is_first;
         $newArr['id'] = NULL;
         array_push($role, $newArr);
-      } else {
-        if ($designation_id == 'StatusCheckerDistrict' || $designation_id == 'StatusCheckerField'  || $designation_id == 'MIS User') {
+      } else if ($designation_id == 'StatusCheckerDistrict' || $designation_id == 'StatusCheckerField'  || $designation_id == 'MIS User') {
           $newArr = array();
           $newArr['role_name'] = $designation_id;
           $newArr['scheme_id'] = $dutyObj->scheme_id;
@@ -77,14 +75,29 @@ class DashboardController extends Controller
           $newArr['is_first'] = NULL;
           $newArr['id'] = NULL;
           array_push($role, $newArr);
-        } else {
+        }
+        else if ($designation_id == 'Delegated Approver') {
+          $mapArr = MapLavel::where('scheme_id', $dutyObj->scheme_id)->where('role_name', 'Approver')->where('stack_level', $dutyObj->mapping_level)->get(['id', 'role_name', 'scheme_id', 'parent_id', 'is_final', 'stack_level', 'is_first', 'role_id'])->toArray();
+          if (count($mapArr) > 0) {
+            $newArr = array_merge($mapArr[0], ['is_state_login' => 0, 'district_code' => $dutyObj->district_code, 'mapping_level' => $dutyObj->mapping_level, 'taluka_code' => $dutyObj->taluka_code, 'urban_body_code' => $dutyObj->urban_body_code, 'is_urban' => $dutyObj->is_urban]);
+            array_push($role, $newArr);
+          }
+        } 
+        else if ($designation_id == 'Delegated Verifier') {
+          $mapArr = MapLavel::where('scheme_id', $dutyObj->scheme_id)->where('role_name', 'Verifier')->where('stack_level', $dutyObj->mapping_level)->get(['id', 'role_name', 'scheme_id', 'parent_id', 'is_final', 'stack_level', 'is_first', 'role_id'])->toArray();
+          if (count($mapArr) > 0) {
+            $newArr = array_merge($mapArr[0], ['is_state_login' => 0, 'district_code' => $dutyObj->district_code, 'mapping_level' => $dutyObj->mapping_level, 'taluka_code' => $dutyObj->taluka_code, 'urban_body_code' => $dutyObj->urban_body_code, 'is_urban' => $dutyObj->is_urban]);
+            array_push($role, $newArr);
+          }
+        } 
+        else {
           $mapArr = MapLavel::where('scheme_id', $dutyObj->scheme_id)->where('role_name', $designation_id)->where('stack_level', $dutyObj->mapping_level)->get(['id', 'role_name', 'scheme_id', 'parent_id', 'is_final', 'stack_level', 'is_first', 'role_id'])->toArray();
           if (count($mapArr) > 0) {
             $newArr = array_merge($mapArr[0], ['is_state_login' => 0, 'district_code' => $dutyObj->district_code, 'mapping_level' => $dutyObj->mapping_level, 'taluka_code' => $dutyObj->taluka_code, 'urban_body_code' => $dutyObj->urban_body_code, 'is_urban' => $dutyObj->is_urban]);
             array_push($role, $newArr);
           }
         }
-      }
+      
     }
 
     /*echo "<pre>";
@@ -99,6 +112,14 @@ class DashboardController extends Controller
     }
     $s_id = implode(',', $s_arr);
     $request->session()->put('role', $role);
+
+
+// if($user_id == 8967){
+//   dump($role);
+//   dd($request->session()->get('role'));
+// }
+
+
     if ($designation_id == 'DDO' || $designation_id == 'Corp') {
 
 
@@ -262,7 +283,7 @@ class DashboardController extends Controller
     $selectrepeatyear = $request->repeat_year;
     $selectrepeatmonth = $request->repeat_month;
     $arrscheme = array();
-    $user_id = AuthChecker::getUserId();
+    $user_id = Auth::user()->id;
     $report = DB::select(DB::raw("select id,scheme_name from m_scheme where id in (select scheme_id from duty_assignement where user_id=" . $user_id . " and is_active=1)  and is_active=1 order by scheme_name"));
     foreach ($report as $report) {
       array_push($arrscheme, $report->id);
@@ -307,7 +328,7 @@ class DashboardController extends Controller
     $scheme = $request->sbi_scheme;
     $month = $request->sbi_month;
     $year = $request->sbi_year;
-    $user_id = AuthChecker::getUserId();
+    $user_id = Auth::user()->id;
     $scm = Configduty::select('scheme_id')->distinct()->where('user_id', '=', $user_id)->where('is_active', 1)->get();
     $scheme_arr = [];
     foreach ($scm as $k) {
@@ -363,7 +384,7 @@ class DashboardController extends Controller
     $scheme = $request->ifms_scheme;
     $month = $request->ifms_month;
     $year = $request->ifms_year;
-    $user_id = AuthChecker::getUserId();
+    $user_id = Auth::user()->id;
     $scm = Configduty::select('scheme_id')->distinct()->where('user_id', '=', $user_id)->where('is_active', 1)->get();
     $scheme_arr = [];
     foreach ($scm as $k) {
@@ -411,10 +432,9 @@ class DashboardController extends Controller
 
   public function getApproverBenARPending(Request $request)
   {
-    // dd($request->all());
     $scheme = $request->ben_scheme;
 
-    $user_id = AuthChecker::getUserId();
+    $user_id = Auth::user()->id;
     $year = '"Year"';
     $month = '"Month"';
     $approve = '"Approved"';
@@ -423,14 +443,15 @@ class DashboardController extends Controller
     $pending_approved = '"Pending_Approved"';
     $gettablename = Scheme::where('id', $scheme)->value('short_code');
     $dist_code = Configduty::where('scheme_id', $scheme)->where('user_id', $user_id)->value('district_code');
+    // $next_level_role_id_Verifier= SchemeStepRank::getSchemeParentId($scheme, 2);
     $query = "";
     $query = "select m.scheme_name,TO_CHAR(pb.created_at,'Month') as " . $month . ",TO_CHAR(pb.created_at,'YYYY') as " . $year . ",
     count(*) as " . $applied . ",";
 
     if ($scheme == '17') {
-      $query .= "sum(case when next_level_role_id =107 and next_level_role_id!=9999 then 1 else 0 end ) as " . $pending_approved . ",";
+      $query .= "sum(case when next_level_role_id = 32  and next_level_role_id!=9999 then 1 else 0 end ) as " . $pending_approved . ",";
     } else {
-      $query .= "sum(case when is_verified=1 and is_approved=0 and is_rejected=0 then 1 else 0 end ) as " . $pending_approved . ",";
+      $query .= "sum(case when is_verified = 1 and is_approved=0 and is_rejected=0 then 1 else 0 end ) as " . $pending_approved . ",";
     }
 
 
@@ -482,7 +503,7 @@ class DashboardController extends Controller
     $scheme = $request->bank_scheme;
     $level = $request->bank_level;
 
-    $user_id = AuthChecker::getUserId();
+    $user_id = Auth::user()->id;
     $table_name = Scheme::where('id', $scheme)->value('short_code');
     $dist_code = Configduty::where('scheme_id', $scheme)->where('user_id', $user_id)->value('district_code');
     if ($level == 1) {
@@ -574,7 +595,7 @@ class DashboardController extends Controller
       //  Session::forget('sessionBankPending');
       //   Session::forget('sessionApprovePending');
       //  Session::forget('sessionDuplicateReject');
-      $user_id = AuthChecker::getUserId();
+      $user_id = Auth::user()->id;
       $dist_code = \App\Configduty::where('user_id', $user_id)->value('district_code');
 
 

@@ -707,7 +707,7 @@ function loadDataTable(){
      $("#submitting").hide();
      $('#search_details').hide();
         $.ajax({
-                type: 'post',
+                type: 'get',
                 dataType:'json',
                 url: '{{ url('dsreportphasePost') }}',
                 data: {

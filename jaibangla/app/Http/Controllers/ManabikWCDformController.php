@@ -52,6 +52,7 @@ class ManabikWCDformController extends Controller
     protected $base_dob_chk_date;
     public function __construct()
     {
+        return redirect("/")->with('danger', 'User Disabled');
         $this->middleware('auth');
         date_default_timezone_set('Asia/Kolkata');
         $this->state_login_next_level_role_id_arr = Config::get('constants.state_login_next_level_role_id');
@@ -220,6 +221,7 @@ class ManabikWCDformController extends Controller
      */
     public function store(Request $request)
     {
+       
         $wq = 1;
         $ds_phase = DsPhase::where('is_current', TRUE)->first();
         $user_id = AuthChecker::getUserId();

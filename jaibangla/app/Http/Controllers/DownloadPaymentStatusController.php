@@ -174,7 +174,7 @@ class DownloadPaymentStatusController extends Controller
   public function getPayeeListIndex(Request $request)
   {
     $userId = AuthChecker::getUserId();
-    $sceme_list = DB::select(DB::raw("select id,scheme_name from m_scheme where id IN (13, 5) and id in (select scheme_id from duty_assignement where user_id=" . $userId . " and is_active=1) and is_active=1 order by scheme_name"));
+    $sceme_list = DB::select(DB::raw("select id,scheme_name from m_scheme where id IN (13, 5,2,10,11) and id in (select scheme_id from duty_assignement where user_id=" . $userId . " and is_active=1) and is_active=1 order by scheme_name"));
     // dd($sceme_list);
     $base_date  = '2021-08-16';
     $c_time = Carbon::now();
@@ -189,13 +189,13 @@ class DownloadPaymentStatusController extends Controller
     $gpList = collect([]);
     if (AuthChecker::AdminChecker() || AuthChecker::HODChecker() ||  AuthChecker::DashboardChecker() ) {
       $district_visible = 1;
-    } else if (AuthChecker::ApproverChecker() || AuthChecker::VerifierChecker() || AuthChecker::StatusCheckerDistrictChecker() || AuthChecker::StatusCheckerFieldChecker()) {
+    } else if (AuthChecker::ApproverPermission() || AuthChecker::VerifierPermission() || AuthChecker::StatusCheckerDistrictChecker() || AuthChecker::StatusCheckerFieldChecker()) {
       $is_urban_visible = $block_visible = 1;
       $district_code = NULL;
       $is_urban = NULL;
       $blockCode = NULL;
       foreach ($roleArray as $roleObj) {
-        if (in_array($roleObj['scheme_id'], array(13, 5))) {
+        if (in_array($roleObj['scheme_id'], array(13, 5,2,10,11))) {
           $is_urban = $roleObj['is_urban'];
           $district_code = $roleObj['district_code'];
           if ($roleObj['is_urban'] == 1) {
@@ -263,6 +263,7 @@ class DownloadPaymentStatusController extends Controller
   public function getPayeeListGetData(Request $request)
   {
     try {
+      ini_set('memory_limit', '512M');
       $scheme_id = $request->scheme_id;
       $lot_year = $request->lot_year;
       $lot_month = $request->lot_month;
@@ -274,7 +275,7 @@ class DownloadPaymentStatusController extends Controller
         ->addIndexColumn()
         ->make(true);
     } catch (Exception $e) {
-      // dd($e);
+      //  dd($e);
       return redirect("/")->with('success', 'Somthing went wrong.. ');
     }
   }
@@ -283,7 +284,7 @@ class DownloadPaymentStatusController extends Controller
   {
     // dd($request->all());
     try {
-
+      ini_set('memory_limit', '512M');
       $scheme_id = $request->scheme_id;
       $lot_year = $request->lot_year;
       $lot_month = $request->lot_month;
@@ -346,7 +347,7 @@ class DownloadPaymentStatusController extends Controller
         });
       })->download('xlsx');
     } catch (Exception $e) {
-      // dd($e);
+      //  dd($e);
       return redirect("/")->with('success', 'Somthing went wrong.... ');
     }
   }
@@ -399,7 +400,7 @@ class DownloadPaymentStatusController extends Controller
       $query .= " and tld.local_body_code=" . $block . " ";
     }
     $query .= ($is_excel == 0) ? "order by md.district_name " : "";
-    //  dd($query);
+      // dd($query);
     $data = DB::connection('pgsql_paywrite')->select($query);
     return $data;
   }

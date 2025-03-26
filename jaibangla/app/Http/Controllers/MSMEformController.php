@@ -46,6 +46,7 @@ class MSMEformController extends Controller
 
     public function __construct()
     {
+        return redirect("/")->with('danger', 'User Disabled');
         $this->middleware('auth');
     }
     /**
@@ -114,6 +115,7 @@ class MSMEformController extends Controller
      */
     public function store(Request $request)
     {
+        return redirect("/")->with('danger', 'User Disabled');
         // dd($request->all());
         $level = $request->session()->get('level');
         $distCode = $request->session()->get('distCode');

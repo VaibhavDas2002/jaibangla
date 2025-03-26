@@ -63,7 +63,7 @@ class CasteWiseReportController extends Controller
         $gpList = collect([]);
         if (AuthChecker::AdminChecker() || AuthChecker::HODChecker() || AuthChecker::HODChecker() ||  AuthChecker::DashboardChecker() || AuthChecker::MisStateChecker() || AuthChecker::DDOChecker()) {
             $district_visible = $is_urban_visible = $block_visible = 1;
-        } else if (AuthChecker::ApproverChecker() || AuthChecker::VerifierChecker()) {
+        } else if (AuthChecker::ApproverPermission() || AuthChecker::VerifierPermission()) {
             $district_code = NULL;
             $is_urban = NULL;
             $blockCode = NULL;
@@ -135,7 +135,7 @@ class CasteWiseReportController extends Controller
         );
     }
     public function CasteWiseGetData(Request $request){
-        //  dd($request->all());
+        //   dd($request->all());
         $scheme_id = $request->scheme_id;
         $district = $request->district;
         $urban_code = $request->urban_code;
@@ -449,7 +449,7 @@ class CasteWiseReportController extends Controller
         // echo '<pre>';print_r($schemes);die();
         if (AuthChecker::AdminChecker() || AuthChecker::HODChecker() || AuthChecker::HOPChecker() || AuthChecker::MisStateChecker() ||  AuthChecker::DashboardChecker()) {
             $district_visible = $is_urban_visible = $block_visible = 1;
-        } else if (AuthChecker::ApproverChecker() || AuthChecker::VerifierChecker()) {
+        } else if (AuthChecker::ApproverPermission() || AuthChecker::VerifierPermission()) {
             // echo 1;die();
             $district_code = NULL;
             $is_urban = NULL;
@@ -527,7 +527,7 @@ class CasteWiseReportController extends Controller
             $district_code = NULL;
             $is_urban = NULL;
             $blockCode = NULL;
-        } else if (AuthChecker::ApproverChecker() || AuthChecker::VerifierChecker()) {
+        } else if (AuthChecker::ApproverPermission() || AuthChecker::VerifierPermission()) {
             $district_code = NULL;
             $is_urban = NULL;
             $blockCode = NULL;
@@ -589,7 +589,7 @@ class CasteWiseReportController extends Controller
             $district_code = NULL;
             $is_urban = NULL;
             $blockCode = NULL;
-        } else if (AuthChecker::ApproverChecker() || AuthChecker::VerifierChecker()) {
+        } else if (AuthChecker::ApproverPermission() || AuthChecker::VerifierPermission()) {
             $district_code = NULL;
             $is_urban = NULL;
             $blockCode = NULL;

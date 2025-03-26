@@ -17,11 +17,13 @@
                                     <option value="">--Select--</option>
                                     @foreach ($return_arr as  $arr)
                                     @if($arr['active']==1)
-                                     <option value="{{$arr['verification_url']}}?pr1={{$arr['pr1_code']}}&id={{$arr['id']}}">{{$arr['display_name']}}</option>
+                                     <option value="{{$arr['verification_url']}}?pr1={{$arr['pr1_code']}}">{{$arr['display_name']}}</option>
                                      @else
                                       <option value="#" disabled >{{$arr['display_name']}}</option>
                                      @endif   
-                                    @endforeach                                                    
+                                    @endforeach
+                                   
+                                                          
                                 </select>
                                 <span id="error_construction" class="text-danger"></span>
                             </div>
@@ -32,7 +34,10 @@
                             {
                                 window.location=src;
                             }
+                            
                         </script>
+
+                        
                     </form>
                 </div>
             </div>

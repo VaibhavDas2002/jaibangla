@@ -639,7 +639,7 @@ function loadDataTable(){
                    var slno=1;
                    var fotter_1=0;var fotter_2=0;var fotter_3=0;var fotter_4=0;var fotter_5=0;
                    var fotter_6=0;var fotter_7=0;var fotter_8=0;var fotter_9=0;var fotter_10=0;
-                   var fotter_11=0;
+                   var fotter_11=0;var fotter_12=0;
                    // var total1=0;var total2=0;var total3=0;var total4=0;var total5=0;
                    // var total6=0;var total7=0;var total8=0;var total9=0;var total10=0;
                    if (data.scheme_id == 10) {
@@ -649,7 +649,7 @@ function loadDataTable(){
                     tableHead.append("<tr><th>Sl No.</th><th id='location_id'></th><th>Age Below 20 years</th><th>Age Between 20-29 years</th><th>Age Between 30-39 years</th><th>Age Between 40-49 years</th><th>Age Between 50-59 years</th><th>Age Between 60-69 years</th><th>Age Between 70-79 years</th><th>Age Between 80-89 years</th><th>Age Between 90-99 years</th><th>Age Above 100 years</th></tr>");
                    }
                    else if(data.scheme_id == 2) {
-                    tableHead.append("<tr><th>Sl No.</th><th id='location_id'></th><th>Age Below 10 years</th><th>Age Between 10-19 years</th><th>Age Between 20-29 years</th><th>Age Between 30-39 years</th><th>Age Between 40-49 years</th><th>Age Between 50-59 years</th><th>Age Between 60-69 years</th><th>Age Between 70-79 years</th><th>Age Between 80-89 years</th><th>Age Between 90-99 years</th><th>Age Above 100 years</th></tr>");
+                    tableHead.append("<tr><th>Sl No.</th><th id='location_id'></th><th>Age Below 10 years</th><th>Age Upto 18 years</th><th>Age Between 10-19 years</th><th>Age Between 20-29 years</th><th>Age Between 30-39 years</th><th>Age Between 40-49 years</th><th>Age Between 50-59 years</th><th>Age Between 60-69 years</th><th>Age Between 70-79 years</th><th>Age Between 80-89 years</th><th>Age Between 90-99 years</th><th>Age Above 100 years</th></tr>");
                    }
                    $.each(data.row_data, function(i, item) {
                     if (data.scheme_id == 10) {
@@ -708,6 +708,7 @@ function loadDataTable(){
                       var total9 = isNaN(parseInt(item.age_80_90)) ? 0 : parseInt(item.age_80_90);
                       var total10 = isNaN(parseInt(item.age_90_100)) ? 0 : parseInt(item.age_90_100);
                       var total11 = isNaN(parseInt(item.age_above_100)) ? 0 : parseInt(item.age_above_100);
+                      var total12 = isNaN(parseInt(item.age_upto_18)) ? 0 : parseInt(item.age_upto_18);
 
                       fotter_1=fotter_1+total1;
                       fotter_2=fotter_2+total2;
@@ -720,9 +721,10 @@ function loadDataTable(){
                       fotter_9=fotter_9+total9;
                       fotter_10=fotter_10+total10;
                       fotter_11=fotter_11+total11;
+                      fotter_12=fotter_12+total12;
 
                       
-                      table.append("<tr><td>"+(i+1)+"</td><td>"+item.location_name+"</td><td>"+total1+"</td><td>"+total2+"</td><td>"+total3+"</td><td>"+total4+"</td><td>"+total5+"</td><td>"+total6+"</td><td>"+total7+"</td><td>"+total8+"</td><td>"+total9+"</td><td>"+total10+"</td><td>"+total11+"</td></tr>");
+                      table.append("<tr><td>"+(i+1)+"</td><td>"+item.location_name+"</td><td>"+total1+"</td><td>"+total12+"</td><td>"+total2+"</td><td>"+total3+"</td><td>"+total4+"</td><td>"+total5+"</td><td>"+total6+"</td><td>"+total7+"</td><td>"+total8+"</td><td>"+total9+"</td><td>"+total10+"</td><td>"+total11+"</td></tr>");
                     }
 
                   });
@@ -735,7 +737,7 @@ function loadDataTable(){
                     $("#example > tfoot #fotter_id").html("<th></th><th>Total</th><th>"+fotter_1+"</th><th>"+fotter_2+"</th><th>"+fotter_3+"</th><th>"+fotter_4+"</th><th>"+fotter_5+"</th><th>"+fotter_6+"</th><th>"+fotter_7+"</th><th>"+fotter_8+"</th><th>"+fotter_9+"</th><th>"+fotter_10+"</th>");
                    }
                    else if(data.scheme_id == 2) {
-                    $("#example > tfoot #fotter_id").html("<th></th><th>Total</th><th>"+fotter_1+"</th><th>"+fotter_2+"</th><th>"+fotter_3+"</th><th>"+fotter_4+"</th><th>"+fotter_5+"</th><th>"+fotter_6+"</th><th>"+fotter_7+"</th><th>"+fotter_8+"</th><th>"+fotter_9+"</th><th>"+fotter_10+"</th><th>"+fotter_11+"</th>");
+                    $("#example > tfoot #fotter_id").html("<th></th><th>Total</th><th>"+fotter_1+"</th><th>"+fotter_12+"</th><th>"+fotter_2+"</th><th>"+fotter_3+"</th><th>"+fotter_4+"</th><th>"+fotter_5+"</th><th>"+fotter_6+"</th><th>"+fotter_7+"</th><th>"+fotter_8+"</th><th>"+fotter_9+"</th><th>"+fotter_10+"</th><th>"+fotter_11+"</th>");
                    }
                   //$('#example tbody').empty();
                   $("#location_id").text(data.column);

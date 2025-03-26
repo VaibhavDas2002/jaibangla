@@ -39,18 +39,25 @@ class Workflow extends Model
     public static function getParentId($scheme_id, $designation_id)
     {
         $workflow = self::where('scheme_id', $scheme_id)
-            ->where('role_name', $designation_id)
+            ->where('designation_id', $designation_id)
             ->first();
-
+        
         return $workflow && $workflow->schemeStepRank
             ? $workflow->schemeStepRank->parent_id
             : null;
     }
 
+    /**
+     * Get the ID of the related m_scheme_step_rank record.
+     *
+     * @param int $scheme_id
+     * @param int $designation_id
+     * @return int|null
+     */
     public static function getID($scheme_id, $designation_id)
     {
         $workflow = self::where('scheme_id', $scheme_id)
-            ->where('role_name', $designation_id)
+            ->where('designation_id', $designation_id)
             ->first();
 
         return $workflow && $workflow->schemeStepRank

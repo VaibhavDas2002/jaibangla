@@ -60,7 +60,7 @@
     <!-- Content Header (Page header) -->
     <section class="content-header">
         <h1>
-            Block Sub Division Wise MIS Report
+           Beneficiary Status MIS Report
         </h1>
         <ol class="breadcrumb">
             <i class="fa fa-clock-o"></i> Date : <span style="font-size: 12px; font-weight: bold;"><span
@@ -141,7 +141,7 @@
                                         </button>
                                     </div>
 
-                                    <div class="col-md-12" style="text-align: left; margin-top: 20px;">
+                                    <div class="col-md-12" style="text-align: left; margin-top: 20px; display: none;" >
                                         <form action="{{route('blkUlb_mis_report_excel')}}" method="post">
                                             {{csrf_field()}}
                                             <input type="hidden" name="excel_scheme_id" id="excel_scheme_id" />
@@ -173,42 +173,42 @@
                                             <tr>
                                                 <th rowspan="2">Block/Sub-Division</th>
                                                 <!-- This spans both header rows -->
-                                                <th colspan="3">Incomplete Details</th>
+                                                <th colspan="3" style="background-color: #cccccc;">Incomplete Details</th>
                                                 <th colspan="3">No Aadhar Number</th>
-                                                <th colspan="3">Duplicate Aadhar Number</th>
+                                                <th colspan="3" style="background-color: #cccccc;">Duplicate Aadhar Number</th>
                                                 <th colspan="3">No Mobile Number</th>
-                                                <th colspan="3">Duplicate Mobile Number</th>
+                                                <th colspan="3" style="background-color: #cccccc;">Duplicate Mobile Number</th>
                                                 <th colspan="3">Duplicate Bank Account Number</th>
-                                                <th colspan="3">Transaction Failure</th>
+                                                <th colspan="3" style="background-color: #cccccc;">Transaction Failure</th>
                                                 <th colspan="3">Name Validation Failure</th>
-                                                <th colspan="3">Account Validation Failure</th>
+                                                <th colspan="3" style="background-color: #cccccc;">Account Validation Failure</th>
                                             </tr>
                                             <!-- Secondary header row -->
                                             <tr>
                                                 <th>Yet to Take Action</th>
                                                 <th>Updated form Verifier</th>
                                                 <th>Approved from Approver</th>
+                                                <th style="background-color: #cccccc;">Yet to Take Action</th>
+                                                <th style="background-color: #cccccc;">Updated form Verifier</th>
+                                                <th style="background-color: #cccccc;">Approved from Approver</th>
                                                 <th>Yet to Take Action</th>
                                                 <th>Updated form Verifier</th>
                                                 <th>Approved from Approver</th>
+                                                <th style="background-color: #cccccc;">Yet to Take Action</th>
+                                                <th style="background-color: #cccccc;">Updated form Verifier</th>
+                                                <th style="background-color: #cccccc;">Approved from Approver</th>
                                                 <th>Yet to Take Action</th>
                                                 <th>Updated form Verifier</th>
                                                 <th>Approved from Approver</th>
+                                                <th style="background-color: #cccccc;" >Yet to Take Action</th>
+                                                <th style="background-color: #cccccc;">Updated form Verifier</th>
+                                                <th style="background-color: #cccccc;">Approved from Approver</th>
                                                 <th>Yet to Take Action</th>
                                                 <th>Updated form Verifier</th>
                                                 <th>Approved from Approver</th>
-                                                <th>Yet to Take Action</th>
-                                                <th>Updated form Verifier</th>
-                                                <th>Approved from Approver</th>
-                                                <th>Yet to Take Action</th>
-                                                <th>Updated form Verifier</th>
-                                                <th>Approved from Approver</th>
-                                                <th>Yet to Take Action</th>
-                                                <th>Updated form Verifier</th>
-                                                <th>Approved from Approver</th>
-                                                <th>Yet to Take Action</th>
-                                                <th>Updated form Verifier</th>
-                                                <th>Approved from Approver</th>
+                                                <th style="background-color: #cccccc;">Yet to Take Action</th>
+                                                <th style="background-color: #cccccc;">Updated form Verifier</th>
+                                                <th style="background-color: #cccccc;">Approved from Approver</th>
                                                 <th>Yet to Take Action</th>
                                                 <th>Updated form Verifier</th>
                                                 <th>Approved from Approver</th>

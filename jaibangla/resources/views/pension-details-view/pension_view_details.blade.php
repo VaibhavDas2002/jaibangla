@@ -167,11 +167,6 @@
                                 <h3 style="text-align: center; color:Blue;">Beneficiary ID: {{$row->id}}</h3>
                                 <h4 style="text-align: center; color:green;">Scheme Name: {{$scheme_name}}</h4>
                             </div>
-                            @if ($scheme_id == 17 || $scheme_id == 18)
-                                <div class="col-md-6">
-                                    <h3 style="text-align: center;">Phase:{{$row->app_phase}}</h3>
-                                </div>
-                            @endif
                         </div>
 
                         @include('pension-details-view.personal_details')

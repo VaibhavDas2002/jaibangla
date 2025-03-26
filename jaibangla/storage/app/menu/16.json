@@ -1,0 +1,200 @@
+[
+    {
+        "id": 177,
+        "menu_name": "Beneficiary Status",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "#",
+        "url_type": "1",
+        "child_menu": [
+            {
+                "menu_id": 178,
+                "menu_name": "Track & Payment Status",
+                "designation_id": "Dashboard",
+                "master_rank": 4,
+                "map_rank": 4,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 177,
+                "url_type": "1",
+                "link_url": "track-application-status",
+                "icon": "fa fa-link",
+                "menu_class": null
+            }
+        ]
+    },
+    {
+        "id": 238,
+        "menu_name": "Probable Duplicate List",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "duplicate-approval",
+        "url_type": "1",
+        "child_menu": []
+    },
+    {
+        "id": 249,
+        "menu_name": "DS MIS Report",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "dsreportphaseselect",
+        "url_type": "1",
+        "child_menu": []
+    },
+    {
+        "id": 327,
+        "menu_name": "Sarasori Mukhyamantri",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "#",
+        "url_type": "1",
+        "child_menu": [
+            {
+                "menu_id": 332,
+                "menu_name": "Mis Report (CMO Grievance)",
+                "designation_id": "Dashboard",
+                "master_rank": 327,
+                "map_rank": 3,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 327,
+                "url_type": "2",
+                "link_url": "sm-cmoMisReport",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 333,
+                "menu_name": "CMO Grievance Approved List",
+                "designation_id": "Dashboard",
+                "master_rank": 330,
+                "map_rank": 5,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 327,
+                "url_type": "2",
+                "link_url": "sm-cmoMisReportlist",
+                "icon": "fa fa-link",
+                "menu_class": null
+            }
+        ]
+    },
+    {
+        "id": 274,
+        "menu_name": "Age Cohort Reports",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "#",
+        "url_type": "2",
+        "child_menu": [
+            {
+                "menu_id": 278,
+                "menu_name": "Age Cohort Report",
+                "designation_id": "Dashboard",
+                "master_rank": 2,
+                "map_rank": 2,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 274,
+                "url_type": "2",
+                "link_url": "different-age-cohort-report",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 276,
+                "menu_name": "Male- Female  with Age Group",
+                "designation_id": "Dashboard",
+                "master_rank": 1051,
+                "map_rank": 1051,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 274,
+                "url_type": "1",
+                "link_url": "ageCohortReport",
+                "icon": "fa fa-link",
+                "menu_class": "ageCohortReport"
+            }
+        ]
+    },
+    {
+        "id": 283,
+        "menu_name": "Aadhar & Mobile De-duplication",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "#",
+        "url_type": "1",
+        "child_menu": [
+            {
+                "menu_id": 284,
+                "menu_name": "Mis Report",
+                "designation_id": "Dashboard",
+                "master_rank": 5,
+                "map_rank": 5,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 283,
+                "url_type": "2",
+                "link_url": "duplicateAadharMobileMISReport",
+                "icon": "fa fa-link",
+                "menu_class": null
+            }
+        ]
+    },
+    {
+        "id": 309,
+        "menu_name": "LB Beneficiary Imported  Report",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "lb60misreport",
+        "url_type": "1",
+        "child_menu": []
+    },
+    {
+        "id": 267,
+        "menu_name": "Application Drill Down Report",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "applicationstatreport",
+        "url_type": "1",
+        "child_menu": []
+    },
+    {
+        "id": 356,
+        "menu_name": "Transaction Report",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "#",
+        "url_type": "1",
+        "child_menu": [
+            {
+                "menu_id": 357,
+                "menu_name": "Payment Report",
+                "designation_id": "Dashboard",
+                "master_rank": 1,
+                "map_rank": 1,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 356,
+                "url_type": "2",
+                "link_url": "report-payment-lot",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 358,
+                "menu_name": "Validation Report",
+                "designation_id": "Dashboard",
+                "master_rank": 2,
+                "map_rank": 2,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 356,
+                "url_type": "2",
+                "link_url": "report-validation-lot",
+                "icon": "fa fa-link",
+                "menu_class": null
+            }
+        ]
+    }
+]

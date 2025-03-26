@@ -45,6 +45,7 @@ class BanfailurelongpenController extends Controller
   }
   public function shemeSelection(Request $request)
   {
+    return redirect("/")->with('danger', 'Temporarily Suspended');
     try {
       $designation_id = Auth::user()->designation_id;
       $user_id = AuthChecker::getUserId();
@@ -68,6 +69,8 @@ class BanfailurelongpenController extends Controller
   }
   public function list(Request $request)
   {
+    return redirect("/")->with('danger', 'Temporarily Suspended');
+
     $this->middleware('auth');
     $designation_id = Auth::user()->designation_id;
     //dd($designation_id);
@@ -298,6 +301,8 @@ class BanfailurelongpenController extends Controller
   }
   public function View(Request $request)
   {
+    return redirect("/")->with('danger', 'Temporarily Suspended');
+
     //dd('ok');
     try {
       $this->middleware('auth');
@@ -447,6 +452,8 @@ class BanfailurelongpenController extends Controller
 
   public function bulkApprove(Request $request)
   {
+    return redirect("/")->with('danger', 'Temporarily Suspended');
+
     try {
 
       $this->middleware('auth');
@@ -544,6 +551,8 @@ class BanfailurelongpenController extends Controller
 
   public function pdf(Request $request)
   {
+    return redirect("/")->with('danger', 'Temporarily Suspended');
+
     try {
       $this->middleware('auth');
 

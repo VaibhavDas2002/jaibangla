@@ -23,6 +23,8 @@ use App\Helpers\AuthChecker;
 
 class DuareSarkarApplicationphaseController extends Controller
 {
+  protected $ds_base_date_3;
+  protected $selected_phase;
   public function __construct()
   {
     $this->middleware('auth');
@@ -35,7 +37,7 @@ class DuareSarkarApplicationphaseController extends Controller
 
   function dsReportphaseCommon(Request $request)
   {
-    $phase_list = DsPhase::whereIn('phase_code', [8, 9, 10])->get();
+    $phase_list = DsPhase::whereIn('phase_code', [11])->get();
     // dd($phase_list->toArray());
     return view(
       'ds-report.dsReportCommon',
@@ -60,7 +62,8 @@ class DuareSarkarApplicationphaseController extends Controller
     }
 
     $is_active = 0;
-    $roleArray = Configduty::where('user_id', $user_id)->where('is_active', 1)->get()->toArray();;
+    $user_id = AuthChecker::getUserId();
+    $roleArray = Configduty::where('user_id', $user_id)->where('is_active', 1)->get();
     foreach ($roleArray as $roleObj) {
       if ($roleObj['scheme_id'] == $scheme_id) {
         $is_active = 1;
@@ -89,6 +92,7 @@ class DuareSarkarApplicationphaseController extends Controller
   }
   function dsReport(Request $request)
   {
+    // dd($request->all());
 
 
 
@@ -107,7 +111,7 @@ class DuareSarkarApplicationphaseController extends Controller
     }
 
     $userId = AuthChecker::getUserId();
-    $sceme_list = DB::select(DB::raw("select id,scheme_name from m_scheme where id IN (1,2,3,11,10) and id in (select scheme_id from duty_assignement where user_id=" . $userId . " and is_active=1) and is_active=1 order by scheme_name"));
+    $sceme_list = DB::select(DB::raw("select id,scheme_name from m_scheme where id IN (1,2,3,11,10,17) and id in (select scheme_id from duty_assignement where user_id=" . $userId . " and is_active=1) and is_active=1 order by scheme_name"));
 
 
     // @foreach()
@@ -119,16 +123,19 @@ class DuareSarkarApplicationphaseController extends Controller
     $c_time = Carbon::now();
     $c_date = $c_time->format("Y-m-d");
     $is_active = 0;
-    $roleArray = Configduty::where('user_id', $user_id)->where('is_active', 1)->get()->toArray();;
+    $user_id = AuthChecker::getUserId();
+    $roleArray = Configduty::where('user_id', $user_id)->where('is_active', 1)->get();
     $designation_id = Auth::user()->designation_id;
     $district_visible = $is_urban_visible = $block_visible = 1;
     $municipality_visible = 0;
     $gp_ward_visible = 0;
     $muncList = collect([]);
     $gpList = collect([]);
+    // dd('ok');
     if (AuthChecker::AdminChecker() || AuthChecker::HODChecker() || AuthChecker::DashboardChecker()) {
       $district_visible = $is_urban_visible = $block_visible = 1;
-    } else if (AuthChecker::ApproverChecker() || AuthChecker::StatusCheckerDistrictChecker() || AuthChecker::VerifierChecker()) {
+    } else if (AuthChecker::ApproverPermission() || AuthChecker::StatusCheckerDistrictChecker() || AuthChecker::ReportCheckerCommon()) {
+      // dd('ok');
       $district_code = NULL;
       $is_urban = NULL;
       $blockCode = NULL;
@@ -200,7 +207,7 @@ class DuareSarkarApplicationphaseController extends Controller
 
   public function dsgetData(Request $request)
   {
-    //dd($request->all());
+    // dd($request->all());
     $scheme_id = $request->scheme_id;
     $ds_phase = $request->ds_phase;
     if (empty($ds_phase)) {
@@ -294,6 +301,7 @@ class DuareSarkarApplicationphaseController extends Controller
 
 
       if (!empty($district)) {
+        // dd('ok');
 
         //dd($urban_code);
         if ($urban_code == 1) {
@@ -301,26 +309,26 @@ class DuareSarkarApplicationphaseController extends Controller
           $mu_msg = 'Note: Municipality Report Base on Applicant Address';
           $column = "Municipality";
           $heading_msg = 'Municipality Wise ' . $user_msg . ' of the District ' . $district_row->district_name;
-          $data = $this->getMuncWise($ds_phase, $district, $block, $muncid, NULL, NULL, $to_date, $scheme_row->short_code, $base_date);
+          $data = $this->getMuncWise($ds_phase, $district, $block, $muncid, NULL, NULL, $to_date, $scheme_row->id, $base_date);
           // 
         } else if ($urban_code == 2) {
           // dd(777);
           $heading_msg = 'Block Wise ' . $user_msg . ' of the District ' . $district_row->district_name;
           $column = "Block";
-          $data = $this->getBlockWise($ds_phase, $district, $block, NULL, NULL, $to_date, $scheme_row->short_code, $base_date);
+          $data = $this->getBlockWise($ds_phase, $district, $block, NULL, NULL, $to_date, $scheme_row->id, $base_date);
         } else {
-          //dd(333);
+          // dd(333);
           // $column = "District";
           // $heading_msg = 'District Wise ' . $user_msg;
           // $data = $this->getDistrictWise($phase_code, $district, NULL, NULL, NULL, $from_date, $to_date, $scheme_row->short_code);
 
 
-
+          // dd($district);
           $mu_msg = 'Note: Municipality Report Base on Applicant Address';
           $heading_msg = 'Block and Municipality Wise ' . $user_msg . ' of the District ' . $district_row->district_name;
           $column = "Block and Municipality";
-          $data1 = $this->getBlockWise($ds_phase, $district, $block, NULL, NULL, $to_date, $scheme_row->short_code, $base_date);
-          $data2 = $this->getMuncWise($ds_phase, $district, $block, $muncid, NULL, NULL, $to_date, $scheme_row->short_code, $base_date);
+          $data1 = $this->getBlockWise($ds_phase, $district, $block, NULL, NULL, $to_date, $scheme_row->id, $base_date);
+          $data2 = $this->getMuncWise($ds_phase, $district, $block, $muncid, NULL, NULL, $to_date, $scheme_row->id, $base_date);
           $data = array_merge($data1, $data2);
 
 
@@ -345,7 +353,7 @@ class DuareSarkarApplicationphaseController extends Controller
         //$mu_msg='Debjit';
         $column = "District";
         $heading_msg = 'District Wise ' . $user_msg;
-        $data = $this->getDistrictWise($ds_phase, NULL, NULL, NULL, NULL, $to_date, $scheme_row->short_code, $base_date);
+        $data = $this->getDistrictWise($ds_phase, NULL, NULL, NULL, NULL, $to_date, $scheme_row->id, $base_date);
 
         if (!empty($scheme_id)) {
           $heading_msg = $heading_msg . " for the Scheme  " . $scheme_row->scheme_name;
@@ -404,40 +412,15 @@ class DuareSarkarApplicationphaseController extends Controller
 
 
 
-  public function getMuncWise($ds_phase = NULL, $district_code = NULL, $ulb_code = NULL, $muncid = NULL, $block_ulb_code = NULL, $gp_ward_code = NULL, $todate = NULL, $scheme, $base_date)
+  public function getMuncWise($phase_code = NULL, $district_code = NULL, $ulb_code = NULL, $muncid = NULL, $block_ulb_code = NULL, $gp_ward_code = NULL, $todate = NULL, $scheme_id, $base_date)
   {
-    //dd(111);
-    //dd($ulb_code);
-    //$phase_arr = DsPhase::where('phase_code', $ds_phase)->first();
-    //$base_date  = $phase_arr->base_date;
-    if ($scheme == 'oap_wcd' && ($ds_phase == 8 || $ds_phase == 9 || $ds_phase == 10)) {
-      if ($ds_phase == 8) {
-        $whereCon = "where (ds_phase=" . $ds_phase . " or (sm_ds_mark_vii=1 and sm_ds_mark=1)) and A.created_by_dist_code=" . $district_code;
-
-      }
-      if ($ds_phase == 9) {
-        $whereCon = "where (ds_phase=" . $ds_phase . " or (sm_ds_mark_viii=1 and sm_ds_mark=1)) and A.created_by_dist_code=" . $district_code;
-      }
-      if ($ds_phase == 10) {
-        $whereCon = "where (ds_phase=" . $ds_phase . " or (sm_ds_mark_ix=1 and sm_ds_mark=1)) and A.created_by_dist_code=" . $district_code;
-      }
-    } else
-      $whereCon = "where ds_phase=" . $ds_phase . " and A.created_by_dist_code=" . $district_code;
-    if ($scheme == 'oap_wcd' && ($ds_phase == 8 || $ds_phase == 9 || $ds_phase == 10)) {
-    } else {
-      $whereCon .= " and date(A.created_at)>='" . $base_date . "'";
-    }
-    //$whereCon .= " and A.block_ulb_code=" . $ulb_code;
+    
     $whereMain = "where  district_code=" . $district_code;
-    // $whereMain .= " and urban_body_code=" . $ulb_code;
-    // if (!empty($fromdate)) {
-    //   $whereCon .= " and date(A.created_at)>='" . $fromdate . "'";
-    // }
+    $whereCon = " and dist_code=" . $district_code;
     if (!empty($todate)) {
-      if ($scheme == 'oap_wcd' && ($ds_phase == 8 || $ds_phase == 9)) {
-      } else {
+     
         $whereCon .= " and date(A.created_at)<='" . $todate . "'";
-      }
+      
 
     }
 
@@ -445,7 +428,7 @@ class DuareSarkarApplicationphaseController extends Controller
 
       // $whereCo_sub = " and  urban_body_code=" . $muncid;
       $whereCo_sub = " and  urban_body_code=" . $ulb_code;
-      if (Authchecker::VerifierChecker()) {
+      if (Authchecker::ReportCheckerCommon()) {
         if (!empty($ulb_code) && empty($muncid)) {
           $whereCo_sub = " and  sub_district_code=" . $ulb_code;
         }
@@ -456,8 +439,7 @@ class DuareSarkarApplicationphaseController extends Controller
     } else {
       $whereCo_sub = "";
     }
-    if ($scheme == 'oap_wcd' && ($ds_phase == 8 || $ds_phase == 9 || $ds_phase == 10)) {
-      $query = "select main.location_id,main.location_name||'-Municipality' as location_name ,
+    $query = "select main.location_id,main.location_name,
       COALESCE(draft.total_applicant,0) as total_applicant,
       COALESCE(draft.application_process,0) as application_process,
       COALESCE(draft.verified,0) as verified,
@@ -465,96 +447,46 @@ class DuareSarkarApplicationphaseController extends Controller
       COALESCE(draft.rejected,0) as rejected
         from
         (
-        select urban_body_code as location_id,urban_body_name as location_name
+         select urban_body_code as location_id,urban_body_name as location_name
         from public.m_urban_body  " . $whereMain . " " . $whereCo_sub . "
         ) as main LEFT JOIN
         (
-          select count(1)  as total_applicant,
-          count(1) filter(where  ( (is_rejected=0 or is_rejected IS NULL) and  next_level_role_id is NULL)) as application_process,
-          count(1) filter(where  ( (is_rejected=0 or is_rejected IS NULL) and  is_verified=1 and next_level_role_id IS NOT NULL
-          and (is_approved=0 or is_approved IS NULL))) as verified,
-          count(1) filter(where next_level_role_id=0) as approved,
-          count(1) filter(where is_rejected=1 and next_level_role_id<0) as rejected,
-         block_ulb_code
-        from " . $scheme . ".beneficiaries as A 
-        " . $whereCon . " 
-        group by block_ulb_code
-        ) as draft ON main.location_id=draft.block_ulb_code  order by main.location_name";
-    } else {
-      $query = "select main.location_id,main.location_name||'-Municipality' as location_name ,
-    COALESCE(draft.total_applicant,0) as total_applicant,
-    COALESCE(draft.application_process,0) as application_process,
-    COALESCE(draft.verified,0) as verified,
-    COALESCE(draft.approved,0) as approved,
-    COALESCE(draft.rejected,0) as rejected
-      from
-      (
-      select urban_body_code as location_id,urban_body_name as location_name
-      from public.m_urban_body  " . $whereMain . " " . $whereCo_sub . "
-      ) as main LEFT JOIN
-      (
-        select count(1) filter(where ds_registration_no IS NOT NULL) as total_applicant,
-        count(1) filter(where  ds_registration_no IS NOT NULL and 
-        ( (is_rejected=0 or is_rejected IS NULL) and  next_level_role_id is NULL)) as application_process,
-        count(1) filter(where ds_registration_no IS NOT NULL and  ( (is_rejected=0 or is_rejected IS NULL) and  is_verified=1 and next_level_role_id IS NOT NULL
-        and (is_approved=0 or is_approved IS NULL))) as verified,
-        count(1) filter(where ds_registration_no IS NOT NULL and next_level_role_id=0) as approved,
-        count(1) filter(where ds_registration_no IS NOT NULL and is_rejected=1 and next_level_role_id<0) as rejected,
-       block_ulb_code
-      from " . $scheme . ".beneficiaries as A 
-      " . $whereCon . " 
-      group by block_ulb_code
-      ) as draft ON main.location_id=draft.block_ulb_code  order by main.location_name";
-    }
+          select  count(1) as total_applicant,
+          count(1) filter(where( (is_rejected=0 or is_rejected IS NULL) and (is_verified=0 or is_verified IS NULL) 
+          and  (is_approved=0 or is_approved IS NULL))) as application_process,
+           count(1) filter(where( (is_rejected=0 or is_rejected IS NULL) and (is_verified=1) 
+          and  (is_approved=0 or is_approved IS NULL))) as verified,
+           count(1) filter(where( (is_rejected=0 or is_rejected IS NULL) and (is_verified=1) 
+          and  (is_approved=1))) as approved,
+          count(1) filter(where  is_rejected=1 and next_level_role_id<0) as rejected,
+          block_ulb_code
+        from pension.beneficiaries as A  where  A.scheme_id=".$scheme_id."  ".$whereCon." 
+        and lb_application_id IS NULL and (ds_phase=".$phase_code."  or cur_mark_ds_phase=".$phase_code.")
+         group by A.block_ulb_code
+        ) as draft ON main.location_id=draft.block_ulb_code order by main.location_name";
 
-    //  print $query; die;
-    $result = DB::connection('pgsql_mis')->select($query);
+    $result = DB::select($query);
     return $result;
   }
-  public function getBlockWise($ds_phase = NULL, $district_code = NULL, $ulb_code = NULL, $block_ulb_code = NULL, $gp_ward_code = NULL, $todate = NULL, $scheme, $base_date)
+  public function getBlockWise($phase_code = NULL, $district_code = NULL, $ulb_code = NULL, $block_ulb_code = NULL, $gp_ward_code = NULL, $todate = NULL, $scheme_id, $base_date)
   {
-    // dd($ulb_code);
-    //$phase_arr = DsPhase::where('phase_code', $ds_phase)->first();
-    //$base_date  = $phase_arr->base_date;
-    if ($scheme == 'oap_wcd' && ($ds_phase == 8 || $ds_phase == 9 || $ds_phase == 10)) {
-      if ($ds_phase == 8) {
-        $whereCon = "where (ds_phase=" . $ds_phase . " or (sm_ds_mark_vii=1 and sm_ds_mark=1)) and A.created_by_dist_code=" . $district_code;
-      }
-      if ($ds_phase == 9) {
-        $whereCon = "where (ds_phase=" . $ds_phase . " or (sm_ds_mark_viii=1 and sm_ds_mark=1)) and A.created_by_dist_code=" . $district_code;
-      }
-      if ($ds_phase == 10) {
-        $whereCon = "where (ds_phase=" . $ds_phase . " or (sm_ds_mark_ix=1 and sm_ds_mark=1)) and A.created_by_dist_code=" . $district_code;
-      }
-
-    } else {
-      $whereCon = "where ds_phase=" . $ds_phase . " and A.created_by_dist_code=" . $district_code;
-
-    }
-    if ($scheme == 'oap_wcd' && ($ds_phase == 8 || $ds_phase == 9 || $ds_phase == 10)) {
-    } else {
-      $whereCon .= " and date(A.created_at)>='" . $base_date . "'";
-    }
     $whereMain = "where  district_code=" . $district_code;
-
-
     if ($ulb_code != '') {
       $whereCo_sub = " and  block_code='" . $ulb_code . "'";
     } else {
       $whereCo_sub = "";
     }
 
-    // if (!empty($fromdate)) {
-    //   $whereCon .= " and date(A.created_at)>='" . $fromdate . "'";
-    // }
+    $whereCon = " and A.created_by_dist_code=" . $district_code;
     if (!empty($todate)) {
-      if ($scheme == 'oap_wcd' && ($ds_phase == 8 || $ds_phase == 9 || $ds_phase == 10)) {
-      } else {
+     
         $whereCon .= " and date(A.created_at)<='" . $todate . "'";
-      }
+      
+
     }
-    if ($scheme == 'oap_wcd' && ($ds_phase == 8 || $ds_phase == 9 || $ds_phase == 10)) {
-      $query = "select main.location_id,main.location_name||'-Block' as location_name,
+
+   
+    $query = "select main.location_id,main.location_name,
       COALESCE(draft.total_applicant,0) as total_applicant,
       COALESCE(draft.application_process,0) as application_process,
       COALESCE(draft.verified,0) as verified,
@@ -566,77 +498,31 @@ class DuareSarkarApplicationphaseController extends Controller
         from public.m_block  " . $whereMain . " " . $whereCo_sub . "
         ) as main LEFT JOIN
         (
-          select count(1)  as total_applicant,
-          count(1) filter(where  ( (is_rejected=0 or is_rejected IS NULL) and  next_level_role_id is NULL)) as application_process,
-          count(1) filter(where  ( (is_rejected=0 or is_rejected IS NULL) and  is_verified=1 and next_level_role_id IS NOT NULL
-          and (is_approved=0 or is_approved IS NULL))) as verified,
-          count(1) filter(where  next_level_role_id=0) as approved,
-          count(1) filter(where is_rejected=1 and next_level_role_id<0) as rejected,
-        created_by_local_body_code
-        from " . $scheme . ".beneficiaries as A 
-          " . $whereCon . "  group by A.created_by_local_body_code
-        ) as draft ON main.location_id=draft.created_by_local_body_code
-         order by main.location_name";
-      //dd($query);
-    } else {
-      $query = "select main.location_id,main.location_name||'-Block' as location_name,
-      COALESCE(draft.total_applicant,0) as total_applicant,
-      COALESCE(draft.application_process,0) as application_process,
-      COALESCE(draft.verified,0) as verified,
-      COALESCE(draft.approved,0) as approved,
-      COALESCE(draft.rejected,0) as rejected
-        from
-        (
-        select block_code as location_id,block_name as location_name
-        from public.m_block  " . $whereMain . " " . $whereCo_sub . "
-        ) as main LEFT JOIN
-        (
-          select count(1) filter(where ds_registration_no IS NOT NULL) as total_applicant,
-          count(1) filter(where  ds_registration_no IS NOT NULL and 
-          ( (is_rejected=0 or is_rejected IS NULL) and  next_level_role_id is NULL)) as application_process,
-          count(1) filter(where ds_registration_no IS NOT NULL and  ( (is_rejected=0 or is_rejected IS NULL) and  is_verified=1 and next_level_role_id IS NOT NULL
-          and (is_approved=0 or is_approved IS NULL))) as verified,
-          count(1) filter(where ds_registration_no IS NOT NULL and next_level_role_id=0) as approved,
-          count(1) filter(where ds_registration_no IS NOT NULL and is_rejected=1 and next_level_role_id<0) as rejected,
-        created_by_local_body_code
-        from " . $scheme . ".beneficiaries as A 
-          " . $whereCon . "  group by A.created_by_local_body_code
-        ) as draft ON main.location_id=draft.created_by_local_body_code
-         order by main.location_name";
-    }
+          select  count(1) as total_applicant,
+          count(1) filter(where( (is_rejected=0 or is_rejected IS NULL) and (is_verified=0 or is_verified IS NULL) 
+          and  (is_approved=0 or is_approved IS NULL))) as application_process,
+           count(1) filter(where( (is_rejected=0 or is_rejected IS NULL) and (is_verified=1) 
+          and  (is_approved=0 or is_approved IS NULL))) as verified,
+           count(1) filter(where( (is_rejected=0 or is_rejected IS NULL) and (is_verified=1) 
+          and  (is_approved=1))) as approved,
+          
+          count(1) filter(where  is_rejected=1 and next_level_role_id<0) as rejected,
+          created_by_local_body_code
+        from pension.beneficiaries as A  where  A.scheme_id=".$scheme_id."  ".$whereCon." and  
+        lb_application_id IS NULL and (ds_phase=".$phase_code."  or cur_mark_ds_phase=".$phase_code.")
+		
 
-    $result = DB::connection('pgsql_mis')->select($query);
+        group by A.created_by_local_body_code
+        ) as draft ON main.location_id=draft.created_by_local_body_code order by main.location_name";
 
-    //dd($query);
+    $result = DB::select($query);
     return $result;
   }
 
-  public function getDistrictWise($phase_code, $district_code, $ulb_code = NULL, $block_ulb_code = NULL, $gp_ward_code = NULL, $todate = NULL, $scheme, $base_date)
+  public function getDistrictWise($phase_code, $district_code, $ulb_code = NULL, $block_ulb_code = NULL, $gp_ward_code = NULL, $todate = NULL, $scheme_id, $base_date)
   {
-    //dd($phase_code);
-    //$phase_arr = DsPhase::where('phase_code', $phase_code)->first();
-    //$base_date  = '2020-01-01';
-    //$base_date  = $phase_arr->base_date;
-    if ($scheme == 'oap_wcd' && ($phase_code == 8 || $phase_code == 9 || $phase_code == 10)) {
-      if ($phase_code == 8) {
-        $whereCon = "where (ds_phase=" . $phase_code . " or (sm_ds_mark_vii=1 and sm_ds_mark=1)) ";
-      }
-      if ($phase_code == 9) {
-        $whereCon = "where (ds_phase=" . $phase_code . " or (sm_ds_mark_viii=1 and sm_ds_mark=1)) ";
-
-      }
-      if ($phase_code == 10) {
-        $whereCon = "where (ds_phase=" . $phase_code . " or (sm_ds_mark_ix=1 and sm_ds_mark=1)) ";
-
-      }
-
-    } else {
-      $whereCon = "where ds_phase=" . $phase_code;
-    }
-    if ($scheme == 'oap_wcd' && ($phase_code == 8 || $phase_code == 9 || $phase_code == 10)) {
-    } else {
-      $whereCon .= " and date(A.created_at)>='" . $base_date . "'";
-    }
+    // dd('ok');
+ 
 
     if ($district_code != '') {
       $whereCo_sub = " where  district_code='" . $district_code . "'";
@@ -645,16 +531,20 @@ class DuareSarkarApplicationphaseController extends Controller
     }
 
 
-    // if (!empty($fromdate)) {
-    //   $whereCon .= " and date(A.created_at)>='" . $fromdate . "'";
-    // }
     if (!empty($todate)) {
-      if ($scheme == 'oap_wcd' && ($phase_code == 8 || $phase_code == 9 || $phase_code == 10)) {
-      } else {
-        $whereCon .= " and date(A.created_at)<='" . $todate . "'";
-      }
+      
+        $whereCon = " and date(A.created_at)<='" . $todate . "'";
+      
     }
-    if ($scheme == 'oap_wcd' && ($phase_code == 8 || $phase_code == 9 || $phase_code == 10)) {
+    // if($district_code == 307)
+    // {
+    //   dump($whereCo_sub);
+    //   dump($whereCon);
+    //   dump($phase_code);
+    //   die();
+    // }
+
+
 
       $query = "select main.location_id,main.location_name,
       COALESCE(draft.total_applicant,0) as total_applicant,
@@ -668,46 +558,27 @@ class DuareSarkarApplicationphaseController extends Controller
         from public.m_district  " . $whereCo_sub . "
         ) as main LEFT JOIN
         (
-          select count(1) as total_applicant,
-          count(1) filter(where  ( (is_rejected=0 or is_rejected IS NULL) and  next_level_role_id is NULL)) as application_process,
-          count(1) filter(where  ( (is_rejected=0 or is_rejected IS NULL) and  is_verified=1 and next_level_role_id IS NOT NULL
-          and (is_approved=0 or is_approved IS NULL))) as verified,
-          count(1) filter(where  next_level_role_id=0) as approved,
+          select  count(1) as total_applicant,
+          count(1) filter(where( (is_rejected=0 or is_rejected IS NULL) and (is_verified=0 or is_verified IS NULL) 
+          and  (is_approved=0 or is_approved IS NULL))) as application_process,
+           count(1) filter(where( (is_rejected=0 or is_rejected IS NULL) and (is_verified=1) 
+          and  (is_approved=0 or is_approved IS NULL))) as verified,
+           count(1) filter(where( (is_rejected=0 or is_rejected IS NULL) and (is_verified=1) 
+          and  (is_approved=1))) as approved,
+          
           count(1) filter(where  is_rejected=1 and next_level_role_id<0) as rejected,
           created_by_dist_code
-        from " . $scheme . ".beneficiaries as A  " . $whereCon . "
+        from pension.beneficiaries as A  where  A.scheme_id=".$scheme_id."  ".$whereCon." 
+        and  lb_application_id IS NULL and (ds_phase=".$phase_code."  or cur_mark_ds_phase=".$phase_code.")
+
         group by A.created_by_dist_code
         ) as draft ON main.location_id=draft.created_by_dist_code order by main.district_order_by";
 
 
-    } else {
-      $query = "select main.location_id,main.location_name,
-      COALESCE(draft.total_applicant,0) as total_applicant,
-      COALESCE(draft.application_process,0) as application_process,
-      COALESCE(draft.verified,0) as verified,
-      COALESCE(draft.approved,0) as approved,
-      COALESCE(draft.rejected,0) as rejected
-        from
-        (
-        select district_code as location_id,district_name as location_name,district_order_by as district_order_by
-        from public.m_district  " . $whereCo_sub . "
-        ) as main LEFT JOIN
-        (
-          select count(1) filter(where ds_registration_no IS NOT NULL) as total_applicant,
-          count(1) filter(where  ds_registration_no IS NOT NULL and 
-          ( (is_rejected=0 or is_rejected IS NULL) and  next_level_role_id is NULL)) as application_process,
-          count(1) filter(where ds_registration_no IS NOT NULL and  ( (is_rejected=0 or is_rejected IS NULL) and  is_verified=1 and next_level_role_id IS NOT NULL
-          and (is_approved=0 or is_approved IS NULL))) as verified,
-          count(1) filter(where ds_registration_no IS NOT NULL and next_level_role_id=0) as approved,
-          count(1) filter(where ds_registration_no IS NOT NULL and is_rejected=1 and next_level_role_id<0) as rejected,
-          created_by_dist_code
-        from " . $scheme . ".beneficiaries as A  " . $whereCon . "
-        group by A.created_by_dist_code
-        ) as draft ON main.location_id=draft.created_by_dist_code order by main.district_order_by";
-    }
+    
 
-    //dd($query);
-    $result = DB::connection('pgsql_mis')->select($query);
+    // dd($query);
+    $result = DB::select($query);
     return $result;
   }
   // function dsReportCommon(Request $request)

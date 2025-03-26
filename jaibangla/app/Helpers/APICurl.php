@@ -46,6 +46,7 @@ class APICurl
         }
         curl_close($ch);
         $response=array('result'=>$result,'errorCurl'=>$errorCurl);
+        // dd($response);
         return  $response;
     }
 

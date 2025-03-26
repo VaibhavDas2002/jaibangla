@@ -206,7 +206,7 @@ href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,30
                  <select name="application_type" id="application_type" class="form-control"  >
                 
                   <option value="1" selected>Pending</option>
-                  @if($designation_id=='Verifier')
+                  @if($is_verifier)
                   <option value="2">Verified but Approval Pending</option>
                   @endif
                   <option value="3">Verified and Approved</option>
@@ -252,7 +252,7 @@ href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,30
           <input type="hidden" name="rural_urban_code"  id="rural_urban_code" value="{{$is_rural}}">
           <input value="{{$created_by_local_body_code}}" type="hidden" name="created_by_local_body_code"  id="created_by_local_body_code">
            @endif
-           @if($designation_id=='Approver')
+           @if($is_approver)
          
            <div class="form-group col-md-4">
                  <label class="required-field">Process Type</label>
@@ -481,7 +481,7 @@ href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,30
           $('#error_application_type').text(error_application_type);
           $('#application_type').removeClass('has-error');
         }
-        if(designation_id=='Approver'){
+        if(designation_id=='Approver' || $designation_id=='Delegated Approver'){
         if(process_type=='')
         {
           error_process_type = 'Process Type is required';

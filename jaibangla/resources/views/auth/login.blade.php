@@ -486,14 +486,13 @@
                     </div>
                 </div>
             </div>
-            <div class="row">
+            {{-- <div class="row">
                 <div class="col-xs-12 col-sm-5 col-md-offset-3 col-md-6">
                     <div class="alert alert-danger" role="alert">
-                        <!-- Site is temporarily under emergency maintenance. Try again after 2 hours.Site will be down from 8 pm to 9 pm on every Saturday and Tuesday for maintenance  Site will be down from 8 pm to 9 pm on every Saturday and Tuesday for maintenance -->
-                        Site will be down from 8 pm to 9 pm on every Saturday and Tuesday for maintenance
+                        Site will be down from 9 pm on 21/01/2025 to 2 pm on 22/01/2025 for maintenance
                     </div>
                 </div>
-            </div>
+            </div> --}}
             <div class="row">
                 <div class="col-xs-12 col-sm-7 col-md-offset-4 col-md-4">
                 <form class="form-horizontal" method="POST" action="{{ route('login') }}">
@@ -501,27 +500,28 @@
                         <table width="100%" class="adminlogintable">
                             <tr>
                                 <td>
-                                    @if (session('msg'))
-                                    <div class="alert alert-danger" style="text-align: center;">
-                                        {{ session('msg') }}
-                                    </div>
+                                    <!-- Display All Errors -->
+                                    @if (count($errors) > 0)
+                                       
+                                            <ul>
+                                                @foreach ($errors as $error)
+                                                <li><p class="text-danger">{{ $error }}</p></li>
+                                                   
+                                                @endforeach
+                                            </ul>
+                                        
                                     @endif
-                                    @if (session('otp'))
-                                    <div class="alert alert-success" style="text-align: center;">
-                                        {{ session('otp') }}
-                                    </div>
+                                    @if (session('msg'))
+                                    <p class="text-success">{{ session('msg') }}</p>
+                                        
                                     @endif
                                 </td>
                             </tr>
                             <tr>
                                 <td align="center">
                                     <input id="mobile_no" type="text" maxlength="10" class="form-control" name="mobile_no" value="{{ old('mobile_no') }}"style="width: 200px;"
-                                    placeholder="Enter Registered Mobile No." required autofocus>
-                                    @if ($errors->has('mobile_no'))
-                                        <span class="help-block">
-                                            <strong>{{ $errors->first('mobile_no') }}</strong>
-                                        </span>
-                                    @endif
+                                    placeholder="Enter Registered Mobile No." required autofocus autocomplete="off">
+                                    
                                 </td>
                             </tr>
                             <tr id="Tr_cap1">
@@ -550,21 +550,13 @@
 
                             <tr id="Tr_cap3">
                                 <td align="center" class="style2">
-                                    <input id="captcha" type="text" class="mob form-control" name="captcha" value="{{ old('captcha') }}" placeholder="Enter captcha" autocomplete="off" style="width: 200px;" required autofocus>
-                                    @if ($errors->has('captcha'))
-                                        <span class="help-block">
-                                            <strong>{{ $errors->first('captcha') }}</strong>
-                                        </span>
-                                    @endif
+                                    <input id="captcha" type="text" class="form-control" name="captcha" value="{{ old('captcha') }}" placeholder="Enter captcha" autocomplete="off" style="width: 200px;" required autofocus>
+                                    
                             </tr> 
                             <tr id="Tr_cap3">
                                 <td align="center" class="style2">
-                                    <input id="login_otp" type="text" maxlength="6" class="mob form-control" name="login_otp" value="{{ old('login_otp') }}" placeholder="Enter otp" autocomplete="off" style="width: 200px;" required autofocus>
-                                    @if ($errors->has('login_otp'))
-                                        <span class="help-block">
-                                            <strong>{{ $errors->first('login_otp') }}</strong>
-                                        </span>
-                                    @endif
+                                    <input id="login_password" type="password"  class="form-control" name="login_password" value="" placeholder="Enter Password" autocomplete="off" style="width: 200px;" required autofocus>
+                                   
                             </tr>
 
                             <tr id="Tr_cap4">
@@ -577,8 +569,8 @@
 
                             <tr id="Tr_cap41">
                                 <td align="center" class="style4" style="padding-top: 5px;" >
-                                    <a class="btn btn-primary btnotp" style="width: 200px;" href="{{ route('password.request') }}" >
-                                        Generate OTP
+                                    <a class="btn btn-primary btnotp" style="width: 200px;" href="{{ route('login') }}" >
+                                        Forget Password
                                     </a>
                                 </td>
                             </tr>
@@ -638,12 +630,10 @@
             jQuery('#mobile_no').keyup(function () {
                 this.value = this.value.replace(/[^0-9\.]/g, '');
             });
-            jQuery('#login_otp').keyup(function () {
-                this.value = this.value.replace(/[^0-9\.]/g, '');
-            });
+           
             window.onload = function () {
                 document.getElementById('captcha').setAttribute('autocomplete', 'off');
-                document.getElementById('login_otp').setAttribute('autocomplete', 'off');
+                document.getElementById('login_password').setAttribute('autocomplete', 'off');
             }
         });
     </script>

@@ -176,7 +176,7 @@ href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,30
                   @if($designation_id=='Operator') 
                   <option value="2">Modified..Verification Pending</option> 
                   @endif
-                   @if($designation_id=='Operator' || $designation_id=='Verifier') 
+                   @if($designation_id=='Operator' || $designation_id=='Verifier' || $designation_id=='Delegated Verifier') 
                   <option value="3">Modified and Verified but Approval Pending</option> 
                    @endif
                   <option value="4">Modified and Verified and Approved</option>

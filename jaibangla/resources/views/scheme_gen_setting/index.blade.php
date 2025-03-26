@@ -194,7 +194,7 @@
                                                             id="name_validation_opt_{{$name_option->id}}"
                                                             name="name_validation_opt[]" value="{{$name_option->id}}">
                                                         <label class="form-check-label"
-                                                            for="name_validation_opt_{{$name_option->id}}">{{$name_option->name}}</label>
+                                                            for="name_validation_opt_{{$name_option->id}}">{{$name_option->description}}</label>
                                                     </div>
                                                 @endforeach
                                             </div>
@@ -440,7 +440,7 @@
                                                     <input type="checkbox" class="form-check-input" id="name_validation_opt"
                                                         name="name_validation_opt[]" value="{{$name_option->id}}">
                                                     <label class="form-check-label"
-                                                        for="name_validation_opt_{{$name_option->id}}">{{$name_option->name}}</label>
+                                                        for="name_validation_opt_{{$name_option->id}}">{{$name_option->description}}</label>
                                                 </div>
                                             @endforeach
                                         </div>

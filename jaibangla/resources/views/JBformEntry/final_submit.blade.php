@@ -540,7 +540,7 @@
                 <div class="modal-footer" style="text-align: center;">
                     <button type="button" class="btn btn-default btn-lg" data-dismiss="modal"
                         modal-cancel>Cancel</button>
-                    <button type="submit" id="submit" value="Submit"
+                    <button type="submit" id="submit" value="Submit" name="final_submit"
                         class="btn btn-success success btn-lg modal-submit">Submit </button>
                     <button type="button" id="submitting" value="Submit" class="btn btn-success success btn-lg"
                         disabled>Submitting please wait</button>

@@ -35,6 +35,7 @@ use App\Traits\TraitCasteCertificateValidate;
 use App\Traits\TraitLifeCertificateValidate;
 use App\Traits\TraitAadharValidate;
 use App\Helpers\AuthChecker;
+use App\SchemeStepRank;
 use Illuminate\Support\Facades\Route;
 
 class LPPformController extends Controller
@@ -56,7 +57,7 @@ class LPPformController extends Controller
     {
         try {
             $user_id = AuthChecker::getUserId();
-            if (AuthChecker::ApproverChecker()) {
+            if (AuthChecker::ApproverPermission()) {
                 $schemes = DB::select(DB::raw("select id,scheme_name,display_name,is_active from m_scheme where id IN (8,9) and   id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . ") order by rank"));
                 //dd($schemes);
                 return view(
@@ -93,7 +94,7 @@ class LPPformController extends Controller
         if (empty($duty_obj)) {
             return redirect("/")->with('danger', 'Not Allowed');
         }
-        if (!AuthChecker::ApproverChecker()) {
+        if (!AuthChecker::ApproverPermission()) {
             return redirect("/")->with('danger', 'Not Allowed');
         }
         $district_arr = District::where('district_code', $district_code)->first();
@@ -149,7 +150,7 @@ class LPPformController extends Controller
         if (empty($duty_obj)) {
             return redirect("/")->with('danger', 'Not Allowed');
         }
-        if (!AuthChecker::ApproverChecker()) {
+        if (!AuthChecker::ApproverPermission()) {
             return redirect("/")->with('danger', 'Not Allowed');
         }
 
@@ -211,10 +212,10 @@ class LPPformController extends Controller
         $errormsg = array();
         if (!empty($bank_account_number) && !empty($ifsc)) {
             //    $bank_count = DB::table($schema . '.ben_bank_account_no_unique')->where('bank_code',$bank_account_number)->count('bank_code');
-            $benDuplicateAcCount1 = DB::connection('pgsql5')->table("pension.beneficiaries")->select('id')
+            $benDuplicateAcCount1 = DB::table("pension.beneficiaries")->select('id')
                 ->whereRaw("trim(bank_code) = trim(" . "'" . $bank_account_number . "'" . ")");
 
-            $bank_count = DB::connection('pgsql5')->table("pension.beneficiaries")->select('id')
+            $bank_count = DB::table("pension.beneficiaries")->select('id')
                 ->whereRaw("trim(bank_code) = trim(" . "'" . $bank_account_number . "'" . ")")
                 ->union($benDuplicateAcCount1)->get()
                 ->count('id');
@@ -224,14 +225,14 @@ class LPPformController extends Controller
             }
         }
         if (!empty($request->aadhar_no)) {
-            $aadhar_count = DB::table($schema . '.beneficiaries')->where('aadhar_no', trim($request->aadhar_no))->whereIn('is_clean', [1, 2])->where('scheme_id', 3)->count('aadhar_no');
+            $aadhar_count = DB::table('pension.beneficiaries')->where('aadhar_no', trim($request->aadhar_no))->whereIn('is_clean', [1, 2])->where('scheme_id', 3)->count('aadhar_no');
             if ($aadhar_count > 0) {
                 $is_error = 1;
                 array_push($errormsg, 'Aadhaar Number Already Exist! Please try different.');
             }
         }
         if (!empty($request->mobile_no)) {
-            $mobile_count = DB::table($schema . '.beneficiaries')->where('mobile_no', $request->mobile_no)->whereIn('is_clean', [1, 2])->where('scheme_id', 3)->count('mobile_no');
+            $mobile_count = DB::table('pension.beneficiaries')->where('mobile_no', $request->mobile_no)->whereIn('is_clean', [1, 2])->where('scheme_id', 3)->count('mobile_no');
             if ($mobile_count > 0) {
                 $is_error = 1;
                 array_push($errormsg, 'Mobile Number Already Exist! Please try different.');
@@ -260,13 +261,12 @@ class LPPformController extends Controller
         }
         $body = Assembly::where('ac_no', '=', $request->asmb_cons)->first();
         $c_time = date('Y-m-d H:i:s');
-        if ($scheme_id == 8) {
-            $pension_details = new BenEntry();
-        } else if ($scheme_id == 9) {
-            $pension_details = new BenEntry();
-        }
+       
+        $pension_details = new BenEntry();
+       
         $pension_details->entry_datetime = $c_time;
         $pension_details->ip_address = $request->ip();
+        $pension_details->update_datetime = $c_time;
 
         //Document Dynamic
         $upload_file = array();
@@ -422,11 +422,11 @@ class LPPformController extends Controller
         $pension_details->created_by_dist_code = $district_code;
         $pension_details->created_by_local_body_code = $created_by_local_body_code;
         $pension_details->scheme_id = $request->scheme_id;
-        if ($scheme_id == 8) {
-            DB::connection('pgsql5')->beginTransaction();
-        } else if ($scheme_id == 9) {
-            DB::connection('pgsql\5')->beginTransaction();
-        }
+       
+        $next_level_role_id = SchemeStepRank::getSchemeParentId($scheme_id, 1);
+        $pension_details->next_level_role_id = $next_level_role_id;
+        DB::beginTransaction();
+       
         DB::connection('pgsql_encwrite')->beginTransaction();
         try {
 
@@ -439,9 +439,9 @@ class LPPformController extends Controller
                 $doc_inserted = DB::connection('pgsql_encwrite')->table('jb_doc.ben_attach_documents')->insert($upload_file);
                 if ($doc_inserted) {
                     if ($scheme_id == 8) {
-                        DB::connection('pgsq5')->commit();
+                        DB::commit();
                     } else if ($scheme_id == 9) {
-                        DB::connection('pgsql5')->commit();
+                        DB::commit();
                     }
 
                     DB::connection('pgsql_encwrite')->commit();
@@ -529,9 +529,9 @@ class LPPformController extends Controller
             }
             if ($error_found) {
                 if ($scheme_id == 8) {
-                    DB::connection('pgsql5')->rollback();
+                    DB::rollback();
                 } else if ($scheme_id == 9) {
-                    DB::connection('pgsql5')->rollback();
+                    DB::rollback();
                 }
                 DB::connection('pgsql_encwrite')->rollback();
 
@@ -541,9 +541,9 @@ class LPPformController extends Controller
         } catch (\Exception $e) {
             //    dd($e);
             if ($scheme_id == 8) {
-                DB::connection('pgsql5')->rollback();
+                DB::rollback();
             } else if ($scheme_id == 9) {
-                DB::connection('pgsql5')->rollback();
+                DB::rollback();
             }
             DB::connection('pgsql_encwrite')->rollback();
 
@@ -870,6 +870,7 @@ class LPPformController extends Controller
         $filteredSchemeList = $filteredSchemeList->values()->all();
 
         $data = ['scheme_list' => $filteredSchemeList];
+        // dd($data);
         return view('lpp.schemelistforUpdatellp', $data);
     }
 
@@ -987,12 +988,14 @@ class LPPformController extends Controller
     }
     public function editList(Request $request)
     {
+        // return redirect("/")->with('error', 'Temporarily Suspended for Development.');
+        // dd($request->all());
         $user_id = AuthChecker::getUserId();
         $scheme_id = $request->id;
         $scheme_row = Scheme::where('is_active', 1)->where('id', $scheme_id)->first();
 
         if (!$scheme_row) {
-            dd('ok');
+            // dd('ok');
             return redirect("/")->with('error', 'Parameter not valid'); // Handle missing scheme row gracefully.
         }
 
@@ -1010,27 +1013,18 @@ class LPPformController extends Controller
         if ($is_active == 0) {
             return redirect("/")->with('error', 'User Disabled');
         }
-
+        $whereCon = array();
+        $whereCon['scheme_id']=$scheme_id;
+        $whereCon['created_by_dist_code']=$distCode;
+        $whereCon['is_approved']=0;
+        $whereCon['is_rejected']=0;
+        
+        $is_reverted = $request->is_reverted;
+        if($is_reverted==1){
+            $whereCon['is_reverted']=1;
+        }
         $report_type_name = 'Application List which are not yet verified or approved';
-        if (request()->ajax()) {
-            $serachvalue = $request->search['value'];
-            $limit = $request->input('length');
-            $offset = $request->input('start');
-            $totalRecords = 0;
-            $filterRecords = 0;
-            $data = array();
-            $is_reverted = $request->is_reverted;
-            $query = DB::table($schema_name . '.beneficiaries')->where('created_by_dist_code', $distCode)->whereNull('next_level_role_id')->where('is_rejected', 0)->where('scheme_id', $scheme_id);
-            if (!empty($is_reverted)) {
-                if ($is_reverted == 1) {
-                    $query = $query->where('is_reverted', 1);
-                }
-            }
-            $serachvalue = $request->search['value'];
-            if (empty($serachvalue)) {
-                $totalRecords = $query->count();
-                $data = $query->orderBy('id', 'ASC')->offset($offset)->limit($limit)->get([
-                    'id',
+        $data = DB::table('pension.beneficiaries')->where($whereCon)->whereNull('update_datetime')->get(['id',
                     'created_by_dist_code',
                     'bank_code',
                     'ben_fname',
@@ -1048,137 +1042,25 @@ class LPPformController extends Controller
                     'next_level_role_id',
                     'caste',
                     'is_reverted',
-                    'entry_datetime'
-                ]);
-            } else {
-                if (is_numeric($serachvalue)) {
-                    $ben_id = $serachvalue;
-                    $query = $query->where(function ($query1) use ($ben_id, $serachvalue) {
-                        $query1->where('id', $ben_id)
-                            ->orWhere('bank_code', $serachvalue);
-                    });
-
-                    $totalRecords = $query->count();
-                    $data = $query->orderBy('id', 'ASC')->offset($offset)->limit($limit)->get(
-                        [
-                            'id',
-                            'created_by_dist_code',
-                            'bank_code',
-                            'ben_fname',
-                            'block_ulb_name',
-                            'gp_ward_name',
-                            'bank_ifsc',
-                            'village_town_city',
-                            'scheme_id',
-                            'lot_generated',
-                            'payment_count',
-                            'next_level_role_id',
-                            'ben_lname',
-                            'gender',
-                            'ben_age',
-                            'ben_mname',
-                            'caste',
-                            'is_reverted',
-                            'entry_datetime'
-                        ]
-                    );
-                } else {
-                    $query = $query->where(function ($query1) use ($serachvalue) {
-                        $query1->where('ben_fname', 'like', $serachvalue . '%')
-                            ->orWhere('block_ulb_name', 'like', $serachvalue . '%')
-                            ->orWhere('gp_ward_name', 'like', $serachvalue . '%')
-                            ->orWhere('bank_ifsc', 'like', $serachvalue . '%');
-                    });
-
-                    $totalRecords = $query->count();
-                    $data = $query->orderBy('id', 'ASC')->offset($offset)->limit($limit)->get(
-                        [
-                            'id',
-                            'created_by_dist_code',
-                            'bank_code',
-                            'ben_fname',
-                            'block_ulb_name',
-                            'gp_ward_name',
-                            'bank_ifsc',
-                            'village_town_city',
-                            'scheme_id',
-                            'lot_generated',
-                            'payment_count',
-                            'next_level_role_id',
-                            'ben_lname',
-                            'gender',
-                            'ben_age',
-                            'ben_mname',
-                            'caste',
-                            'is_reverted',
-                            'entry_datetime'
-                        ]
-                    );
-                }
-                $filterRecords = count($data);
-            }
-
-            return datatables()
-                ->of($data)
-                ->setTotalRecords($totalRecords)
-                ->setFilteredRecords($filterRecords)
-                ->skipPaging()
-                ->addColumn('application_id', function ($data) use ($scheme_length, $id_length) {
-                    $app_id = $data->created_by_dist_code . substr('0' . $data->scheme_id, -$scheme_length) . substr('0000000' . $data->id, -$id_length);
-
-                    return $app_id;
-                })
-                ->addColumn('ben_name', function ($data) {
-                    return $data->ben_fname . ' ' . $data->ben_mname . ' ' . $data->ben_lname;
-                })
-                ->addColumn('benf_name', function ($data) {
-                    return "Father Name";
-                })
-                ->addColumn('ben_age', function ($data) {
-                    return $data->ben_age;
-                })
-                ->addColumn('gender', function ($data) {
-                    return $data->gender;
-                })
-                ->addColumn('bank_ifsc', function ($data) {
-                    return $data->bank_ifsc;
-                })
-                ->addColumn('bank_code', function ($data) {
-                    return $data->bank_code;
-                })
-                ->addColumn('village_town_city', function ($data) {
-                    return $data->village_town_city;
-                })
-                ->addColumn('action', function ($data) use ($scheme_id) {
-
-                    $val = '<button type="button" class="btn btn-info btn-view" value="' . $data->id . '">View</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
-                    $val = $val . '<button type="button" class="btn btn-danger btn-reject" value="' . $data->id . '">Reject</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
-                    if (!is_null($data->entry_datetime)) {
-                        $val = $val . '<button type="button" class="btn btn-warning btn-update" value="' . $data->id . '">Update</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
-
-                    }
-                    // $val = $val .'<a href="bioauthcheckmismatch?id=' . $data->id .  '" class="btn btn-danger btn-reject"></i> Reject</a>';
-                    return $val;
-                })
-                ->rawColumns(['ben_id', 'ben_name', 'ben_age', 'gender', 'bank_ifsc', 'bank_code', 'village_town_city', 'action'])
-                ->make(true);
-
-        } else {
-
+                    'update_datetime']);
+                   
+       
+            // dd('okk');
             return view(
                 'lpp/editList_lpp',
                 [
                     'district_code' => $distCode,
-                    'scheme' => $scheme_id,
-                    'pr1' => $request->pr1,
-                    'parameter' => $request->parameter,
+                    'scheme_id' => $scheme_id,
+                    // 'pr1' => $request->pr1,
+                    // 'parameter' => $request->parameter,
                     'scheme_name' => $scheme_name,
                     'report_type_name' => $report_type_name,
-                    'is_urban' => $is_urban
+                    'data'=>$data
+                    // 'is_urban' => $is_urban
 
                 ]
             );
-        }
+        
     }
 
 
@@ -1203,7 +1085,7 @@ class LPPformController extends Controller
         if (empty($roleArray)) {
             return redirect("/")->with('danger', 'Not Allowed');
         }
-        if (!AuthChecker::ApproverChecker()) {
+        if (!AuthChecker::ApproverPermission()) {
             return redirect("/")->with('danger', 'Not Allowed');
         }
         $distCode = $roleArray->district_code;
@@ -1227,7 +1109,7 @@ class LPPformController extends Controller
 
         $checkmodel = ($scheme_id == 8) ? 'App\\PensionLPPRetainer' : (($scheme_id == 9) ? 'App\\PensionLPPPensioner' : null);
         $query = $checkmodel::where(['id' => $id, 'created_by_dist_code' => $distCode, 'scheme_id' => $scheme_id]);
-        if (AuthChecker::ApproverChecker()) {
+        if (AuthChecker::ApproverPermission()) {
             $query = $query->whereNull('next_level_role_id');
         }
         $row = $query->first();
@@ -1672,7 +1554,7 @@ class LPPformController extends Controller
         if (empty($roleArray)) {
             return redirect("/")->with('danger', 'Not Allowed');
         }
-        if (AuthChecker::ApproverChecker()) {
+        if (AuthChecker::ApproverPermission()) {
             return redirect("/")->with('danger', 'Not Allowed');
         }
         $distCode = $roleArray->district_code;
@@ -1682,7 +1564,7 @@ class LPPformController extends Controller
             return redirect("/")->with('error', 'User Disabled');
         }
         $query = $model_name::where(['id' => $id, 'created_by_dist_code' => $distCode, 'scheme_id' => $scheme_id]);
-        if (AuthChecker::ApproverChecker()) {
+        if (AuthChecker::ApproverPermission()) {
             $query = $query->whereNull('next_level_role_id');
         }
         $row = $query->first();
@@ -1735,7 +1617,7 @@ class LPPformController extends Controller
     }
     public function applicationReject(Request $request)
     {
-
+        // dd($request->all());
         $user_id = AuthChecker::getUserId();
         $c_time = date('Y-m-d H:i:s', time());
         $accept_reject_model = new AcceptRejectInfo;
@@ -1744,13 +1626,15 @@ class LPPformController extends Controller
         $accept_reject_model->scheme_id = $request->scheme_id;
         $accept_reject_model->user_id = $user_id;
         $accept_reject_model->created_by_dist_code = $request->district_code;
-        $accept_reject_model->created_by_local_body_code = $request->block_code;
+        // $accept_reject_model->created_by_local_body_code = $request->block_code;
         $accept_reject_model->ip_address = request()->ip();
-        $accept_reject_model->op_type = class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod() .'@AR';
+        $accept_reject_model->module_name = class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod() .'@AR';
+        $accept_reject_model->op_type ='AR';
 
         $scheme_obj = Scheme::where('id', $request->scheme_id)->where('is_active', 1)->first();
         if (!empty($scheme_obj->short_code)) {
             $schema = $scheme_obj->short_code;
+
             $scheme_length = $scheme_obj->scheme_length;
             $id_length = $scheme_obj->id_length;
         } else {
@@ -1758,21 +1642,30 @@ class LPPformController extends Controller
             $scheme_length = NULL;
             $id_length = NULL;
         }
-        $input = ['next_level_role_id' => -1, 'is_rejected' => 1, 'is_verified' => 2, 'is_approved' => 2, 'rejected_date' => $c_time, 'rejected_by' => $user_id, 'is_clean' => 10];
         DB::beginTransaction();
+
         $is_saved_log = $accept_reject_model->save();
-
-        if ($is_saved_log) {
-            $is_update = DB::table($schema . '.beneficiary')->where('id', $request->id)->where('created_by_dist_code', $request->district_code)->update($input);
+        if($is_saved_log){
+            $benEntry_model = BenEntry::where('id', $request->id)->where('scheme_id',  $request->scheme_id)->where('created_by_dist_code', $request->district_code)->whereNotNull('bank_code')->where('is_approved',0)->first();
+            $benEntry_model->next_level_role_id = -1;
+            $benEntry_model->is_rejected = 1;
+            $benEntry_model->is_verified = 2;
+            $benEntry_model->is_approved = 2;
+            $benEntry_model->rejected_date = $c_time;
+            $benEntry_model->rejected_by = $user_id;
+            $benEntry_model->is_clean = 10;
+            $benEntry_model->action_ip_address = $request->ip();
+            $benEntry_model->action_type = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod();
+            $is_update = $benEntry_model->save();
         }
-
+        // dump($is_saved_log);dump($is_update);die();
         if ($is_saved_log && $is_update) {
             DB::commit();
-            return redirect("application-list-read-only-edit-lpp?pr1=" . $schema)->with('success', 'Rejected Succesfully!')
+            return redirect("application-list-read-only-edit-lpp?id=".$request->scheme_id)->with('success', 'Rejected Succesfully!')
                 ->with('id', $request->id);
         } else {
             DB::rollback();
-            return redirect("application-list-read-only-edit-lpp?pr1=" . $schema)->with('errors', 'Error! Please try again.');
+            return redirect("application-list-read-only-edit-lpp?id=".$request->scheme_id)->with('errors', 'Error! Please try again.');
         }
     }
 

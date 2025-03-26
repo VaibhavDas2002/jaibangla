@@ -154,7 +154,7 @@ class AgeCohortBeneficiaryListController extends Controller
             (extract(year from current_date)-extract(year from dob))>=100
           )
         )";
-      if (AuthChecker::VerifierChecker()) {
+      if (AuthChecker::VerifierPermission()) {
         $query .= ' AND created_by_local_body_code='.$blockCode;
       }
 

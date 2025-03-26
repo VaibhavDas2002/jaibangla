@@ -367,7 +367,7 @@ margin: 10px 0px 10px 0px !important;
                        <!-- <center> 
                        <button type="button" id="submit" value="Submit"
                           class="btn btn-success success btn-lg modal-submit">
-                          @if($designation_id=='Verifier' && $row->next_level_role_id==1) Import & Verify @endif @if($designation_id=='Approver' && $row->next_level_role_id==2) Approve @endif</button>
+                          @if(($designation_id=='Verifier'||$designation_id=='Delegated Verifier') && $row->next_level_role_id==1) Import & Verify @endif @if(($designation_id=='Approver' || $designation_id=='Delegated Approver') && $row->next_level_role_id==2) Approve @endif</button>
                        
                           &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <button type="button" id="reject" value="reject"
                           class="btn btn-danger btn-lg modal-submit">

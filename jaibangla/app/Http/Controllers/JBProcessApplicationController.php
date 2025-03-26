@@ -15,7 +15,6 @@ use App\UrbanBody;
 use Exception;
 use Carbon\Carbon;
 use App\RejectRevertReason;
-use App\UrbanBodys;
 use App\Ward;
 use App\DocumentType;
 use App\District;
@@ -23,10 +22,12 @@ use App\BenDocs;
 use Illuminate\Support\Facades\View;
 use TCPDF;
 use App\AcceptRejectInfo;
+use App\BenEntry;
 use Illuminate\Support\Facades\Config;
 use App\Helpers\AuthChecker;
 use App\Helpers\PermissionManagement;
 use App\Workflow;
+use App\SchemeStepRank;
 use App\Helpers;
 use App\Helpers\Helper;
 use App\SchemeGenSetting;
@@ -49,8 +50,14 @@ class JBProcessApplicationController extends Controller
       $verifierURL = 'ProcessApllicationVerifier';
       $approverURL = 'ProcessApllicationApprover';
       $cmo_url = 'cmo-grievance-workflow';
-      $type = (int) $request->type;
+      
       // $designation_id = AuthChecker::getdesignation();
+      if(isset($request->type)){
+        $type = (int) $request->type;
+      }
+      else{
+        $type =1;
+      }
       $user_id = AuthChecker::getUserId();
       // dd($user_id);
       $configDuty = DB::table('duty_assignement')
@@ -60,6 +67,7 @@ class JBProcessApplicationController extends Controller
         ->get();
 
       $url = (AuthChecker::VerifierPermission()) ? $verifierURL : $approverURL;
+      // dd($url);
 
       $scheme_id_arr = [];
       $district_code = null;
@@ -103,6 +111,7 @@ class JBProcessApplicationController extends Controller
           ->pluck('scheme_id')
           ->toArray();
       }
+      // dd($falseSchemeIds);
 
       $is_verifer = AuthChecker::VerifierPermission();
 
@@ -153,6 +162,7 @@ class JBProcessApplicationController extends Controller
           }
           return $scheme;
         });
+        // dd($return_arr->toArray());
 
       return view('JBProcessApplication.scheme-selection', [
         'return_arr' => $return_arr,
@@ -179,9 +189,7 @@ class JBProcessApplicationController extends Controller
           return redirect('/')->with('error', 'Scheme ID is missing or invalid.');
         }
         $designation_id = Auth::user()->designation_id;
-        if ($designation_id != 'Verifier') {
-          return redirect('/')->with('error', 'Not Allowed...');
-        }
+        
         $user_id = AuthChecker::getUserId();
         $configDuty = Configduty::select('scheme_id', 'district_code', 'urban_body_code', 'taluka_code', 'is_urban', 'mapping_level')
           ->where('user_id', $user_id)
@@ -204,7 +212,7 @@ class JBProcessApplicationController extends Controller
           $blockUlbCode = $configDuty->taluka_code;
           $gps = GP::where('block_code', $blockUlbCode)->get();
         }
-        $verification_allowded = BlkUrbanlEntryMapping::where('scheme_id', $scheme_id)->where('district_code', $district_code)->where('block_ulb_code', $blockUlbCode)->first();
+        $verification_allowded = BlkUrbanlEntryMapping::where('scheme_id', $scheme_id)->where('block_ulb_code', $blockUlbCode)->first();
         $normal_verification_allowded = intval($verification_allowded->main_verification);
         if ($normal_verification_allowded == 0) {
           return redirect('/')->with('error', 'Verification Temporarily Suspended ');
@@ -232,14 +240,14 @@ class JBProcessApplicationController extends Controller
         ]);
       }
     } catch (Exception $e) {
-      dd($e);
+      //dd($e);
     }
   }
 
 
   public function approverview(Request $request)
   {
-    $auth = AuthChecker::ApproverPermission();
+    $auth = AuthChecker::ApproverPermission() || AuthChecker::HODChecker();
     if ($auth) {
       $user_id = AuthChecker::getUserId();
       $type = (int) $request->type;
@@ -275,8 +283,7 @@ class JBProcessApplicationController extends Controller
       $distCode = $district_code;
       $main_approval_allowded = 1;
       $special_approval_allowded = 1;
-      $main_approval_allowded = BlkUrbanlEntryMapping::where('main_approval', TRUE)->where('scheme_id', $scheme_id)->where('district_code', $distCode)->count();
-      $special_approval_allowded = BlkUrbanlEntryMapping::where('special_approval', TRUE)->where('scheme_id', $scheme_id)->where('district_code', $distCode)->count();
+      $main_approval_allowded = DB::table('m_district_entry_mapping')->where('main_approval', TRUE)->where('scheme_id', $scheme_id)->where('district_code', $distCode)->count();
       if ($main_approval_allowded == 1) {
         $approveBtnvisible = 1;
       }
@@ -312,7 +319,7 @@ class JBProcessApplicationController extends Controller
   {
     $scheme_id = Crypt::decrypt($request->scheme_id);
     $designation_id = Auth::user()->designation_id;
-    dd($scheme_id, $designation_id);
+    // dd($scheme_id, $designation_id);
     if ($designation_id == 'Operator') {
       return redirect('/')->with('error', 'Not Allowded...');
     }
@@ -339,6 +346,8 @@ class JBProcessApplicationController extends Controller
       $urban_bodys = null;
       $talukas = null;
       $gps = null;
+      $nexl_level_role_id=SchemeStepRank::getSchemeParentId($scheme_id, 1);
+      //dd($nexl_level_role_id);
       if ($is_urban == 1) {
         $blockUlbCode = $configDuty->urban_body_code;
         $urban_bodys = UrbanBody::where('sub_district_code', $blockUlbCode)->select('urban_body_code', 'urban_body_name')->get();
@@ -349,9 +358,9 @@ class JBProcessApplicationController extends Controller
 
       $limit = $request->input('length');
       $offset = $request->input('start');
-      $query = DB::table($table_name)->where('next_level_role_id', null)->where('created_by_dist_code', $district_code)
+      $query = DB::table($table_name)->where('next_level_role_id', $nexl_level_role_id)->where('created_by_dist_code', $district_code)
         ->where('scheme_id', $scheme_id)
-        ->where('created_by_local_body_code', $blockUlbCode)->whereNull('is_reverted');
+        ->where('created_by_local_body_code', $blockUlbCode)->where('is_reverted',0)->whereNull('lb_application_id');
       if ($request->munc != '') {
         $query = $query->where('block_ulb_code', $request->munc);
       }
@@ -542,7 +551,7 @@ class JBProcessApplicationController extends Controller
         ->rawColumns(['view', 'id', 'name', 'dup_no_info'])
         ->make(true);
     } catch (Exception $e) {
-      dd($e);
+      //dd($e);
     }
   }
 
@@ -580,8 +589,7 @@ class JBProcessApplicationController extends Controller
       $approveBtnvisible = 1;
       $distCode = $district_code;
       $main_approval_allowded = 1;
-      $main_approval_allowded = BlkUrbanlEntryMapping::where('main_approval', TRUE)->where('scheme_id', $scheme_id)->where('district_code', $distCode)->count();
-      $special_approval_allowded = BlkUrbanlEntryMapping::where('special_approval', TRUE)->where('scheme_id', $scheme_id)->where('district_code', $distCode)->count();
+      $main_approval_allowded = DB::table('m_district_entry_mapping')->where('main_approval', TRUE)->where('scheme_id', $scheme_id)->where('district_code', $distCode)->count();
       if ($main_approval_allowded == 1) {
         $approveBtnvisible = 1;
       }
@@ -605,6 +613,7 @@ class JBProcessApplicationController extends Controller
           ->where('scheme_id', $scheme_id)
           ->where('created_by_dist_code', $district_code)->where('is_rejected', 0);
       }
+
       if ($request->filter_quota != '') {
         if ($scheme_id == 2 || $scheme_id == 10 || $scheme_id == 11) {
           $query = $query->where('wt_special', $request->filter_quota);
@@ -622,8 +631,9 @@ class JBProcessApplicationController extends Controller
         $query = $query->whereNull('is_lb_imported');
       }
       if ($scheme_id == 2 || $scheme_id == 10 || $scheme_id == 11) {
+        // dd('ok');
 
-        return redirect("/")->with('error', 'Approval temporary suspended.');
+        // return redirect("/")->with('error', 'Approval temporary suspended.');
       }
       if ($scheme_id == 10) {
 
@@ -752,7 +762,7 @@ class JBProcessApplicationController extends Controller
         ->setFilteredRecords($filterRecords)
         ->skipPaging()
         ->addColumn('view', function ($data) {
-          $action = '<a href="' . route('processApplicationDetailsCommon', ['id' => $data->id, 'scheme_id' => $data->scheme_id, 'view_type' => 1]) . '" class="btn btn-xs btn-primary"><i class="glyphicon glyphicon-edit"></i> View</a>';
+          $action = '<a href="' . route('processApplicationDetailsCommon', ['id' => $data->id, 'scheme_id' => $data->scheme_id, 'view_type' => 2]) . '" class="btn btn-xs btn-primary"><i class="glyphicon glyphicon-edit"></i> View</a>';
           return $action;
         })
         ->addColumn('check', function ($data) use ($approveBtnvisible) {
@@ -777,6 +787,8 @@ class JBProcessApplicationController extends Controller
       dd($e);
     }
   }
+
+
 
 
 
@@ -821,6 +833,7 @@ class JBProcessApplicationController extends Controller
     }
     $condition_arr = array();
     $condition_arr['id'] = $id;
+    $condition_arr['scheme_id'] = $scheme_id;
     if ($duty_obj->mapping_level == "Department") {
       $created_by_local_body_code = NULL;
       $created_by_dist_code = NULL;
@@ -839,8 +852,7 @@ class JBProcessApplicationController extends Controller
         $created_by_local_body_code = NULL;
       }
     }
-    $row = DB::table($schema . '.beneficiaries')
-      ->where($condition_arr)->first();
+    $row = BenEntry::where($condition_arr)->first();
     if (empty($row)) {
       return redirect("/")->with('danger', 'Not Allowed');
     }
@@ -899,31 +911,27 @@ class JBProcessApplicationController extends Controller
 
     if ($duty_obj->is_urban == 1 || $duty_obj->is_urban == 2) {
       $verification_allowed = BlkUrbanlEntryMapping::where('scheme_id', $scheme_id)
-        ->where('district_code', $created_by_dist_code)
         ->where('block_ulb_code', $created_by_local_body_code)
         ->first();
 
       $normal_verification_allowed = intval($verification_allowed->main_verification ?? 0);
       if ($normal_verification_allowed == 0) {
-        $verifyBtnVisible = 0;
+        $verifyBtnvisible = 0;
       }
     }
 
     if (is_null($duty_obj->is_urban)) {
       $approveBtnVisible = 1;
 
-      $main_approval_allowed = BlkUrbanlEntryMapping::where('main_approval', true)
+      $main_approval_allowed = DB::table('m_district_entry_mapping')->where('main_approval', true)
         ->where('scheme_id', $scheme_id)
         ->where('district_code', $created_by_dist_code)
         ->count();
 
-      $special_approval_allowed = BlkUrbanlEntryMapping::where('special_approval', true)
-        ->where('scheme_id', $scheme_id)
-        ->where('district_code', $created_by_dist_code)
-        ->count();
+     
 
       if ($main_approval_allowed == 1) {
-        $approveBtnVisible = 1;
+        $approveBtnvisible = 1;
       }
     }
 
@@ -961,10 +969,12 @@ class JBProcessApplicationController extends Controller
       $approveBtnvisible = 0;
       $verifyBtnvisible = 0;
     }
+    //dump($is_verifier);dump( $view_type);die;
 
-    $approveBtnvisible = PermissionManagement::ApproveCheker($scheme_id) ? 1 : 0;
-    $verifyBtnvisible = PermissionManagement::VerifyCheker($scheme_id) ? 1 : 0;
-    // dd($approveBtnVisible);
+    $approveBtnvisible = PermissionManagement::ApproveCheker($scheme_id,$row->created_by_dist_code,$row->created_by_local_body_code) ? 1 : 0;
+    $verifyBtnvisible = PermissionManagement::VerifyCheker($scheme_id,$row->created_by_dist_code,$row->created_by_local_body_code) ? 1 : 0;
+    $is_hod=0;
+     //dd($view_type);
     return view('pension-details-view/pension_view_common', [
       'designation_id' => $designation_id,
       'is_state_login' => $is_state_login,
@@ -985,9 +995,13 @@ class JBProcessApplicationController extends Controller
       'scheme_name' => $scheme_name,
       'is_verifier' => $is_verifier,
       'is_approver' => $is_approver,
+      'is_hod' => $is_hod,
       'view_type' => $view_type,
     ]);
   }
+
+
+
 
 
 
@@ -1151,7 +1165,7 @@ class JBProcessApplicationController extends Controller
         $created_by_local_body_code = NULL;
       }
     }
-    $row = DB::table($schema . '.beneficiaries')->where('scheme_id', $scheme_id)
+    $row = BenEntry::where('scheme_id', $scheme_id)
       ->where($condition_arr)->first();
     if (empty($row)) {
       return redirect("/")->with('danger', 'Beneficiary does not Exists');
@@ -1174,58 +1188,65 @@ class JBProcessApplicationController extends Controller
     $accept_reject_model->created_by_dist_code = $created_by_dist_code;
     $accept_reject_model->created_by_local_body_code = $created_by_local_body_code;
     $accept_reject_model->ip_address = request()->ip();
+
+
     $next_level_role_id = Workflow::getParentId($scheme_id, Auth::user()->designation_id);
-    //  dd($next_level_role_id);
+
+    $next_level_role_id_operator=SchemeStepRank::getSchemeParentId($scheme_id, 1);
 
     if ($_POST['submit'] == 'Verify') {
-      $verify = PermissionManagement::VerifyCheker($scheme_id);
+      $verify = PermissionManagement::VerifyCheker($scheme_id,$row->created_by_dist_code,$row->created_by_local_body_code);
       if ($verify) {
 
-        if ($scheme_id == 10 || $scheme_id == 11 || $scheme_id == 2) {
-          if ($scheme_id == 10)
-            return redirect("/")->with('error', 'Verification temporary suspended.');
-          $allowded_arr = BlkUrbanlEntryMapping::where('scheme_id', $scheme_id)->where('block_ulb_code', $created_by_local_body_code)->where('district_code', $created_by_dist_code)->first();
-          $verification_allowded = intval($allowded_arr->main_verification);
-          if ($verification_allowded == 0) {
-            return redirect("/")->with('danger', 'Verification is temporarily suspended');
-          }
-        }
+        
+          
+         
+        
         if ($row->dup_bank == 1) {
-          return redirect('workflow?pr1=' . $scheme_obj->pr1_code)->with('error', 'Duplicate Bank Account Number..');
+          return redirect('ProcessApllicationVerifier?scheme_id=' . $scheme_id)->with('error', 'Duplicate Bank Account Number..');
         }
         if ($row->dup_aadhar == 1) {
-          return redirect('workflow?pr1=' . $scheme_obj->pr1_code)->with('error', 'Duplicate Aadhaar Number.');
+          return redirect('ProcessApllicationVerifier?scheme_id=' . $scheme_id)->with('error', 'Duplicate Aadhaar Number.');
         }
         if ($row->dup_mobile == 1) {
-          return redirect('workflow?pr1=' . $scheme_obj->pr1_code)->with('error', 'Duplicate Mobile Number.');
+          return redirect('ProcessApllicationVerifier?scheme_id=' . $scheme_id)->with('error', 'Duplicate Mobile Number.');
         }
         if ($row->no_aadhar == 1) {
-          return redirect('workflow?pr1=' . $scheme_obj->pr1_code)->with('error', 'Aadhaar Number Incorrect.');
+          return redirect('ProcessApllicationVerifier?scheme_id=' . $scheme_id)->with('error', 'Aadhaar Number Incorrect.');
         }
         if ($row->no_mobile == 1) {
-          return redirect('workflow?pr1=' . $scheme_obj->pr1_code)->with('error', 'Mobile Number Incorrect.');
+          return redirect('ProcessApllicationVerifier?scheme_id=' . $scheme_id)->with('error', 'Mobile Number Incorrect.');
         }
         $accept_reject_model->module_name = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod() . 'AV';
-
         $accept_reject_model->op_type = 'AV';
 
-        $input = [
-          'is_verified' => 1,
-          'next_level_role_id' => $next_level_role_id,
-          'comments' => $comments,
-          'verification_date' => $c_time,
-          'verified_by' => $user_id,
-          'action_by' => $user_id,
-          'action_ip_address' => $request->ip(),
-          'action_type' => class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod()
-        ];
+        // $input = [
+        //   'is_verified' => 1,
+        //   'next_level_role_id' => $next_level_role_id,
+        //   'comments' => $comments,
+        //   'verification_date' => $c_time,
+        //   'verified_by' => $user_id,
+        //   'action_by' => $user_id,
+        //   'action_ip_address' => $request->ip(),
+        //   'action_type' => class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod()
+        // ];
 
         DB::beginTransaction();
-
-        $is_status_updated = DB::table($schema . '.beneficiaries')->where('id', $id)->where('created_by_dist_code', $created_by_dist_code)->whereraw(" (dup_bank=0 or dup_bank IS NULL) and (dup_aadhar=0 or dup_aadhar IS NULL) and (dup_mobile=0 or dup_mobile IS NULL) and (no_aadhar=0 or no_aadhar IS NULL) and (no_mobile=0 or no_mobile IS NULL)")->whereNotNull('bank_code')->whereNull('next_level_role_id')->update($input);
-
+        $benEntry_model = BenEntry::where('id', $id)->where('scheme_id',  $scheme_id)->whereNull('lb_application_id')->where('created_by_dist_code', $created_by_dist_code)->whereraw(" (dup_bank=0 or dup_bank IS NULL) and (dup_aadhar=0 or dup_aadhar IS NULL) and (dup_mobile=0 or dup_mobile IS NULL) and (no_aadhar=0 or no_aadhar IS NULL) and (no_mobile=0 or no_mobile IS NULL)")->whereNotNull('bank_code')->where('next_level_role_id',$next_level_role_id_operator)->first();
+        $benEntry_model->is_verified = 1;
+        $benEntry_model->next_level_role_id = $next_level_role_id;
+        $benEntry_model->comments = $comments;
+        $benEntry_model->verification_date = $c_time;
+        $benEntry_model->verified_by = $user_id;
+        $benEntry_model->action_by = $user_id;
+        $benEntry_model->action_ip_address = $request->ip();
+        $benEntry_model->action_type = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod();
+        $is_status_updated = $benEntry_model->save();
+        // dd($benEntry_model);
+        // $is_status_updated = DB::table($schema . '.beneficiaries')->where('id', $id)->where('created_by_dist_code', $created_by_dist_code)->whereraw(" (dup_bank=0 or dup_bank IS NULL) and (dup_aadhar=0 or dup_aadhar IS NULL) and (dup_mobile=0 or dup_mobile IS NULL) and (no_aadhar=0 or no_aadhar IS NULL) and (no_mobile=0 or no_mobile IS NULL)")->whereNotNull('bank_code')->whereNull('next_level_role_id')->update($input);
         $is_saved_log = $accept_reject_model->save();
         //dd($is_status_updated);
+        // dd($is_status_updated && $is_saved_log);
         if ($is_status_updated && $is_saved_log) {
           DB::commit();
           return redirect('ProcessApllicationVerifier?scheme_id=' . $scheme_id)->withInput()->with('message', 'Beneficiary with ID:' . $id . ' Forwarded Succesfully!');
@@ -1243,7 +1264,7 @@ class JBProcessApplicationController extends Controller
 
 
       $input = [
-        'next_level_role_id' => NULL,
+        'next_level_role_id' => $next_level_role_id_operator,
         'is_verified' => 0,
         'is_approved' => 0,
         'is_reverted' => 1,
@@ -1253,9 +1274,17 @@ class JBProcessApplicationController extends Controller
       ];
 
       DB::beginTransaction();
-
-      $is_status_updated = DB::table($schema . '.beneficiaries')->where('id', $id)->where('created_by_dist_code', $created_by_dist_code)->update($input);
-
+      $benEntry_model = BenEntry::where('id', $id)->where('scheme_id',  $scheme_id)->whereNull('lb_application_id')->where('created_by_dist_code', $created_by_dist_code)->first();
+      // dd($benEntry_model);
+      $benEntry_model->next_level_role_id = $next_level_role_id_operator;
+      $benEntry_model->is_verified = 0;
+      $benEntry_model->is_approved = 0;
+      $benEntry_model->is_reverted = 1;
+      $benEntry_model->action_by = $user_id;
+      $benEntry_model->action_ip_address = $request->ip();
+      $benEntry_model->action_type = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod();
+      $is_status_updated = $benEntry_model->save();
+      // $is_status_updated = DB::table($schema . '.beneficiaries')->where('id', $id)->where('created_by_dist_code', $created_by_dist_code)->update($input);
       $is_saved_log = $accept_reject_model->save();
       //dd($is_status_updated);
       if ($is_status_updated && $is_saved_log) {
@@ -1289,32 +1318,31 @@ class JBProcessApplicationController extends Controller
         // $modelName = $appPrefix . "\\" . $ben_table;
         DB::beginTransaction();
         if ($is_state_login == 1) {
-          $is_status_updated = DB::table($schema . '.beneficiaries')->where('id', $id)->where('is_state', TRUE)->update($input);
+          $benEntry_model = BenEntry::where('id', $id)->whereNull('lb_application_id')->where('is_state', TRUE)->first();
+          // $is_status_updated = DB::table($schema . '.beneficiaries')->where('id', $id)->where('is_state', TRUE)->update($input);
         } else {
-          $is_status_updated = DB::table($schema . '.beneficiaries')->where('id', $id)->where('created_by_dist_code', $created_by_dist_code)->update($input);
+          $benEntry_model = BenEntry::where('id', $id)->where('scheme_id',  $scheme_id)->whereNull('lb_application_id')->where('created_by_dist_code', $created_by_dist_code)->where('created_by_dist_code', $created_by_dist_code)->first();
+          // $is_status_updated = DB::table($schema . '.beneficiaries')->where('id', $id)->where('created_by_dist_code', $created_by_dist_code)->update($input);
         }
+        $benEntry_model->verification_rejected = $Rejected;
+        $benEntry_model->comments = $comments;
+        $benEntry_model->next_level_role_id = -1;
+        $benEntry_model->is_approved = 2;
+        $benEntry_model->is_verified = 2;
+        $benEntry_model->is_rejected = 1;
+        $benEntry_model->rejected_date = $c_time;
+        $benEntry_model->rejected_by = $user_id;
+        $benEntry_model->is_clean = 10;
+        $benEntry_model->action_by = $user_id;
+        $benEntry_model->action_ip_address = $request->ip();
+        $benEntry_model->action_type = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod();
+        $is_status_updated = $benEntry_model->save();
+        // dd($benEntry_model);
         $is_saved_log = $accept_reject_model->save();
-        $scheme_dedup_list = Config::get('constants.bank_mob_aadhar_update_check');
-        if (in_array($scheme_id, $scheme_dedup_list)) {
-          $free_pending_bank_duplicate_arr = DB::select("select " . $schema . ".free_pending_bank_duplicate_data(in_scheme_id => " . $scheme_id . ", in_district_code => " . $created_by_dist_code . ")");
-          //dd($free_pending_bank_duplicate_arr);
-          $free_pending_bank_duplicate_data = $free_pending_bank_duplicate_arr[0]->free_pending_bank_duplicate_data;
-          if (!empty(trim($row->mobile_no))) {
-            $sp_mobile = $row->mobile_no;
-          } else {
-            $sp_mobile = 0;
-          }
-          $reject_dup_adjustment_arr = DB::select("select " . $schema . ".reject_dup_adjustment(
-            in_old_bank_ifsc => '" . $row->bank_ifsc . "', 
-            in_old_bank_code => '" . $row->bank_code . "', 
-            in_old_aadhar_no => '" . $row->aadhar_no . "', 
-            in_old_mobile_no => " . $sp_mobile . "
-            )");
-          $reject_dup_adjustment = $reject_dup_adjustment_arr[0]->reject_dup_adjustment;
-        } else {
+        
           $reject_dup_adjustment = 1;
           $free_pending_bank_duplicate_data = 1;
-        }
+        
 
         if ($is_status_updated && $is_saved_log && $free_pending_bank_duplicate_data && $reject_dup_adjustment) {
           DB::commit();
@@ -1325,7 +1353,7 @@ class JBProcessApplicationController extends Controller
           return redirect('ProcessApllicationVerifier?scheme_id=' . $scheme_id)->with('message', 'Error! Please try again.');
         }
       } catch (Exception $e) {
-        dd($e);
+        //dd($e);
         return redirect('ProcessApllicationVerifier?scheme_id=' . $scheme_id)->with('message', 'Error! Please try again.');
       }
     }
@@ -1339,6 +1367,724 @@ class JBProcessApplicationController extends Controller
 
   public function approvedata(Request $request)
   {
+    if (empty($request->benId)) {
+      return redirect("/")->with('danger', 'Applicant ID Not Found');
+    }
+    if (!is_numeric($request->benId)) {
+      return redirect("/")->with('danger', 'Applicant ID Not Valid');
+    }
+    if (empty($request->scheme_id)) {
+      return redirect("/")->with('danger', 'Scheme ID Not Found');
+    }
+    if (!is_numeric($request->scheme_id)) {
+      return redirect("/")->with('danger', 'Scheme ID Not Valid');
+    }
+    $scheme_id = $request->scheme_id;
+
+    $user_id = AuthChecker::getUserId();
+    $id = $request->benId;
+    $c_time = date('Y-m-d H:i:s', time());
+
+    $duty = Configduty::where('user_id', '=', $user_id)->where('scheme_id', $scheme_id)->first();
+    $district_code = $duty->district_code;
+
+    $c_time = date('Y-m-d H:i:s', time());
+    $table_name = 'pension.beneficiaries';
+
+  
+    $user_id = AuthChecker::getUserId();
+    $id = $request->benId;
+    $Rejected = 1;
+    $comments = $request->comments;
+    $accept_reject_model = new AcceptRejectInfo;
+    $accept_reject_model->created_at = $c_time;
+    $accept_reject_model->application_id = $id;
+    $accept_reject_model->scheme_id = $scheme_id;
+    $accept_reject_model->user_id = $user_id;
+    $accept_reject_model->comment_message = $comments;
+    $accept_reject_model->user_id = $user_id;
+    $accept_reject_model->created_by_dist_code = $district_code;
+    $accept_reject_model->module_name = class_basename(request()->route()->getAction()['controller']);
+    $accept_reject_model->ip_address = request()->ip();
+    $user_id = AuthChecker::getUserId();
+   
+
+
+
+    $next_level_role_id = Workflow::getID($scheme_id, Auth::user()->designation_id);
+    $parent_id = Workflow::getParentId($scheme_id, Auth::user()->designation_id);
+
+    $row = BenEntry::where('id', $id)->where('scheme_id', $scheme_id)->whereNull('lb_application_id')->where('created_by_dist_code', $district_code)->where('next_level_role_id', $next_level_role_id)->first();
+
+    // dump($next_level_role_id, $parent_id, $row);
+    // die();
+
+    if (empty($row)) {
+      return redirect("/")->with('danger', 'Application id Not Found');
+    }
+
+    if ($_POST['submit'] == 'Approve') {
+      $approve = PermissionManagement::ApproveCheker($scheme_id,$row->created_by_dist_code,$row->created_by_local_body_code);
+      if ($approve) {
+
+        $accept_reject_model->op_type = 'AA';
+       
+
+          $allowded_arr = DB::table('m_district_entry_mapping')->where('scheme_id', $scheme_id)->where('district_code', $district_code)->first();
+        
+            $approval_allowded = intval($allowded_arr->main_approval);
+            if ($approval_allowded == 0) {
+              return redirect("/")->with('danger', 'Approval is temporarily suspended');
+            }
+          
+        
+      
+        $payment_start_date = date('Y-m-d');
+        if ($scheme_id == 10 && $row->ds_phase == 10 && $payment_start_date < '2024-04-01') {
+          $payment_start_date = '2024-04-01';
+
+        }
+     
+
+        DB::beginTransaction();
+
+
+
+        $ben_entry_model = BenEntry::where('id', $id)->where('scheme_id', $scheme_id)->whereNull('lb_application_id')->where('created_by_dist_code', $district_code)->whereNull('is_lb_imported')->first();
+        // $is_status_updated = DB::table($table_name)->where('id', $id)->where('created_by_dist_code', $district_code)->whereNull('is_lb_imported')->whereNotNull('bank_code')->whereraw(" (sm_flag=1 or ds_phase=8 or ds_phase=9 or (ds_phase=10 or sm_ds_mark_ix=1))")->update($input);
+
+
+        // dd($ben_Entry_model);
+
+
+        $ben_entry_model->is_approved = 1;
+        $ben_entry_model->next_level_role_id = $parent_id;
+        $ben_entry_model->comments = $comments;
+        $ben_entry_model->payment_start_date = $payment_start_date;
+        $ben_entry_model->approval_date = $c_time;
+        $ben_entry_model->approved_by = $user_id;
+        $ben_entry_model->action_by = $user_id;
+        $ben_entry_model->action_ip_address = $request->ip();
+        $ben_entry_model->action_type = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod();
+
+        $is_status_updated = $ben_entry_model->save();
+
+        // $is_status_updated = DB::table($table_name)->where('id', $id)->where('created_by_dist_code', $district_code)->whereNotNull('bank_code')->update($input);
+
+        $is_saved_log = $accept_reject_model->save();
+        if ($is_status_updated && $is_saved_log) {
+          DB::commit();
+          return redirect('ProcessApllicationApprover?scheme_id=' . $scheme_id)->withInput()->with('message', 'Beneficiary with ID:' . $id . ' Approved Succesfully!');
+        } else {
+          DB::rollback();
+          return redirect('ProcessApllicationApprover?scheme_id=' . $scheme_id)->with('message', 'Error! Please try again.');
+        }
+      } else {
+        return redirect('ProcessApllicationApprover?scheme_id=' . $scheme_id)->with('error', 'Approval is Disabled for the Scheme');
+      }
+    } else if ($_POST['submit'] == 'Reject') {
+      $accept_reject_model->op_type = 'AR';
+      
+      DB::beginTransaction();
+      $benEntry_model = BenEntry::where('id', $id)->where('scheme_id', $scheme_id)->whereNull('lb_application_id')->where('created_by_dist_code', $district_code)->first();
+      // dd($benEntry_model);
+      $benEntry_model->is_clean = 10;
+      $benEntry_model->approval_rejected = $Rejected;
+      $benEntry_model->comments = $comments;
+      $benEntry_model->next_level_role_id = -1;
+      $benEntry_model->is_approved = 2;
+      $benEntry_model->is_verified = 2;
+      $benEntry_model->is_rejected = 1;
+      $benEntry_model->rejected_date = $c_time;
+      $benEntry_model->rejected_by = $user_id;
+      $benEntry_model->action_by = $user_id;
+      $benEntry_model->action_ip_address = $request->ip();
+      $benEntry_model->action_type = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod();
+      $is_status_updated = $benEntry_model->save();
+
+
+      $is_saved_log = $accept_reject_model->save();
+      
+      $reject_dup_adjustment = 1;
+      $free_pending_bank_duplicate_data = 1;
+      
+      if ($is_status_updated && $is_saved_log && $free_pending_bank_duplicate_data && $reject_dup_adjustment) {
+        DB::commit();
+        return redirect('ProcessApllicationApprover?scheme_id=' . $scheme_id)->withInput()->with('message', 'Beneficiary with ID:' . $id . ' Rejected Succesfully!');
+      } else {
+        DB::rollback();
+        return redirect('ProcessApllicationApprover?scheme_id=' . $scheme_id)->with('message', 'Error! Please try again.');
+      }
+    } else if ($_POST['submit'] == 'Revert') {
+      $accept_reject_model->op_type = 'AE';
+      // $input = [
+      //   'approval_rejected' => 3,
+      //   'comments' => $comments,
+      //   'next_level_role_id' => NULL,
+      //   'is_verified' => 0,
+      //   'is_approved' => 0,
+      //   'is_reverted' => 1,
+      //   'action_by' => $user_id,
+      //   'action_ip_address' => $request->ip(),
+      //   'action_type' => class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod()
+      // ];
+      $appPrefix = "App";
+      $next_level_role_id_operator=SchemeStepRank::getSchemeParentId($scheme_id, 1);
+      DB::beginTransaction();
+      $benEntry_model = BenEntry::where('id', $id)->where('scheme_id', $scheme_id)->whereNull('lb_application_id')->where('created_by_dist_code', $district_code)->first();
+      $benEntry_model->approval_rejected = 3;
+      $benEntry_model->comments = $comments;
+      $benEntry_model->next_level_role_id = $next_level_role_id_operator;
+      $benEntry_model->is_verified = 0;
+      $benEntry_model->is_approved = 0;
+      $benEntry_model->is_reverted = 1;
+      $benEntry_model->action_by = $user_id;
+      $benEntry_model->action_ip_address = $request->ip();
+      $benEntry_model->action_type = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod();
+      $is_status_updated = $benEntry_model->save();
+      // $is_status_updated = DB::table($table_name)->where('id', $id)->where('created_by_dist_code', $district_code)->update($input);
+      $is_saved_log = $accept_reject_model->save();
+      if ($is_status_updated && $is_saved_log) {
+        DB::commit();
+        return redirect('ProcessApllicationApprover?scheme_id=' . $scheme_id)->withInput()->with('message', 'Beneficiary with ID:' . $id . ' Reverted Succesfully!');
+      } else {
+        DB::rollback();
+        return redirect('ProcessApllicationApprover?scheme_id=' . $scheme_id)->with('message', 'Error! Please try again.');
+      }
+    }
+  }
+
+  public function BulkApprove(Request $request)
+  {
+    // dd($request->all());
+    // 
+    if (empty($request->scheme_id)) {
+      return redirect("/")->with('danger', 'Scheme ID Not Found');
+    }
+    if (!is_numeric($request->scheme_id)) {
+      return redirect("/")->with('danger', 'Scheme ID Not Valid');
+    }
+    $scheme_id = $request->scheme_id;
+
+    $user_id = AuthChecker::getUserId();
+    $id = $request->benId;
+    $c_time = date('Y-m-d H:i:s', time());
+    $table_name = 'pension.beneficiaries';
+
+    $duty = Configduty::where('user_id', '=', $user_id)->where('scheme_id', $scheme_id)->first();
+    $district_code = $duty->district_code;
+
+    $c_time = date('Y-m-d H:i:s', time());
+    $table_name = 'pension.beneficiaries';
+
+    if ($table_name == '') {
+      return redirect('/')->with('error', 'Scheme Not Found...');
+    }
+    $user_id = AuthChecker::getUserId();
+    $comments = $request->comments;
+    $accept_reject_model = new AcceptRejectInfo;
+    $accept_reject_model->created_at = $c_time;
+    $accept_reject_model->scheme_id = $scheme_id;
+    $accept_reject_model->user_id = $user_id;
+    $accept_reject_model->comment_message = $comments;
+    $accept_reject_model->user_id = $user_id;
+    $accept_reject_model->created_by_dist_code = $district_code;
+    $accept_reject_model->module_name = class_basename(request()->route()->getAction()['controller']);
+    $accept_reject_model->ip_address = request()->ip();
+    $accept_reject_model->op_type = 'AA';
+    $user_id = AuthChecker::getUserId();
+    $scheme_obj = Scheme::where('id', $scheme_id)->where('is_active', 1)->first();
+
+    $inputs = request()->input('approvalcheck');
+
+
+
+    $next_level_role_id = Workflow::getID($scheme_id, Auth::user()->designation_id);
+    $parent_id = Workflow::getParentId($scheme_id, Auth::user()->designation_id);
+    foreach ($inputs as $input) {
+
+
+
+      $row = BenEntry::where('id', '=', $input)->where('scheme_id', $scheme_id)->where('next_level_role_id', '=', $next_level_role_id)->first();
+
+      // dump($next_level_role_id, $parent_id, $row);
+      // die();
+
+      if (empty($row)) {
+        return redirect("/")->with('danger', 'Application id Not Found');
+      }
+    }
+
+    $approve = PermissionManagement::ApproveCheker($scheme_id,$district_code,null);
+    if ($approve) {
+
+
+
+
+      $allowded_arr = DB::table('m_district_entry_mapping')->where('scheme_id', $scheme_id)->where('district_code', $district_code)->first();
+
+      $approval_allowded = intval($allowded_arr->main_approval);
+      if ($approval_allowded == 0) {
+        return redirect("/")->with('danger', 'Approval is temporarily suspended');
+      }
+
+
+
+      $payment_start_date = date('Y-m-d');
+
+
+      $appPrefix = "App";
+
+      DB::beginTransaction();
+      $count = 0;
+      foreach ($inputs as $input) {
+        $accept_reject_model->application_id = $input;
+
+
+        $ben_entry_model = BenEntry::where('id', $input)->where('scheme_id', $scheme_id)->where('created_by_dist_code', $district_code)->whereNull('is_lb_imported')->first();
+        // $is_status_updated = DB::table($table_name)->where('id', $id)->where('created_by_dist_code', $district_code)->whereNull('is_lb_imported')->whereNotNull('bank_code')->whereraw(" (sm_flag=1 or ds_phase=8 or ds_phase=9 or (ds_phase=10 or sm_ds_mark_ix=1))")->update($input);
+
+
+        // dd($ben_Entry_model);
+
+
+        $ben_entry_model->is_approved = 1;
+        $ben_entry_model->next_level_role_id = $parent_id;
+        $ben_entry_model->comments = $comments;
+        $ben_entry_model->payment_start_date = $payment_start_date;
+        $ben_entry_model->approval_date = $c_time;
+        $ben_entry_model->approved_by = $user_id;
+        $ben_entry_model->action_by = $user_id;
+        $ben_entry_model->action_ip_address = $request->ip();
+        $ben_entry_model->action_type = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod();
+
+        $is_status_updated = $ben_entry_model->save();
+
+        // $is_status_updated = DB::table($table_name)->where('id', $id)->where('created_by_dist_code', $district_code)->whereNotNull('bank_code')->update($input);
+
+        $is_saved_log = $accept_reject_model->save();
+        if ($is_status_updated && $is_saved_log)
+          $count++;
+
+      }
+      if ($count == count($inputs)) {
+        DB::commit();
+        return redirect('ProcessApllicationApprover?scheme_id=' . $scheme_id)->withInput()->with('message', 'Beneficiary  Approved Succesfully!');
+      } else {
+        DB::rollback();
+        return redirect('ProcessApllicationApprover?scheme_id=' . $scheme_id)->with('message', 'Error! Please try again.');
+      }
+    } else {
+      return redirect('ProcessApllicationApprover?scheme_id=' . $scheme_id)->with('error', 'Approval is Disabled for the Scheme');
+    }
+
+
+  }
+
+
+  public function hodIndex(Request $request)
+  {
+    $auth = AuthChecker::HODChecker();
+    if ($auth) {
+      $user_id = AuthChecker::getUserId();
+      $type = (int) $request->type;
+      $scheme_id = 17;
+      // $designation_id = AuthChecker::getDesignation();
+
+      $configDuty = Configduty::select('scheme_id', 'district_code', 'urban_body_code', 'taluka_code', 'is_urban', 'mapping_level')
+        ->where('user_id', $user_id)
+        ->where('is_active', 1)
+        ->where('scheme_id', $scheme_id)
+        ->first();
+      // dd($configDuty ->district_code );
+      if (empty($configDuty)) {
+        return redirect('/')->with('error', 'No Duty Assigned');
+      }
+      $district_code = $configDuty->district_code;
+
+      // $duty_level = 'DistrictApprover';
+
+      $levels = [
+        2 => 'Rural',
+        1 => 'Urban',
+      ];
+      // dd($scheme_id);
+      $districts = District::all();
+
+      $report_name = ($type == 2)
+        ? 'Applications whose age exceed 60 years which are received from Lakshmir Bhandar Portal'
+        : '';
+      // @if($recomendBtnvisible == 1)
+      $recomendBtnvisible = 1;
+
+      return view('JBProcessApplication.hod', [
+        'levels' => $levels,
+        'dist_code' => $district_code,
+        'type' => $type,
+        'report_name' => $report_name,
+        'scheme_id' => $scheme_id,
+        'districts' => $districts,
+        'recomendBtnvisible' => $recomendBtnvisible,
+        // 'designation_id' => $designation_id,
+      ]);
+    }
+  }
+
+
+  public function hod_data(Request $request)
+  {
+    // dd($request->all());
+
+    try {
+      // dd($request->all());
+      $table_name = 'pension.beneficiaries';
+      $user_id = AuthChecker::getUserId();
+      // dd($user_id);
+      $scheme_id = $request->scheme_id;
+      $district_code = $request->filter_1;
+      $local_body_code = $request->filter_2;
+
+
+      $role_id = Workflow::getID($scheme_id, Auth::user()->designation_id);
+
+
+      $limit = $request->input('length');
+      $offset = $request->input('start');
+      if (!empty($request->filter_1) && !empty($request->filter_2)) {
+        if ($request->filter_1 == '2') {
+          $query = DB::table($table_name)->where('next_level_role_id', $role_id)->where('is_state', FALSE)
+            ->where('scheme_id', $scheme_id)
+            ->where('created_by_dist_code', $district_code)
+            ->where('created_by_local_body_code', $request->filter_2)->where('is_rejected', 0);
+        } else {
+          $query = DB::table($table_name)->where('next_level_role_id', $role_id)->where('is_state', FALSE)
+            ->where('scheme_id', $scheme_id)
+            ->where('created_by_dist_code', $district_code)
+            ->where('created_by_local_body_code', $request->filter_2)->where('is_rejected', 0);
+        }
+      } else {
+
+        $query = DB::table($table_name)->where('next_level_role_id', $role_id)->where('is_state', FALSE)
+          ->where('scheme_id', $scheme_id)
+          ->where('created_by_dist_code', $district_code)->where('is_rejected', 0);
+      }
+
+
+      $serachvalue = $request->search['value'];
+      if (empty($serachvalue)) {
+        $totalRecords = $query->count();
+        $data = $query->orderBy('id', 'ASC')->offset($offset)->limit($limit)->get([
+          'id',
+          'created_by_dist_code',
+          'dob',
+          'assembly_name',
+          'bank_code',
+          'ben_fname',
+          'ben_lname',
+          'ben_mname',
+          'gender',
+          'ben_age',
+          'block_ulb_name',
+          'gp_ward_name',
+          'bank_ifsc',
+          'village_town_city',
+          'scheme_id',
+          'lot_generated',
+          'payment_count',
+          'next_level_role_id',
+          'sm_flag',
+          'dup_bank',
+          'dup_aadhar',
+          'dup_mobile',
+          'no_aadhar',
+          'no_mobile'
+        ]);
+        $filterRecords = count($data);
+      } else {
+        if (is_numeric($serachvalue)) {
+          //$ben_id = (int) substr($serachvalue, -10);
+          $ben_id = $serachvalue;
+          $query = $query->where(function ($query1) use ($ben_id, $serachvalue) {
+            $query1->where('id', $ben_id);
+
+          });
+          $totalRecords = $query->count();
+          $data = $query->orderBy('id', 'ASC')->offset($offset)->limit($limit)->get(
+            [
+              'id',
+              'created_by_dist_code',
+              'dob',
+              'assembly_name',
+              'bank_code',
+              'ben_fname',
+              'block_ulb_name',
+              'gp_ward_name',
+              'bank_ifsc',
+              'village_town_city',
+              'scheme_id',
+              'lot_generated',
+              'payment_count',
+              'next_level_role_id',
+              'ben_lname',
+              'gender',
+              'ben_age',
+              'ben_mname',
+              'sm_flag',
+              'dup_bank',
+              'dup_aadhar',
+              'dup_mobile',
+              'no_aadhar',
+              'no_mobile'
+            ]
+          );
+        } else {
+          $query = $query->where(function ($query1) use ($serachvalue) {
+            $query1->where('ben_fname', 'like', $serachvalue . '%')
+              ->orWhere('block_ulb_name', 'like', $serachvalue . '%')
+              ->orWhere('gp_ward_name', 'like', $serachvalue . '%')
+              ->orWhere('bank_ifsc', 'like', $serachvalue . '%');
+          });
+          $totalRecords = $query->count();
+          $data = $query->orderBy('id', 'ASC')->offset($offset)->limit($limit)->get(
+            [
+              'id',
+              'created_by_dist_code',
+              'dob',
+              'assembly_name',
+              'bank_code',
+              'ben_fname',
+              'block_ulb_name',
+              'gp_ward_name',
+              'bank_ifsc',
+              'village_town_city',
+              'scheme_id',
+              'lot_generated',
+              'payment_count',
+              'next_level_role_id',
+              'ben_lname',
+              'gender',
+              'ben_age',
+              'ben_mname',
+              'dup_bank',
+              'dup_aadhar',
+              'dup_mobile',
+              'no_aadhar',
+              'no_mobile'
+            ]
+          );
+        }
+        $filterRecords = count($data);
+      }
+      return datatables()->of($data)->setTotalRecords($totalRecords)
+        ->setFilteredRecords($filterRecords)
+        ->skipPaging()
+        ->addColumn('view', function ($data) {
+          $action = '<a href="' . route('processApplicationDetailsCommonRecomended', ['id' => $data->id, 'scheme_id' => $data->scheme_id, 'view_type' => 1]) . '" class="btn btn-xs btn-primary"><i class="glyphicon glyphicon-edit"></i> View</a>';
+          return $action;
+        })
+        ->addColumn(
+          'check',
+          function ($data) {
+            return '<input type="checkbox" name="recomendcheck[]" onchange="document.getElementById(\'bulk_recomend\').disabled = !this.checked;" value="' . $data->id . '">';
+
+          }
+
+
+        )
+        ->addColumn('id', function ($data) {
+          return $data->id;
+        })
+        ->addColumn('name', function ($data) {
+          return $data->ben_fname . ' ' . $data->ben_mname . ' ' . $data->ben_lname;
+        })
+        ->rawColumns(['view', 'check', 'id', 'name'])
+        ->make(true);
+    } catch (Exception $e) {
+      dd($e);
+    }
+  }
+
+  public function RecomendedView(Request $request, $id, $scheme_id, $view_type = null)
+  {
+
+    // dd($request->all());
+    // dump($scheme_id);
+    // dump($view_type);
+    // dump($id);
+    // die();
+
+    $view_type = 2;
+    if (empty($request->id)) {
+      return redirect("/")->with('danger', 'Applicant ID Not Found');
+    }
+    if (!is_numeric($request->id)) {
+      return redirect("/")->with('danger', 'Applicant ID Not Valid');
+    }
+    if (empty($request->scheme_id)) {
+      return redirect("/")->with('danger', 'Scheme ID Not Found');
+    }
+    if (!is_numeric($request->scheme_id)) {
+      return redirect("/")->with('danger', 'Scheme ID Not Valid');
+    }
+
+    $user_id = AuthChecker::getUserId();
+    $designation_id = Auth::user()->designation_id;
+    $reject_revert_cause_list = RejectRevertReason::where('status', true)->get();
+    $scheme_obj = Scheme::where('id', $scheme_id)->where('is_active', 1)->first();
+    $scheme_name = $scheme_obj->scheme_name;
+    if (empty($scheme_obj)) {
+      return redirect("/")->with('danger', 'Scheme Not Found');
+    }
+    $duty_obj = Configduty::where('user_id', $user_id)->where('scheme_id', $scheme_id)->first();
+    if (empty($duty_obj)) {
+      return redirect("/")->with('danger', 'Not Allowed');
+    }
+    if (!empty($scheme_obj->short_code)) {
+      $schema = $scheme_obj->short_code;
+    } else {
+      $schema = "pension";
+    }
+    $condition_arr = array();
+    $condition_arr['id'] = $id;
+    $condition_arr['scheme_id'] = $scheme_id;
+    if ($duty_obj->mapping_level == "Department") {
+      $created_by_local_body_code = NULL;
+      $created_by_dist_code = NULL;
+    }
+    $row = BenEntry::where($condition_arr)->first();
+    if (empty($row)) {
+      return redirect("/")->with('danger', 'Not Allowed');
+    }
+    if ($row->scheme_id != $scheme_id) {
+      return redirect("/")->with('danger', 'Not Allowed');
+    }
+    // dd('ok');
+    $is_state_login = 0;
+    $district_state_name = '';
+    $urban_code_state_name = '';
+    $block_subdiv_state_name = '';
+
+
+
+    $docs = BenDocs::where('beneficiary_id', $id)->orderBy('document_type')->get();
+
+    if ($row->dist_code != "") {
+      $district = District::where('district_code', '=', $row->dist_code)->get(['district_code', 'district_name'])->first();
+      $district_name = $district->district_name;
+    }
+    $block_name = "";
+    if ($row->block_ulb_code != "") {
+      if ($row->rural_urban_id == 1) {
+        $block = UrbanBody::where('urban_body_code', '=', $row->block_ulb_code)->first();
+        if (!empty($block)) {
+          $block_name = $block->urban_body_name;
+        }
+      } else {
+        if (!empty($row->block_ulb_code)) {
+          $block = Taluka::where('block_code', '=', $row->block_ulb_code)->first();
+          if (!empty($block)) {
+            $block_name = $block->block_name;
+          } else {
+            $block_name = '';
+          }
+        } else {
+          $block_name = '';
+        }
+      }
+    }
+    $row->block_name = $block_name;
+    $gp_name = "";
+    if ($row->gp_ward_code != "") {
+      if ($row->rural_urban_id == 1) {
+        $gp_ward = Ward::where('urban_body_ward_code', '=', $row->gp_ward_code)->first();
+        if (!empty($gp_ward)) {
+          $gp_name = $gp_ward->urban_body_ward_name;
+        }
+      } else {
+        $gp = GP::where('gram_panchyat_code', '=', $row->gp_ward_code)->get(['gram_panchyat_code', 'gram_panchyat_name'])->first();
+        if (!empty($gp)) {
+          $gp_name = $gp->gram_panchyat_name;
+        }
+      }
+    }
+    $row->gp_name = $gp_name;
+
+
+
+
+
+    $doc_profile_image = DocumentType::get()->where("is_profile_pic", true)->first();
+    $doc_profile_image_id = 999;
+    if ($doc_profile_image) {
+      $doc_profile_image_id = $doc_profile_image->id;
+    }
+    $scheme_capacity_arr = array();
+    $scheme_capacity_arr['visible'] = 0;
+    $is_dup_msg = array();
+    if ($row->dup_bank == 1) {
+      array_push($is_dup_msg, 'Duplicate Bank Account Number..');
+      $approveBtnvisible = 0;
+      $verifyBtnvisible = 0;
+    }
+    if ($row->dup_aadhar == 1) {
+      array_push($is_dup_msg, 'Duplicate Aadhaar Number.');
+      $approveBtnvisible = 0;
+      $verifyBtnvisible = 0;
+    }
+    if ($row->dup_mobile == 1) {
+      array_push($is_dup_msg, 'Duplicate Mobile Number.');
+      $approveBtnvisible = 0;
+      $verifyBtnvisible = 0;
+    }
+    if ($row->no_aadhar == 1) {
+      array_push($is_dup_msg, 'Aadhaar Number Incorrect.');
+      $approveBtnvisible = 0;
+      $verifyBtnvisible = 0;
+    }
+    if ($row->no_mobile == 1) {
+      array_push($is_dup_msg, 'Mobile Number Incorrect.');
+      $approveBtnvisible = 0;
+      $verifyBtnvisible = 0;
+    }
+    $is_verifier = 0;
+    $is_approver = 0;
+    $is_hod = AuthChecker::HODChecker();
+
+    $approveBtnvisible = PermissionManagement::ApproveCheker($scheme_id,$row->created_by_dist_code,$row->created_by_local_body_code) ? 1 : 0;
+    $verifyBtnvisible = PermissionManagement::VerifyCheker($scheme_id,$row->created_by_dist_code,$row->created_by_local_body_code) ? 1 : 0;
+    // $recomendBtnvisible = PermissionManagement::RecomendCheker($scheme_id) ? 1 : 0;
+    $recomendBtnvisible = 1;
+    // dd($approveBtnVisible);
+    return view('pension-details-view/pension_view_common', [
+      'designation_id' => $designation_id,
+      'is_state_login' => $is_state_login,
+      'district_state_name' => $district_state_name,
+      'block_subdiv_state_name' => $block_subdiv_state_name,
+      'approveBtnvisible' => $approveBtnvisible,
+      'verifyBtnvisible' => $verifyBtnvisible,
+      'scheme_capacity_arr' => $scheme_capacity_arr,
+      'row' => $row,
+      'district_name' => $district_name,
+      'block_name' => $block_name,
+      'gp_name' => $gp_name,
+      'docs' => $docs,
+      'image_id' => $doc_profile_image_id,
+      'reject_revert_cause_list' => $reject_revert_cause_list,
+      'is_dup_msg' => $is_dup_msg,
+      'scheme_id' => $scheme_id,
+      'scheme_name' => $scheme_name,
+      'view_type' => $view_type,
+      'is_verifier' => $is_verifier,
+      'is_approver' => $is_approver,
+      'is_hod' => $is_hod,
+      'recomendBtnvisible' => $recomendBtnvisible,
+    ]);
+
+  }
+
+  public function recomendData(Request $request)
+  {
+    // dd($request->all());
     if (empty($request->benId)) {
       return redirect("/")->with('danger', 'Applicant ID Not Found');
     }
@@ -1393,97 +2139,51 @@ class JBProcessApplicationController extends Controller
       $scheme_length = NULL;
       $id_length = NULL;
     }
-
-
-
     $next_level_role_id = Workflow::getID($scheme_id, Auth::user()->designation_id);
+    $parent_id = Workflow::getParentId($scheme_id, Auth::user()->designation_id);
 
-    $row = DB::table($table_name)->where('id', '=', $id)->where('next_level_role_id', '=', $next_level_role_id)->first();
-
+    $row = BenEntry::where('id', '=', $id)->where('scheme_id',  $scheme_id)->where('next_level_role_id', '=', $next_level_role_id)->first();
 
     if (empty($row)) {
       return redirect("/")->with('danger', 'Application id Not Found');
     }
 
-    if ($_POST['submit'] == 'Approve') {
-      $approve = PermissionManagement::ApproveCheker($scheme_id);
-      if ($approve) {
+    if ($_POST['submit'] == 'Recomend') {
+      $recomend = 1;
+      if ($recomend) {
 
-        $accept_reject_model->op_type = 'AA';
-        if ($scheme_id == 10 || $scheme_id == 11 || $scheme_id == 2) {
+        $accept_reject_model->op_type = 'ARECOMEND';
 
-          $allowded_arr = BlkUrbanlEntryMapping::where('scheme_id', $scheme_id)->where('block_ulb_code', $row->created_by_local_body_code)->where('district_code', $district_code)->first();
-          if ($row->wt_special == 1) {
-            $approval_allowded = intval($allowded_arr->special_approval);
-            if ($approval_allowded == 0) {
-              return redirect("/")->with('danger', 'Special Approval  without Quota  is temporarily suspended');
-            }
-          } else {
-            $approval_allowded = intval($allowded_arr->main_approval);
-            if ($approval_allowded == 0) {
-              return redirect("/")->with('danger', 'Approval is temporarily suspended');
-            }
-          }
-        }
-        if ($row->wt_special == 1) {
-          $scheme_capacity_arr = Helper::getCapacityWtQuotaDistrict($scheme_id, $district_code);
-          $scheme_capacity_arr['total_data'] = $scheme_capacity_arr['approved'];
-          if ($scheme_capacity_arr['visible'] == 1) {
-            if ($scheme_capacity_arr['total_data'] >= $scheme_capacity_arr['capacity']) {
-              $errorMsgCap = "Total no. of Approved applications (Special Quota) " . $scheme_capacity_arr['total_data'] . " exceeds the Special quota " . $scheme_capacity_arr['capacity'];
-              return redirect("/")->with('danger', $errorMsgCap);
-            }
-          }
-        } else {
-          $scheme_capacity_arr = array();
-        }
         $payment_start_date = date('Y-m-d');
         if ($scheme_id == 10 && $row->ds_phase == 10 && $payment_start_date < '2024-04-01') {
           $payment_start_date = '2024-04-01';
-
         }
-        if ($scheme_id == 11) {
-          $input = [
-            'is_approved' => 1,
-            'next_level_role_id' => $next_level_role_id,
-            'comments' => $comments,
-            'payment_start_date' => $payment_start_date,
-            'approval_date' => $c_time,
-            'approved_by' => $user_id,
-            'wp_phase' => 2,
-            'action_by' => $user_id,
-            'action_ip_address' => $request->ip(),
-            'action_type' => class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod()
-          ];
-        } else
-          $input = [
-            'is_approved' => 1,
-            'next_level_role_id' => $next_level_role_id,
-            'comments' => $comments,
-            'payment_start_date' => $payment_start_date,
-            'approval_date' => $c_time,
-            'approved_by' => $user_id,
-            'action_by' => $user_id,
-            'action_ip_address' => $request->ip(),
-            'action_type' => class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod()
-          ];
         $appPrefix = "App";
-
         DB::beginTransaction();
-
-        if ($scheme_id == 10) {
-          $is_status_updated = DB::table($table_name)->where('id', $id)->where('created_by_dist_code', $district_code)->whereNull('is_lb_imported')->whereNotNull('bank_code')->whereraw(" (sm_flag=1 or ds_phase=8 or ds_phase=9 or (ds_phase=10 or sm_ds_mark_ix=1))")->update($input);
-        } else
-          $is_status_updated = DB::table($table_name)->where('id', $id)->where('created_by_dist_code', $district_code)->whereNotNull('bank_code')->update($input);
-
+        $ben_entry_model = BenEntry::where('id', $id)->where('scheme_id',  $scheme_id)->whereNull('is_lb_imported')->first();
+        // $is_status_updated = DB::table($table_name)->where('id', $id)->where('created_by_dist_code', $district_code)->whereNull('is_lb_imported')->whereNotNull('bank_code')->whereraw(" (sm_flag=1 or ds_phase=8 or ds_phase=9 or (ds_phase=10 or sm_ds_mark_ix=1))")->update($input);
+        // dd($ben_Entry_model);
+        $ben_entry_model->is_approved = 1;
+        $ben_entry_model->next_level_role_id = $parent_id;
+        $ben_entry_model->comments = $comments;
+        $ben_entry_model->payment_start_date = $payment_start_date;
+        $ben_entry_model->approval_date = $c_time;
+        $ben_entry_model->approved_by = $user_id;
+        $ben_entry_model->action_by = $user_id;
+        $ben_entry_model->action_ip_address = $request->ip();
+        $ben_entry_model->action_type = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod();
+        $is_status_updated = $ben_entry_model->save();
+        // $is_status_updated = DB::table($table_name)->where('id', $id)->where('created_by_dist_code', $district_code)->whereNotNull('bank_code')->update($input);
         $is_saved_log = $accept_reject_model->save();
         if ($is_status_updated && $is_saved_log) {
           DB::commit();
-          return redirect('ProcessApllicationApprover?scheme_id=' . $scheme_id)->withInput()->with('message', 'Beneficiary with ID:' . $id . ' Approved Succesfully!');
+          return redirect('jbProcessApplication_hod?scheme_id=' . $scheme_id)->withInput()->with('message', 'Beneficiary with ID:' . $id . ' Recomended Succesfully!');
         } else {
           DB::rollback();
-          return redirect('ProcessApllicationApprover?scheme_id=' . $scheme_id)->with('message', 'Error! Please try again.');
+          return redirect('jbProcessApplication_hod?scheme_id=' . $scheme_id)->with('message', 'Error! Please try again.');
         }
+      } else {
+        return redirect('jbProcessApplication_hod?scheme_id=' . $scheme_id)->with('error', 'Approval is Disabled for the Scheme');
       }
     } else if ($_POST['submit'] == 'Reject') {
       $accept_reject_model->op_type = 'AR';
@@ -1504,6 +2204,22 @@ class JBProcessApplicationController extends Controller
       $appPrefix = "App";
       DB::beginTransaction();
       $is_status_updated = DB::table($table_name)->where('id', $id)->where('created_by_dist_code', $district_code)->update($input);
+      $benEntry_model = BenEntry::where('id', $id)->where('scheme_id',  $scheme_id)->where('created_by_dist_code', $district_code)->first();
+      // dd($benEntry_model);
+      $benEntry_model->approval_rejected = $Rejected;
+      $benEntry_model->comments = $comments;
+      $benEntry_model->next_level_role_id = -1;
+      $benEntry_model->is_approved = 2;
+      $benEntry_model->is_verified = 2;
+      $benEntry_model->is_rejected = 1;
+      $benEntry_model->rejected_date = $c_time;
+      $benEntry_model->rejected_by = $user_id;
+      $benEntry_model->action_by = $user_id;
+      $benEntry_model->action_ip_address = $request->ip();
+      $benEntry_model->action_type = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod();
+      $is_status_updated = $benEntry_model->save();
+
+
       $is_saved_log = $accept_reject_model->save();
       $scheme_dedup_list = Config::get('constants.bank_mob_aadhar_update_check');
       if (in_array($scheme_id, $scheme_dedup_list)) {
@@ -1528,37 +2244,168 @@ class JBProcessApplicationController extends Controller
       }
       if ($is_status_updated && $is_saved_log && $free_pending_bank_duplicate_data && $reject_dup_adjustment) {
         DB::commit();
-        return redirect('ProcessApllicationApprover?scheme_id=' . $scheme_id)->withInput()->with('message', 'Beneficiary with ID:' . $id . ' Rejected Succesfully!');
+        return redirect('jbProcessApplication_hod?scheme_id=' . $scheme_id)->withInput()->with('message', 'Beneficiary with ID:' . $id . ' Rejected Succesfully!');
       } else {
         DB::rollback();
-        return redirect('ProcessApllicationApprover?scheme_id=' . $scheme_id)->with('message', 'Error! Please try again.');
+        return redirect('jbProcessApplication_hod?scheme_id=' . $scheme_id)->with('message', 'Error! Please try again.');
       }
     } else if ($_POST['submit'] == 'Revert') {
       $accept_reject_model->op_type = 'AE';
-      $input = [
-        'approval_rejected' => 3,
-        'comments' => $comments,
-        'next_level_role_id' => NULL,
-        'is_verified' => 0,
-        'is_approved' => 0,
-        'is_reverted' => 1,
-        'action_by' => $user_id,
-        'action_ip_address' => $request->ip(),
-        'action_type' => class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod()
-      ];
       $appPrefix = "App";
       DB::beginTransaction();
-      $is_status_updated = DB::table($table_name)->where('id', $id)->where('created_by_dist_code', $district_code)->update($input);
+      $benEntry_model = BenEntry::where('id', $id)->where('scheme_id',  $scheme_id)->where('created_by_dist_code', $district_code)->first();
+      $benEntry_model->approval_rejected = 3;
+      $benEntry_model->comments = $comments;
+      $benEntry_model->next_level_role_id = NULL;
+      $benEntry_model->is_verified = 0;
+      $benEntry_model->is_approved = 0;
+      $benEntry_model->is_reverted = 1;
+      $benEntry_model->action_by = $user_id;
+      $benEntry_model->action_ip_address = $request->ip();
+      $benEntry_model->action_type = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod();
+      $is_status_updated = $benEntry_model->save();
+      // $is_status_updated = DB::table($table_name)->where('id', $id)->where('created_by_dist_code', $district_code)->update($input);
       $is_saved_log = $accept_reject_model->save();
       if ($is_status_updated && $is_saved_log) {
         DB::commit();
-        return redirect('ProcessApllicationApprover?scheme_id=' . $scheme_id)->withInput()->with('message', 'Beneficiary with ID:' . $id . ' Reverted Succesfully!');
+        return redirect('jbProcessApplication_hod?scheme_id=' . $scheme_id)->withInput()->with('message', 'Beneficiary with ID:' . $id . ' Reverted Succesfully!');
       } else {
         DB::rollback();
-        return redirect('ProcessApllicationApprover?scheme_id=' . $scheme_id)->with('message', 'Error! Please try again.');
+        return redirect('jbProcessApplication_hod?scheme_id=' . $scheme_id)->with('message', 'Error! Please try again.');
       }
     }
   }
+
+  public function bulkRecomend(Request $request)
+  {
+    // dd($request->all());
+    // 
+    if (empty($request->scheme_id)) {
+      return redirect("/")->with('danger', 'Scheme ID Not Found');
+    }
+    if (!is_numeric($request->scheme_id)) {
+      return redirect("/")->with('danger', 'Scheme ID Not Valid');
+    }
+    $scheme_id = $request->scheme_id;
+
+    $user_id = AuthChecker::getUserId();
+    $id = $request->benId;
+    $c_time = date('Y-m-d H:i:s', time());
+    $table_name = 'pension.beneficiaries';
+
+    // $duty = Configduty::where('user_id', '=', $user_id)->where('scheme_id', $scheme_id)->first();
+    // $district_code = $duty->district_code;
+
+    $c_time = date('Y-m-d H:i:s', time());
+    $table_name = 'pension.beneficiaries';
+
+    if ($table_name == '') {
+      return redirect('/')->with('error', 'Scheme Not Found...');
+    }
+    $user_id = AuthChecker::getUserId();
+    $comments = $request->comments;
+    $accept_reject_model = new AcceptRejectInfo;
+    $accept_reject_model->created_at = $c_time;
+    $accept_reject_model->scheme_id = $scheme_id;
+    $accept_reject_model->user_id = $user_id;
+    $accept_reject_model->comment_message = $comments;
+    $accept_reject_model->user_id = $user_id;
+    // $accept_reject_model->created_by_dist_code = $district_code;
+    $accept_reject_model->module_name = class_basename(request()->route()->getAction()['controller']);
+    $accept_reject_model->ip_address = request()->ip();
+    $accept_reject_model->op_type = 'AA';
+    $user_id = AuthChecker::getUserId();
+    $scheme_obj = Scheme::where('id', $scheme_id)->where('is_active', 1)->first();
+
+    $inputs = request()->input('recomendcheck');
+
+
+
+    $next_level_role_id = Workflow::getID($scheme_id, Auth::user()->designation_id);
+    $parent_id = Workflow::getParentId($scheme_id, Auth::user()->designation_id);
+    foreach ($inputs as $input) {
+
+
+
+      $row = BenEntry::where('id', '=', $input)->where('scheme_id',  $scheme_id)->where('next_level_role_id', '=', $next_level_role_id)->first();
+
+      // dump($next_level_role_id, $parent_id, $row);
+      // die();
+
+      if (empty($row)) {
+        return redirect("/")->with('danger', 'Application id Not Found');
+      }
+    }
+
+
+
+
+
+    //$allowded_arr = BlkUrbanlEntryMapping::where('scheme_id', $scheme_id)->where('block_ulb_code', $row->created_by_local_body_code)->first();
+
+    //$approval_allowded = intval($allowded_arr->main_approval);
+    $approval_allowded=1;
+    if ($approval_allowded == 0) {
+      return redirect("/")->with('danger', 'Approval is temporarily suspended');
+    }
+
+
+
+    $payment_start_date = date('Y-m-d');
+
+
+    $appPrefix = "App";
+
+    DB::beginTransaction();
+    $count = 0;
+    foreach ($inputs as $input) {
+      $accept_reject_model->application_id = $input;
+
+
+      $ben_entry_model = BenEntry::where('id', $input)->where('scheme_id',  $scheme_id)->whereNull('is_lb_imported')->first();
+      // $is_status_updated = DB::table($table_name)->where('id', $id)->where('created_by_dist_code', $district_code)->whereNull('is_lb_imported')->whereNotNull('bank_code')->whereraw(" (sm_flag=1 or ds_phase=8 or ds_phase=9 or (ds_phase=10 or sm_ds_mark_ix=1))")->update($input);
+
+
+      // dd($ben_Entry_model);
+
+
+      $ben_entry_model->is_approved = 1;
+      $ben_entry_model->next_level_role_id = $parent_id;
+      $ben_entry_model->comments = $comments;
+      $ben_entry_model->payment_start_date = $payment_start_date;
+      $ben_entry_model->approval_date = $c_time;
+      $ben_entry_model->approved_by = $user_id;
+      $ben_entry_model->action_by = $user_id;
+      $ben_entry_model->action_ip_address = $request->ip();
+      $ben_entry_model->action_type = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod();
+
+      $is_status_updated = $ben_entry_model->save();
+
+      // $is_status_updated = DB::table($table_name)->where('id', $id)->where('created_by_dist_code', $district_code)->whereNotNull('bank_code')->update($input);
+
+      $is_saved_log = $accept_reject_model->save();
+      if ($is_status_updated && $is_saved_log)
+        $count++;
+
+    }
+    if ($count == count($inputs)) {
+      DB::commit();
+      return redirect('jbProcessApplication_hod?scheme_id=' . $scheme_id)->withInput()->with('message', 'Beneficiary  Recomend Succesfully!');
+    } else {
+      DB::rollback();
+      return redirect('jbProcessApplication_hod?scheme_id=' . $scheme_id)->with('message', 'Error! Please try again.');
+    }
+
+
+
+  }
+
+
+
+
+
+
+
 }
 
 // public function applicant_details(Request $request)

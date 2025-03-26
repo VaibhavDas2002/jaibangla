@@ -406,7 +406,7 @@
                 <th>GP/Ward Name</th>
                 <th>Status</th>
                 <th>Action</th>
-                @if($verifier_type == 'District' || $is_verifier)
+                @if($verifier_type == 'District')
           <th>Check</th>
         @endif
               </tr>
@@ -507,7 +507,7 @@
         { "data": "gp_ward_name" },
             { "data": "status" },
             { "data": "view" },
-            @if($verifier_type == 'District' || $is_verifier)
+            @if($verifier_type == 'District')
         { "data": "check" }
         @endif
             // { "data": "check" },

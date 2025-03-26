@@ -1761,7 +1761,8 @@ $('.special-char').keyup(function()
   var error_monthly_income = '';
   var error_caste_certificate_no = '';
 
-  var is_lb_imported = {{$row->is_lb_imported}};
+  
+  var is_lb_imported = '';
  
  if(is_lb_imported != 1){
   if($.trim($('#first_name').val()).length == 0)

@@ -2,7 +2,7 @@
 @extends('pension-details-view.pension_view_details')
 @if ($is_verifier && $view_type == 1)
     @section('form_section')
-    @if($row->next_level_role_id == null)
+    
         <form method="post" action="{{ route('jb-forward')}}">
             {{ csrf_field() }}
             <input type="hidden" name="benId" value="{{$row->id}}">
@@ -26,9 +26,9 @@
                 </div>
             </div>
         </form>
-    @endif
+   
     @endsection
-@elseif($is_approver && $view_type == 1)
+@elseif($is_approver && $view_type == 2)
     @section('form_section')
     <form method="post" action="{{ route('jb-forward-approve') }}">
         {{ csrf_field() }}
@@ -46,6 +46,32 @@
             @if ($approveBtnvisible == 1)
                 <div class="col-md-3 text-center">
                     <input type="submit" name="submit" value="Approve" id="Approvesubmit"
+                        class="btn btn-success btn-lg btn-action">
+                </div>
+            @endif
+        </div>
+    </form>
+
+    @endsection
+
+@elseif($is_hod && $view_type == 2)
+@section('form_section')
+    <form method="post" action="{{ route('jb-forward-recomend') }}">
+        {{ csrf_field() }}
+        <input type="hidden" name="scheme_id" value="{{ $row->scheme_id }}">
+        <input type="hidden" name="benId" value="{{ $row->id }}">
+        <div class="row">
+            <div class="col-md-3 text-center">
+                <input type="submit" name="submit" value="Reject" id="Rejectsubmit"
+                    class="btn btn-danger btn-lg btn-action">
+            </div>
+            <div class="col-md-3 text-center">
+                <input type="submit" name="submit" value="Revert" id="Revertsubmit"
+                    class="btn btn-primary btn-lg btn-action">
+            </div>
+            @if ($recomendBtnvisible == 1)
+                <div class="col-md-3 text-center">
+                    <input type="submit" name="submit" value="Recomend" id="Recomendsubmit"
                         class="btn btn-success btn-lg btn-action">
                 </div>
             @endif

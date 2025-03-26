@@ -332,10 +332,10 @@ margin: 10px 0px 10px 0px !important;
                     class="submit-once" >
                     <input type="hidden" name="scheme_id" id="scheme_id" value="{{$row->scheme_id}}"/>
                     <input type="hidden" name="id" id="id" value="{{$row->id}}"/>
-                    @if($designation_id=='Verifier')
+                    @if(($designation_id=='Verifier' || $designation_id=='Delegated Verifier'))
                     <input type="hidden" name="action_type" id="action_type" value="2"/>
                     @endif
-                   @if($designation_id=='Approver')
+                   @if(($designation_id=='Approver' || $designation_id=='Delegated Approver'))
                     <input type="hidden" name="action_type" id="action_type" value="3"/>
                     @endif
                      {{ csrf_field() }}
@@ -412,7 +412,7 @@ margin: 10px 0px 10px 0px !important;
                        </div>
                         @endif
                        <center> <button type="submit" id="submit" value="Submit"
-                          class="btn btn-success success btn-lg modal-submit">@if($designation_id=='Verifier') Verify @endif @if($designation_id=='Approver') Approve @endif</button>
+                          class="btn btn-success success btn-lg modal-submit">@if(($designation_id=='Verifier' || $designation_id=='Delegated Verifier')) Verify @endif @if(($designation_id=='Approver' || $designation_id=='Delegated Approver')) Approve @endif</button>
                         <button type="button" id="submitting" value="Submit" class="btn btn-success success btn-lg"
                           disabled>Submitting please wait</button></center>
                       

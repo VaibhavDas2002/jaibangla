@@ -514,11 +514,7 @@
             </div>
             <div class="row">
                 <div class="text-default" style="font-weight: bold; text-align: center; align-content: center;">
-                    @if ($passwardSetMsg == 1)
-                        Please set the password first before login.
-                    @else
-                        Your password is expired.
-                    @endif<br>
+                    
                     <small>NOTE: This password not the login OTP.</small>
                 </div>
             </div>
@@ -527,30 +523,25 @@
                     <form class="form-horizontal" method="POST" action="{{ route('reset-password-post') }}"
                         id="setPasswordForm">
                         {{ csrf_field() }}
-                        <input type="hidden" name="user" value="{{ $user_in }}">
-                        <input type="hidden" name="token" value="{{ $token_in }}">
+                        <input type="hidden" name="source_type" value="{{ $source_type }}">
+                        <input type="hidden" name="token_id" value="{{ $token_id }}">
                         <table width="100%" class="adminlogintable">
                             <tr>
                                 <td>
                                     <!-- Display All Errors -->
                                     @if (count($errors) > 0)
-                                        <div class="alert alert-danger" style="font-size: 12px;">
+                                       
                                             <ul>
                                                 @foreach ($errors as $error)
-                                                    <li>{{ $error }}</li>
+                                               <li> <p class="text-danger">{{ $error }}</p></li>
+                                                   
                                                 @endforeach
                                             </ul>
-                                        </div>
+                                        
                                     @endif
                                     @if (session('msg'))
-                                        <div class="alert alert-danger" style="text-align: center;">
-                                            {{ session('msg') }}
-                                        </div>
-                                    @endif
-                                    @if (session('otp'))
-                                        <div class="alert alert-success" style="text-align: center;">
-                                            {{ session('otp') }}
-                                        </div>
+                                    <p class="text-success">{{ session('msg') }}</p>
+                                        
                                     @endif
                                 </td>
                             </tr>

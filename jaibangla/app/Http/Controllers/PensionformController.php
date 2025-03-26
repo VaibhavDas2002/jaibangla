@@ -8,20 +8,15 @@ use App\programmeHeadMaster;
 use App\majorProgammeHeadMaster;
 use App\nhm_employee_details;
 use App\designationMaster;
-use App\nhm_service_category;
 use App\NHMEmployee;
 use App\Configduty;
 use App\District;
-use App\nhm_posting_level;
-use App\nhm_level_place;
+
 use App\nhm_health_facility;
 use App\UrbanBody;
 use App\SubDistrict;
 use App\PensionSc;
 use App\PensionSt;
-use App\PensionFisherman;
-use App\PensionMSME;
-use App\PensionTextile;
 
 use App\PensionManabikWCD;
 use App\PensionOAPWCD;
@@ -29,58 +24,22 @@ use App\PensionWPWCD;
 
 
 use App\PensionOAPFarmer;
-use App\BenDocsOAPFarmer;
-use App\BenDocsArcOAPFarmer;
 
-
-use App\PensionOAPST;
-
-
+use App\Workflow;
 //Dynamic Doc
-use App\BenDocsSc;
-use App\BenDocsSt;
-use App\BenDocsFisherman;
-use App\BenDocsMSME;
-use App\BenDocsTextile;
 
-use App\BenDocsManabikWCD;
-use App\BenDocsOAPWCD;
-use App\BenDocsWPWCD;
-
-use App\BenDocsArcSc;
-use App\BenDocsArcSt;
-use App\BenDocsArcFisherman;
-use App\BenDocsArcMSME;
-use App\BenDocsArcTextile;
-
-
-use App\BenDocsArcManabikWCD;
-use App\BenDocsArcOAPWCD;
-use App\BenDocsArcWPWCD;
-
-use App\PensionPurohitMonthlyICAD;
-use App\BenDocsPurohitMonthlyICAD;
-use App\BenDocsArcPurohitMonthlyICAD;
-
-use App\PensionPurohitHousingICAD;
-use App\BenDocsPurohitHousingICAD;
-use App\BenDocsArcPurohitHousingICAD;
 
 use App\SchemecodeStatic;
 
 use App\DocumentType;
 use App\SchemeDocMap;
 //Dynamic Doc End
-use App\Manabik;
 use App\Assembly;
 use App\Taluka;
 use App\Ward;
 use App\GP;
-use App\User;
-use Redirect;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Input;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use App\Scheme;
 use App\BankDetails;
@@ -88,17 +47,15 @@ use App\Helpers\Helper;
 use Illuminate\Support\Facades\Validator;
 use App\DsPhase;
 use App\BenDocs;
-use Illuminate\Support\Facades\Storage;
 use App\AcceptRejectInfo;
 use App\BenEntry;
 use App\Helpers\AuthChecker;
 use App\Traits\TraitAadharValidate;
 use App\Traits\TraitCasteCertificateValidate;
 use App\Traits\TraitLifeCertificateValidate;
-use Illuminate\Support\Facades\Session;
 use App\Helpers\DupCheck;
 use Illuminate\Support\Facades\Config;
-
+use App\SchemeStepRank;
 
 class PensionformController extends Controller
 {
@@ -161,7 +118,7 @@ class PensionformController extends Controller
         // echo $base_url.'/images/';exit;        
 
         $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
-                foreach ($roleArray as $roleObj) {
+        foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == $scheme_id) {
                 $is_active = 1;
                 $request->session()->put('level', $roleObj['mapping_level']);
@@ -221,6 +178,7 @@ class PensionformController extends Controller
      */
     public function store(Request $request)
     {
+        return redirect("/")->with('danger', 'User Disabled');
         $user_id = AuthChecker::getUserId();
         $designation_id = Auth::user()->designation_id;
         if (!in_array($designation_id, array('Operator'))) {
@@ -822,7 +780,7 @@ class PensionformController extends Controller
             }
             $is_active = 0;
             $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
-                        foreach ($roleArray as $roleObj) {
+            foreach ($roleArray as $roleObj) {
                 if ($roleObj['scheme_id'] == $scheme_id) {
                     $is_active = 1;
                     $mapping_level = $roleObj['mapping_level'];
@@ -898,118 +856,34 @@ class PensionformController extends Controller
         try {
             $id = $request->id;
             $scheme_id = $request->scheme_id;
-
+            $scheme_row = Scheme::where('id', $scheme_id)->first();
+            $scheme_name = $scheme_row->scheme_name;
+            $designation_id = Auth::user()->designation_id;
             if (!is_numeric($id)) {
                 return redirect("/")->with('danger', 'Applicant ID Not Valid');
             }
             $is_active = 0;
             $user_id = AuthChecker::getUserId();
 
-            $duty = Configduty::where('user_id', '=', $user_id)->where('is_active', 1)->first();
+            $duty_obj = Configduty::where('user_id', $user_id)->where('scheme_id', $scheme_id)->first();
 
-            if ($duty->mapping_level == 'Department') {
+            if ($duty_obj->mapping_level == 'Department') {
                 $is_active = 1;
             } else {
-                $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
-                                foreach ($roleArray as $roleObj) {
-                    if ($roleObj['scheme_id'] == $scheme_id) {
-                        $is_active = 1;
-                        $mapping_level = $roleObj['mapping_level'];
-                        $distCode = $roleObj['district_code'];
-                        $is_urban = $roleObj['is_urban'];
-                        $is_state_login = $roleObj['is_state_login'];
-                        if ($roleObj['is_urban'] == 1) {
-                            $blockCode = $roleObj['urban_body_code'];
-                        } else {
-                            $blockCode = $roleObj['taluka_code'];
-                        }
-                        break;
-                    }
-                }
+                $distCode = $duty_obj->district_code;
+                $blockCode = $duty_obj->is_urban == 1 ? $duty_obj->urban_body_code : $duty_obj->taluka_code;
+                $is_urban = $duty_obj->is_urban;
             }
 
-            if ($is_active == 0) {
-                return redirect("/")->with('danger', 'User Disabled');
+            if (empty($duty_obj)) {
+                return redirect("/")->with('error', 'User Disabled');
             }
-            $is_state_login = 0;
+               
             $docs = array();
             $row = null;
-            if ($scheme_id == 13) {
-                $row = BenEntry::find($id);
-                if ($duty->mapping_level == 'Department') {
-                    $distCode = $row->created_by_dist_code;
-                }
-                $docs = BenDocs::where('beneficiary_id', $id)->where('created_by_dist_code', $distCode)->orderBy('document_type')->get();
-            } else if ($scheme_id == 3) {
-                $row = BenEntry::find($id);
-                if ($duty->mapping_level == 'Department') {
-                    $distCode = $row->created_by_dist_code;
-                }
-                $docs = BenDocs::where('beneficiary_id', $id)->where('created_by_dist_code', $distCode)->orderBy('document_type')->get();
-            } else if ($scheme_id == 1) {
-                $row = BenEntry::find($id);
-                if ($duty->mapping_level == 'Department') {
-                    $distCode = $row->created_by_dist_code;
-                }
-                $docs = BenDocs::where('beneficiary_id', $id)->where('created_by_dist_code', $distCode)->orderBy('document_type')->get();
-            } else if ($scheme_id == 5) {
-                $row = BenEntry::find($id);
-                if ($duty->mapping_level == 'Department') {
-                    $distCode = $row->created_by_dist_code;
-                }
-                $docs = BenDocs::where('beneficiary_id', $id)->where('created_by_dist_code', $distCode)->orderBy('document_type')->get();
-            } else if ($scheme_id == 6) {
-                $row = BenEntry::find($id);
-                if ($duty->mapping_level == 'Department') {
-                    $distCode = $row->created_by_dist_code;
-                }
-                $docs = BenDocs::where('beneficiary_id', $id)->where('created_by_dist_code', $distCode)->orderBy('document_type')->get();
-            } else if ($scheme_id == 7) {
-                $row = BenEntry::find($id);
-                if ($duty->mapping_level == 'Department') {
-                    $distCode = $row->created_by_dist_code;
-                }
-                $docs = BenDocs::where('beneficiary_id', $id)->where('created_by_dist_code', $distCode)->orderBy('document_type')->get();
-            } else if ($scheme_id == 2) {
-                $row = BenEntry::find($id);
-                if ($duty->mapping_level == 'Department') {
-                    $distCode = $row->created_by_dist_code;
-                }
-                // $docs = BenDocsManabikWCD::where('ben_id', $id)->orderBy('doc_type_id')->get();
-                $docs = BenDocs::where('beneficiary_id', $id)->where('created_by_dist_code', $distCode)->orderBy('document_type')->get();
-            } else if ($scheme_id == 10) {
-                $row = BenEntry::find($id);
-                if ($duty->mapping_level == 'Department') {
-                    $distCode = $row->created_by_dist_code;
-                }
-                $docs = BenDocs::where('beneficiary_id', $id)->where('created_by_dist_code', $distCode)->orderBy('document_type')->get();
-            } else if ($scheme_id == 11) {
-                $row = BenEntry::find($id);
-                if ($duty->mapping_level == 'Department') {
-                    $distCode = $row->created_by_dist_code;
-                }
-                $docs = BenDocs::where('beneficiary_id', $id)->where('created_by_dist_code', $distCode)->orderBy('document_type')->get();
-            } else if ($scheme_id == $this->monthlySchemeCode) {
-                $row = $this->monthlyMainTable::find($id);
-                if ($duty->mapping_level == 'Department') {
-                    $distCode = $row->created_by_dist_code;
-                }
-                //$docs = $this->monthlyDocTable::where('ben_id', $id)->orderBy('doc_type_id')->get();
-                $docs = BenDocs::where('beneficiary_id', $id)->where('created_by_dist_code', $distCode)->orderBy('document_type')->get();
-
-            } else if ($scheme_id == $this->housingSchemeCode) {
-                $row = $this->housingMainTable::find($id);
-                if ($duty->mapping_level == 'Department') {
-                    $distCode = $row->created_by_dist_code;
-                }
-                $docs = $this->housingDocTable::where('ben_id', $id)->orderBy('doc_type_id')->get();
-            } else if ($scheme_id == 19) {
-                $row = BenEntry::find($id);
-                if ($duty->mapping_level == 'Department') {
-                    $distCode = $row->created_by_dist_code;
-                }
-                $docs = collect([]);
-            }
+            $row = BenEntry::find($id);
+            $docs = BenDocs::where('beneficiary_id', $id)->where('created_by_dist_code', $distCode)->orderBy('document_type')->get();
+           
             if (empty($row)) {
                 return redirect("/")->with('danger', 'Not Allowed');
             }
@@ -1052,47 +926,30 @@ class PensionformController extends Controller
                 $doc_profile_image_id = $doc_profile_image->id;
             }
 
-            if ($is_state_login) {
-                $district_state = District::where('district_code', '=', $row->created_by_dist_code)->get(['district_code', 'district_name'])->first();
-                $district_state_name = trim($district_state->district_name);
-                $row->district_state_name = $district_state_name;
-                if ($row->block_ulb_type == 1) {
-                    $sdo_state = SubDistrict::where('sub_district_code', '=', $row->created_by_local_body_code)->get(['sub_district_code', 'sub_district_name'])->first();
-                    $block_subdiv_state_name = trim($sdo_state->sub_district_name);
-                } else {
-                    // dd($row->created_by_local_body_code);
-                    $block_state = Taluka::where('block_code', '=', $row->created_by_local_body_code)->first();
-                    $block_subdiv_state_name = trim($block_state->block_name);
-                }
-                $row->block_subdiv_state_name = $block_subdiv_state_name;
-            } else {
-                $row->district_state_name = '';
-                $row->urban_code_state_name = '';
-                $row->block_subdiv_state_name = '';
-            }
-            if ($scheme_id == 13) {
-
-                return view('farmer/pension_view_details_read_only', ['row' => $row, 'district_name' => $district_name, 'block_name' => $block_name, 'gp_name' => $gp_name, 'docs' => $docs, 'image_id' => $doc_profile_image_id]);
-            } else if ($scheme_id == 5) {
-                return view('fisherman/pension_view_details_read_only', ['row' => $row, 'district_name' => $district_name, 'block_name' => $block_name, 'gp_name' => $gp_name, 'docs' => $docs, 'image_id' => $doc_profile_image_id]);
-            } else if ($scheme_id == 6) {
-                return view('msme/pension_view_details_read_only', ['row' => $row, 'district_name' => $district_name, 'block_name' => $block_name, 'gp_name' => $gp_name, 'docs' => $docs, 'image_id' => $doc_profile_image_id]);
-            } else if ($scheme_id == 7) {
-                return view('textile/pension_view_details_read_only', ['row' => $row, 'district_name' => $district_name, 'block_name' => $block_name, 'gp_name' => $gp_name, 'docs' => $docs, 'image_id' => $doc_profile_image_id]);
-            } else if ($scheme_id == 2) {
-                return view('MANABIKWCD/pension_view_details_read_only', ['row' => $row, 'district_name' => $district_name, 'block_name' => $block_name, 'gp_name' => $gp_name, 'docs' => $docs, 'image_id' => $doc_profile_image_id]);
-            } else if ($scheme_id == 10) {
-                return view('OAPWCD/pension_view_details_read_only', ['row' => $row, 'district_name' => $district_name, 'block_name' => $block_name, 'gp_name' => $gp_name, 'docs' => $docs, 'image_id' => $doc_profile_image_id]);
-            } else if ($scheme_id == 11) {
-                return view('WPWCD/pension_view_details_read_only', ['row' => $row, 'district_name' => $district_name, 'block_name' => $block_name, 'gp_name' => $gp_name, 'docs' => $docs, 'image_id' => $doc_profile_image_id]);
-            } else if ($scheme_id == $this->monthlySchemeCode) {
-                return view('PurohitICAD/pension_view_details_read_only', ['scheme_id' => $scheme_id, 'row' => $row, 'district_name' => $district_name, 'block_name' => $block_name, 'gp_name' => $gp_name, 'docs' => $docs, 'image_id' => $doc_profile_image_id]);
-            } else if ($scheme_id == $this->housingSchemeCode) {
-                return view('PurohitICAD/pension_view_details_read_only', ['scheme_id' => $scheme_id, 'row' => $row, 'district_name' => $district_name, 'block_name' => $block_name, 'gp_name' => $gp_name, 'docs' => $docs, 'image_id' => $doc_profile_image_id]);
-            } else if ($scheme_id == 19) {
-                return view('fisherman/pension_view_details_read_only', ['row' => $row, 'district_name' => $district_name, 'block_name' => $block_name, 'gp_name' => $gp_name, 'docs' => $docs, 'image_id' => $doc_profile_image_id]);
-            } else
-                return view('pension_view_details_read_only', ['row' => $row, 'district_name' => $district_name, 'block_name' => $block_name, 'gp_name' => $gp_name, 'docs' => $docs, 'image_id' => $doc_profile_image_id]);
+            return view('pension-details-view/pension_view_common', [
+                'designation_id' => $designation_id,
+                'is_state_login' => null,
+                'district_state_name' => null,
+                'block_subdiv_state_name' => null,
+                'approveBtnvisible' => 0,
+                'verifyBtnvisible' => 0,
+                'scheme_capacity_arr' => array(),
+                'row' => $row,
+                'district_name' => $district_name,
+                'block_name' => $block_name,
+                'gp_name' => $gp_name,
+                'docs' => $docs,
+                'image_id' => $doc_profile_image_id,
+                'reject_revert_cause_list' => array(),
+                'is_dup_msg' =>array(),
+                'scheme_id' => $scheme_id,
+                'scheme_name' => $scheme_name,
+                'is_verifier' => 0,
+                'is_approver' => 0,
+                'is_hod' => null,
+                'view_type' =>null,
+              ]);
+            
         } catch (\Exception $e) {
             // dd($e);
             return redirect("/")->with('error', 'Some error.please try again ......');
@@ -1113,88 +970,25 @@ class PensionformController extends Controller
             return redirect("/")->with('danger', 'Applicant ID Not Valid');
         }
         $row = array();
-        if ($scheme_id == 13) {
-            // $row = PensionSc::find($id);
-            $model_name = 'App\\PensionOAPFarmer';
-        } else if ($scheme_id == 3) {
-            // $row = PensionSc::find($id);
-            $model_name = 'App\\PensionSc';
-        } else if ($scheme_id == 1) {
-            //$row = PensionSt::find($id);
-            $model_name = 'App\\PensionSt';
-        } else if ($scheme_id == 5) {
-            //  $row = PensionFisherman::find($id);
-            $model_name = 'App\\PensionFisherman';
-        } else if ($scheme_id == 6) {
-            //$row = PensionMSME::find($id);
-            $model_name = 'App\\PensionMSME';
-        } else if ($scheme_id == 7) {
-            // $row = PensionTextile::find($id);
-            $model_name = 'App\\PensionTextile';
-        } else if ($scheme_id == 2) {
-            // $row = PensionManabikWCD::find($id);
-            $model_name = 'App\\PensionManabikWCD';
-        } else if ($scheme_id == 10) {
-            // $row = PensionOAPWCD::find($id);
-            $model_name = 'App\\PensionOAPWCD';
-        } else if ($scheme_id == 11) {
-            // $row = PensionWPWCD::find($id);
-            $model_name = 'App\\PensionWPWCD';
-        } else if ($scheme_id == $this->monthlySchemeCode) {
-            // $row = $this->monthlyMainTable::find($id);
-            $model_name = $this->monthlyMainTable;
-        } else if ($scheme_id == $this->housingSchemeCode) {
-            //$row = $this->housingMainTable::find($id);
-            $model_name = $this->housingMainTable;
-        }
-        $is_active = 0;
-        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
-                foreach ($roleArray as $roleObj) {
-            if ($roleObj['scheme_id'] == $scheme_id) {
+        
+        $duty_obj = Configduty::where('user_id', $user_id)->where('scheme_id', $scheme_id)->first();
+
+            if ($duty_obj->mapping_level == 'Department') {
                 $is_active = 1;
-                $mapping_level = $roleObj['mapping_level'];
-                $distCode = $roleObj['district_code'];
-                $is_urban = $roleObj['is_urban'];
-                $is_state_login = $roleObj['is_state_login'];
-                if ($roleObj['is_urban'] == 1) {
-                    $blockCode = $roleObj['urban_body_code'];
-                } else {
-                    $blockCode = $roleObj['taluka_code'];
-                }
-                break;
-            }
-        }
-        // $model_name = 'App\\BenEntry';
-        //dd($distCode);
-        if ($is_active == 0) {
-            return redirect("/")->with('error', 'User Disabled');
-        }
-        if ($scheme_id == 17) {
-            $query = $model_name::where(['id' => $id, 'scheme_id' => $scheme_id]);
-        } else {
-            if ($is_state_login) {
-                $query = $model_name::where(['id' => $id, 'is_state' => TRUE, 'scheme_id' => $scheme_id]);
             } else {
-                $query = $model_name::where(['id' => $id, 'created_by_dist_code' => $distCode, 'scheme_id' => $scheme_id]);
+                $distCode = $duty_obj->district_code;
+                $blockCode = $duty_obj->is_urban == 1 ? $duty_obj->urban_body_code : $duty_obj->taluka_code;
+                $is_urban = $duty_obj->is_urban;
             }
-        }
-        if ($designation_id == 'Verifier') {
-            if ($is_state_login) {
-                $query = $query->where('next_level_role_id', $this->state_login_next_level_role_id_arr['entry']);
-            } else {
-                $query = $query->whereNull('next_level_role_id');
+
+            if (empty($duty_obj)) {
+                return redirect("/")->with('error', 'User Disabled');
             }
-        } else if ($designation_id == 'Approver') {
-            if ($is_state_login) {
-                $query = $query->where('next_level_role_id', $this->state_login_next_level_role_id_arr['verified']);
-            } else {
-                $query = $query->where('is_verified', 1)->where('is_approved', 0)->where('is_rejected', 0);
-            }
-        }
-        $row = $query->first();
-        if (empty($row->bank_code)) {
+        
+            $row = BenEntry::find($id);
+            if (empty($row->bank_code)) {
             return redirect("/")->with('error', 'Applicant Id not found');
-        }
+            }
         $districts = District::where('is_revenue_district', '=', '1')->get(['district_code', 'district_name']);
         $scheme_row = Scheme::where('id', $scheme_id)->first();
         $scheme_name = $scheme_row->scheme_name;
@@ -1351,7 +1145,7 @@ class PensionformController extends Controller
         $is_active = 0;
         $mapping_level = NULL;
         $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
-                foreach ($roleArray as $roleObj) {
+        foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == $scheme_id) {
                 $is_active = 1;
                 $mapping_level = $roleObj['mapping_level'];
@@ -2663,70 +2457,43 @@ class PensionformController extends Controller
             return redirect("/")->with('error', 'Not Allowed');
         }
         //dd($request->get('pr1'));
-        if ($request->get('pr1')) {
-            $short_code = $request->pr1;
-            $scheme_id = $request->id;
+        if ($request->get('scheme_id')) {
+            $scheme_id = $request->scheme_id;
             $scheme_row = Scheme::where('is_active', 1)->where('id', $scheme_id)->first();
-            // dd($scheme_row);
             if (empty($scheme_row)) {
                 return redirect("/")->with('error', 'Parameter not valid');
             }
-            // dd($scheme_row->scheme_name);
             $scheme_name = $scheme_row->scheme_name;
-            $schema_name = $scheme_row->short_code;
-            $scheme_id = $scheme_row->id;
-            $scheme_length = $scheme_row->scheme_length;
-            $id_length = $scheme_row->id_length;
+
         } else {
             return redirect("/")->with('error', 'Parameter not valid');
         }
         // $is_active = 0;
-        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
-                foreach ($roleArray as $roleObj) {
-            if ($roleObj['scheme_id'] == $scheme_id) {
-                $is_active = 1;
-                $level = $roleObj['mapping_level'];
-                $is_urban = $roleObj['is_urban'];
-                $distCode = $roleObj['district_code'];
-                $is_state_login = $roleObj['is_state_login'];
-                if ($roleObj['is_urban'] == 1) {
-                    $blockCode = $roleObj['urban_body_code'];
-                } else {
-                    $blockCode = $roleObj['taluka_code'];
-                }
-                break;
-            }
-        }
-        // dd($is_active);
-        if ($is_active == 0) {
+        $duty_obj = Configduty::where('user_id', $user_id)->where('is_active',1)->where('scheme_id', $scheme_id)->first();
+        if (empty($duty_obj)) {
             return redirect("/")->with('error', 'User Disabled');
         }
+        $distCode = $duty_obj->district_code;
+        $blockCode = $duty_obj->is_urban == 1 ? $duty_obj->urban_body_code : $duty_obj->taluka_code;
+        $is_urban = $duty_obj->is_urban;
+        
         $report_type_name = 'Application List which are not yet verified or approved';
         // dd('ok');
         if (request()->ajax()) {
 
-            // ($request->all());
             $condition = array();
-            if ($is_state_login) {
-                $condition["is_state"] = TRUE;
-                $condition["next_level_role_id"] = $this->state_login_next_level_role_id_arr['entry'];
-            } else {
-                $condition["created_by_dist_code"] = $distCode;
-                $condition["created_by_local_body_code"] = $blockCode;
-            }
+            $condition["created_by_dist_code"] = $distCode;
+            $condition["created_by_local_body_code"] = $blockCode;
+            
             $serachvalue = $request->search['value'];
             $limit = $request->input('length');
             $offset = $request->input('start');
             $totalRecords = 0;
             $filterRecords = 0;
             $data = array();
-            if ($is_state_login) {
-                $query = DB::table($schema_name . '.beneficiaries')->where($condition)->where('scheme_id', $scheme_id);
-            } else
-                $query = DB::table($schema_name . '.beneficiaries')->where($condition)->where('scheme_id', $scheme_id)->whereNull('next_level_role_id');
-            if ($scheme_id == 11) {
-                $query = $query->whereNull('process_nsap_flag');
-            }
+            $next_level_role_id_operator=SchemeStepRank::getSchemeParentId($scheme_id, 1);
+            $query = BenEntry::where($condition)->where('scheme_id', $scheme_id)->where('next_level_role_id',  $next_level_role_id_operator)->whereNull('lb_application_id');
+           
             $is_reverted = $request->is_reverted;
             // dd($query);
             if ($is_reverted == 1) {
@@ -2825,10 +2592,12 @@ class PensionformController extends Controller
                 ->setTotalRecords($totalRecords)
                 ->setFilteredRecords($filterRecords)
                 ->skipPaging()
-                ->addColumn('application_id', function ($data) use ($scheme_length, $id_length) {
-                    $app_id = $data->created_by_dist_code . substr('0' . $data->scheme_id, -$scheme_length) . substr('0000000' . $data->id, -$id_length);
+                ->addColumn('application_id', function ($data)  {
 
-                    return $app_id;
+                    return $data->id;
+                })->addColumn('ben_id_encrypt', function ($data)  {
+
+                    return urlencode(encrypt($data->id));
                 })
                 ->addColumn('ben_name', function ($data) {
                     // return $data->getName();
@@ -2864,6 +2633,7 @@ class PensionformController extends Controller
                 ->rawColumns(['ben_id', 'ben_name', 'ben_age', 'gender', 'bank_ifsc', 'bank_code', 'village_town_city', 'action'])
                 ->make(true);
         } else {
+            //dd($is_urban);
 
             return view(
                 'commonView/editList',
@@ -2871,7 +2641,6 @@ class PensionformController extends Controller
                     'district_code' => $distCode,
                     'block_code' => $blockCode,
                     'scheme' => $scheme_id,
-                    'pr1' => $request->pr1,
                     'scheme_name' => $scheme_name,
                     'report_type_name' => $report_type_name,
                     'is_urban' => $is_urban
@@ -2897,7 +2666,7 @@ class PensionformController extends Controller
 
     function applicationreject(Request $request)
     {
-
+        // dd('ok');
         $user_id = AuthChecker::getUserId();
         $c_time = date('Y-m-d H:i:s', time());
         $accept_reject_model = new AcceptRejectInfo;
@@ -2908,7 +2677,7 @@ class PensionformController extends Controller
         $accept_reject_model->created_by_dist_code = $request->district_code;
         $accept_reject_model->created_by_local_body_code = $request->block_code;
         $accept_reject_model->ip_address = request()->ip();
-        $accept_reject_model->op_type = 'OR';
+        $accept_reject_model->op_type = 'AR';
 
         $scheme_obj = Scheme::where('id', $request->scheme_id)->where('is_active', 1)->first();
         if (!empty($scheme_obj->short_code)) {
@@ -2920,19 +2689,28 @@ class PensionformController extends Controller
             $scheme_length = NULL;
             $id_length = NULL;
         }
-        $input = ['next_level_role_id' => -4, 'is_rejected' => 1, 'is_verified' => 2, 'is_approved' => 2, 'rejected_date' => $c_time, 'rejected_by' => $user_id];
+        $benEntry_Model = BenEntry::where('scheme_id', $request->scheme_id)->where('id', $request->id)->where('next_level_role_id', SchemeStepRank::getSchemeParentId($request->scheme_id, 1))->first();
+        $benEntry_Model->next_level_role_id = -4;
+        $benEntry_Model->is_rejected = 1;
+        $benEntry_Model->is_verified = 2;
+        $benEntry_Model->is_approved = 2;
+        $benEntry_Model->rejected_date = $c_time;
+        $benEntry_Model->rejected_by =$user_id;
+        $benEntry_Model->is_clean =10;
+
         DB::beginTransaction();
         $is_saved_log = $accept_reject_model->save();
         if ($is_saved_log) {
-            $is_update = DB::table($schema . '.beneficiary')->where('id', $request->id)->where('created_by_dist_code', $request->district_code)->update($input);
+            $is_ben_update = $benEntry_Model->save();
         }
-        if ($is_saved_log && $is_update) {
+
+        if ($is_saved_log && $is_ben_update) {
             DB::commit();
-            return redirect('application-list-read-only-edit?pr1=' . $schema)->with('success', 'Rejected Succesfully!')
+            return redirect('application-list-read-only-edit?scheme_id=' . $request->scheme_id)->with('success', 'Rejected Succesfully!')
                 ->with('id', $request->id);
         } else {
             DB::rollback();
-            return redirect('application-list-read-only-edit?pr1=' . $schema)->with('errors', 'Error! Please try again.');
+            return redirect('application-list-read-only-edit?scheme_id=' . $request->scheme_id)->with('errors', 'Error! Please try again.');
         }
 
     }

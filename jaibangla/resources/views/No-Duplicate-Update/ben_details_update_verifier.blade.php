@@ -162,8 +162,15 @@
         }
 
         .btnJb {
-            margin: 20px;
+            margin: 2px;
         }
+        .btn-group {
+            display: flex;
+            justify-content: space-evenly;
+            flex-direction: row;
+            flex-wrap: wrap;
+        }
+        
     </style>
 </head>
 
@@ -192,6 +199,13 @@
                     @endif
                 </div>
 
+                @if( $canBankupdate != 1)
+                <div class="alert alert-danger alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                <h4><i class="icon fa fa-ban"></i> Alert ! </h4>
+                A/C No Cannot Be Updated/Modified.
+              </div>
+        @endif
                 
                 <div class="row">
 
@@ -238,7 +252,7 @@
 
                                     <div class="row">
                                         <div class="col-md-12">
-                                            <h3 style="text-align: center; color:rgb(18, 219, 62);">Application ID:{{ $row->id }}
+                                            <h3 style="text-align: center; color:rgb(18, 219, 62);">Beneficiary ID:{{ $row->id }}
                                                 <a href="{{ route('noDupBeneficiariesList') }}"><img width="50px;" style="pull-right ;"
                                                         src="{{ asset('images/back.png') }}" alt="Back" /></a>
                                             </h3>
@@ -252,6 +266,7 @@
                                     <div class="row">
                                         <div class="col-md-12">
                                             <h3 style="text-align: center; color:rgb(238, 9, 9);">
+                                            @if(!empty($PaymentErrorType))
                                                 @if($PaymentErrorType->pay_validated == 3)
                                                 Payment Transaction Failed from SBI.
                                                 @endif
@@ -261,6 +276,9 @@
                                                 @if($PaymentErrorType->pay_validated == 5)
                                                 Payment Transaction Failed from IFMS.
                                                 @endif
+                                            @endif    
+                                        
+
                                             </h3>
                                         </div>
                                     </div>
@@ -369,7 +387,7 @@
                                                             id="bank_ifsc_code" class="form-control"
                                                             autocomplete="off" placeholder="IFSC Code"
                                                             onkeyup="this.value = this.value.toUpperCase();"
-                                                            value="{{ trim($row->bank_ifsc) }}" />
+                                                            value="{{ trim($row->bank_ifsc) }}" @if($canBankupdate != 1) readonly @endif/>
                                                         <span id="error_bank_ifsc_code" class="text-danger"></span>
                                                     </div>
                                                     <div class="form-group col-md-4">
@@ -400,7 +418,7 @@
                                                             Account</label>
                                                         <input type="text" name="new_bank_code" id="new_bank_code"
                                                             class="form-control NumOnly" placeholder="Bank Account"
-                                                            value="{{ trim($row->bank_code) }}" />
+                                                            value="{{ trim($row->bank_code) }}"   @if($canBankupdate != 1) readonly @endif  />
                                                         <span id="error_new_bank_code" class="text-danger"></span>
                                                     </div>
 
@@ -409,7 +427,7 @@
                                                             Account</label>
                                                         <input type="text" name="new_confirm_bank_code" id="new_confirm_bank_code"
                                                             class="form-control NumOnly" placeholder="Confrin Bank Account"
-                                                            value="{{ trim($row->bank_code) }}" />
+                                                            value="{{ trim($row->bank_code) }}"    @if($canBankupdate != 1) readonly @endif />
                                                         <span id="error_new_confirm_bank_code" class="text-danger"></span>
                                                     </div>
 
@@ -420,7 +438,7 @@
                                                         <label class="required-field">Passbook
                                                             Document</label>
                                                         <input type="file" name="new_bank_doc" id="new_bank_doc"
-                                                            class="form-control" />
+                                                            class="form-control"/>
                                                         <span id="error_new_bank_doc" class="text-danger"></span>
                                                     </div>
                                                     @if($getBankDoc > 0)
@@ -467,7 +485,7 @@
                                                         <div style="padding: 5px 5px 5px 50px; border: 1px solid whitesmoke; border-radius: 5px; margin: 5px 0px; background-color: whitesmoke;" class="row">
                                                             @foreach ($name_options as $options )
                                                             <label style="cursor: pointer; margin-bottom: 5px;">
-                                                                <input type="radio" id="process_type" name="process_type" class="process_type_radio" value="{{$options->id}}">
+                                                                <input type="radio" id="process_type" name="process_type" class="process_type_radio" value="{{$options->id}}" >
                                                                 {{ $options->description }}
                                                             </label><br>
                                                             @endforeach                                                            
@@ -483,7 +501,6 @@
 
 
                                         @if (intval($row->dup_mobile) == 1 || intval($row->no_mobile) == 1 || intval($row->is_bank_failed == 1))
-
                                         <div class="panel panel-default">
                                             <div class="panel-heading" id="panel_head"
                                                 style="font-size: 14px; font-weight: bold; font-style: italic;">New Mobile Details</div>
@@ -794,14 +811,54 @@
 
         </div>
 
-        <div class="col-md-12" align="center">
-            <div class="btn-group">
-                <button type="button" class="btnJb btn btn-info confirmBtn" id="fetch_document"
-                    value="1" op_text="Are You Want to Update">Update</button>
-            </div>
+        <div class="row text-center">
+    <div class="col-md-6 col-md-offset-3">
+        <div class="btn-group">
+            <button type="button" class="btnJb btn btn-info confirmBtn" id="fetch_document"
+                value="1" op_text="Are You Want to Update">Update</button>
+            <button type="button" class="btn btn-danger btnJb" data-toggle="modal" data-target="#modal-danger">Reject</button>
         </div>
+    </div>
+</div>
+
 
         <br />
+
+
+        <!-- <div class="col-md-12 text-right">
+            <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#modal-danger">Reject</button>
+        </div> -->
+
+        <div class="modal fade" id="modal-danger" tabindex="-1" role="dialog" aria-labelledby="modal-danger-label" aria-hidden="true">
+            <form action="{{ route('rejectApplicantDetails') }}" method="post" id="rejectForm">
+                {{ csrf_field() }}
+                <input type="hidden" id="id" name="id" value="{{ $row->id }}">
+                <input type="hidden" id="scheme_id" name="scheme_id" value="{{ $row->scheme_id }}">
+                <input type="hidden" id="op_type" name="op_type" value="R">
+
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                    <div class="modal-header bg-red">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                        <h2 class="modal-title" id="modal-danger-label">Reject Confirmation</h2>
+                    </div>
+                        <div class="modal-body">
+                        <h3>Are you sure you want to reject this applicant with Beneficiary id  {{$row->id}}?</h3> 
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-danger">Ok</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+
+      
+
     </div>
     </div>
     </div>
@@ -854,6 +911,8 @@
             </div>
         </div>
     </div>
+
+
     </section>
 
     <!-- Main content -->
@@ -928,6 +987,8 @@
             $('#new_bank_code, #new_confirm_bank_code').on('keyup', function() {
                 validateBankCodes();
             });
+
+          
 
             $('.confirmBtn').click(function() {
                 var designation_id = $("#designation_id").val();
@@ -1225,46 +1286,50 @@
             // *******End Hide Keep Same******* //
 
             // *******Fetch Bank Details******* //
-            // $('#bank_ifsc_code').blur(function() {
-            //     $ifsc_data = $.trim($('#bank_ifsc_code').val());
-            //     $ifscRGEX = /^[a-z]{4}0[a-z0-9]{6}$/i;
-            //     if ($ifscRGEX.test($ifsc_data)) {
-            //         $('#bank_ifsc_code').removeClass('has-error');
-            //         $('#error_bank_ifsc_code').text('');
-            //         $('#error_new_bank_name').html('<img  src="{{ asset('images / ZKZg.gif ') }}" width="50px" height="50px"/>');
-            //         $('#error_new_bank_branch').html('<img  src="{{ asset('images / ZKZg.gif ') }}" width="50px" height="50px"/>');
-            //         $.ajax({
-            //             type: 'POST',
-            //             url: '{{ url('legacy / getBankDetails ') }}',
-            //             data: {
-            //                 ifsc: $ifsc_data,
-            //                 _token: '{{ csrf_token() }}',
-            //             },
-            //             success: function(data) {
-            //                 if (!data || data.length === 0) {
-            //                     $('#error_bank_ifsc_code').text('No data found with the IFSC');
-            //                     $('#bank_ifsc_code').addClass('has-error');
-            //                     return;
-            //                 }
-            //                 data = JSON.parse(data);
-            //                 // console.log(data);
-            //                 $('#new_bank_name').val(data.bank);
-            //                 $('#new_bank_branch').val(data.branch);
-            //                 $('#error_new_bank_name').html('');
-            //                 $('#error_new_bank_branch').html('');
-            //                 $('#faulty_form_same #old_bank_ifsc').val($ifsc_data);
-            //             },
-            //             error: function(ex) {
-            //                 alert(sessiontimeoutmessage);
-            //                 window.location.href = base_url;
-            //             }
-            //         });
+            $('#bank_ifsc_code').blur(function() {
+                $ifsc_data = $.trim($('#bank_ifsc_code').val());
+                $ifscRGEX = /^[a-z]{4}0[a-z0-9]{6}$/i;
+                if ($ifscRGEX.test($ifsc_data)) {
+                    $('#bank_ifsc_code').removeClass('has-error');
+                    $('#error_bank_ifsc_code').text('');
+                    $('#error_new_bank_name').html('<img src="{{ asset('images/ZKZg.gif') }}" width="50px" height="50px"/>');
+                    $('#error_new_bank_branch').html('<img src="{{ asset('images/ZKZg.gif') }}" width="50px" height="50px"/>');
+                    $.ajax({
+                        type: 'POST',
+                        url: '{{ url('legacy/getBankDetails') }}',
+                        data: {
+                            ifsc: $ifsc_data,
+                            _token: '{{ csrf_token() }}',
+                        },
+                        success: function(data) {
+                            // console.log(data);
+                            if (!data || data.length === 0 || data == 'null') {
+                                // alert('not found');
+                                $('#error_bank_ifsc_code').text('No data found with the IFSC');
+                                $('#bank_ifsc_code').addClass('has-error');
+                                // $('#new_bank_name').val('');
+                                // $('#new_bank_branch').val('');
+                                return;
+                            }
+                            data = JSON.parse(data);
+                            // console.log(data);
+                            $('#new_bank_name').val(data.bank);
+                            $('#new_bank_branch').val(data.branch);
+                            $('#error_new_bank_name').html('');
+                            $('#error_new_bank_branch').html('');
+                            $('#faulty_form_same #old_bank_ifsc').val($ifsc_data);
+                        },
+                        error: function(ex) {
+                            alert(sessiontimeoutmessage);
+                            window.location.href = base_url;
+                        }
+                    });
 
-            //     } else {
-            //         $('#error_bank_ifsc_code').text('IFSC format invalid please check the code');
-            //         $('#bank_ifsc_code').addClass('has-error');
-            //     }
-            // });
+                } else {
+                    $('#error_bank_ifsc_code').text('IFSC format invalid please check the code');
+                    $('#bank_ifsc_code').addClass('has-error');
+                }
+            });
 
 
 
@@ -1566,7 +1631,7 @@
             $('#encolser_name').html(doc_name + '(' + application_id + ')');
             $('#encolser_content').html('<img   width="50px" height="50px" src="images/ZKZg.gif"/>');
 
-            var url = '{{ url('ajaxGetEncloser ') }}';
+            var url = '{{ url('ajaxGetEncloser') }}';
 
             //alert(url);
             $.ajax({

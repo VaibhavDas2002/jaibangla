@@ -51,30 +51,22 @@
                     <form class="form-horizontal" role="form" method="POST" action="{{ route('adduserpost') }}" >
                         {{ csrf_field() }}  
                         <div class="form-group">
-                            <label for="firstname" class="col-md-4 control-label required-field">First Name</label>
+                            <label for="full_name" class="col-md-4 control-label required-field">Full Name</label>
 
                             <div class="col-md-6">
-                                <input id="firstname" type="text" class="form-control" 
-                                name="firstname" value="{{ old('firstname') }}"  autocomplete="off" maxlength="60">
+                                <input id="full_name" type="text" class="form-control" 
+                                name="full_name" value="{{ old('full_name') }}"  autocomplete="off" maxlength="200">
 
                                
                             </div>
                         </div>
+                        
                         <div class="form-group">
-                            <label for="middlename" class="col-md-4 control-label">Middle Name</label>
+                            <label for="full_name_as_in_aadhar" class="col-md-4 control-label required-field">Full Name as in Aadhaar</label>
 
                             <div class="col-md-6">
-                                <input id="middlename" type="text" class="form-control" name="middlename" value="{{ old('middlename') }}" autocomplete="off">
-
-                              
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="lastname" class="col-md-4 control-label required-field">Last Name</label>
-
-                            <div class="col-md-6">
-                                <input id="lastname" type="text" class="form-control" 
-                                name="lastname" value="{{ old('lastname') }}"  autocomplete="off" maxlength="60">
+                                <input id="full_name_as_in_aadhar" type="text" class="form-control" 
+                                name="full_name_as_in_aadhar" value="{{ old('full_name_as_in_aadhar') }}"  autocomplete="off" maxlength="200">
 
                                
                             </div>
@@ -132,15 +124,14 @@
                         <div class="form-group">
                             <label class="col-md-4 control-label required-field">Role</label>
                             <div class="col-md-6">
-                                <select class="form-control" name="designation_id_dis" id="designation_id_dis" disabled>
-                                   
-                                    
-                                   <option value="{{$designation_id}}">{{$designation_id_sel}}</option>
+                                <select class="form-control" name="designation_id" id="designation_id">
+                                    @foreach($roles as $role)
+                                    <option value="{{$role->name}}" @if($selected_role==$role->name) selected @endif>{{$role->name}}</option>
+                                    @endforeach  
                                 </select>
                                 
                             </div>
                         </div> 
-                    <input type="hidden" name="designation_id" id="designation_id" value="{{$designation_id_sel}}"/>
                   @endif 
                         <div class="form-group">
                             <label class="col-md-4 control-label required-field">Scheme</label>
@@ -247,13 +238,13 @@ $(document).ready(function(){
     }); 
     $('#designation_id').change(function() {
         var designation_id=$(this).val();
-        if(designation_id=='HOD'){
+        if(designation_id=='HOD' || designation_id=='Dashboard' || designation_id=='MisState' || designation_id=='DDO' || designation_id=='Delegated DDO' || designation_id=='PRD_DDO' || designation_id=='HED_DDO' || designation_id=='AuditOfficer'){
             $('#block_code').html('<option value="">--Please Select--</option>'); 
             $("#district_div").hide();
             $("#is_urban_div").hide();
             $("#block_code_div").hide();
         }
-        else if(designation_id=='Approver'){
+        else if(designation_id=='Approver' || designation_id=='Delegated Approver'  || designation_id=='StatusCheckerDistrict'){
             $('#dist_code').val(''); 
             $("#district_div").show();
             $("#is_urban_div").hide();

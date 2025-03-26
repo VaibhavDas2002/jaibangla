@@ -133,14 +133,12 @@ class BSKPensionFormMainEntryController extends Controller
     */
   public function schemelistforUpdateBsk(Request $request)
   {
-    $arr = SchemecodeStatic::getpr1ListPurohit();
-    $monthlySlug = $arr['monthly']['slug'];
-    $housingSlug = $arr['housing']['slug'];
+    
     $designationId = Auth::user()->designation_id;
     $userId = Auth::user()->id;
     $scheme_list = DB::select(DB::raw("select id,display_name,pr1_code,scheme_name,short_code from m_scheme where id in (select scheme_id from duty_assignement where user_id=" . $userId . " and is_active=1 and scheme_id=2) and is_active=1 order by rank"));
     // dd($scheme_list);
-    return view('BSKcommonView.schemelistforUpdateBsk', ['scheme_list' => $scheme_list, 'monthlySlug' => $monthlySlug, 'housingSlug' => $housingSlug]);
+    return view('BSKcommonView.schemelistforUpdateBsk', ['scheme_list' => $scheme_list]);
   }
 
   /*
@@ -342,6 +340,7 @@ class BSKPensionFormMainEntryController extends Controller
   {
 
     $id = $request->id;
+    $user_id = AuthChecker::getUserId();
     $scheme_id = $request->scheme_id;
 
     if (!is_numeric($id)) {

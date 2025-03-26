@@ -1,0 +1,300 @@
+<style type="text/css">
+    .required-field::after {
+        content: "*";
+        color: red;
+    }
+
+    .has-error {
+        border-color: #cc0000;
+        background-color: #ffff99;
+    }
+
+    .preloader1 {
+        position: fixed;
+        top: 40%;
+        left: 52%;
+        z-index: 999;
+    }
+
+    .preloader1 {
+        background: transparent !important;
+    }
+
+    .panel-heading {
+        padding: 0;
+        border: 0;
+    }
+
+    .panel-title>a,
+    .panel-title>a:active {
+        display: block;
+        padding: 5px;
+        color: #555;
+        font-size: 12px;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        word-spacing: 3px;
+        text-decoration: none;
+    }
+
+    .panel-heading a:before {
+        font-family: 'Glyphicons Halflings';
+        content: "\e114";
+        float: right;
+        transition: all 0.5s;
+    }
+
+    .panel-heading.active a:before {
+        -webkit-transform: rotate(180deg);
+        -moz-transform: rotate(180deg);
+        transform: rotate(180deg);
+    }
+
+    #enCloserTable tbody tr td {
+        padding: 10px 10px 10px 10px;
+    }
+
+    .modal-open {
+        overflow: visible !important;
+    }
+
+    .required:after {
+        color: red;
+        content: '*';
+        font-weight: bold;
+        margin-left: 5px;
+        float: right;
+        margin-top: 5px;
+    }
+
+    #loadingDivModal {
+        position: absolute;
+        top: 0px;
+        right: 0px;
+        width: 100%;
+        height: 100%;
+        background-color: #fff;
+        background-image: url('images/ajaxgif.gif');
+        background-repeat: no-repeat;
+        background-position: center;
+        z-index: 10000000;
+        opacity: 0.4;
+        filter: alpha(opacity=40);
+        /* For IE8 and earlier */
+    }
+
+    .disabledcontent {
+        pointer-events: none;
+        opacity: 0.4;
+    }
+</style>
+
+
+<?php $__env->startSection('content'); ?>
+
+<div class="content-wrapper">
+
+    <a href="<?php echo e(route('bank-info-change-log-ps-master-entry')); ?>" 
+        style="margin-left: 15px; margin-top: 15px;">
+        <img src="<?php echo e(url('images/back.png')); ?>" alt="" width="30px" height="30px">
+    </a>
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+        <h1>
+            Bank Info Change Log
+        </h1>
+
+    </section>
+    <section class="content">
+        <div class="row">
+            <!-- left column -->
+            <div class="col-md-12">
+                <!-- general form elements -->
+                <div>
+                    <!-- class="box box-primary" -->
+                    
+
+                    <div>
+                        <?php if(($message = Session::get('success'))): ?>
+                            <div class="alert alert-success alert-block">
+                                <button type="button" class="close" data-dismiss="alert">×</button>
+                                <strong><?php echo e($message); ?></strong>
+
+
+                            </div>
+                        <?php endif; ?>
+
+                        <?php if(count($errors) > 0): ?>
+                            <div class="alert alert-danger alert-block">
+                                <ul>
+                                    <?php $__currentLoopData = $errors; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $error): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <li><strong> <?php echo e($error); ?></strong></li>
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                </ul>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+
+
+
+
+
+                    <div class="tab-content" style="margin-top:16px;">
+
+
+
+                        <form method="post" id="banklog" name="banklog" action="<?php echo e(url('bank-info-change-log-post')); ?>"
+                            class="" autocomplete="off">
+
+                            <?php echo e(csrf_field()); ?>
+
+
+                            <input type="hidden" name="case_id" value="<?php echo e($ps_master_data->id); ?>" />
+
+                            <div class="tab-pane active" id="personal_details">
+                                <div class="panel panel-default">
+
+                                    <div class="panel-body">
+                                        <div class="row">
+
+                                            <div class="form-group col-md-4">
+                                                <label class=" control-label">Police Case Number</label>
+                                            </div>
+                                            <div class="form-group col-md-8">
+                                                <span class="text-info"><?php echo e($ps_master_data->case_no); ?></span>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="form-group col-md-4">
+                                                <label class=" control-label required-field">Enter Beneficiary
+                                                    Id</label>
+                                            </div>
+                                            <div class="form-group col-md-8">
+                                                <input class="form-control NumOnly" type="text" name="application_id"
+                                                    id="application_id">
+                                                <span id="error_application_id" class="text-danger"></span>
+                                            </div>
+                                        </div>
+
+
+                                        <div class="col-md-12" align="center">
+
+                                            <button type="submit" id="submitting" value="Submit"
+                                                class="btn btn-success success btn-lg modal-search form-submitted">Find
+                                                Log and Generate Pdf
+                                            </button>
+
+
+
+                                            <!--<button type="button" name="btn_personal_details" id="btn_personal_details" class="btn btn-info btn-lg">Next</button>-->
+                                        </div>
+                                        <br />
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+
+                    </div>
+                </div>
+
+
+
+
+
+            </div>
+
+
+
+
+
+
+        </div>
+        <!-- /.box -->
+</div>
+<!--/.col (left) -->
+
+</div>
+</div>
+</section>
+</div>
+
+
+<?php $__env->stopSection(); ?>
+<?php $__env->startSection('script'); ?>
+<script src="<?php echo e(URL::asset('js/validateAdhar.js')); ?>"></script>
+<script>
+    //alert(base_date);
+
+    $(document).ready(function () {
+        $('.sidebar-menu li').removeClass('active');
+        // $('.sidebar-menu #lk-main').addClass("active");
+        $('.sidebar-menu #bankModification').addClass("active");
+        $(".NumOnly").keyup(function (event) {
+
+            $(this).val($(this).val().replace(/[^\d].+/, ""));
+            if ((event.which < 48 || event.which > 57)) {
+                event.preventDefault();
+            }
+        });
+
+
+    });
+
+    $(document).on('click', '#submitting', function (e) {
+        e.preventDefault()
+        var error_application_id = '';
+        var application_id = $('#application_id').val();
+        if ($.trim($('#application_id').val()).length == 0) {
+            error_application_id = 'Application Id is required';
+            $('#error_application_id').text(error_application_id);
+            $('#application_id').addClass('has-error');
+        }
+        else {
+
+            error_application_id = '';
+            $('#error_application_id').text(error_application_id);
+            $('#aadhar_no').removeClass('has-error');
+
+        }
+        //error_application_id='';
+        if (error_application_id != '') {
+            return false;
+        } else {
+            // alert('OK');
+            // $('#submit_loader1').show();
+            $("#banklog").submit();
+
+
+        }
+    });
+
+
+
+    function printMsg(msg, msgtype, divid) {
+        $("#" + divid).find("ul").html('');
+        $("#" + divid).css('display', 'block');
+        if (msgtype == '0') {
+            //alert('error');
+            $("#" + divid).removeClass('alert-success');
+            //$('.print-error-msg').removeClass('alert-warning');
+            $("#" + divid).addClass('alert-warning');
+        } else {
+            $("#" + divid).removeClass('alert-warning');
+            $("#" + divid).addClass('alert-success');
+        }
+        if (Array.isArray(msg)) {
+            $.each(msg, function (key, value) {
+                $("#" + divid).find("ul").append('<li>' + value + '</li>');
+            });
+        } else {
+            $("#" + divid).find("ul").append('<li>' + msg + '</li>');
+        }
+    }
+
+    function closeError(divId) {
+        $('#' + divId).hide();
+    }
+</script>
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.app-template-datatable_new', array_except(get_defined_vars(), array('__data', '__path')))->render(); ?>

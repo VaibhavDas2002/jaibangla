@@ -24,7 +24,7 @@ class Helper
             $scheme = Scheme::select('id', 'scheme_name', 'short_code')->where('is_active', 1)->where('id', $scheme_id)->first();
             $scheme_schema_name = $scheme->short_code;
             if ($district == 0) {
-                $total_data = DB::table($scheme_schema_name . '.beneficiaries')
+                $total_data = DB::table($scheme_schema_name . '.beneficiary')
                     ->selectRaw('count(id) as cnt')
                     ->where('next_level_role_id', '=', 0)
                     ->where('is_state', TRUE)->where(function ($query1) use ($scheme_id) {
@@ -33,7 +33,7 @@ class Helper
                     })->first();
             } else {
                 if($scheme_id==10){
-                    $total_data = DB::table($scheme_schema_name . '.beneficiaries')
+                    $total_data = DB::table($scheme_schema_name . '.beneficiary')
                     ->selectRaw('count(id) as cnt')
                     ->where('next_level_role_id', '=', 0)
                     ->where('is_state', FALSE)->whereNull('is_lb_imported')->whereNull('dept_special')
@@ -43,7 +43,7 @@ class Helper
                     })->first();
                 }
                 else{
-                $total_data = DB::table($scheme_schema_name . '.beneficiaries')
+                $total_data = DB::table($scheme_schema_name . '.beneficiary')
                     ->selectRaw('count(id) as cnt')
                     ->where('next_level_role_id', '=', 0)
                     ->where('is_state', FALSE)
@@ -72,21 +72,21 @@ class Helper
             $scheme = Scheme::select('id', 'scheme_name', 'short_code')->where('is_active', 1)->where('id', $scheme_id)->first();
             $scheme_schema_name = $scheme->short_code;
             if ($district == 0) {
-                $total_data = DB::table($scheme_schema_name . '.beneficiaries')
+                $total_data = DB::table($scheme_schema_name . '.beneficiary')
                     ->selectRaw('count(id) as cnt')
                     ->where('next_level_role_id', '=', 0)
                     ->where('is_state', TRUE)->where('wt_special', 1)
                     ->first();
             } else {
                 if($scheme_id==10){
-                    $total_data = DB::table($scheme_schema_name . '.beneficiaries')
+                    $total_data = DB::table($scheme_schema_name . '.beneficiary')
                     ->selectRaw('sum(case when next_level_role_id=0 then 1 else 0 end) approved,
                  sum(case when next_level_role_id>0  or next_level_role_id IS NULL then 1 else 0 end) pending')
                     ->whereNull('is_lb_imported')->whereNull('dept_special')->where('created_by_dist_code', $district)->where('created_by_local_body_code', $ulb_code)->where('wt_special', 1)
                     ->first();
                 }
                 else{
-                    $total_data = DB::table($scheme_schema_name . '.beneficiaries')
+                    $total_data = DB::table($scheme_schema_name . '.beneficiary')
                     ->selectRaw('sum(case when next_level_role_id=0 then 1 else 0 end) approved,
                  sum(case when next_level_role_id>0  or next_level_role_id IS NULL then 1 else 0 end) pending')
                     ->where('created_by_dist_code', $district)->where('created_by_local_body_code', $ulb_code)->where('wt_special', 1)
@@ -111,7 +111,7 @@ class Helper
             $return_arr['capacity'] = $sum;
             $scheme = Scheme::select('id', 'scheme_name', 'short_code')->where('is_active', 1)->where('id', $scheme_id)->first();
             $scheme_schema_name = $scheme->short_code;
-            $total_data = DB::table($scheme_schema_name . '.beneficiaries')
+            $total_data = DB::table($scheme_schema_name . '.beneficiary')
                     ->selectRaw('sum(case when next_level_role_id=0 then 1 else 0 end) approved,
                  sum(case when next_level_role_id>0  or next_level_role_id IS NULL then 1 else 0 end) pending')
                     ->where('created_by_dist_code', $district)->where('wt_special', 1)
@@ -504,13 +504,10 @@ class Helper
       if (empty($schema_name)) {
         $schema_name = 'pension';
       }
-      $table_name =  strtolower($schema_name) . '.beneficiaries';
+      $table_name =  strtolower($schema_name) . '.beneficiary';
     } else {
-      $table_name =  'pension.beneficiaries';
+      $table_name =  'pension.beneficiary';
     }
     return $table_name;
   }
-
-
-  
 }

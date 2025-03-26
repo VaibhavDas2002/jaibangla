@@ -138,7 +138,7 @@ $(document).ready(function () {
       }
     }
 
-    error_contact = 0; 
+    //error_contact = 0; 
 
     if (error_contact == 1) {
       return false;

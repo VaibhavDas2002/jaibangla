@@ -107,7 +107,7 @@
                                                 </select>
                                                 <span class="text-danger" id="error_failed_type"></span>
                                             </div>
-                                            @if($mapLevel=='SubdivVerifier')
+                                            @if($mapLevel=='SubdivVerifier' || $mapLevel=='SubdivDelegated Verifier')
                                                 <div class="col-md-3">
                                                     <label class=" control-label" >Municipality</label>
                                                     <select name="filter_1" id="filter_1" class="form-control select2 full-width js-municipality" >
@@ -124,7 +124,7 @@
                                                     </select>
                                                 </div> 
                                                 <input type="hidden" name="local_body" id="local_body" value={{$local_body_code}}>  
-                                            @elseif($mapLevel=='BlockVerifier')
+                                            @elseif($mapLevel=='BlockVerifier'  || $mapLevel=='BlockDelegated Verifier')
                                                 <div class="col-md-3">
                                                     <label class=" control-label" >Gram Panchayat</label>
                                                     <select name="filter_1" id="filter_1" class="form-control select2 full-width" >
@@ -135,11 +135,11 @@
                                                     </select>
                                                 </div> 
                                                 <input type="hidden" name="local_body" id="local_body" value={{$local_body_code}}>
-                                            @elseif($mapLevel=='DistrictApprover')
+                                            @elseif($mapLevel=='DistrictApprover' || $mapLevel=='DistrictDelegated Approver')
                                                 <input type="hidden" name="local_body" id="local_body" value="">
                                                 
                                             @endif
-                                            <input type="hidden" name="mapLevel" id="mapLevel" value={{$mapLevel}}>
+                                            <input type="hidden" name="mapLevel" id="mapLevel" value='{{$mapLevel}}'>
                                             <input type="hidden" name="district_code" id="district_code" value="{{$district_code}}">
                                             <div class="col-md-3" style="margin-top: 24px;">
                                                 <button class="btn btn-primary" name="submit_btn" id="submit_btn" type="button" disabled><i class="fa fa-search"></i> Search</button>&nbsp;
@@ -194,7 +194,7 @@
                 <div class="panel-body"> -->
                   <div class="row">
                     <div class="col-md-12">
-                        <h4 style="text-align: center;" class="text-info">Beneficiary ID: <span id="application_id"></span></h4>
+                        <h4 style="text-align: center;" class="text-info">Beneficiary ID: <span id="application_id"></span><span id="lb_text" style="display: none;">(LB Imported)</span></h4>
                     </div>
                   </div>
                   <table class="table table-bordered table-responsive table-condensed table-striped" style="font-size: 14px;">
@@ -244,10 +244,11 @@
                         Please select which one do you want to process?
                     </div>
                     <div style="padding: 5px 5px 5px 50px; border: 1px solid whitesmoke; border-radius: 5px; margin: 5px 0px; background-color: whitesmoke;" class="row">
-                        <label style="cursor: pointer; margin-bottom: 5px;">
+                       
+                     <label style="cursor: pointer; margin-bottom: 5px;">
                             <input type="radio" name="process_type" class="process_type_radio" value="1">
                             Minor mismatch, Keep existing bank information
-                        </label><br>
+                        </label><br> 
                         {{-- <label style="cursor: pointer; margin-bottom: 5px;">
                             <input type="radio" name="process_type" class="process_type_radio" value="2">
                             Process with new bank information
@@ -288,10 +289,18 @@
                         <input type="text" value="" name="branch_name_new" id="branch_name" readonly>
                         <span id="error_bank_branch" class="text-danger"></span>
                       </td>
+                     
+                    </tr>
+                    <tr>
                       <th>Bank Account Number: <span class="text-danger">*</span></th>
                       <td>
-                        <input type="text" value="" name="bank_code_new" maxlength='20' id="bank_code">
+                        <input type="password"  name="bank_code_new" maxlength='20' id="bank_code" class="form-control NumOnly" autocomplete="off">
                         <span id="error_bank_code" class="text-danger"></span>
+                      </td>
+                      <th>Confirm Bank Account Number: <span class="text-danger">*</span></th>
+                      <td>
+                        <input type="text" value="" name="confirm_bank_code_new" maxlength='20' id="confirm_bank_code" class="form-control NumOnly" autocomplete="off">
+                        <span id="error_confirm_bank_code" class="text-danger"></span>
                       </td>
                     </tr>
                     
@@ -350,6 +359,9 @@
         $('#loadingDi').hide();
         $('#update_details').hide();
         $('#submit_btn').removeAttr('disabled');
+        $( "#bank_code,#confirm_bank_code" ).on( "copy cut paste drop", function() {
+                return false;
+        });
         var error_scheme_type = '';
         $('#submit_btn').click(function(){
             if($.trim($('#scheme_type').val()).length == 0){
@@ -507,6 +519,14 @@
                      $('#application_id').text(response.id);
                      $('#failed_reason').text(response.failed_reason);
                     //  $('#failed_type').val(response.failed_type);
+                     var lb_imported = response.lb_imported;
+                     if (lb_imported == '1') {
+                      $('#lb_text').show().css('color', 'green');
+                      $('input[value="1"]').closest('label').show(); // Show Minor mismatch
+                      } else {
+                          $('#lb_text').hide();
+                          $('input[value="1"]').closest('label').hide(); // Hide Minor mismatch
+                      }
                      var failed_type = response.failed_type;
                       if (failed_type == '2') {
                         $('#bank_name').val('');
@@ -521,8 +541,9 @@
                         $('#update_details').hide();
                       }else{
                         $('#bank_name').val(response.bank_name);
-                         $('#bank_ifsc').val(response.bank_ifsc);
-                         $('#bank_code').val(response.bank_code);
+                        $('#bank_ifsc').val(response.bank_ifsc);
+                        $('#bank_code').val(response.bank_code);
+                        $('#confirm_bank_code').val(response.bank_code);
                         $('#branch_name').val(response.branch_name);
                         $('#heading').hide();
                         $('#heading1').show();
@@ -710,6 +731,7 @@
       var error_name_of_bank =''; 
       var error_bank_branch =''; 
       var error_bank_code =''; 
+      var error_confirm_bank_code ='';
       var error_bank_ifsc_code =''; 
       var error_file = '';
         // Add your validation logic here
@@ -749,6 +771,31 @@
         $('#error_bank_code').text(error_bank_code);
         $('#bank_code').removeClass('has-error');
         }
+        if($.trim($('#confirm_bank_code').val()).length == 0)
+        {
+          error_confirm_bank_code = 'Confirm Bank Account Number is required';
+        $('#error_confirm_bank_code').text(error_confirm_bank_code);
+        $('#confirm_bank_code').addClass('has-error');
+        }
+        else
+        {
+          error_confirm_bank_code = '';
+        $('#confirm_bank_code').text(error_confirm_bank_code);
+        $('#confirm_bank_code').removeClass('has-error');
+        }
+        if($.trim($('#bank_code').val()) != $.trim($('#confirm_bank_code').val()))
+        {
+          error_confirm_bank_code = 'Confirm Bank Account Number not Match with Bank Account Number';
+          $('#error_confirm_bank_code').text(error_confirm_bank_code);
+          $('#error_confirm_bank_code').addClass('has-error');
+        }
+        else
+        {
+          error_confirm_bank_code = '';
+          $('#error_confirm_bank_code').text(error_confirm_bank_code);
+          $('#error_confirm_bank_code').removeClass('has-error');
+        }
+
         if($.trim($('#bank_ifsc').val()).length == 0)
         {
         error_bank_ifsc_code = 'IFS Code is required';
@@ -775,7 +822,7 @@
           $('#bank_ifsc').addClass('has-error');    
         }
 
-       if(error_name_of_bank !='' || error_bank_branch !=''||  error_bank_code !='' || error_bank_ifsc_code !='' ) {
+       if(error_name_of_bank !='' || error_bank_branch !=''||  error_bank_code !='' || error_bank_ifsc_code !='' || error_confirm_bank_code !='' ) {
             return false; // Validation failed
         }
     }

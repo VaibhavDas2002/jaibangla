@@ -449,7 +449,7 @@ margin: 10px 0px 10px 0px !important;
 
                          <div class="row ">
                           <div class="col-md-12 color1"  style="margin:10px 0px"><h3>Bank Details</h3></div>
-                      </div>
+                         </div>
 
                        <div class="col-md-6">
                          <div ><strong>Bank Name:</strong>  {{$row->bank_name}}</div>
@@ -474,12 +474,18 @@ margin: 10px 0px 10px 0px !important;
                          <div ><strong>IFS Code:</strong>{{$row->bank_ifsc}}</div>
                        
                         </div>
-
+                        @if($row->next_level_role_id<0)
+                          <div class="row ">
+                            <div class="col-md-12 color1"  style="margin:10px 0px"><h3>Rejected Reason</h3></div>
+                          </div>
+                          <div class="col-md-6">
+                            <div ><strong>Rejected Reason By User:</strong> {{$reject_reason_cause}}</div>
+                          </div>
+                        @endif
                       </div>
-
                        <div class="row color1">
-                  <div class="col-md-12"><h3>Enclosure List(Self Attested)</h3></div>
-                </div>
+                        <div class="col-md-12"><h3>Enclosure List(Self Attested)</h3></div>
+                      </div>
                 <div class="row">
                  
                  @foreach($docs as $doc)

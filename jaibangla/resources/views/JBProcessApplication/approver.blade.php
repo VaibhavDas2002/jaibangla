@@ -276,7 +276,7 @@
             <button type="button" name="reset" id="reset" class="btn btn-default">Reset</button>
           </div>
         </div>
-        <form class="row" method="POST" action="{{ route('nhmemployee.MassEmployeeApproval') }}" class="submit-once">
+        <form class="row" method="POST" action="{{ route('JbBulkApprove') }}" class="submit-once">
           <div>
             <input type="hidden" name="_token" value="{{ csrf_token() }}">-
             <input type="hidden" name="wq" id="wq" />
@@ -286,7 +286,7 @@
             @if($approveBtnvisible == 1)
         <button style="border:1px solid black ;margin: 0% 0% 2% 0%;" type="submit" name="bulk_approve"
           id="bulk_approve" value="approve" class="btn btn-info col-sm-3 col-xs-5 btn-margin" disabled>
-          Approve
+          Bulk Approve
         </button>
       @endif
           </div>

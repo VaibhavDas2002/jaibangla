@@ -128,9 +128,9 @@ href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,30
       <!-- Content Header (Page header) -->
       <section class="content-header">
         <b>{{$type_des}} for the Scheme {{$scheme_name}}</b>
-        @if($type==2 || $type==3 || $type==4)
+        @if($type==3)
         <div class='row pull-right'>
-        <a href="oap-wcd" title="Back to Form"> 
+        <a href="jb-pension?scheme_id={{ encrypt($arr['id']) }}&type={{1}}" title="Back to Form"> 
                 <img width="50px;" style="pull-right" src="{{ asset("images/back.png") }}" alt="Back to Form" />
         </a>
         </div>
@@ -405,7 +405,7 @@ href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,30
             error: function (ex) {
               //console.log(ex);
              alert('Session time out..Please login again');
-             window.location.href=base_url;
+             //window.location.href=base_url;
            }                       
       },
       

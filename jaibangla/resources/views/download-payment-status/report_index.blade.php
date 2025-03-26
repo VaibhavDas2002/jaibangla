@@ -158,7 +158,7 @@
               <input type="hidden" name="block" id="block" value="{{$block_munc_corp_code_fk}}"/>
 
                @endif
-              {{-- 
+              
                 <div class="form-group col-md-4" id="municipality_div" style="{{$municipality_visible?'':'display:none'}}">
                 <label class="">Municipality</label>
                 
@@ -185,7 +185,7 @@
                 </select>
                   <span id="error_gp_ward" class="text-danger"></span>
               </div>
-               --}}
+               
             
                </div>
                     <div class="row">
@@ -252,12 +252,12 @@
       var district=$('#district').val();
       var urban_code=$('#urban_code').val();
       var block=$('#block').val();
-      // var gp_ward=$('#gp_ward').val();
-      // var muncid=$('#muncid').val();
+       var gp_ward=$('#gp_ward').val();
+       var muncid=$('#muncid').val();
       if (scheme_id == '' || lot_year == '' || lot_month == '') {
         alert('Scheme, Year and Month is mandatory for download excel.');
       } else {
-        var  data= {'_token': '{{csrf_token()}}', 'scheme_id': scheme_id, 'lot_year': lot_year, 'lot_month': lot_month, 'district': district,'urban_code':urban_code,'block':block };
+        var  data= {'_token': '{{csrf_token()}}', 'scheme_id': scheme_id, 'lot_year': lot_year, 'lot_month': lot_month, 'district': district,'urban_code':urban_code,'block':block,'gp_ward':gp_ward,'muncid':muncid };
         redirectPostExcel('{{route("getPayeeListGetDataExcel")}}', data, 'post');
       }
       

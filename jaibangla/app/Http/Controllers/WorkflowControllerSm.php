@@ -57,7 +57,7 @@ class WorkflowControllerSm extends Controller
     try {
       // $designation_id = Auth::user()->designation_id;
       $user_id = AuthChecker::getUserId();
-      if (AuthChecker::VerifierChecker() || AuthChecker::ApproverChecker()) {
+      if (AuthChecker::VerifierPermission() || AuthChecker::ApproverPermission()) {
         $schemes = DB::select(DB::raw("select id,scheme_name,display_name,is_active from m_scheme where id IN (10) and   id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . ") order by rank"));
         //dd($schemes);
         return view(
@@ -77,10 +77,11 @@ class WorkflowControllerSm extends Controller
   }
   public function list(Request $request)
   {
+    return redirect("/")->with('danger', 'Temporarily Suspended');
     $this->middleware('auth');
     $is_operator = AuthChecker::OperatorChecker();
-    $is_verifier = AuthChecker::VerifierChecker();
-    $is_approver = AuthChecker::ApproverChecker();
+    $is_verifier = AuthChecker::VerifierPermission();
+    $is_approver = AuthChecker::ApproverPermission();
     $is_hod = AuthChecker::HODChecker();
     $user_id = AuthChecker::getUserId();
 
@@ -96,7 +97,7 @@ class WorkflowControllerSm extends Controller
     if (empty($duty_obj)) {
       return redirect("/")->with('danger', 'Not Allowed');
     }
-    if (!AuthChecker::VerifierChecker()) {
+    if (!AuthChecker::VerifierPermission()) {
       return redirect("/")->with('danger', 'Not Allowed');
     }
     $role_id_approver = MapLavel::where('scheme_id', $scheme_id)->where('role_name', 'Approver')->first();
@@ -157,7 +158,7 @@ class WorkflowControllerSm extends Controller
       //dd($process_type);
       $query = DB::table($schema . '.beneficiaries')
         ->whereNull('is_lb_imported')->where('created_by_dist_code', $district_code)/*->whereraw(" (dup_bank=0 or dup_bank IS NULL) and (dup_aadhar=0 or dup_aadhar IS NULL) and (dup_mobile=0 or dup_mobile IS NULL) and (no_aadhar=0 or no_aadhar IS NULL) and (no_mobile=0 or no_mobile IS NULL)")*/;
-      if (AuthChecker::VerifierChecker()) {
+      if (AuthChecker::VerifierPermission()) {
         $query = $query->where('created_by_local_body_code', $created_by_local_body_code);
         if (!empty($application_type)) {
           if ($application_type == 1)
@@ -179,7 +180,7 @@ class WorkflowControllerSm extends Controller
       if (!empty($request->gp_ward_code)) {
         $query = $query->where('gp_ward_code', $request->gp_ward_code);
       }
-      if (AuthChecker::ApproverChecker()) {
+      if (AuthChecker::ApproverPermission()) {
         if ($application_type != '') {
           if ($application_type == 1)
             $query = $query->whereNotNull('sm_flag')->whereNotNull('sm_mobile_no')->where('next_level_role_id', $next_level_role_id_verifier);
@@ -240,7 +241,7 @@ class WorkflowControllerSm extends Controller
           $action = '<a href="ViewSm?id=' . $data->id  . '&scheme_id=' . $data->scheme_id . '" class="btn btn-xs btn-info"><i class="glyphicon glyphicon-edit"></i> View</a>';
 
 
-          if (AuthChecker::VerifierChecker()) {
+          if (AuthChecker::VerifierPermission()) {
             if (is_null($data->sm_flag) && is_null($data->sm_mobile_no) && $data->next_level_role_id == $next_level_role_id_verifier) {
               // echo 1;die;
               if ($data->no_aadhar == 1 || $data->no_mobile == 1 || $data->dup_aadhar == 1 || $data->dup_mobile == 1 || $data->dup_bank == 1) {
@@ -258,7 +259,7 @@ class WorkflowControllerSm extends Controller
            
           }
 
-          if (AuthChecker::ApproverChecker()) {
+          if (AuthChecker::ApproverPermission()) {
 
             if (!is_null($data->sm_flag) && !is_null($data->sm_mobile_no) && $data->next_level_role_id == $next_level_role_id_verifier) {
               $action = $action . '<button type="button" class="btn btn-xs btn-primary">Approved</button>';
@@ -347,7 +348,7 @@ class WorkflowControllerSm extends Controller
   }
   public function ViewSm(Request $request)
   {
-    //dd('ok');
+    return redirect("/")->with('danger', 'Temporarily Suspended');
     try {
       $this->middleware('auth');
       $designation_id = Auth::user()->designation_id;
@@ -388,7 +389,7 @@ class WorkflowControllerSm extends Controller
         return redirect("/")->with('danger', 'Not Allowed');
       }
       //dd($row->aadhar_no);
-      if (AuthChecker::VerifierChecker()) {
+      if (AuthChecker::VerifierPermission()) {
         if (!empty($row->aadhar_no) && trim($row->aadhar_no) != '') {
           $old_aadhar = $row->aadhar_no;
           $new_aadhar = '';
@@ -469,6 +470,7 @@ class WorkflowControllerSm extends Controller
   }
   public function markpost(Request $request)
   {
+    return redirect("/")->with('danger', 'Temporarily Suspended');
     try {
       $this->middleware('auth');
       $designation_id = Auth::user()->designation_id;
@@ -502,7 +504,7 @@ class WorkflowControllerSm extends Controller
       $next_level_role_id_verifier = $role_id_verifier->parent_id;
       $condition = array();
       $condition['id'] = $id;
-      if (AuthChecker::VerifierChecker()) {
+      if (AuthChecker::VerifierPermission()) {
         if ($duty_obj->mapping_level == "Subdiv") {
           $created_by_local_body_code = $duty_obj->urban_body_code;
         }
@@ -600,6 +602,7 @@ class WorkflowControllerSm extends Controller
 
   public function SmReject(Request $request)
   {
+    return redirect("/")->with('danger', 'Temporarily Suspended');
     try {
       $this->middleware('auth');
       $designation_id = Auth::user()->designation_id;
@@ -627,7 +630,7 @@ class WorkflowControllerSm extends Controller
       } else {
         $schema = "pension";
       }
-      if (AuthChecker::VerifierChecker()) {
+      if (AuthChecker::VerifierPermission()) {
         if ($duty_obj->mapping_level == "Subdiv") {
           $created_by_local_body_code = $duty_obj->urban_body_code;
         }
@@ -680,6 +683,7 @@ class WorkflowControllerSm extends Controller
 
   public function SmRevert(Request $request)
   {
+    return redirect("/")->with('danger', 'Temporarily Suspended');
     try {
       $this->middleware('auth');
       $designation_id = Auth::user()->designation_id;
@@ -708,7 +712,7 @@ class WorkflowControllerSm extends Controller
       } else {
         $schema = "pension";
       }
-      if (AuthChecker::VerifierChecker()) {
+      if (AuthChecker::VerifierPermission()) {
         if ($duty_obj->mapping_level == "Subdiv") {
           $created_by_local_body_code = $duty_obj->urban_body_code;
         }
@@ -762,6 +766,7 @@ class WorkflowControllerSm extends Controller
   }
   public function oapsmdsmark(Request $request)
   {
+    return redirect("/")->with('danger', 'Temporarily Suspended');
     return redirect("/")->with('danger', 'Not Allowed');
     $this->middleware('auth');
     $designation_id = Auth::user()->designation_id;
@@ -798,7 +803,7 @@ class WorkflowControllerSm extends Controller
       return redirect("/")->with('danger', 'Not Allowed');
     }
     if ($type == 1) {
-      if (!AuthChecker::VerifierChecker() || !AuthChecker::ApproverChecker()) {
+      if (!AuthChecker::VerifierPermission() || !AuthChecker::ApproverPermission()) {
         return redirect("/")->with('danger', 'Not Allowed');
       }
     }
@@ -901,7 +906,7 @@ class WorkflowControllerSm extends Controller
           $query = $query->where('mobile_no', $dupMobileCheck);
         }
       }
-      if (AuthChecker::VerifierChecker()) {
+      if (AuthChecker::VerifierPermission()) {
         $query = $query->where('created_by_local_body_code', $created_by_local_body_code);
         if (!empty($application_type)) {
           if ($application_type == 1)
@@ -919,7 +924,7 @@ class WorkflowControllerSm extends Controller
       if (!empty($request->gp_ward_code)) {
         $query = $query->where('gp_ward_code', $request->gp_ward_code);
       }
-      if (AuthChecker::ApproverChecker()) {
+      if (AuthChecker::ApproverPermission()) {
         if ($application_type != '') {
 
           if ($application_type == 2)
@@ -1089,6 +1094,7 @@ class WorkflowControllerSm extends Controller
   }
   public function ViewOapsmdsmark(Request $request)
   {
+    return redirect("/")->with('danger', 'Temporarily Suspended');
     return redirect("/")->with('danger', 'Not Allowed');
     try {
       $this->middleware('auth');
@@ -1231,6 +1237,7 @@ class WorkflowControllerSm extends Controller
   }
   public function oapsmdsmarkPost(Request $request)
   {
+    return redirect("/")->with('danger', 'Temporarily Suspended');
     try {
       return redirect("/")->with('danger', 'Not Allowed');
       $this->middleware('auth');
@@ -1310,10 +1317,10 @@ class WorkflowControllerSm extends Controller
       } else {
         $query = DB::table($schema . '.beneficiary')->where('id', $id)->where('is_rejected', 0);
       }
-      if (AuthChecker::ApproverChecker()) {
+      if (AuthChecker::ApproverPermission()) {
         $query = $query->where('sm_ds_mark', 1);
       }
-      if (AuthChecker::VerifierChecker()) {
+      if (AuthChecker::VerifierPermission()) {
         $query = $query->whereNull('sm_ds_mark_viii');
       }
       if (AuthChecker::OperatorChecker()) {
@@ -1349,7 +1356,7 @@ class WorkflowControllerSm extends Controller
           DB::commit();
           $errors = array();
 
-          if (AuthChecker::VerifierChecker() || AuthChecker::OperatorChecker()) {
+          if (AuthChecker::VerifierPermission() || AuthChecker::OperatorChecker()) {
             $return_text = 'Beneficiary with  Id:' . $id . ' has been marked as Duare Sarkar ' . $camp_roman . ' Camps';
           }
           return redirect("/oapsmdsmark?type=" . $type . "&ds_mark_phase=" . $ds_mark_phase . "&scheme_id=" . $scheme_id)->with('success', $return_text);
@@ -1377,6 +1384,7 @@ class WorkflowControllerSm extends Controller
   }
   public function oapsmdsmarkListExcel(Request $request)
   {
+    return redirect("/")->with('danger', 'Temporarily Suspended');
     try {
       if (empty($request->scheme_id)) {
         return redirect('/')->with('error', 'Scheme Id Required');
@@ -1420,11 +1428,11 @@ class WorkflowControllerSm extends Controller
       $condition = array();
       $condition["sm_ds_mark"] = 1;
       $designation_id = Auth::user()->designation_id;
-      if (AuthChecker::ApproverChecker()) {
+      if (AuthChecker::ApproverPermission()) {
         //dd(123);
         $condition["created_by_dist_code"] = $district_code;
       }
-      if (AuthChecker::VerifierChecker() || AuthChecker::OperatorChecker()) {
+      if (AuthChecker::VerifierPermission() || AuthChecker::OperatorChecker()) {
         if ($ds_mark_phase == 7) {
           //dd(333);
           $condition["created_by_dist_code"] = $district_code;
@@ -1541,13 +1549,14 @@ class WorkflowControllerSm extends Controller
   }
   public function oapsmdsmarkPostBulkApprove(Request $request)
   {
+    return redirect("/")->with('danger', 'Temporarily Suspended');
     return redirect("/")->with('danger', 'Not Allowed');
     try {
       return redirect("/")->with('error', 'Not Allowed');
       $this->middleware('auth');
       //dd('ok');
       $designation_id = Auth::user()->designation_id;
-      if (!AuthChecker::ApproverChecker()) {
+      if (!AuthChecker::ApproverPermission()) {
         return redirect("/")->with('error', 'Not Allowed');
       }
       $user_id = AuthChecker::getUserId();
@@ -1616,6 +1625,7 @@ class WorkflowControllerSm extends Controller
   }
   function oapsmdsmarkoMisReport(Request $request)
   {
+    return redirect("/")->with('danger', 'Temporarily Suspended');
     $base_date  = '2020-01-01';
     $c_time = Carbon::now();
     $c_date = $c_time->format("Y-m-d");
@@ -1635,7 +1645,7 @@ class WorkflowControllerSm extends Controller
     }
     if (AuthChecker::ReportCheckerCommon()) {
       $district_visible = $is_urban_visible = $block_visible = 1;
-    } else if (AuthChecker::ApproverChecker() || AuthChecker::VerifierChecker()) {
+    } else if (AuthChecker::ApproverPermission() || AuthChecker::VerifierPermission()) {
       $district_code = NULL;
       $is_urban = NULL;
       $blockCode = NULL;
@@ -1714,6 +1724,7 @@ class WorkflowControllerSm extends Controller
   }
   public function OapBothSmDsmarkMisReport(Request $request)
   {
+    return redirect("/")->with('danger', 'Temporarily Suspended');
     $base_date  = '2020-01-01';
     $c_time = Carbon::now();
     $c_date = $c_time->format("Y-m-d");
@@ -1733,7 +1744,7 @@ class WorkflowControllerSm extends Controller
     }
     if (AuthChecker::ReportCheckerCommon()) {
       $district_visible = $is_urban_visible = $block_visible = 1;
-    } else if (AuthChecker::ApproverChecker() || AuthChecker::VerifierChecker()) {
+    } else if (AuthChecker::ApproverPermission() || AuthChecker::VerifierPermission()) {
       $district_code = NULL;
       $is_urban = NULL;
       $blockCode = NULL;
@@ -1813,7 +1824,9 @@ class WorkflowControllerSm extends Controller
 
   public function oapsmdsmarkoMisReportPost(Request $request)
   {
-    //dd($request->all());
+    //
+    return redirect("/")->with('danger', 'Temporarily Suspended');
+    // dd($request->all());
     //$ds_phase_list = Config::get('constants.ds_phase.phaselist');
     $scheme_id = $request->scheme_id;
     $ds_phase = $request->ds_phase;
@@ -1980,6 +1993,7 @@ class WorkflowControllerSm extends Controller
 
   public function OapBothSmDsmarkMisReportPost(Request $request)
   {
+    return redirect("/")->with('danger', 'Temporarily Suspended');
     //dd($request->all());
     //$ds_phase_list = Config::get('constants.ds_phase.phaselist');
     $scheme_id = $request->scheme_id;
@@ -2148,6 +2162,7 @@ class WorkflowControllerSm extends Controller
 
   public function getDistrictWiseOapsmDs($scheme_id, $district_code = NULL, $ulb_code = NULL, $block_ulb_code = NULL, $gp_ward_code = NULL, $fromdate = NULL, $todate = NULL, $caste = NULL, $ds_phase = NULL, $select_year = NULL, $select_month = NULL)
   {
+    return redirect("/")->with('danger', 'Temporarily Suspended');
     //dd($select_month);
     $scheme_obj = Scheme::where('id', $scheme_id)->where('is_active', 1)->first();
     if (!empty($scheme_obj->short_code)) {
@@ -2285,7 +2300,7 @@ LEFT JOIN
     }
     if (AuthChecker::ReportCheckerCommon()) {
       $district_visible = $is_urban_visible = $block_visible = 1;
-    } else if (AuthChecker::ApproverChecker() || AuthChecker::VerifierChecker()) {
+    } else if (AuthChecker::ApproverPermission() || AuthChecker::VerifierPermission()) {
       $district_code = NULL;
       $is_urban = NULL;
       $blockCode = NULL;
@@ -2364,6 +2379,7 @@ LEFT JOIN
   }
   public function smDSEntryMarkReportPost(Request $request)
   {
+    return redirect("/")->with('danger', 'Temporarily Suspended');
     //dd($request->all());
     //$ds_phase_list = Config::get('constants.ds_phase.phaselist');
     $scheme_id = $request->scheme_id;
@@ -2696,7 +2712,7 @@ LEFT JOIN
     }
     if (AuthChecker::AdminChecker() || AuthChecker::HODChecker() || AuthChecker::HOPChecker() || AuthChecker::MisStateChecker() ||  AuthChecker::DashboardChecker()) {
       $district_visible = $is_urban_visible = $block_visible = 1;
-    } else if (AuthChecker::ApproverChecker() || AuthChecker::VerifierChecker()) {
+    } else if (AuthChecker::ApproverPermission() || AuthChecker::VerifierPermission()) {
       $district_code = NULL;
       $is_urban = NULL;
       $blockCode = NULL;
@@ -2775,6 +2791,7 @@ LEFT JOIN
   }
   public function smDSEntryMarkReportSet2Post(Request $request)
   {
+    return redirect("/")->with('danger', 'Temporarily Suspended');
     //dd($request->all());
     //$ds_phase_list = Config::get('constants.ds_phase.phaselist');
     $scheme_id = $request->scheme_id;
@@ -2902,6 +2919,7 @@ LEFT JOIN
   }
   public function getDistrictWisesmDSEntryMarkSet2($scheme_id, $district_code = NULL, $ulb_code = NULL, $block_ulb_code = NULL, $gp_ward_code = NULL, $fromdate = NULL, $todate = NULL, $caste = NULL, $ds_phase = NULL, $select_year = NULL, $select_month = NULL)
   {
+    return redirect("/")->with('danger', 'Temporarily Suspended');
     $table_heading=array(
       //array('query_result_key' => NULL,'th_lable' => 'Sl No.','rowspan' => 2,'colspan' => NULL,'rank'=>1,'isColspan'=>0),
       array('query_result_key' => 'location_name','th_lable' => 'District','rowspan' => 2,'colspan' => NULL,'rank'=>10,'isColspan'=>0),

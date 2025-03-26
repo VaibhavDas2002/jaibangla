@@ -17,9 +17,9 @@ use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Validator;
 use App\Helpers\AuthChecker;
-
-
-
+use App\DsPhase;
+use App\Workflow;
+use App\SchemeStepRank;
 class BlockDrillDownReport extends Controller
 {
     public function __construct()
@@ -65,7 +65,7 @@ class BlockDrillDownReport extends Controller
     public function getdata(Request $request)
     {
         if (request()->ajax()) {
-            if (empty($request->level1a)  && !empty($request->level2) && empty($request->level3)) {
+            if (empty($request->level1a) && !empty($request->level2) && empty($request->level3)) {
 
                 $district_code = $request->level2;
                 $scheme_id = $request->level1a;
@@ -159,8 +159,8 @@ class BlockDrillDownReport extends Controller
     $district_code=$duty->district_code;
    } 	   
  
-		
-	$columns = array( 
+        
+    $columns = array( 
                             0 =>'block_name', 
                             1 =>'applications_submitted',
                             2=> 'approval_pending',
@@ -282,7 +282,7 @@ class BlockDrillDownReport extends Controller
 
     public function convertdata($search)
     {
-        $converted = (int)$search;
+        $converted = (int) $search;
         return $converted;
     }
 
@@ -384,7 +384,7 @@ class BlockDrillDownReport extends Controller
         }
 
         $results = BeneficiaryPensions::where('created_by_local_body_code', $block_code)
-            ->where('scheme_id', $scheme_id)->where('is_verified',1)->where('is_approved',0)->where('is_rejected',0)
+            ->where('scheme_id', $scheme_id)->where('is_verified', 1)->where('is_approved', 0)->where('is_rejected', 0)
             ->get();
 
         return view(
@@ -396,7 +396,8 @@ class BlockDrillDownReport extends Controller
             ->with('district_name', $district_name)
             ->with('block_name', $block_name)
             ->with('message', 'Applications Verified')
-            ->with('pr1', $pr1);;
+            ->with('pr1', $pr1);
+        ;
     }
 
 
@@ -592,7 +593,8 @@ class BlockDrillDownReport extends Controller
         $select_year = $first_part . '-' . $second_part;
         $monthName = $c_time->format('F');
         $schemes = DB::select(DB::raw("select id,scheme_name from m_scheme where id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . ")"));
-        return view('Block-Drilldown.block_consolidate_report')->with('schemes', $schemes)->with('district_name', $district_name)->with('district_code', $district_code)->with('selected_year', $select_year)->with('selected_month', $monthName);;
+        return view('Block-Drilldown.block_consolidate_report')->with('schemes', $schemes)->with('district_name', $district_name)->with('district_code', $district_code)->with('selected_year', $select_year)->with('selected_month', $monthName);
+        ;
     }
 
 
@@ -615,23 +617,23 @@ class BlockDrillDownReport extends Controller
             // New Changes on 10-01-2023 after breaking up transaction_lot_details_report table
             $year_arr = explode('-', $year);
             $yyyy_val = substr($year_arr[0], 2, 2) . substr($year_arr[1], 2, 2);
-            $tld_table = 'transaction_lot_details_report_'.$yyyy_val;  
+            $tld_table = 'transaction_lot_details_report_' . $yyyy_val;
             // end changes on 10-01-2023
 
             $table_name = 'pension.beneficiaries';
             if (!is_null($scheme_id)) {
-                $schemes_arr =  Scheme::select('id', 'short_code')->where('id', '=', $scheme_id)->first();
+                $schemes_arr = Scheme::select('id', 'short_code')->where('id', '=', $scheme_id)->first();
                 $parameter['scheme_id'] = $scheme_id;
-                $schema_name =  $schemes_arr->short_code;
+                $schema_name = $schemes_arr->short_code;
                 //dd($schema_name);
                 if (empty($schema_name))
                     $schema_name = 'pension';
-                $table_name =  $schema_name . '.beneficiaries';
+                $table_name = $schema_name . '.beneficiaries';
             } else {
-                $schemes_in_arr =  Configduty::select('scheme_id')->where('user_id', '=', $user_id)->get();
+                $schemes_in_arr = Configduty::select('scheme_id')->where('user_id', '=', $user_id)->get();
                 $schemes_in = array();
                 // dd($schemes_in_arr);
-                foreach ($schemes_in_arr  as $schm) {
+                foreach ($schemes_in_arr as $schm) {
                     array_push($schemes_in, $schm->scheme_id);
                 }
                 //dd($schemes_in);
@@ -851,7 +853,7 @@ class BlockDrillDownReport extends Controller
 
 
     public function getconsol_reportData_sbi(Request $request)
-    { 
+    {
         //DB::enableQueryLog();
         $schemes = array();
         if (request()->ajax()) {
@@ -860,26 +862,26 @@ class BlockDrillDownReport extends Controller
             $rural_urban = $request->rural_urban;
             $year = $request->fin_year;
             $month = $request->month;
-        
+
             $district_code = $request->district_code;
             $schemes_in = array();
-           
+
             if (!is_null($scheme_id)) {
-                $schemes_arr =  Scheme::select('id', 'short_code')->where('id', '=', $scheme_id)->where('is_active',1)->first();
+                $schemes_arr = Scheme::select('id', 'short_code')->where('id', '=', $scheme_id)->where('is_active', 1)->first();
                 $parameter['scheme_id'] = $scheme_id;
-                $schema_name =  $schemes_arr->short_code;
+                $schema_name = $schemes_arr->short_code;
                 //dd($schema_name);
-              
-                $table_name =  $schema_name . '.beneficiaries';
-           
+
+                $table_name = $schema_name . '.beneficiaries';
+
             } else {
-                $schemes_in_arr =  Configduty::select(DB::raw('distinct scheme_id'))->where('user_id', '=', $user_id)->where('is_active',1)->get();
-               
+                $schemes_in_arr = Configduty::select(DB::raw('distinct scheme_id'))->where('user_id', '=', $user_id)->where('is_active', 1)->get();
+
                 // dd($schemes_in_arr);
-                foreach ($schemes_in_arr  as $schm) {
+                foreach ($schemes_in_arr as $schm) {
                     array_push($schemes_in, $schm->scheme_id);
                 }
-              //  dd($schemes_in);
+                //  dd($schemes_in);
                 $table_name = 'pension.beneficiaries';
             }
             if (empty($district_code)) {
@@ -888,8 +890,8 @@ class BlockDrillDownReport extends Controller
             } else {
                 $filter = array();
                 $filter['dist_code'] = $district_code;
-                if(!empty($level)){
-                  $filter['rural_urban'] = $level;
+                if (!empty($level)) {
+                    $filter['rural_urban'] = $level;
                 }
                 if (!is_null($scheme_id)) {
                     $filter['scheme_id'] = $scheme_id;
@@ -901,23 +903,21 @@ class BlockDrillDownReport extends Controller
                 if (!empty($year)) {
                     $filter['lot_year'] = $year;
                 }
-                }
-                $data = array();
-                //echo $rural_urban;die;
-                if($rural_urban=='Rural'){
-                    $query= $this->getRuralSbiPaymentReport($table_name,$scheme_id,$schemes_in,$year,$month,$user_id);
-                }
-                else if($rural_urban=='Urban'){
-                    $query= $this->getUrbanSbiPaymentReport($table_name,$scheme_id,$schemes_in,$year,$month,$user_id);
-                }
-                else{
-                   $query= $this->getAllSbiPaymentReport($table_name,$scheme_id,$schemes_in,$year,$month,$user_id);
-                }
-               
-//echo  $query ;die;
-            $delete = DB::connection('pgsql_main_mis')->select(DB::raw("delete from  sbi.payment_report where user_id=".$user_id));
+            }
+            $data = array();
+            //echo $rural_urban;die;
+            if ($rural_urban == 'Rural') {
+                $query = $this->getRuralSbiPaymentReport($table_name, $scheme_id, $schemes_in, $year, $month, $user_id);
+            } else if ($rural_urban == 'Urban') {
+                $query = $this->getUrbanSbiPaymentReport($table_name, $scheme_id, $schemes_in, $year, $month, $user_id);
+            } else {
+                $query = $this->getAllSbiPaymentReport($table_name, $scheme_id, $schemes_in, $year, $month, $user_id);
+            }
+
+            //echo  $query ;die;
+            $delete = DB::connection('pgsql_main_mis')->select(DB::raw("delete from  sbi.payment_report where user_id=" . $user_id));
             $insert = DB::connection('pgsql_main_mis')->select($query, $filter);
-            $data=DB::connection('pgsql_main_mis')->select(DB::raw("select * from  sbi.payment_report where user_id=".$user_id));
+            $data = DB::connection('pgsql_main_mis')->select(DB::raw("select * from  sbi.payment_report where user_id=" . $user_id));
             return datatables()->of($data)
                 ->addColumn('level', function ($data) {
                     // if($data->level!=Null){
@@ -1136,22 +1136,22 @@ class BlockDrillDownReport extends Controller
     }
     function applicationstatreport(Request $request)
     {
-        $heading_msg  = '';
+        $heading_msg = '';
         date_default_timezone_set('Asia/Kolkata');
         $date = Carbon::createFromFormat('F j, Y g:i:a', date('F j, Y g:i:a'));
         $date = $date->format('F j, Y g:i:a');
         $is_active = 0;
         $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
-                $designation_id = Auth::user()->designation_id;
+        $designation_id = Auth::user()->designation_id;
         $user_id = AuthChecker::getUserId();
         $district_visible = $is_urban_visible = $block_visible = 1;
         $scheme_arr = array();
         $schemes = DB::select(DB::raw("select id,scheme_name from m_scheme where  id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . ")"));
 
-        if ($designation_id == 'Admin' || $designation_id == 'HOD' ||  $designation_id == 'Dashboard'|| $designation_id == 'DDO') {
+        if (AuthChecker::AdminChecker() || AuthChecker::HODChecker() || AuthChecker::DashboardChecker() || AuthChecker::DDOChecker()) {
             $district_visible = $is_urban_visible = $block_visible = 1;
             $scheme_arr = array(10, 11);
-        } else if ($designation_id == 'Approver' || $designation_id == 'Verifier' || $designation_id == 'StatusCheckerDistrict' || $designation_id == 'StatusCheckerField') {
+        } else if (AuthChecker::ApproverPermission() || AuthChecker::VerifierPermission() || AuthChecker::StatusCheckerDistrictChecker() || AuthChecker::StatusCheckerFieldChecker()) {
             $district_code = NULL;
             $is_urban = NULL;
             $blockCode = NULL;
@@ -1192,10 +1192,12 @@ class BlockDrillDownReport extends Controller
             $block_munc_corp_code_fk = NULL;
         }
         $districts = District::get();
+        $phase_list = DsPhase::orderBy('id')->get();
         return view(
             'Block-Drilldown.applicationstatereport',
             [
                 'schemes' => $schemes,
+                'phase_list' => $phase_list,
                 'districts' => $districts,
                 'district_visible' => $district_visible,
                 'district_code_fk' => $district_code_fk,
@@ -1213,7 +1215,7 @@ class BlockDrillDownReport extends Controller
         $scheme_code = $request->scheme_code;
         $scheme_row = Scheme::where('is_active', 1)->where('id', $scheme_code)->first();
         if (!empty($scheme_row->short_code)) {
-            $table_schema =   $scheme_row->short_code;
+            $table_schema = $scheme_row->short_code;
             $scheme_name = $scheme_row->scheme_name;
         } else {
             $table_schema = 'pension';
@@ -1238,11 +1240,19 @@ class BlockDrillDownReport extends Controller
         } else {
             $scheme_condition = "";
         }
+        $phase_condition = '';
+        if (!empty($request->phase_code) && $request->phase_code > 0) {
+
+            $phase_condition = ' and (ds_phase=' . $request->phase_code . ' or cur_mark_ds_phase=' . $request->phase_code . ')';
+        }
+        if ($request->phase_code == -1) {
+            $phase_condition = 'and ds_phase IS NULL and sm_ds_mark IS NULL';
+        }
         $from_date = $request->from_date;
         // dd($from_date);
         $to_date = $request->to_date;
         if (!empty($from_date) && !empty($to_date)) {
-            $dateFilter = " AND created_at >= '". $from_date ."'::date AND created_at <= '". $to_date ."'::date";
+            $dateFilter = " AND created_at >= '" . $from_date . "'::date AND created_at <= '" . $to_date . "'::date";
         } else {
             $dateFilter = "";
         }
@@ -1287,7 +1297,13 @@ class BlockDrillDownReport extends Controller
             $return_status = 1;
             $return_msg = '';
             $heading_msg = '';
-            //dd($legacy_import);
+            $next_level_role_id_operator = SchemeStepRank::getSchemeParentId($scheme_code, 1);
+            if ($scheme_code == 8 || $scheme_code == 9) {
+                $next_level_role_id_verifier = SchemeStepRank::getSchemeParentId($scheme_code, 1);
+            } else {
+
+                $next_level_role_id_verifier = SchemeStepRank::getSchemeParentId($scheme_code, 2);
+            }
             if (!empty($block)) {
                 if ($urban_code == 1) {
                     $query = "select A.*,B.*
@@ -1298,11 +1314,12 @@ class BlockDrillDownReport extends Controller
                 ) as A LEFT JOIN
                 (
                     select count(distinct(main.id)) as applied,
-coalesce(count( distinct main.id) FILTER(WHERE next_level_role_id=0)) as approved,
-coalesce(count( distinct main.id) FILTER(WHERE is_verified=1 and is_approved=0 and is_rejected=0 and bank_code IS NOT NULL)) as verified,
-coalesce(count( distinct main.id) FILTER(WHERE is_rejected=1 or next_level_role_id<0)) as rejected,
-main.gp_ward_code
-                    from " . $table_schema . ".beneficiaries as main 
+                    coalesce(count( distinct main.id) FILTER(WHERE is_verified=0 and is_approved=0 and is_rejected=0 and next_level_role_id=" . $next_level_role_id_operator . ")) as fresh,
+                    coalesce(count( distinct main.id) FILTER(WHERE is_verified=1 and is_approved=0 and is_rejected=0 and next_level_role_id=" . $next_level_role_id_verifier . ")) as verified,
+                    coalesce(count( distinct main.id) FILTER(WHERE next_level_role_id=0)) as approved,
+                    coalesce(count( distinct main.id) FILTER(WHERE is_rejected=1 or next_level_role_id<0)) as rejected,
+                    main.gp_ward_code
+                    from pension.beneficiaries as main 
                     
                     where  main.block_ulb_code=" . $block . "  " . $scheme_condition . " " . $dateFilter . "
                     group by main.gp_ward_code
@@ -1320,13 +1337,14 @@ main.gp_ward_code
                 ) as A LEFT JOIN
                 (
                     select count(distinct(main.id)) as applied,
-coalesce(count( distinct main.id) FILTER(WHERE next_level_role_id=0)) as approved,
-coalesce(count( distinct main.id) FILTER(WHERE is_verified=1 and is_approved=0 and is_rejected=0 and bank_code IS NOT NULL)) as verified,
-coalesce(count( distinct main.id) FILTER(WHERE is_rejected=1 or next_level_role_id<0)) as rejected,
+                    coalesce(count( distinct main.id) FILTER(WHERE is_verified=0 and is_approved=0 and is_rejected=0 and next_level_role_id=" . $next_level_role_id_operator . ")) as fresh,
+                    coalesce(count( distinct main.id) FILTER(WHERE is_verified=1 and is_approved=0 and is_rejected=0 and next_level_role_id=" . $next_level_role_id_verifier . ")) as verified,
+                    coalesce(count( distinct main.id) FILTER(WHERE next_level_role_id=0)) as approved,
+                    coalesce(count( distinct main.id) FILTER(WHERE is_rejected=1 or next_level_role_id<0)) as rejected,
 main.gp_ward_code
-                    from " . $table_schema . ".beneficiaries as main 
+                    from pension.beneficiaries as main 
                    
-                    where  main.block_ulb_code=" . $block . "  " . $scheme_condition . " " . $dateFilter . "
+                    where  main.block_ulb_code=" . $block . "  " . $scheme_condition . " " . $phase_condition . " " . $dateFilter . "
                     group by main.gp_ward_code
                 ) as B ON A.gram_panchyat_code=B.gp_ward_code";
                     $data_part = DB::connection('pgsql_mis')->select($query);
@@ -1345,12 +1363,13 @@ main.gp_ward_code
                 ) as A LEFT JOIN
                 (
                     select count(distinct(main.id)) as applied,
+                    coalesce(count( distinct main.id) FILTER(WHERE is_verified=0 and is_approved=0 and is_rejected=0 and next_level_role_id=" . $next_level_role_id_operator . ")) as fresh,
+                    coalesce(count( distinct main.id) FILTER(WHERE is_verified=1 and is_approved=0 and is_rejected=0 and next_level_role_id=" . $next_level_role_id_verifier . ")) as verified,
                     coalesce(count( distinct main.id) FILTER(WHERE next_level_role_id=0)) as approved,
-                    coalesce(count( distinct main.id) FILTER(WHERE is_verified=1 and is_approved=0 and is_rejected=0 and bank_code IS NOT NULL )) as verified,
                     coalesce(count( distinct main.id) FILTER(WHERE is_rejected=1 or next_level_role_id<0)) as rejected,
                     main.block_ulb_code
-                    from " . $table_schema . ".beneficiaries as main 
-                    where  main.created_by_dist_code=" . $district . "  " . $scheme_condition . " " . $dateFilter . "
+                    from pension.beneficiaries as main 
+                    where  main.created_by_dist_code=" . $district . "  " . $scheme_condition . " " . $phase_condition . " " . $dateFilter . "
                     group by main.block_ulb_code
                 ) as B ON A.urban_body_code=B.block_ulb_code";
                     $data_part = DB::connection('pgsql_mis')->select($query);
@@ -1367,12 +1386,13 @@ main.gp_ward_code
                 ) as A LEFT JOIN
                 (
                     select count(distinct(main.id)) as applied,
-coalesce(count( distinct main.id) FILTER(WHERE next_level_role_id=0)) as approved,
-coalesce(count( distinct main.id) FILTER(WHERE is_verified=1 and is_approved=0 and is_rejected=0 and bank_code IS NOT NULL)) as verified,
-coalesce(count( distinct main.id) FILTER(WHERE is_rejected=1 or next_level_role_id<0)) as rejected,
+                    coalesce(count( distinct main.id) FILTER(WHERE is_verified=0 and is_approved=0 and is_rejected=0 and next_level_role_id=" . $next_level_role_id_operator . ")) as fresh,
+                    coalesce(count( distinct main.id) FILTER(WHERE is_verified=1 and is_approved=0 and is_rejected=0 and next_level_role_id=" . $next_level_role_id_verifier . ")) as verified,
+                    coalesce(count( distinct main.id) FILTER(WHERE next_level_role_id=0)) as approved,
+                    coalesce(count( distinct main.id) FILTER(WHERE is_rejected=1 or next_level_role_id<0)) as rejected,
 main.block_ulb_code
-                    from " . $table_schema . ".beneficiaries as main 
-                    where  main.created_by_dist_code=" . $district . "  " . $scheme_condition . " " . $dateFilter . "
+                    from pension.beneficiaries as main 
+                    where  main.created_by_dist_code=" . $district . "  " . $scheme_condition . " " . $phase_condition . " " . $dateFilter . "
                     group by main.block_ulb_code
                 ) as B ON A.block_code=B.block_ulb_code";
                     $data_part = DB::connection('pgsql_mis')->select($query);
@@ -1390,12 +1410,13 @@ main.block_ulb_code
                 ) as A LEFT JOIN
                 (
                     select count(distinct(main.id)) as applied,
-coalesce(count( distinct main.id) FILTER(WHERE next_level_role_id=0)) as approved,
-coalesce(count( distinct main.id) FILTER(WHERE is_verified=1 and is_approved=0 and is_rejected=0 and bank_code IS NOT NULL)) as verified,
-coalesce(count( distinct main.id) FILTER(WHERE is_rejected=1 or next_level_role_id<0)) as rejected,
+                    coalesce(count( distinct main.id) FILTER(WHERE is_verified=0 and is_approved=0 and is_rejected=0 and next_level_role_id=" . $next_level_role_id_operator . ")) as fresh,
+                    coalesce(count( distinct main.id) FILTER(WHERE is_verified=1 and is_approved=0 and is_rejected=0 and next_level_role_id=" . $next_level_role_id_verifier . ")) as verified,
+                    coalesce(count( distinct main.id) FILTER(WHERE next_level_role_id=0)) as approved,
+                    coalesce(count( distinct main.id) FILTER(WHERE is_rejected=1 or next_level_role_id<0)) as rejected,
 block_ulb_code
-                    from " . $table_schema . ".beneficiaries as main 
-                    where  main.created_by_dist_code=" . $district . "  " . $scheme_condition . " " . $dateFilter . "
+                    from pension.beneficiaries as main 
+                    where  main.created_by_dist_code=" . $district . "  " . $scheme_condition . " " . $phase_condition . " " . $dateFilter . "
                     group by main.block_ulb_code
                 ) as B ON A.urban_body_code=B.block_ulb_code";
 
@@ -1410,13 +1431,14 @@ block_ulb_code
                 order by block_name
                 ) as A LEFT JOIN
                 (
-                    select count(distinct(main.id)) as applied,
-coalesce(count( distinct main.id) FILTER(WHERE next_level_role_id=0)) as approved,
-coalesce(count( distinct main.id) FILTER(WHERE is_verified=1 and is_approved=0 and is_rejected=0 and bank_code IS NOT NULL)) as verified,
-coalesce(count( distinct main.id) FILTER(WHERE is_rejected=1 or next_level_role_id<0)) as rejected,
+                   select count(distinct(main.id)) as applied,
+                    coalesce(count( distinct main.id) FILTER(WHERE is_verified=0 and is_approved=0 and is_rejected=0 and next_level_role_id=" . $next_level_role_id_operator . ")) as fresh,
+                    coalesce(count( distinct main.id) FILTER(WHERE is_verified=1 and is_approved=0 and is_rejected=0 and next_level_role_id=" . $next_level_role_id_verifier . ")) as verified,
+                    coalesce(count( distinct main.id) FILTER(WHERE next_level_role_id=0)) as approved,
+                    coalesce(count( distinct main.id) FILTER(WHERE is_rejected=1 or next_level_role_id<0)) as rejected,
 main.block_ulb_code
-                    from " . $table_schema . ".beneficiaries as main 
-                    where  main.created_by_dist_code=" . $district . "  " . $scheme_condition . " " . $dateFilter . "
+                    from pension.beneficiaries as main 
+                    where  main.created_by_dist_code=" . $district . "  " . $scheme_condition . " " . $phase_condition . " " . $dateFilter . "
                     group by main.block_ulb_code
                 ) as B ON A.block_code=B.block_ulb_code";
                 $data_part = DB::connection('pgsql_mis')->select($query);
@@ -1432,15 +1454,17 @@ main.block_ulb_code
                 order by district_name
                 ) as A LEFT JOIN
                 (
-                    select count(distinct(main.id)) as applied,
+                     select count(distinct(main.id)) as applied,
+                    coalesce(count( distinct main.id) FILTER(WHERE is_verified=0 and is_approved=0 and is_rejected=0 and next_level_role_id=" . $next_level_role_id_operator . ")) as fresh,
+                    coalesce(count( distinct main.id) FILTER(WHERE is_verified=1 and is_approved=0 and is_rejected=0 and next_level_role_id=" . $next_level_role_id_verifier . ")) as verified,
                     coalesce(count( distinct main.id) FILTER(WHERE next_level_role_id=0)) as approved,
-                    coalesce(count( distinct main.id) FILTER(WHERE is_verified=1 and is_approved=0 and is_rejected=0 and bank_code IS NOT NULL)) as verified,
                     coalesce(count( distinct main.id) FILTER(WHERE is_rejected=1 or next_level_role_id<0)) as rejected,
                     main.created_by_dist_code
-                    from " . $table_schema . ".beneficiaries as main 
-                    where  created_by_dist_code IS NOT NULL " . $scheme_condition . " " . $dateFilter . "
+                    from pension.beneficiaries as main 
+                    where  created_by_dist_code IS NOT NULL " . $scheme_condition . " " . $phase_condition . " " . $dateFilter . "
                     group by main.created_by_dist_code
                 ) as B ON A.district_code=B.created_by_dist_code";
+                //dd($query);
                 $data_part = DB::connection('pgsql_mis')->select($query);
                 $data = array_merge($data, $data_part);
                 $heading_msg = 'District Wise ' . $user_msg;
@@ -1462,13 +1486,14 @@ main.block_ulb_code
         ]);
     }
 
-    function getAllSbiPaymentReport($table_name,$scheme_id,$schemes_in,$year,$month,$user_id){ 
+    function getAllSbiPaymentReport($table_name, $scheme_id, $schemes_in, $year, $month, $user_id)
+    {
         // New Changes on 10-01-2023 after breaking up transaction_lot_details_report table
         $year_arr = explode('-', $year);
         $yyyy_val = substr($year_arr[0], 2, 2) . substr($year_arr[1], 2, 2);
-        $tld_table = 'transaction_lot_details_report_'.$yyyy_val;  
+        $tld_table = 'transaction_lot_details_report_' . $yyyy_val;
         // end changes on 10-01-2023
-        $query="insert into sbi.payment_report select block_ulb_name,Level,applied,to_be_verified,to_be_approved,approved,current_applied,current_to_be_verified,current_to_be_approved,current_approved,sum(pushed_sbi) pushed_sbi,".$user_id.",now() from( select mb.urban_body_name as block_ulb_name, 'Urban' as Level,
+        $query = "insert into sbi.payment_report select block_ulb_name,Level,applied,to_be_verified,to_be_approved,approved,current_applied,current_to_be_verified,current_to_be_approved,current_approved,sum(pushed_sbi) pushed_sbi," . $user_id . ",now() from( select mb.urban_body_name as block_ulb_name, 'Urban' as Level,
         coalesce(count( b.id),0) as applied,
         coalesce(count( b.id) FILTER(WHERE b.next_level_role_id is null),0) as to_be_verified,
         coalesce(count( b.id) FILTER(WHERE b.is_verified=1 and b.is_approved=0 and b.is_rejected=0),0) as to_be_approved,
@@ -1478,13 +1503,13 @@ main.block_ulb_code
         coalesce(count( b.id) FILTER(WHERE b.next_level_role_id >= 0 and trim(to_char(b.created_at,'Month'))= :lot_month),0) as current_to_be_approved,
         coalesce(count( b.id) FILTER(WHERE b.next_level_role_id = 0 and trim(to_char(b.created_at,'Month'))= :lot_month),0) as current_approved,
         coalesce(count( b.id) FILTER(WHERE l.lot_status<=6),0) as pushed_sbi
-        FROM (select * from ".$table_name." where  rural_urban_id=1 and dist_code= :dist_code  ";
+        FROM (select * from pension.beneficiaries where  rural_urban_id=1 and dist_code= :dist_code  ";
         if (!is_null($scheme_id)) {
             $query = $query . ' and scheme_id = :scheme_id';
         } else {
             $query = $query . ' and scheme_id IN (' . implode(',', $schemes_in) . ')';
         }
-       
+
         $query = $query . ") b 
         left join m_urban_body mb on mb.urban_body_code=b.block_ulb_code 
         LEFT JOIN (select tld.pension_id,tld.scheme_id,tl.lot_status, tld.credit_amount,tld.status_code  from sbi.transaction_lot_details tld right join sbi.transaction_lot tl on tld.lot_no = tl.lot_no 
@@ -1511,18 +1536,18 @@ main.block_ulb_code
         coalesce(count( b.id) FILTER(WHERE b.next_level_role_id is null and trim(to_char(b.created_at,'Month'))= :lot_month),0) as current_to_be_verified,
         coalesce(count( b.id) FILTER(WHERE b.is_verified=1 and b.is_approved=0 and b.is_rejected=0 and trim(to_char(b.created_at,'Month'))= :lot_month),0) as current_to_be_approved,
         coalesce(count( b.id) FILTER(WHERE b.next_level_role_id = 0 and trim(to_char(b.created_at,'Month'))= :lot_month),0) as current_approved,
-        coalesce(count( b.id) FILTER(WHERE l.lot_status<=6),0) as pushed_sbi FROM (select * from ".$table_name." where rural_urban_id=2 and dist_code= :dist_code ";
+        coalesce(count( b.id) FILTER(WHERE l.lot_status<=6),0) as pushed_sbi FROM (select * from pension.beneficiaries where rural_urban_id=2 and dist_code= :dist_code ";
         if (!is_null($scheme_id)) {
             $query = $query . ' and scheme_id = :scheme_id';
         } else {
             $query = $query . ' and scheme_id IN (' . implode(',', $schemes_in) . ')';
         }
-        
+
         $query = $query . ") b  
         left join  m_block mb on mb.block_code=b.block_ulb_code 
         LEFT JOIN (select tld.pension_id,tld.scheme_id,tl.lot_status, tld.credit_amount,tld.status_code from sbi.transaction_lot_details tld right join sbi.transaction_lot tl on tld.lot_no = tl.lot_no ";
-        
-        
+
+
         if (!is_null($year)) {
             $query = $query . ' and tl.lot_year= :lot_year';
         }
@@ -1546,16 +1571,16 @@ main.block_ulb_code
         coalesce(count( b.id) FILTER(WHERE b.is_verified=1 and b.is_approved=0 and b.is_rejected=0 and trim(to_char(b.created_at,'Month'))= :lot_month),0) as current_to_be_approved,
         coalesce(count( b.id) FILTER(WHERE b.next_level_role_id = 0 and trim(to_char(b.created_at,'Month'))= :lot_month),0) as current_approved,
         coalesce(count( b.id) FILTER(WHERE l.lot_status<=6),0) as pushed_sbi
-        FROM (select * from ".$table_name." where  rural_urban_id=1 and dist_code= :dist_code  ";
+        FROM (select * from pension.beneficiaries where  rural_urban_id=1 and dist_code= :dist_code  ";
         if (!is_null($scheme_id)) {
             $query = $query . ' and scheme_id = :scheme_id';
         } else {
             $query = $query . ' and scheme_id IN (' . implode(',', $schemes_in) . ')';
         }
-       
+
         $query = $query . ") b 
         left join m_urban_body mb on mb.urban_body_code=b.block_ulb_code 
-        LEFT JOIN (select tld.pension_id,tld.scheme_id,tl.lot_status, tld.credit_amount,tld.status_code  from sbi.".$tld_table." tld right join sbi.transaction_lot tl on tld.lot_no = tl.lot_no 
+        LEFT JOIN (select tld.pension_id,tld.scheme_id,tl.lot_status, tld.credit_amount,tld.status_code  from sbi." . $tld_table . " tld right join sbi.transaction_lot tl on tld.lot_no = tl.lot_no 
          ";
         if (!is_null($year)) {
             $query = $query . ' and tl.lot_year= :lot_year';
@@ -1579,18 +1604,18 @@ main.block_ulb_code
         coalesce(count( b.id) FILTER(WHERE b.next_level_role_id is null and trim(to_char(b.created_at,'Month'))= :lot_month),0) as current_to_be_verified,
         coalesce(count( b.id) FILTER(WHERE b.is_verified=1 and b.is_approved=0 and b.is_rejected=0 and trim(to_char(b.created_at,'Month'))= :lot_month),0) as current_to_be_approved,
         coalesce(count( b.id) FILTER(WHERE b.next_level_role_id = 0 and trim(to_char(b.created_at,'Month'))= :lot_month),0) as current_approved,
-        coalesce(count( b.id) FILTER(WHERE l.lot_status<=6),0) as pushed_sbi FROM (select * from ".$table_name." where rural_urban_id=2 and dist_code= :dist_code ";
+        coalesce(count( b.id) FILTER(WHERE l.lot_status<=6),0) as pushed_sbi FROM (select * from pension.beneficiaries where rural_urban_id=2 and dist_code= :dist_code ";
         if (!is_null($scheme_id)) {
             $query = $query . ' and scheme_id = :scheme_id';
         } else {
             $query = $query . ' and scheme_id IN (' . implode(',', $schemes_in) . ')';
         }
-        
+
         $query = $query . ") b  
         left join  m_block mb on mb.block_code=b.block_ulb_code 
-        LEFT JOIN (select tld.pension_id,tld.scheme_id,tl.lot_status, tld.credit_amount,tld.status_code from sbi.".$tld_table." tld right join sbi.transaction_lot tl on tld.lot_no = tl.lot_no ";
-        
-        
+        LEFT JOIN (select tld.pension_id,tld.scheme_id,tl.lot_status, tld.credit_amount,tld.status_code from sbi." . $tld_table . " tld right join sbi.transaction_lot tl on tld.lot_no = tl.lot_no ";
+
+
         if (!is_null($year)) {
             $query = $query . ' and tl.lot_year= :lot_year';
         }
@@ -1603,17 +1628,18 @@ main.block_ulb_code
             $query = $query . ' and tl.scheme_id IN (' . implode(',', $schemes_in) . ')';
         }
         $query = $query . " )l  on b.id = l.pension_id and b.scheme_id = l.scheme_id  group by mb.block_name  )t  where pushed_sbi<>0 group by block_ulb_name,Level,applied,to_be_verified,to_be_approved,approved,current_applied,current_to_be_verified,current_to_be_approved,current_approved";
-    
-    return $query;
+
+        return $query;
     }
 
-    function getRuralSbiPaymentReport($table_name,$scheme_id,$schemes_in,$year,$month,$user_id){
+    function getRuralSbiPaymentReport($table_name, $scheme_id, $schemes_in, $year, $month, $user_id)
+    {
         // New Changes on 10-01-2023 after breaking up transaction_lot_details_report table
         $year_arr = explode('-', $year);
         $yyyy_val = substr($year_arr[0], 2, 2) . substr($year_arr[1], 2, 2);
-        $tld_table = 'transaction_lot_details_report_'.$yyyy_val;  
+        $tld_table = 'transaction_lot_details_report_' . $yyyy_val;
         // end changes on 10-01-2023
-        $query ="insert into sbi.payment_report select block_ulb_name,Level,applied,to_be_verified,to_be_approved,approved,current_applied,current_to_be_verified,current_to_be_approved,current_approved,sum(pushed_sbi) pushed_sbi,".$user_id.",now() from(select mb.block_name as block_ulb_name, 'Rural' as Level,
+        $query = "insert into sbi.payment_report select block_ulb_name,Level,applied,to_be_verified,to_be_approved,approved,current_applied,current_to_be_verified,current_to_be_approved,current_approved,sum(pushed_sbi) pushed_sbi," . $user_id . ",now() from(select mb.block_name as block_ulb_name, 'Rural' as Level,
         coalesce(count(distinct b.id),0) as applied,
         coalesce(count( b.id) FILTER(WHERE b.next_level_role_id is null),0) as to_be_verified,
         coalesce(count( b.id) FILTER(WHERE b.is_verified=1 and b.is_approved=0 and b.is_rejected=0),0) as to_be_approved,
@@ -1622,18 +1648,18 @@ main.block_ulb_code
         coalesce(count( b.id) FILTER(WHERE b.next_level_role_id is null and trim(to_char(b.created_at,'Month'))= :lot_month),0) as current_to_be_verified,
         coalesce(count( b.id) FILTER(WHERE b.is_verified=1 and b.is_approved=0 and b.is_rejected=0 and trim(to_char(b.created_at,'Month'))= :lot_month),0) as current_to_be_approved,
         coalesce(count( b.id) FILTER(WHERE b.next_level_role_id = 0 and trim(to_char(b.created_at,'Month'))= :lot_month),0) as current_approved,
-        coalesce(count( b.id) FILTER(WHERE l.lot_status<=6),0) as pushed_sbi FROM (select * from ".$table_name." where rural_urban_id=2 and dist_code= :dist_code ";
+        coalesce(count( b.id) FILTER(WHERE l.lot_status<=6),0) as pushed_sbi FROM (select * from pension.beneficiaries where rural_urban_id=2 and dist_code= :dist_code ";
         if (!is_null($scheme_id)) {
             $query = $query . ' and scheme_id = :scheme_id';
         } else {
             $query = $query . ' and scheme_id IN (' . implode(',', $schemes_in) . ')';
         }
-        
+
         $query = $query . ") b  
         left join  m_block mb on mb.block_code=b.block_ulb_code 
         LEFT JOIN (select tld.pension_id,tld.scheme_id,tl.lot_status, tld.credit_amount,tld.status_code from sbi.transaction_lot_details tld right join sbi.transaction_lot tl on tld.lot_no = tl.lot_no ";
-        
-        
+
+
         if (!is_null($year)) {
             $query = $query . ' and tl.lot_year= :lot_year';
         }
@@ -1656,18 +1682,18 @@ main.block_ulb_code
         coalesce(count( b.id) FILTER(WHERE b.next_level_role_id is null and trim(to_char(b.created_at,'Month'))= :lot_month),0) as current_to_be_verified,
         coalesce(count( b.id) FILTER(WHERE b.is_verified=1 and b.is_approved=0 and b.is_rejected=0 and trim(to_char(b.created_at,'Month'))= :lot_month),0) as current_to_be_approved,
         coalesce(count( b.id) FILTER(WHERE b.next_level_role_id = 0 and trim(to_char(b.created_at,'Month'))= :lot_month),0) as current_approved,
-        coalesce(count( b.id) FILTER(WHERE l.lot_status<=6),0) as pushed_sbi FROM (select * from ".$table_name." where rural_urban_id=2 and dist_code= :dist_code ";
+        coalesce(count( b.id) FILTER(WHERE l.lot_status<=6),0) as pushed_sbi FROM (select * from pension.beneficiaries where rural_urban_id=2 and dist_code= :dist_code ";
         if (!is_null($scheme_id)) {
             $query = $query . ' and scheme_id = :scheme_id';
         } else {
             $query = $query . ' and scheme_id IN (' . implode(',', $schemes_in) . ')';
         }
-        
+
         $query = $query . ") b  
         left join  m_block mb on mb.block_code=b.block_ulb_code 
-        LEFT JOIN (select tld.pension_id,tld.scheme_id,tl.lot_status, tld.credit_amount,tld.status_code from sbi.".$tld_table." tld right join sbi.transaction_lot tl on tld.lot_no = tl.lot_no ";
-        
-        
+        LEFT JOIN (select tld.pension_id,tld.scheme_id,tl.lot_status, tld.credit_amount,tld.status_code from sbi." . $tld_table . " tld right join sbi.transaction_lot tl on tld.lot_no = tl.lot_no ";
+
+
         if (!is_null($year)) {
             $query = $query . ' and tl.lot_year= :lot_year';
         }
@@ -1685,13 +1711,14 @@ main.block_ulb_code
 
     }
 
-    function getUrbanSbiPaymentReport($table_name,$scheme_id,$schemes_in,$year,$month,$user_id){
+    function getUrbanSbiPaymentReport($table_name, $scheme_id, $schemes_in, $year, $month, $user_id)
+    {
         // New Changes on 10-01-2023 after breaking up transaction_lot_details_report table
         $year_arr = explode('-', $year);
         $yyyy_val = substr($year_arr[0], 2, 2) . substr($year_arr[1], 2, 2);
-        $tld_table = 'transaction_lot_details_report_'.$yyyy_val;  
+        $tld_table = 'transaction_lot_details_report_' . $yyyy_val;
         // end changes on 10-01-2023
-        $query ="insert into sbi.payment_report select block_ulb_name,Level,applied,to_be_verified,to_be_approved,approved,current_applied,current_to_be_verified,current_to_be_approved,current_approved,sum(pushed_sbi) pushed_sbi,".$user_id.",now() from(select mb.urban_body_name as block_ulb_name, 'Urban' as Level,
+        $query = "insert into sbi.payment_report select block_ulb_name,Level,applied,to_be_verified,to_be_approved,approved,current_applied,current_to_be_verified,current_to_be_approved,current_approved,sum(pushed_sbi) pushed_sbi," . $user_id . ",now() from(select mb.urban_body_name as block_ulb_name, 'Urban' as Level,
         coalesce(count( b.id),0) as applied,
         coalesce(count( b.id) FILTER(WHERE b.next_level_role_id is null),0) as to_be_verified,
         coalesce(count( b.id) FILTER(WHERE b.is_verified=1 and b.is_approved=0 and b.is_rejected=0),0) as to_be_approved,
@@ -1701,13 +1728,13 @@ main.block_ulb_code
         coalesce(count( b.id) FILTER(WHERE b.is_verified=1 and b.is_approved=0 and b.is_rejected=0 and trim(to_char(b.created_at,'Month'))= :lot_month),0) as current_to_be_approved,
         coalesce(count( b.id) FILTER(WHERE b.next_level_role_id = 0 and trim(to_char(b.created_at,'Month'))= :lot_month),0) as current_approved,
         coalesce(count( b.id) FILTER(WHERE l.lot_status<=6),0) as pushed_sbi
-        FROM (select * from ".$table_name." where  rural_urban_id=1 and dist_code= :dist_code  ";
+        FROM (select * from pension.beneficiaries where  rural_urban_id=1 and dist_code= :dist_code  ";
         if (!is_null($scheme_id)) {
             $query = $query . ' and scheme_id = :scheme_id';
         } else {
             $query = $query . ' and scheme_id IN (' . implode(',', $schemes_in) . ')';
         }
-       
+
         $query = $query . ") b 
         left join m_urban_body mb on mb.urban_body_code=b.block_ulb_code 
         LEFT JOIN (select tld.pension_id,tld.scheme_id,tl.lot_status, tld.credit_amount,tld.status_code  from sbi.transaction_lot_details tld right join sbi.transaction_lot tl on tld.lot_no = tl.lot_no 
@@ -1735,16 +1762,16 @@ main.block_ulb_code
         coalesce(count( b.id) FILTER(WHERE b.is_verified=1 and b.is_approved=0 and b.is_rejected=0 and trim(to_char(b.created_at,'Month'))= :lot_month),0) as current_to_be_approved,
         coalesce(count( b.id) FILTER(WHERE b.next_level_role_id = 0 and trim(to_char(b.created_at,'Month'))= :lot_month),0) as current_approved,
         coalesce(count( b.id) FILTER(WHERE l.lot_status<=6),0) as pushed_sbi
-        FROM (select * from ".$table_name." where  rural_urban_id=1 and dist_code= :dist_code  ";
+        FROM (select * from pension.beneficiaries where  rural_urban_id=1 and dist_code= :dist_code  ";
         if (!is_null($scheme_id)) {
             $query = $query . ' and scheme_id = :scheme_id';
         } else {
             $query = $query . ' and scheme_id IN (' . implode(',', $schemes_in) . ')';
         }
-       
+
         $query = $query . ") b 
         left join m_urban_body mb on mb.urban_body_code=b.block_ulb_code 
-        LEFT JOIN (select tld.pension_id,tld.scheme_id,tl.lot_status, tld.credit_amount,tld.status_code  from sbi.".$tld_table." tld right join sbi.transaction_lot tl on tld.lot_no = tl.lot_no 
+        LEFT JOIN (select tld.pension_id,tld.scheme_id,tl.lot_status, tld.credit_amount,tld.status_code  from sbi." . $tld_table . " tld right join sbi.transaction_lot tl on tld.lot_no = tl.lot_no 
          ";
         if (!is_null($year)) {
             $query = $query . ' and tl.lot_year= :lot_year';

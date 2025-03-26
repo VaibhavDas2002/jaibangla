@@ -20,6 +20,8 @@ use App\GP;
 use App\AcceptRejectInfo;
 use App\BenDocs;
 use App\Helpers\AuthChecker;
+use App\SchemeStepRank;
+use App\BenEntry;
 
 class WorkflowLppController extends Controller
 {
@@ -100,7 +102,8 @@ class WorkflowLppController extends Controller
       $limit = $request->input('length');
       $offset = $request->input('start');
       //dd($process_type);
-      $query = DB::table($schema . '.beneficiaries')->whereNull('next_level_role_id')->whereNull('is_reverted')->whereNotNull('entry_datetime');
+      $next_level_role_id = SchemeStepRank::getSchemeParentId($scheme_id, 1);
+      $query = DB::table('pension.beneficiaries')->where('scheme_id',$scheme_id)->where('next_level_role_id',$next_level_role_id)->whereNotNull('update_datetime');
       $district_code = $request->district_code;
       if (!empty($district_code)) {
         $query = $query->where('created_by_dist_code', $district_code);
@@ -280,7 +283,8 @@ class WorkflowLppController extends Controller
 
       }
       // dd($schema);
-      $query = DB::table($schema . '.beneficiaries')->where('id', $id)->whereNull('next_level_role_id');
+      $next_level_role_id_approver=SchemeStepRank::getSchemeParentId($scheme_id, 1);
+      $query = DB::table('pension.beneficiaries')->where('scheme_id',$scheme_id)->where('id', $id)->where('next_level_role_id',$next_level_role_id_approver);
       $row = $query->first();
       // dd( $row);
       if (empty($row)) {
@@ -336,6 +340,7 @@ class WorkflowLppController extends Controller
         [
           'designation_id' => $designation_id,
           'row' => $row,
+          'next_level_role_id_approver' => $next_level_role_id_approver,
           'id' => $id,
           'district_name' => $district_name,
           'block_name' => $block_name,
@@ -353,7 +358,7 @@ class WorkflowLppController extends Controller
   public function forward(Request $request)
   {
     try {
-
+      
       $this->middleware('auth');
       $designation_id = Auth::user()->designation_id;
       $user_id = AuthChecker::getUserId();
@@ -382,18 +387,22 @@ class WorkflowLppController extends Controller
 
       }
 
-      $condition = array();
-      $condition['id'] = $id;
-
-      $query = DB::table($schema . '.beneficiary')
-        ->where($condition)->where('id', $id)->whereNull('next_level_role_id');
+      // $condition = array();
+      // $condition['id'] = $id;
+      $next_level_role_id_approver=SchemeStepRank::getSchemeParentId($scheme_id, 1);
+      // dump($next_level_role_id_approver);
+      $query = DB::table('pension.beneficiaries')
+        ->where('id', $id)->where('scheme_id',$scheme_id)->where('next_level_role_id',$next_level_role_id_approver);
 
       $row = $query->first();
+      // dd($row);
+      
       if (empty($row)) {
         return redirect("/")->with('danger', 'Not Allowed');
       }
       $is_error = 0;
 
+      $benEntry_model = BenEntry::where('id', $id)->where('scheme_id',  $request->scheme_id)->whereNotNull('bank_code')->where('is_approved',0)->first();
 
 
       if ($is_error == 0) {
@@ -401,32 +410,49 @@ class WorkflowLppController extends Controller
         if ($request->action_type == 'Reject') {
           $op_type = 'AR';
           $inputMain = array();
-          $inputMain['next_level_role_id'] = -1;
-          $inputMain['is_approved'] = 2;
-          $inputMain['is_verified'] = 2;
-          $inputMain['is_rejected'] = 1;
-          $inputMain['rejected_date'] = $c_time;
-          $inputMain['rejected_by'] = $user_id;
-          $inputMain['is_clean'] = 10;
+          $benEntry_model->next_level_role_id = -1;
+          $benEntry_model->is_approved=2;
+          $benEntry_model->is_verified=2;
+          $benEntry_model->is_rejected=1;
+          $benEntry_model->rejected_date=$c_time;
+          $benEntry_model->rejected_by=$user_id;
+          $benEntry_model->is_clean=10;
+          // $inputMain['next_level_role_id'] = -1;
+          // $inputMain['is_approved'] = 2;
+          // $inputMain['is_verified'] = 2;
+          // $inputMain['is_rejected'] = 1;
+          // $inputMain['rejected_date'] = $c_time;
+          // $inputMain['rejected_by'] = $user_id;
+          // $inputMain['is_clean'] = 10;
           $op_type = 'AA';
           $msg = "Rejected";
         } else if ($request->action_type == 'Revert') {
           $op_type = 'AE';
           $inputMain = array();
-          $inputMain['next_level_role_id'] = NULL;
-          $inputMain['is_reverted'] = 1;
-          $inputMain['is_verified'] = 0;
-          $inputMain['is_approved'] = 0;
+          $benEntry_model->update_datetime= null;
+          $benEntry_model->is_reverted =1;
+          $benEntry_model->is_verified =0;
+          $benEntry_model->is_approved=0;
+          
+          // $inputMain['next_level_role_id'] = NULL;
+          // $inputMain['is_reverted'] = 1;
+          // $inputMain['is_verified'] = 0;
+          // $inputMain['is_approved'] = 0;
           $msg = "Reverted";
         } else if ($request->action_type == 'Approve') {
           $inputMain = array();
-          $inputMain['next_level_role_id'] = 0;
-          $inputMain['is_approved'] = 1;
-          $inputMain['approval_date'] = $c_time;
-          $inputMain['approved_by'] = $user_id;
+          $benEntry_model->next_level_role_id=0;
+          $benEntry_model->is_approved =1;
+          $benEntry_model->approval_date = $c_time;
+          $benEntry_model->approved_by = $user_id;
+          // $inputMain['next_level_role_id'] = 0;
+          // $inputMain['is_approved'] = 1;
+          // $inputMain['approval_date'] = $c_time;
+          // $inputMain['approved_by'] = $user_id;
           $op_type = 'AA';
           $msg = "Approved";
         } else {
+          // dd('ok');
           return redirect("/")->with('danger', 'Not Allowed');
         }
 
@@ -436,17 +462,17 @@ class WorkflowLppController extends Controller
 
 
 
-        $upadated_main = DB::table($schema . '.beneficiary')
-          ->where(['id' => $id])->whereNull('next_level_role_id')->update($inputMain);
+        $upadated_main = $benEntry_model->save();
 
         $modelNameAcceptReject = new AcceptRejectInfo;
    
         $modelNameAcceptReject->scheme_id = $scheme_id;
 
         $modelNameAcceptReject->created_at = $c_time;
-        $modelNameAcceptReject->op_type = class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod();
+        $modelNameAcceptReject->op_type = $op_type;
         $modelNameAcceptReject->application_id = $id;
         $modelNameAcceptReject->user_id = $user_id;
+        $modelNameAcceptReject->module_name = class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod();
         $modelNameAcceptReject->ip_address = request()->ip();
         $is_accept_reject = $modelNameAcceptReject->save();
         //dump($upadated_main);dump($is_accept_reject);dump($enc_status);dd($is_inserted_arch);
@@ -476,7 +502,7 @@ class WorkflowLppController extends Controller
         return redirect("/workflowlpp?scheme_id=" . $scheme_id)->with('errors', $errors);
       }
     } catch (\Exception $e) {
-      //dd($e);
+      // dd($e);
       return redirect("/")->with('danger', 'Not Allowed');
     }
 

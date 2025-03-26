@@ -720,7 +720,7 @@
                             $("#verifyReject").hide();
                             var id = $('#id').val();
                             $.ajax({
-                                type: 'POST',
+                                type: 'post',
                                 url: "{{ url('approveStopPaymentData') }}",
                                 data: {
                                     opreation_type: opreation_type,

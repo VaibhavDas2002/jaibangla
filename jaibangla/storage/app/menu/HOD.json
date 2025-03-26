@@ -1,0 +1,561 @@
+[
+    {
+        "id": 177,
+        "menu_name": "Beneficiary Status",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "#",
+        "url_type": "1",
+        "child_menu": [
+            {
+                "menu_id": 178,
+                "menu_name": "Track & Payment Status",
+                "designation_id": "HOD",
+                "master_rank": 4,
+                "map_rank": 4,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 177,
+                "url_type": "1",
+                "link_url": "track-application-status",
+                "icon": "fa fa-link",
+                "menu_class": null
+            }
+        ]
+    },
+    {
+        "id": 232,
+        "menu_name": "Bank Transaction Failed",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "#",
+        "url_type": "1",
+        "child_menu": [
+            {
+                "menu_id": 354,
+                "menu_name": "Payment Transaction Failed Mis",
+                "designation_id": "HOD",
+                "master_rank": 3,
+                "map_rank": 3,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 232,
+                "url_type": "2",
+                "link_url": "failed-payment-mis",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 304,
+                "menu_name": "A\/C Validation Trans. Failed Mis",
+                "designation_id": "HOD",
+                "master_rank": 5895,
+                "map_rank": 5895,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 232,
+                "url_type": "2",
+                "link_url": "name-account-validationMIS",
+                "icon": "fa fa-link",
+                "menu_class": null
+            }
+        ]
+    },
+    {
+        "id": 249,
+        "menu_name": "DS MIS Report",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "dsreportphaseselect",
+        "url_type": "1",
+        "child_menu": []
+    },
+    {
+        "id": 299,
+        "menu_name": "BSK Drilldown Report",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "bsk-drilldown-report",
+        "url_type": "2",
+        "child_menu": []
+    },
+    {
+        "id": 327,
+        "menu_name": "Sarasori Mukhyamantri",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "#",
+        "url_type": "1",
+        "child_menu": [
+            {
+                "menu_id": 332,
+                "menu_name": "Mis Report (CMO Grievance)",
+                "designation_id": "HOD",
+                "master_rank": 327,
+                "map_rank": 3,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 327,
+                "url_type": "2",
+                "link_url": "sm-cmoMisReport",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 333,
+                "menu_name": "CMO Grievance Approved List",
+                "designation_id": "HOD",
+                "master_rank": 330,
+                "map_rank": 5,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 327,
+                "url_type": "2",
+                "link_url": "sm-cmoMisReportlist",
+                "icon": "fa fa-link",
+                "menu_class": null
+            }
+        ]
+    },
+    {
+        "id": 274,
+        "menu_name": "Age Cohort Reports",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "#",
+        "url_type": "2",
+        "child_menu": [
+            {
+                "menu_id": 278,
+                "menu_name": "Age Cohort Report",
+                "designation_id": "HOD",
+                "master_rank": 2,
+                "map_rank": 2,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 274,
+                "url_type": "2",
+                "link_url": "different-age-cohort-report",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 276,
+                "menu_name": "Male- Female  with Age Group",
+                "designation_id": "HOD",
+                "master_rank": 1051,
+                "map_rank": 1051,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 274,
+                "url_type": "1",
+                "link_url": "ageCohortReport",
+                "icon": "fa fa-link",
+                "menu_class": "ageCohortReport"
+            }
+        ]
+    },
+    {
+        "id": 283,
+        "menu_name": "Aadhar & Mobile De-duplication",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "#",
+        "url_type": "1",
+        "child_menu": [
+            {
+                "menu_id": 284,
+                "menu_name": "Mis Report",
+                "designation_id": "HOD",
+                "master_rank": 5,
+                "map_rank": 5,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 283,
+                "url_type": "2",
+                "link_url": "duplicateAadharMobileMISReport",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 285,
+                "menu_name": "Beneficiary List Report",
+                "designation_id": "HOD",
+                "master_rank": 10,
+                "map_rank": 10,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 283,
+                "url_type": "2",
+                "link_url": "dup-aadhar-mobile-ben",
+                "icon": "fa fa-link",
+                "menu_class": null
+            }
+        ]
+    },
+    {
+        "id": 309,
+        "menu_name": "LB Beneficiary Imported  Report",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "lb60misreport",
+        "url_type": "1",
+        "child_menu": []
+    },
+    {
+        "id": 181,
+        "menu_name": "Duty Management",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "userDutymanagement",
+        "url_type": "1",
+        "child_menu": []
+    },
+    {
+        "id": 185,
+        "menu_name": "De-activated Payment Report",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "report-duplicate-stop-payment",
+        "url_type": "1",
+        "child_menu": []
+    },
+    {
+        "id": 192,
+        "menu_name": "LPP  Scheme",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "#",
+        "url_type": "1",
+        "child_menu": [
+            {
+                "menu_id": 335,
+                "menu_name": "Process Applications",
+                "designation_id": "HOD",
+                "master_rank": 1,
+                "map_rank": 1,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 192,
+                "url_type": "1",
+                "link_url": "schemeSelectionINC",
+                "icon": "fa fa-link",
+                "menu_class": null
+            }
+        ]
+    },
+    {
+        "id": 201,
+        "menu_name": "Purohits Monthly Assistance",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "#",
+        "url_type": "1",
+        "child_menu": [
+            {
+                "menu_id": 200,
+                "menu_name": "Process Applications",
+                "designation_id": "HOD",
+                "master_rank": 10,
+                "map_rank": 0,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 201,
+                "url_type": "1",
+                "link_url": "jbProcessApplication_hod",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 206,
+                "menu_name": "Beneficiaries Report-District",
+                "designation_id": "HOD",
+                "master_rank": 15,
+                "map_rank": 1,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 201,
+                "url_type": "1",
+                "link_url": "purohit-monthly-report",
+                "icon": "fa fa-link",
+                "menu_class": null
+            }
+        ]
+    },
+    {
+        "id": 208,
+        "menu_name": "Beneficiary List Report",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "#",
+        "url_type": "1",
+        "child_menu": [
+            {
+                "menu_id": 209,
+                "menu_name": "New Beneficiary List",
+                "designation_id": "HOD",
+                "master_rank": 1,
+                "map_rank": 1,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 208,
+                "url_type": "1",
+                "link_url": "scheme-selection-common?type=F",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 210,
+                "menu_name": "Verified List",
+                "designation_id": "HOD",
+                "master_rank": 2,
+                "map_rank": 2,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 208,
+                "url_type": "1",
+                "link_url": "scheme-selection-common?type=V",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 212,
+                "menu_name": "Approved List",
+                "designation_id": "HOD",
+                "master_rank": 4,
+                "map_rank": 4,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 208,
+                "url_type": "1",
+                "link_url": "scheme-selection-common?type=A",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 213,
+                "menu_name": "Rejected List",
+                "designation_id": "HOD",
+                "master_rank": 5,
+                "map_rank": 5,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 208,
+                "url_type": "1",
+                "link_url": "scheme-selection-common?type=T",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 211,
+                "menu_name": "Recomended List",
+                "designation_id": "HOD",
+                "master_rank": 3,
+                "map_rank": 20,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 208,
+                "url_type": "1",
+                "link_url": "scheme-selection-common?type=R",
+                "icon": "fa fa-link",
+                "menu_class": null
+            }
+        ]
+    },
+    {
+        "id": 254,
+        "menu_name": "Farmer",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "#",
+        "url_type": "1",
+        "child_menu": [
+            {
+                "menu_id": 280,
+                "menu_name": "Payee Beneficiary List (Farmer)",
+                "designation_id": "HOD",
+                "master_rank": 2000,
+                "map_rank": 2000,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 254,
+                "url_type": "2",
+                "link_url": "get-payee-list",
+                "icon": "fa fa-link",
+                "menu_class": null
+            }
+        ]
+    },
+    {
+        "id": 259,
+        "menu_name": "Aadhaar Management",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "#",
+        "url_type": "1",
+        "child_menu": [
+            {
+                "menu_id": 270,
+                "menu_name": "Find Aadhaar",
+                "designation_id": "HOD",
+                "master_rank": 1047,
+                "map_rank": 1047,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 259,
+                "url_type": "1",
+                "link_url": "findAadhaar",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 300,
+                "menu_name": "PDS Aadhar Verification",
+                "designation_id": "HOD",
+                "master_rank": 2000,
+                "map_rank": 2000,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 259,
+                "url_type": "1",
+                "link_url": "wbpdsaadharScheme",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 305,
+                "menu_name": "PDS Name Validation Failed MIS",
+                "designation_id": "HOD",
+                "master_rank": 5896,
+                "map_rank": 5896,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 259,
+                "url_type": "1",
+                "link_url": "aadharNameValidMIS",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 324,
+                "menu_name": "No Aadhaar Mis Report",
+                "designation_id": "HOD",
+                "master_rank": 25899,
+                "map_rank": 25899,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 259,
+                "url_type": "1",
+                "link_url": "noaadharMisReport",
+                "icon": "fa fa-link",
+                "menu_class": null
+            }
+        ]
+    },
+    {
+        "id": 267,
+        "menu_name": "Application Drill Down Report",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "applicationstatreport",
+        "url_type": "1",
+        "child_menu": []
+    },
+    {
+        "id": 359,
+        "menu_name": "Caste Wise Beneficiary Report",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "caste-wise-console-report",
+        "url_type": "2",
+        "child_menu": []
+    },
+    {
+        "id": 271,
+        "menu_name": "Bank Info Duplication Report",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "dedupBankMis",
+        "url_type": "1",
+        "child_menu": []
+    },
+    {
+        "id": 298,
+        "menu_name": "Visual Dashboard",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "jb-chart",
+        "url_type": "1",
+        "child_menu": []
+    },
+    {
+        "id": 356,
+        "menu_name": "Transaction Report",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "#",
+        "url_type": "1",
+        "child_menu": [
+            {
+                "menu_id": 357,
+                "menu_name": "Payment Report",
+                "designation_id": "HOD",
+                "master_rank": 1,
+                "map_rank": 1,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 356,
+                "url_type": "2",
+                "link_url": "report-payment-lot",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 358,
+                "menu_name": "Validation Report",
+                "designation_id": "HOD",
+                "master_rank": 2,
+                "map_rank": 2,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 356,
+                "url_type": "2",
+                "link_url": "report-validation-lot",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 317,
+                "menu_name": "Response Pending from SBI",
+                "designation_id": "HOD",
+                "master_rank": 20,
+                "map_rank": 20,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 356,
+                "url_type": "2",
+                "link_url": "payment-pending-status-report",
+                "icon": "fa fa-link",
+                "menu_class": null
+            }
+        ]
+    },
+    {
+        "id": 360,
+        "menu_name": "Payment Suspended for OAP",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "payment-suspended-oap",
+        "url_type": "2",
+        "child_menu": []
+    },
+    {
+        "id": 361,
+        "menu_name": "Cross Scheme Configuration",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "cross-scheme-config",
+        "url_type": "2",
+        "child_menu": []
+    }
+]

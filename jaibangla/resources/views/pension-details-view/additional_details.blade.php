@@ -28,9 +28,6 @@
                 @if ($scheme_id == 17)
                     <div class="row">
                         <div class="col-md-6">
-                            <div><strong>Application ID:</strong> {{$row->id}}</div>
-                        </div>
-                        <div class="col-md-6">
                             <div><strong>Phase:</strong> {{$row->app_phase}}</div>
                         </div>
                         <div class="col-md-6">

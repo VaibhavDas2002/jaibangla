@@ -12,7 +12,7 @@
             @foreach($docs as $doc)
                     @if($doc->attched_document != "")
                             <div class="col-md-4">
-                                <strong>{{$doc->doc_type_name}} :</strong>]
+                                <strong>{{$doc->doc_type_name}} :</strong>
                             </div>
                             <div class="col-md-8" style="padding-bottom: 30px; ">
                                 <?php        $document_mime_type = $doc->document_mime_type;

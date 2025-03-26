@@ -127,8 +127,8 @@
                                             class="text-danger">*</span></label>
                                     <select name="update_code" id="update_code" class="form-control">
                                         <option value="">-----Select----</option>
-                                        <option value="1">Minor mismatch, Keep existing bank information</option>
-                                        <option value="2">Process with new bank account</option>
+                                        <option value="1">Minor mismatch, Keep existing bank information</option> 
+                                        {{-- <option value="2">Process with new bank account</option> --}}
                                         <option value="3">Application is rejected due to major mismatch</option>
                                     </select>
                                     <span class="text-danger" id="error_update_code"></span>

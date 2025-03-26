@@ -45,9 +45,9 @@ class DifferentAgeCohortReportController extends Controller
         $gp_ward_visible = 0;
         $muncList = collect([]);
         $gpList = collect([]);
-        if ($designation_id == 'Admin' || $designation_id == 'HOD' || $designation_id == 'HOP' || $designation_id == 'MisState' ||  $designation_id == 'Dashboard') {
+        if (AuthChecker::AdminChecker() || AuthChecker::HODChecker() || AuthChecker::HOPChecker() || AuthChecker::MisStateChecker() ||  AuthChecker::DashboardChecker()) {
             $district_visible = $is_urban_visible = $block_visible = 1;
-        } else if ($designation_id == 'Approver') {
+        } else if (AuthChecker::ApproverPermission()) {
             $district_code = NULL;
             $is_urban = NULL;
             $blockCode = NULL;

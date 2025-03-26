@@ -219,9 +219,20 @@ desired effect
                                     </div>
                                     <div class="panel-body">
 
-
+                                      
 
                                         <div class="row">
+                                            <div class="col-md-3" id="phase_div">
+                                                <label class="control-label">Select Phase</label>
+                                                <select name="phase_code" id="phase_code" class="form-control" tabindex="6" >
+                                                  <option value="">-----All----</option>
+                                                  @foreach ($phase_list as $phase)
+                                                 <option value="{{$phase->phase_code}}"> {{$phase->phase_des}}</option>
+                                                 @endforeach
+                                                 <option value="-1">Normal Entry</option>
+                                               </select>
+                                                <span id="error_phase_code" class="text-danger"></span>
+                                               </div>
                                             <div class="form-group col-md-4">
                                                 <label class="required-field">Select Scheme</label>
                                                 <select name="scheme_code" id="scheme_code" class="form-control"
@@ -286,12 +297,12 @@ desired effect
                                             @endif
                                             <div class="row">
                                                 <div class="form-group col-md-4">
-                                                    <label class="">Application From Date</label>
+                                                    <label class="">From Date(Application Submission Date)</label>
                                                     <input type="date" class="form-control" id="from_date">
                                                     <span id="error_from_date" class="text-danger"></span>
                                                 </div>
                                                 <div class="form-group col-md-4">
-                                                    <label class="">Application To Date</label>
+                                                    <label class="">To Date (Application Submission Date)</label>
                                                     <input type="date" class="form-control" id="to_date">
                                                     <span id="error_to_date" class="text-danger"></span>
                                                 </div>
@@ -344,8 +355,9 @@ desired effect
                                                         <tr>
                                                             <th id="location_id" width="25%">District</th>
                                                             <th>Applications Submitted</th>
-                                                            <th>Approved</th>
-                                                            <th>Verified</th>
+                                                            <th>Yet to be Verified and Approved</th>
+                                                            <th>Verified but Approval Pending</th>
+                                                            <th>Verified and Approved</th>
                                                             <th>Rejected</th>
                                                         </tr>
                                                     </thead>
@@ -356,8 +368,9 @@ desired effect
                                                         <tr>
                                                             <th></th>
                                                             <th>Applications Submitted</th>
-                                                            <th>Approved</th>
-                                                            <th>Verified</th>
+                                                            <th>Yet to be Verified and Approved</th>
+                                                            <th>Verified but Approval Pending</th>
+                                                            <th>Verified and Approved</th>
                                                             <th>Rejected</th>
 
                                                         </tr>
@@ -538,7 +551,7 @@ desired effect
             // }
 
             $('.modal-search').on('click', function() {
-
+                var phase_code = $('#phase_code').val();
                 var scheme_code = $('#scheme_code').val();
                 var district = $('#district_code_fk').val();
                 var urban_code = $('#rural_urban_fk').val();
@@ -560,11 +573,12 @@ desired effect
                     $("#submitting").hide();
                     $('#search_details').hide();
                     $.ajax({
-                        type: 'POST',
+                        type: 'get',
                         dataType: 'json',
                         url: '{{ url('applicationstatreportpost') }}',
                         data: {
                             scheme_code: scheme_code,
+                            phase_code: phase_code,
                             district: district,
                             urban_code: urban_code,
                             block: block,
@@ -590,7 +604,9 @@ desired effect
                                 var table = $("#example tbody");
                                 $.each(data.row_data, function(i, item) {
                                     var applied = isNaN(parseInt(item.applied)) ? 0 :
-                                        parseInt(item.applied);
+                                    parseInt(item.applied);
+                                    var fresh = isNaN(parseInt(item.fresh)) ? 0 :
+                                        parseInt(item.fresh);
                                     var approved = isNaN(parseInt(item.approved)) ? 0 :
                                         parseInt(item.approved);
                                     var verified = isNaN(parseInt(item.verified)) ? 0 :
@@ -599,11 +615,12 @@ desired effect
                                         parseInt(item.rejected);
                                     // var pending = isNaN(parseInt(item.pending)) ? 0 : parseInt(item.pending);
                                     //var pending=parseInt(item.applied-((item.approved)+(item.rejected)));
-
+                                    var total = fresh+approved+verified+rejected;
                                     table.append("<tr><td>" + item.location_name +
-                                        "</td><td>" + applied + "</td><td>" +
-                                        approved + "</td> <td>" + verified +
-                                        "</td>  <td>" + rejected + "</td></tr>");
+                                        "</td><td>" + total + "</td><td>" +
+                                            fresh + "</td> <td>" + verified +
+                                        "</td> <td>" + approved +
+                                        "</td> <td>" + rejected + "</td></tr>");
                                 });
 
 
@@ -646,14 +663,14 @@ desired effect
                                         };
 
                                         // computing column Total of the complete result 
-                                        var freshTotal = api
+                                        var Total = api
                                             .column(1)
                                             .data()
                                             .reduce(function(a, b) {
                                                 return intVal(a) + intVal(b);
                                             }, 0);
 
-                                        var approvedTotal = api
+                                        var freshTotal = api
                                             .column(2)
                                             .data()
                                             .reduce(function(a, b) {
@@ -665,24 +682,30 @@ desired effect
                                             .reduce(function(a, b) {
                                                 return intVal(a) + intVal(b);
                                             }, 0);
-                                        var rejectTotal = api
+                                        var approveTotal = api
                                             .column(4)
                                             .data()
                                             .reduce(function(a, b) {
                                                 return intVal(a) + intVal(b);
                                             }, 0);
 
-
+                                            var rejectTotal = api
+                                            .column(5)
+                                            .data()
+                                            .reduce(function(a, b) {
+                                                return intVal(a) + intVal(b);
+                                            }, 0);
 
 
                                         // Update footer by showing the total with the reference of the column index 
                                         $(api.column(0).footer()).html('Total');
-                                        $(api.column(1).footer()).html(freshTotal);
+                                        $(api.column(1).footer()).html(Total);
                                         $(api.column(2).footer()).html(
-                                            approvedTotal);
+                                            freshTotal);
                                         $(api.column(3).footer()).html(
                                             verifiedTotal);
-                                        $(api.column(4).footer()).html(rejectTotal);
+                                       $(api.column(4).footer()).html(approveTotal);
+                                        $(api.column(5).footer()).html(rejectTotal);
                                         //$( api.column( 5 ).footer() ).html(pendingTotal);
                                     }
                                 });

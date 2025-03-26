@@ -1,0 +1,783 @@
+[
+    {
+        "id": 135,
+        "menu_name": "Process Application",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "scheme-selection-process-application?type=1",
+        "url_type": "1",
+        "child_menu": []
+    },
+    {
+        "id": 308,
+        "menu_name": "Process Application LB",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "selectsehmelb60",
+        "url_type": "1",
+        "child_menu": []
+    },
+    {
+        "id": 177,
+        "menu_name": "Beneficiary Status",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "#",
+        "url_type": "1",
+        "child_menu": [
+            {
+                "menu_id": 178,
+                "menu_name": "Track & Payment Status",
+                "designation_id": "Approver",
+                "master_rank": 4,
+                "map_rank": 4,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 177,
+                "url_type": "1",
+                "link_url": "track-application-status",
+                "icon": "fa fa-link",
+                "menu_class": null
+            }
+        ]
+    },
+    {
+        "id": 318,
+        "menu_name": "Approval of Stop Payment",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "approve-stop-payment",
+        "url_type": "2",
+        "child_menu": []
+    },
+    {
+        "id": 232,
+        "menu_name": "Bank Transaction Failed",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "#",
+        "url_type": "1",
+        "child_menu": [
+            {
+                "menu_id": 345,
+                "menu_name": "Payment Trans. Failed Verified",
+                "designation_id": "Approver",
+                "master_rank": 2,
+                "map_rank": 2,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 232,
+                "url_type": "1",
+                "link_url": "failed-bank-approve",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 354,
+                "menu_name": "Payment Transaction Failed Mis",
+                "designation_id": "Approver",
+                "master_rank": 3,
+                "map_rank": 3,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 232,
+                "url_type": "2",
+                "link_url": "failed-payment-mis",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 302,
+                "menu_name": "A\/C Validation Failed Verified",
+                "designation_id": "Approver",
+                "master_rank": 789,
+                "map_rank": 789,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 232,
+                "url_type": "2",
+                "link_url": "ben-acc-nameValidationApprove",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 304,
+                "menu_name": "A\/C Validation Trans. Failed Mis",
+                "designation_id": "Approver",
+                "master_rank": 5895,
+                "map_rank": 5895,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 232,
+                "url_type": "2",
+                "link_url": "name-account-validationMIS",
+                "icon": "fa fa-link",
+                "menu_class": null
+            }
+        ]
+    },
+    {
+        "id": 150,
+        "menu_name": "Application Drill Down Report",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "applicationstatreport",
+        "url_type": "1",
+        "child_menu": []
+    },
+    {
+        "id": 249,
+        "menu_name": "DS MIS Report",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "dsreportphaseselect",
+        "url_type": "1",
+        "child_menu": []
+    },
+    {
+        "id": 154,
+        "menu_name": "Update\/Deactivate Beneficiary",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "update-deactivate-beneficiary",
+        "url_type": "2",
+        "child_menu": []
+    },
+    {
+        "id": 239,
+        "menu_name": "Wcd Edit Approved Beneficiary",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "#",
+        "url_type": "1",
+        "child_menu": [
+            {
+                "menu_id": 242,
+                "menu_name": "Process Application OAP",
+                "designation_id": "Approver",
+                "master_rank": 10,
+                "map_rank": 10,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 239,
+                "url_type": "1",
+                "link_url": "workflowwcdEdit?scheme_id=10",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 243,
+                "menu_name": "Process Application WP",
+                "designation_id": "Approver",
+                "master_rank": 12,
+                "map_rank": 12,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 239,
+                "url_type": "1",
+                "link_url": "workflowwcdEdit?scheme_id=11",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 251,
+                "menu_name": "Mis Report",
+                "designation_id": "Approver",
+                "master_rank": 20,
+                "map_rank": 20,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 239,
+                "url_type": "1",
+                "link_url": "brieftofullReport",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 264,
+                "menu_name": "Process Application Manabik",
+                "designation_id": "Approver",
+                "master_rank": 1042,
+                "map_rank": 1042,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 239,
+                "url_type": "1",
+                "link_url": "workflowwcdEdit?scheme_id=2",
+                "icon": "fa fa-link",
+                "menu_class": null
+            }
+        ]
+    },
+    {
+        "id": 327,
+        "menu_name": "Sarasori Mukhyamantri",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "#",
+        "url_type": "1",
+        "child_menu": [
+            {
+                "menu_id": 334,
+                "menu_name": "Mark as Duare Sarkar VII",
+                "designation_id": "Approver",
+                "master_rank": 2,
+                "map_rank": 2,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 327,
+                "url_type": "1",
+                "link_url": "oapsmdsmark?scheme_id=10&type=1&ds_mark_phase=8",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 332,
+                "menu_name": "Mis Report (CMO Grievance)",
+                "designation_id": "Approver",
+                "master_rank": 327,
+                "map_rank": 3,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 327,
+                "url_type": "2",
+                "link_url": "sm-cmoMisReport",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 333,
+                "menu_name": "CMO Grievance Approved List",
+                "designation_id": "Approver",
+                "master_rank": 330,
+                "map_rank": 5,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 327,
+                "url_type": "2",
+                "link_url": "sm-cmoMisReportlist",
+                "icon": "fa fa-link",
+                "menu_class": null
+            }
+        ]
+    },
+    {
+        "id": 299,
+        "menu_name": "BSK Drilldown Report",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "bsk-drilldown-report",
+        "url_type": "2",
+        "child_menu": []
+    },
+    {
+        "id": 307,
+        "menu_name": "Re-activate Death Incident",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "jnmp-data",
+        "url_type": "2",
+        "child_menu": []
+    },
+    {
+        "id": 274,
+        "menu_name": "Age Cohort Reports",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "#",
+        "url_type": "2",
+        "child_menu": [
+            {
+                "menu_id": 278,
+                "menu_name": "Age Cohort Report",
+                "designation_id": "Approver",
+                "master_rank": 2,
+                "map_rank": 2,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 274,
+                "url_type": "2",
+                "link_url": "different-age-cohort-report",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 277,
+                "menu_name": "Age Cohort Beneficiary List",
+                "designation_id": "Approver",
+                "master_rank": 2,
+                "map_rank": 2,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 274,
+                "url_type": "2",
+                "link_url": "age-cohort-list",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 276,
+                "menu_name": "Male- Female  with Age Group",
+                "designation_id": "Approver",
+                "master_rank": 1051,
+                "map_rank": 1051,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 274,
+                "url_type": "1",
+                "link_url": "ageCohortReport",
+                "icon": "fa fa-link",
+                "menu_class": "ageCohortReport"
+            }
+        ]
+    },
+    {
+        "id": 283,
+        "menu_name": "Aadhar & Mobile De-duplication",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "#",
+        "url_type": "1",
+        "child_menu": [
+            {
+                "menu_id": 288,
+                "menu_name": "Approval of De-duplication",
+                "designation_id": "Approver",
+                "master_rank": 1,
+                "map_rank": 1,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 283,
+                "url_type": "2",
+                "link_url": "approve-de-duplicate-aadhar-mobile",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 284,
+                "menu_name": "Mis Report",
+                "designation_id": "Approver",
+                "master_rank": 5,
+                "map_rank": 5,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 283,
+                "url_type": "2",
+                "link_url": "duplicateAadharMobileMISReport",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 285,
+                "menu_name": "Beneficiary List Report",
+                "designation_id": "Approver",
+                "master_rank": 10,
+                "map_rank": 10,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 283,
+                "url_type": "2",
+                "link_url": "dup-aadhar-mobile-ben",
+                "icon": "fa fa-link",
+                "menu_class": null
+            }
+        ]
+    },
+    {
+        "id": 309,
+        "menu_name": "LB Beneficiary Imported  Report",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "lb60misreport",
+        "url_type": "1",
+        "child_menu": []
+    },
+    {
+        "id": 181,
+        "menu_name": "Duty Management",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "userDutymanagement",
+        "url_type": "1",
+        "child_menu": []
+    },
+    {
+        "id": 192,
+        "menu_name": "LPP  Scheme",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "#",
+        "url_type": "1",
+        "child_menu": [
+            {
+                "menu_id": 336,
+                "menu_name": "LPP Application List",
+                "designation_id": "Approver",
+                "master_rank": 5,
+                "map_rank": 2,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 192,
+                "url_type": "2",
+                "link_url": "lpp_entry_list",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 272,
+                "menu_name": "LPP Entry",
+                "designation_id": "Approver",
+                "master_rank": 3,
+                "map_rank": 3,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 192,
+                "url_type": "1",
+                "link_url": "schemeSelectionLPP",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 195,
+                "menu_name": "LPP Retainer to Pensioner",
+                "designation_id": "Approver",
+                "master_rank": 1011,
+                "map_rank": 24,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 192,
+                "url_type": "1",
+                "link_url": "retainer-to-pensioner",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 196,
+                "menu_name": "LPP Retainer to Pensioner-Report",
+                "designation_id": "Approver",
+                "master_rank": 1012,
+                "map_rank": 24,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 192,
+                "url_type": "1",
+                "link_url": "retainer-to-pensioner-report",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 198,
+                "menu_name": "LPP Pensioner SBI Failed",
+                "designation_id": "Approver",
+                "master_rank": 1014,
+                "map_rank": 1014,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 192,
+                "url_type": "1",
+                "link_url": "failed-bank-edit",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 199,
+                "menu_name": "LPP Retainer SBI Failed",
+                "designation_id": "Approver",
+                "master_rank": 1015,
+                "map_rank": 1015,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 192,
+                "url_type": "1",
+                "link_url": "failed-bank-edit",
+                "icon": "fa fa-link",
+                "menu_class": null
+            }
+        ]
+    },
+    {
+        "id": 201,
+        "menu_name": "Purohits Monthly Assistance",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "#",
+        "url_type": "1",
+        "child_menu": [
+            {
+                "menu_id": 206,
+                "menu_name": "Beneficiaries Report-District",
+                "designation_id": "Approver",
+                "master_rank": 15,
+                "map_rank": 1,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 201,
+                "url_type": "1",
+                "link_url": "purohit-monthly-report",
+                "icon": "fa fa-link",
+                "menu_class": null
+            }
+        ]
+    },
+    {
+        "id": 208,
+        "menu_name": "Beneficiary List Report",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "#",
+        "url_type": "1",
+        "child_menu": [
+            {
+                "menu_id": 209,
+                "menu_name": "New Beneficiary List",
+                "designation_id": "Approver",
+                "master_rank": 1,
+                "map_rank": 1,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 208,
+                "url_type": "1",
+                "link_url": "scheme-selection-common?type=F",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 210,
+                "menu_name": "Verified List",
+                "designation_id": "Approver",
+                "master_rank": 2,
+                "map_rank": 2,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 208,
+                "url_type": "1",
+                "link_url": "scheme-selection-common?type=V",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 212,
+                "menu_name": "Approved List",
+                "designation_id": "Approver",
+                "master_rank": 4,
+                "map_rank": 4,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 208,
+                "url_type": "1",
+                "link_url": "scheme-selection-common?type=A",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 213,
+                "menu_name": "Rejected List",
+                "designation_id": "Approver",
+                "master_rank": 5,
+                "map_rank": 5,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 208,
+                "url_type": "1",
+                "link_url": "scheme-selection-common?type=T",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 211,
+                "menu_name": "Recomended List",
+                "designation_id": "Approver",
+                "master_rank": 3,
+                "map_rank": 20,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 208,
+                "url_type": "1",
+                "link_url": "scheme-selection-common?type=R",
+                "icon": "fa fa-link",
+                "menu_class": null
+            }
+        ]
+    },
+    {
+        "id": 253,
+        "menu_name": "Approve Bank A\/c De-duplication",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "dedupBankApprover",
+        "url_type": "2",
+        "child_menu": []
+    },
+    {
+        "id": 254,
+        "menu_name": "Farmer",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "#",
+        "url_type": "1",
+        "child_menu": [
+            {
+                "menu_id": 257,
+                "menu_name": "Approve Short Entry Modification",
+                "designation_id": "Approver",
+                "master_rank": 1035,
+                "map_rank": 1035,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 254,
+                "url_type": "1",
+                "link_url": "oapFarmerApprovedEdit?pr1=oap_farmer",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 280,
+                "menu_name": "Payee Beneficiary List (Farmer)",
+                "designation_id": "Approver",
+                "master_rank": 2000,
+                "map_rank": 2000,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 254,
+                "url_type": "2",
+                "link_url": "get-payee-list",
+                "icon": "fa fa-link",
+                "menu_class": null
+            }
+        ]
+    },
+    {
+        "id": 259,
+        "menu_name": "Aadhaar Management",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "#",
+        "url_type": "1",
+        "child_menu": [
+            {
+                "menu_id": 323,
+                "menu_name": "Approve No Aadhaar",
+                "designation_id": "Approver",
+                "master_rank": 1039,
+                "map_rank": 1039,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 259,
+                "url_type": "1",
+                "link_url": "schemelist-noaadhar",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 270,
+                "menu_name": "Find Aadhaar",
+                "designation_id": "Approver",
+                "master_rank": 1047,
+                "map_rank": 1047,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 259,
+                "url_type": "1",
+                "link_url": "findAadhaar",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 303,
+                "menu_name": "PDS Name Validation Failed",
+                "designation_id": "Approver",
+                "master_rank": 5269,
+                "map_rank": 5269,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 259,
+                "url_type": "1",
+                "link_url": "wbpdsaadharSchemeOp?type=2",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 305,
+                "menu_name": "PDS Name Validation Failed MIS",
+                "designation_id": "Approver",
+                "master_rank": 5896,
+                "map_rank": 5896,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 259,
+                "url_type": "1",
+                "link_url": "aadharNameValidMIS",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 324,
+                "menu_name": "No Aadhaar Mis Report",
+                "designation_id": "Approver",
+                "master_rank": 25899,
+                "map_rank": 25899,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 259,
+                "url_type": "1",
+                "link_url": "noaadharMisReport",
+                "icon": "fa fa-link",
+                "menu_class": null
+            }
+        ]
+    },
+    {
+        "id": 359,
+        "menu_name": "Caste Wise Beneficiary Report",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "caste-wise-console-report",
+        "url_type": "2",
+        "child_menu": []
+    },
+    {
+        "id": 271,
+        "menu_name": "Bank Info Duplication Report",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "dedupBankMis",
+        "url_type": "1",
+        "child_menu": []
+    },
+    {
+        "id": 329,
+        "menu_name": "Reject Bank Failure Case",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "scheme_selection_longpen",
+        "url_type": "1",
+        "child_menu": []
+    },
+    {
+        "id": 330,
+        "menu_name": "Upload\/Change Document",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "scheme_selection_doc_upload",
+        "url_type": "1",
+        "child_menu": []
+    },
+    {
+        "id": 331,
+        "menu_name": "Beneficiary Details Entry",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "scheme_selection_brief",
+        "url_type": "1",
+        "child_menu": []
+    },
+    {
+        "id": 331,
+        "menu_name": "Update Beneficiary Data Approve",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "no-dup-verified-beneficiaries-list",
+        "url_type": "1",
+        "child_menu": []
+    }
+]

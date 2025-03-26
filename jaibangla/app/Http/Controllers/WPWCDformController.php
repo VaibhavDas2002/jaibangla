@@ -70,6 +70,7 @@ class WPWCDformController extends Controller
 
     public function __construct()
     {
+        return redirect("/")->with('danger', 'User Disabled');
         $this->middleware('auth');
         $this->scheme_id = 11;
         date_default_timezone_set('Asia/Kolkata');

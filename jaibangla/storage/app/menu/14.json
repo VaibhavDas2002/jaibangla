@@ -1,0 +1,483 @@
+[
+    {
+        "id": 135,
+        "menu_name": "Process Application",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "scheme-selection-process-application?type=1",
+        "url_type": "1",
+        "child_menu": []
+    },
+    {
+        "id": 308,
+        "menu_name": "Process Application LB",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "selectsehmelb60",
+        "url_type": "1",
+        "child_menu": []
+    },
+    {
+        "id": 177,
+        "menu_name": "Beneficiary Status",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "#",
+        "url_type": "1",
+        "child_menu": [
+            {
+                "menu_id": 178,
+                "menu_name": "Track & Payment Status",
+                "designation_id": "Verifier",
+                "master_rank": 4,
+                "map_rank": 4,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 177,
+                "url_type": "1",
+                "link_url": "track-application-status",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 180,
+                "menu_name": "Consolidated Payment Status",
+                "designation_id": "Verifier",
+                "master_rank": 6,
+                "map_rank": 6,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 177,
+                "url_type": "1",
+                "link_url": "get-payee-list",
+                "icon": "fa fa-link",
+                "menu_class": null
+            }
+        ]
+    },
+    {
+        "id": 350,
+        "menu_name": "Bank Acc No. De-duplication",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "dedupBankSelectScheme",
+        "url_type": "1",
+        "child_menu": []
+    },
+    {
+        "id": 232,
+        "menu_name": "Bank Transaction Failed",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "#",
+        "url_type": "1",
+        "child_menu": [
+            {
+                "menu_id": 301,
+                "menu_name": "A\/C Validation Failed Correction",
+                "designation_id": "Verifier",
+                "master_rank": 25,
+                "map_rank": 25,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 232,
+                "url_type": "2",
+                "link_url": "ben-acc-nameValidation",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 351,
+                "menu_name": "Payment Transaction Failed",
+                "designation_id": "Verifier",
+                "master_rank": 2,
+                "map_rank": 25905,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 232,
+                "url_type": "1",
+                "link_url": "failed-bank-edit",
+                "icon": "fa fa-link",
+                "menu_class": null
+            }
+        ]
+    },
+    {
+        "id": 292,
+        "menu_name": "Deactivate Beneficiary",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "update-deactivate-beneficiary",
+        "url_type": "2",
+        "child_menu": []
+    },
+    {
+        "id": 249,
+        "menu_name": "DS MIS Report",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "dsreportphaseselect",
+        "url_type": "1",
+        "child_menu": []
+    },
+    {
+        "id": 239,
+        "menu_name": "Wcd Edit Approved Beneficiary",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "#",
+        "url_type": "1",
+        "child_menu": [
+            {
+                "menu_id": 242,
+                "menu_name": "Process Application OAP",
+                "designation_id": "Verifier",
+                "master_rank": 10,
+                "map_rank": 10,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 239,
+                "url_type": "1",
+                "link_url": "workflowwcdEdit?scheme_id=10",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 243,
+                "menu_name": "Process Application WP",
+                "designation_id": "Verifier",
+                "master_rank": 12,
+                "map_rank": 12,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 239,
+                "url_type": "1",
+                "link_url": "workflowwcdEdit?scheme_id=11",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 264,
+                "menu_name": "Process Application Manabik",
+                "designation_id": "Verifier",
+                "master_rank": 1042,
+                "map_rank": 1042,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 239,
+                "url_type": "1",
+                "link_url": "workflowwcdEdit?scheme_id=2",
+                "icon": "fa fa-link",
+                "menu_class": null
+            }
+        ]
+    },
+    {
+        "id": 327,
+        "menu_name": "Sarasori Mukhyamantri",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "#",
+        "url_type": "1",
+        "child_menu": [
+            {
+                "menu_id": 328,
+                "menu_name": "Mark",
+                "designation_id": "Verifier",
+                "master_rank": 1,
+                "map_rank": 1,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 327,
+                "url_type": "1",
+                "link_url": "mark-sm?scheme_id=10",
+                "icon": "fa fa-link",
+                "menu_class": null
+            }
+        ]
+    },
+    {
+        "id": 274,
+        "menu_name": "Age Cohort Reports",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "#",
+        "url_type": "2",
+        "child_menu": [
+            {
+                "menu_id": 277,
+                "menu_name": "Age Cohort Beneficiary List",
+                "designation_id": "Verifier",
+                "master_rank": 2,
+                "map_rank": 2,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 274,
+                "url_type": "2",
+                "link_url": "age-cohort-list",
+                "icon": "fa fa-link",
+                "menu_class": null
+            }
+        ]
+    },
+    {
+        "id": 338,
+        "menu_name": "Check Bioauth",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "schemeSelectforBioAuth",
+        "url_type": "2",
+        "child_menu": []
+    },
+    {
+        "id": 283,
+        "menu_name": "Aadhar & Mobile De-duplication",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "#",
+        "url_type": "1",
+        "child_menu": [
+            {
+                "menu_id": 287,
+                "menu_name": "Verification of De-duplication",
+                "designation_id": "Verifier",
+                "master_rank": 1,
+                "map_rank": 1,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 283,
+                "url_type": "2",
+                "link_url": "verify-de-duplicate-aadhar-mobile",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 284,
+                "menu_name": "Mis Report",
+                "designation_id": "Verifier",
+                "master_rank": 5,
+                "map_rank": 5,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 283,
+                "url_type": "2",
+                "link_url": "duplicateAadharMobileMISReport",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 285,
+                "menu_name": "Beneficiary List Report",
+                "designation_id": "Verifier",
+                "master_rank": 10,
+                "map_rank": 10,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 283,
+                "url_type": "2",
+                "link_url": "dup-aadhar-mobile-ben",
+                "icon": "fa fa-link",
+                "menu_class": null
+            }
+        ]
+    },
+    {
+        "id": 208,
+        "menu_name": "Beneficiary List Report",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "#",
+        "url_type": "1",
+        "child_menu": [
+            {
+                "menu_id": 209,
+                "menu_name": "New Beneficiary List",
+                "designation_id": "Verifier",
+                "master_rank": 1,
+                "map_rank": 1,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 208,
+                "url_type": "1",
+                "link_url": "scheme-selection-common?type=F",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 210,
+                "menu_name": "Verified List",
+                "designation_id": "Verifier",
+                "master_rank": 2,
+                "map_rank": 2,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 208,
+                "url_type": "1",
+                "link_url": "scheme-selection-common?type=V",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 212,
+                "menu_name": "Approved List",
+                "designation_id": "Verifier",
+                "master_rank": 4,
+                "map_rank": 4,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 208,
+                "url_type": "1",
+                "link_url": "scheme-selection-common?type=A",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 213,
+                "menu_name": "Rejected List",
+                "designation_id": "Verifier",
+                "master_rank": 5,
+                "map_rank": 5,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 208,
+                "url_type": "1",
+                "link_url": "scheme-selection-common?type=T",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 211,
+                "menu_name": "Recomended List",
+                "designation_id": "Verifier",
+                "master_rank": 3,
+                "map_rank": 20,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 208,
+                "url_type": "1",
+                "link_url": "scheme-selection-common?type=R",
+                "icon": "fa fa-link",
+                "menu_class": null
+            }
+        ]
+    },
+    {
+        "id": 254,
+        "menu_name": "Farmer",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "#",
+        "url_type": "1",
+        "child_menu": [
+            {
+                "menu_id": 256,
+                "menu_name": "Verify Short Entry Modification",
+                "designation_id": "Verifier",
+                "master_rank": 1034,
+                "map_rank": 1034,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 254,
+                "url_type": "1",
+                "link_url": "oapFarmerApprovedEdit?pr1=oap_farmer",
+                "icon": "fa fa-link",
+                "menu_class": null
+            }
+        ]
+    },
+    {
+        "id": 259,
+        "menu_name": "Aadhaar Management",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "#",
+        "url_type": "1",
+        "child_menu": [
+            {
+                "menu_id": 260,
+                "menu_name": "Update No Aadhaar",
+                "designation_id": "Verifier",
+                "master_rank": 1038,
+                "map_rank": 1038,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 259,
+                "url_type": "1",
+                "link_url": "schemelist-noaadhar",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 270,
+                "menu_name": "Find Aadhaar",
+                "designation_id": "Verifier",
+                "master_rank": 1047,
+                "map_rank": 1047,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 259,
+                "url_type": "1",
+                "link_url": "findAadhaar",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 303,
+                "menu_name": "PDS Name Validation Failed",
+                "designation_id": "Verifier",
+                "master_rank": 5269,
+                "map_rank": 5269,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 259,
+                "url_type": "1",
+                "link_url": "jbwbpdsaadhar",
+                "icon": "fa fa-link",
+                "menu_class": null
+            }
+        ]
+    },
+    {
+        "id": 312,
+        "menu_name": "Life Certificate",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "#",
+        "url_type": "1",
+        "child_menu": [
+            {
+                "menu_id": 313,
+                "menu_name": "Purohit",
+                "designation_id": "Verifier",
+                "master_rank": 5901,
+                "map_rank": 5901,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 312,
+                "url_type": "1",
+                "link_url": "lifeCertificte?scheme_id=17",
+                "icon": "fa fa-link",
+                "menu_class": null
+            }
+        ]
+    },
+    {
+        "id": 330,
+        "menu_name": "Upload\/Change Document",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "scheme_selection_doc_upload",
+        "url_type": "1",
+        "child_menu": []
+    },
+    {
+        "id": 341,
+        "menu_name": "Incorrect Beneficiary Data",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "no-dup-beneficiaries-list",
+        "url_type": "1",
+        "child_menu": []
+    }
+
+]

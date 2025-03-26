@@ -30,7 +30,7 @@ class PermissionManagement
 
     public static function VerifyCheker($scheme_id)
     {
-        if (AuthChecker::VerifierChecker()) {
+        if (AuthChecker::VerifierPermission()) {
             $verify = DB::table('m_scheme_gen_setting')
                 ->where('scheme_id', $scheme_id)
                 ->value('allow_verify');
@@ -42,7 +42,7 @@ class PermissionManagement
     }
     public static function ApproveCheker($scheme_id)
     {
-        if (AuthChecker::ApproverChecker()) {
+        if (AuthChecker::ApproverPermission()) {
             $verify = DB::table('m_scheme_gen_setting')
                 ->where('scheme_id', $scheme_id)
                 ->value('allow_approve');
@@ -74,5 +74,34 @@ class PermissionManagement
         }
         return false;
     }
+    public static function Dsmarking($scheme_id)
+    {
+
+        $entry = DB::table('m_scheme_gen_setting')
+            ->where('scheme_id', $scheme_id)
+            ->value('ds_marking');
+
+        if ($entry) {
+            return true;
+        }
+
+        return false;
+    }
+
+
+    public static function CMOmarking($scheme_id)
+    {
+
+        $entry = DB::table('m_scheme_gen_setting')
+            ->where('scheme_id', $scheme_id)
+            ->value('cmo_marking');
+
+        if ($entry) {
+            return true;
+        }
+
+        return false;
+    }
+
 
 }

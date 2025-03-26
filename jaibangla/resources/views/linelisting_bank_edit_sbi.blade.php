@@ -76,7 +76,7 @@
             </div>
           </div>
           
-          @elseif($duty_level=='SubdivVerifier')
+          @elseif($duty_level=='SubdivVerifier' || $duty_level=='SubdivDelegated Verifier')
           <input type="hidden" name="dist_code" value="{{ $dist_code }}" class="js-district_1">
            <div class="row" style="">
 
@@ -105,7 +105,7 @@
             </div>
           </div>
           
-          @elseif($duty_level=='BlockVerifier')
+          @elseif($duty_level=='BlockVerifier' || $duty_level=='BlockDelegated Verifier')
           <input type="hidden" name="dist_code" value="{{ $dist_code }}" class="js-district_1">
            <div class="row" style="">
 

@@ -221,6 +221,7 @@ th.sorting_desc::after {
                 @foreach ($phase_list as $phase)
                <option value="{{$phase->phase_code}}"> {{$phase->phase_des}}</option>
                @endforeach
+               <option value="-1">Normal Entry</option>
              </select>
               <span id="error_phase_code" class="text-danger"></span>
              </div>
@@ -235,7 +236,7 @@ th.sorting_desc::after {
            <div class="row" style="margin-bottom:1%">
 
         @endif
-          @if($pr1==10)   
+          @if($scheme_id==10)   
           <div class="form-group col-md-3">
                     <label class="">Mark as Sarasori Mukhyamantri </label>
                     <select name="sm_ds_flag" id="sm_ds_flag" class="form-control full-width" >
@@ -419,6 +420,30 @@ th.sorting_desc::after {
             </div>  
           </div>  
           <div class="row">
+            <div class="form-group col-md-4">
+              <label class="">From Date</label>
+             @php
+              $max_to =date('Y-m-d'); // Or can put $today = date ("Y-m-d");
+      
+              @endphp
+               <input type="date" name="from_date" id="from_date" class="form-control"    max="{{$max_to}}" />
+              <span id="error_from_date" class="text-danger"></span>
+             
+  
+             </div>
+          <div class="form-group col-md-4">
+            <label class="">To Date</label>
+           @php
+            $max_to = date('Y-m-d'); // Or can put $today = date ("Y-m-d");
+           
+            @endphp
+             <input type="date" name="to_date" id="to_date" class="form-control"   max="{{$max_to}}" />
+            <span id="error_to_date" class="text-danger"></span>
+           
+
+           </div>
+          </div>
+          <div class="row">
         <div class="col-md-2" style="margin-top: 28px;">
                                   <label class=" control-label">&nbsp; </label>
                                   <button type="button" name="filter" id="filter"
@@ -440,7 +465,7 @@ th.sorting_desc::after {
         <form action="applicationListExcel" method="post" id="formexcel">
          <input type="hidden" name="_token" id="token" value="{{ csrf_token() }}">
          <input type="hidden" name="type" id="type" value="{{$type}}">
-          <input type="hidden" name="scheme_id" id="scheme_id" value="{{$scheme}}">
+          <input type="hidden" name="scheme_id" id="scheme_id" value="{{$scheme_id}}">
           <input type="hidden" name="designation" id="designation_id" value="{{$designation_id}}">
          <input type="submit" name="submit" id="excel" class="btn btn-info" value="Export All Data to Excel"/>
         
@@ -453,16 +478,7 @@ th.sorting_desc::after {
 
         @endif
       </div>
-      <div class="col-md-3">
-        @if($type == 'A' && $scheme == 11)
-        <form action="applicationListExcelPhasewise" method="post">
-          <input type="hidden" name="_token" id="token" value="{{ csrf_token() }}">
-          <input type="hidden" name="type" id="type" value="{{$type}}">
-          <input type="hidden" name="scheme_id" id="scheme_id" value="{{$scheme}}">
-          <input type="submit" name="submit" class="btn btn-info" value="Approved Data After 20-03-2022"/>
-        </form>
-        @endif
-      </div>
+     
     </div>
         <div class="col-md-offset-3 col-md-3">
           
@@ -484,7 +500,6 @@ th.sorting_desc::after {
               <tr role="row"> 
                 <th width="12%" class="text-left">Beneficiary ID</th>
                 <th width="20%" class="text-left">Beneficiary Name</th>
-                <th width="5%" class="text-left">Age</th>   
                 <th width="10%" class="text-left">Gender</th>
                 <th width="10%" class="text-left">Caste</th>
                 <th width="10%" class="text-left">Bank IFSC</th>
@@ -497,9 +512,8 @@ th.sorting_desc::after {
                 <th width="12%" class="text-left">Post Office</th>
                 <th width="12%" class="text-left">PIN Code</th>
                  <th width="12%" class="text-left">Remarks</th>
-                 @if($type == 'A' && ($scheme=='1' ||$scheme=='3'))
-                  {{-- <th width="12%" class="text-left">Sent For Account Validation Date</th> --}}
-                  {{-- <th width="12%" class="text-left">Account Validation Success Date</th>  --}}
+                 @if($type == 'A' && ($scheme_id=='1' || $scheme_id=='3'))
+                 
                   <th width="12%" class="text-left">First Payment  Initiated Date</th> 
                   <th width="12%" class="text-left">First Payment Success Date</th>  
                   @endif
@@ -511,7 +525,6 @@ th.sorting_desc::after {
             <tr>
               <th width="12%" class="text-left">Beneficiary ID</th>
                 <th width="20%" class="text-left">Beneficiary Name</th>
-                <th width="5%" class="text-left">Age</th>     
                 <th width="8%" class="text-left">Gender</th>
                 <th width="8%" class="text-left">Caste</th>
                 <th width="10%" class="text-left">Bank IFSC</th>
@@ -524,7 +537,7 @@ th.sorting_desc::after {
                 <th width="10%" class="text-left">Post Office</th>
                 <th width="10%" class="text-left">PIN Code</th>
                  <th width="12%" class="text-left">Remarks</th>
-                 @if($type == 'A' && ($scheme=='1' ||$scheme=='3'))
+                 @if($type == 'A' && ($scheme_id=='1' || $scheme_id=='3'))
                  {{-- <th width="12%" class="text-left">Sent For Account Validation Date</th> --}}
                  {{-- <th width="12%" class="text-left">Account Validation Success Date</th>  --}}
                  <th width="12%" class="text-left">First Payment  Initiated Date</th> 
@@ -677,7 +690,7 @@ function display_ct() {
 
 $(document).ready(function(){ 
 display_ct();	
- 
+
 $(".dataTables_scrollHeadInner").css({"width":"100%"});
 
 $(".table ").css({"width":"100%"});  
@@ -825,7 +838,7 @@ $('#reject_Button').click(function(e){
     url: '{{ url('benReject-common') }}',
     data: {
       ben_id: $('#reject_beneficiary_id').val(),
-      scheme: "{{ $scheme }}",
+      scheme_id: "{{ $scheme_id}}",
       _token: '{{ csrf_token() }}',
     },
     success: function (datas) {
@@ -845,7 +858,7 @@ $('#revert_Button').click(function(e){
     url: '{{ url('benRevert-common') }}',
     data: {
       ben_id: $('#revert_beneficiary_id').val(),
-      scheme: "{{ $scheme }}",
+      scheme_id: "{{ $scheme_id }}",
       _token: '{{ csrf_token() }}',
     },
     success: function (datas) {
@@ -860,7 +873,21 @@ $('#revert_Button').click(function(e){
 
 $('#filter').click(function(){
   
-  //Urban/Rural
+  var from_date = $("#from_date").val();
+  var to_date = $("#to_date").val();
+  var date_validation=1;
+  if(from_date!='' && to_date!=''){
+    if(Date.parse(from_date) > Date.parse(to_date)){
+       $("#error_to_date").html('To Date Not Valid');
+       date_validation=0;
+      }
+      else{
+        $("#error_to_date").html('');
+        date_validation=1;
+      }
+  }
+  if(date_validation==1){
+  
   level3_val=$('#level3').children('option:selected').val();
   $('#level3data').val(level3_val);
 
@@ -870,6 +897,7 @@ $('#filter').click(function(){
   
     table.clear().draw();
     table.ajax.reload();
+  }
 
 });
 
@@ -883,6 +911,8 @@ $('#excel').click(function(){
    $('#formexcel').append('<input type="hidden"  name="municipality_code" id="municipality_code" value=' + $('#block_ulb_code').val() + '>');
    $('#formexcel').append('<input type="hidden" name="gp_ward_code_app" id="gp_ward_code_app" value=' + $('#gp_ward_code').val() + '>');
    $('#formexcel').append('<input type="hidden" name="caste" id="caste" value=' + $('#caste').val() + '>');
+   $('#formexcel').append('<input type="hidden" name="from_date" id="from_date" value=' + $('#from_date').val() + '>');
+   $('#formexcel').append('<input type="hidden" name="to_date" id="to_date" value=' + $('#to_date').val() + '>');
    $('#formexcel').submit();
 //   var $phase_code = $("#phase_code").val();
 //   alert($phase_code);
@@ -980,7 +1010,7 @@ var table=$('#example').DataTable( {
       "ajax": 
       {
     url: "{{ url('application-list-common') }}",
-    type: "POST",
+    type: "get",
       data:function(d){
         d.phase_code= $('#phase_code').val(),
         d.sm_ds_flag= $('#sm_ds_flag').val(),
@@ -989,17 +1019,17 @@ var table=$('#example').DataTable( {
         d.urban_body_code=$('#urban_body_code').val(),
         d.block_ulb_code= $('#block_ulb_code').val(),
         d.gp_ward_code= $('#gp_ward_code').val(),
+        d.from_date= $('#from_date').val(),
+        d.to_date= $('#to_date').val(),
         d.caste = $('#caste').val(),
         d._token= "{{csrf_token()}}",
-        d.scheme = "{{ $scheme }}",
-        d.pr1 = "{{ $pr1 }}",
+        d.scheme_id = "{{ $scheme_id }}",
         d.type = "{{$type}}"
       }
     } ,
       "columns": [
           { "data": "id","defaultContent":""},
           { "data": "ben_name","defaultContent":"" },
-          { "data": "ben_age","defaultContent":"" },
           { "data": "gender","defaultContent":"" },
           { "data": "caste","defaultContent":"" },
           { "data": "bank_ifsc","defaultContent":"" },
@@ -1012,7 +1042,7 @@ var table=$('#example').DataTable( {
           { "data": "post_office","defaultContent":"" },
           { "data": "pincode","defaultContent":"" },
           { "data": "is_state_des","defaultContent":"" },
-          @if($type == 'A' && ($scheme=='1' ||$scheme=='3') )
+          @if($type == 'A' && ($scheme_id=='1' ||$scheme_id=='3') )
          //{ "data": "acc_validation_pushed_at","defaultContent":"" },
          //{ "data": "acc_validation_success_at","defaultContent":"" },
          { "data": "first_payment_pushed_at","defaultContent":"" },
@@ -1030,10 +1060,10 @@ var table=$('#example').DataTable( {
       {
     extend: 'pdf',
     exportOptions: {
-      @if($type == 'A' && ($scheme=='1' ||$scheme=='3') )
-      columns: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
+      @if($type == 'A' && ($scheme_id=='1' || $scheme_id=='3') )
+      columns: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14]
       @else
-      columns: [0,1,2,3,4,5,6,7,8,9,10,11,12,13]
+      columns: [0,1,2,3,4,5,6,7,8,9,10,11,12]
       @endif
     },	
         title: 'Beneficiaries List for scheme: "{{$scheme_name}}"',
@@ -1057,10 +1087,10 @@ var table=$('#example').DataTable( {
             },
 
     //  Gobinda end
-    @if($type == 'A' && ($scheme=='1' || $scheme=='3') )
-      columns: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
+    @if($type == 'A' && ($scheme_id=='1' || $scheme_id=='3') )
+      columns: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14]
       @else
-      columns: [0,1,2,3,4,5,6,7,8,9,10,11,12,13]
+      columns: [0,1,2,3,4,5,6,7,8,9,10,11,12]
       @endif
     },
         title: 'Beneficiaries List for scheme: "{{$scheme_name}}"',
@@ -1076,10 +1106,10 @@ var table=$('#example').DataTable( {
       {
     extend: 'print',
     exportOptions: {
-      @if($type == 'A' && ($scheme=='1' || $scheme=='3') )
-      columns: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
+      @if($type == 'A' && ($scheme_id=='1' || $scheme_id=='3') )
+      columns: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14]
       @else
-      columns: [0,1,2,3,4,5,6,7,8,9,10,11,12,13]
+      columns: [0,1,2,3,4,5,6,7,8,9,10,11,12]
       @endif
     },
         title: 'Beneficiaries List for scheme: "{{$scheme_name}}"',

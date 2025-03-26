@@ -50,7 +50,7 @@ class BankduplicateBenListController extends Controller
     public function index(Request $request)
     {
         $is_active = 0;
-        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray()        // echo '<pre>'; print_r($roleArray);die();
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();        // echo '<pre>'; print_r($roleArray);die();
         $designation_id = Auth::user()->designation_id;
         $user_id = AuthChecker::getUserId();
         $district_visible = $is_urban_visible = $block_visible = 1;
@@ -135,7 +135,8 @@ class BankduplicateBenListController extends Controller
     public function benList(Request $request)
     {
         //  dd($request->all());
-        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray()        $designation_id = Auth::user()->designation_id;
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+        $designation_id = Auth::user()->designation_id;
         $user_id = AuthChecker::getUserId();
         $duty = Configduty::where('user_id', '=', $user_id)->first();
         $schemes = DB::select(DB::raw("select id,scheme_name,pr1_code,entry_url,display_name from m_scheme where id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . ")  order by rank"));
@@ -282,7 +283,8 @@ class BankduplicateBenListController extends Controller
     public function duplicateExportExcel(Request $request)
     {
         //  dd($request->all());
-        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray()        $designation_id = Auth::user()->designation_id;
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
+        $designation_id = Auth::user()->designation_id;
         $user_id = AuthChecker::getUserId();
         $scheme_id = $request->scheme_id;
         if ($designation_id == 'Admin' || $designation_id == 'HOD' || $designation_id == 'HOP' || $designation_id == 'MisState' ||  $designation_id == 'Dashboard') {

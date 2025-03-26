@@ -16,7 +16,7 @@
                                 <select onchange="la(this.value)" class="form-control select2">
                                     <option value="">--Select--</option>
                                     @for ( $i=0; $i < sizeof($scheme_list); $i++)
-                                        <option value="application-list-common?pr1={{$scheme_list[$i]['scheme_id']}}&type={{$type}}">{{$scheme_list[$i]['scheme_name']}}</option>  
+                                        <option value="application-list-common?scheme_id={{$scheme_list[$i]['id']}}&type={{$type}}">{{$scheme_list[$i]['display_name']}}</option>  
                                     @endfor
                                 </select>
                                 <span id="error_construction" class="text-danger"></span>

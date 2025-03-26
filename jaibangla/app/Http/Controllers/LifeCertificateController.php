@@ -37,8 +37,8 @@ use App\District;
 use App\BenDocsPurohitMonthlyICAD;
 use App\Configduty;
 use App\Helpers\AuthChecker;
-
-
+use App\BenEntry;
+use App\BenDocs;
 class LifeCertificateController extends Controller
 {
   private $scheme_id;
@@ -62,9 +62,9 @@ class LifeCertificateController extends Controller
 
     // dd($request->all());
     // $designation_id = Auth::user()->designation_id;
-    $is_operator = AuthChecker::OperatorChecker();
-    $is_verifier = AuthChecker::VerifierChecker();
-    $is_approver = AuthChecker::ApproverChecker();
+    $is_operator = AuthChecker::OperatorPermission();
+    $is_verifier = AuthChecker::VerifierPermission();
+    $is_approver = AuthChecker::ApproverPermission();
     $is_hod = AuthChecker::HODChecker();
 
     $user_id = AuthChecker::getUserId();
@@ -128,11 +128,10 @@ class LifeCertificateController extends Controller
     if (request()->ajax()) {
       $limit = $request->input('length');
       $offset = $request->input('start');
-      $query = DB::table($schema . '.beneficiaries')
+      $query = DB::table('pension.beneficiaries')->where('scheme_id', $scheme_id)
         ->where('created_by_dist_code', $district_code)
-        ->where("next_level_role_id", 0)
-        ->where('scheme_id', $scheme_id);
-      if (AuthChecker::VerifierChecker() || AuthChecker::OperatorChecker()) {
+        ->where("next_level_role_id", 0);
+      if (AuthChecker::VerifierPermission() || AuthChecker::OperatorPermission()) {
         $query = $query->where('created_by_local_body_code', $created_by_local_body_code);
       }
       if ($duty_obj->mapping_level == "Subdiv") {
@@ -145,9 +144,9 @@ class LifeCertificateController extends Controller
       }
       if (!empty($request->application_type)) {
         if ($request->application_type == 1) {
-          if (AuthChecker::OperatorChecker())
+          if (AuthChecker::OperatorPermission())
             $query = $query->whereNull('next_level_role_id_edit');
-          else if (AuthChecker::VerifierChecker())
+          else if (AuthChecker::VerifierPermission())
             $query = $query->where('next_level_role_id_edit', 1);
         }
 
@@ -269,9 +268,9 @@ class LifeCertificateController extends Controller
         ->skipPaging()
         ->addColumn('application_id', function ($data) use ($scheme_id, $scheme_length, $id_length) {
 
-          $app_id = $data->created_by_dist_code . substr('0' . $data->scheme_id, -$scheme_length) . substr('0000000' . $data->id, -$id_length);
+         
 
-          return $app_id;
+          return $data->id;
         })->addColumn('view', function ($data) use ($scheme_id, $is_operator, $is_verifier, $is_approver) {
 
           if ($is_operator) {
@@ -286,14 +285,14 @@ class LifeCertificateController extends Controller
           if ($is_verifier) {
             if ($data->next_level_role_id_edit == 1) {
               $action = '<a href="editLifeCertificate?id=' . $data->id . '&scheme_id=' . $scheme_id . '" class="btn btn-xs btn-primary"><i class="glyphicon glyphicon-edit"></i> View</a>';
-            } else if ($data->no_aadhar_mobile_flag == 0) {
+            } else if ($data->next_level_role_id_edit == 0) {
               $action = 'Modified and Verified';
             }
           }
 
           return $action;
-        })->addColumn('check', function ($data) use ($is_approver) {
-          if ($is_approver) {
+        })->addColumn('check', function ($data) use ($is_verifier) {
+          if ($is_verifier) {
             if ($data->next_level_role_id_edit == 1) {
               return '<input type="checkbox" name="approvalcheck[]" onClick="controlCheckBox()" value="' . $data->id . '">';
             } else
@@ -306,9 +305,8 @@ class LifeCertificateController extends Controller
           return $data->id;
         })->addColumn('application_id', function ($data) use ($scheme_length, $id_length) {
 
-          $app_id = $data->created_by_dist_code . substr('0' . $data->scheme_id, -$scheme_length) . substr('0000000' . $data->id, -$id_length);
 
-          return $app_id;
+          return $data->id;
         })
         ->addColumn('name', function ($data) {
           return $data->ben_fname . ' ' . $data->ben_mname . ' ' . $data->ben_lname;
@@ -354,6 +352,7 @@ class LifeCertificateController extends Controller
 
   public function editUnlock(Request $request)
   {
+   
     $user_id = AuthChecker::getUserId();
     $scheme_id = $request->scheme_id;
     if (!ctype_digit($scheme_id)) {
@@ -369,29 +368,27 @@ class LifeCertificateController extends Controller
     if (empty($scheme_obj)) {
       return redirect("/")->with('danger', 'Scheme Not Found');
     }
+   
     // $designation_id = Auth::user()->designation_id;
-    if (!AuthChecker::OperatorChecker() || AuthChecker::VerifierChecker()) {
+    if (AuthChecker::OperatorPermission() || AuthChecker::VerifierPermission()) {
+      $is_active = 1;
+    }
+    else{
       return redirect("/")->with('error', 'Not Allowed');
     }
-    $is_active = 0;
-    $roleArray = Configduty::where('user_id', $user_id)->where('is_active', 1)->get()->toArray();;
-    foreach ($roleArray as $roleObj) {
-      if ($roleObj['scheme_id'] == $scheme_id) {
-        $is_active = 1;
-        $level = $roleObj['mapping_level'];
-        $is_urban = $roleObj['is_urban'];
-        $distCode = $roleObj['district_code'];
-        if ($roleObj['is_urban'] == 1) {
-          $blockCode = $roleObj['urban_body_code'];
-        } else {
-          $blockCode = $roleObj['taluka_code'];
-        }
-        break;
-      }
+   
+   // $is_active = 0;
+    $duty_obj = Configduty::where('user_id', $user_id)->where('scheme_id', $scheme_id)->first();
+    if (empty($duty_obj)) {
+      return redirect("/")->with('danger', 'Not Allowed');
     }
-    // dd($blockCode);
-    if ($is_active == 0) {
-      return redirect("/")->with('error', 'User Disabled');
+   
+    $distCode = $duty_obj->district_code;
+    if ($duty_obj->mapping_level == "Subdiv") {
+      $blockCode = $duty_obj->urban_body_code;
+    }
+    else{
+      $blockCode = $duty_obj->taluka_code;
     }
     $id = $request->id;
     if (empty($id)) {
@@ -400,6 +397,7 @@ class LifeCertificateController extends Controller
     if (!ctype_digit($id)) {
       return redirect("/")->with('error', 'Application Id Valid');
     }
+    
     if (!empty($scheme_obj->short_code)) {
       $schema = $scheme_obj->short_code;
       $scheme_length = $scheme_obj->scheme_length;
@@ -410,13 +408,15 @@ class LifeCertificateController extends Controller
       $id_length = NULL;
     }
     $condition = array();
+    $condition["scheme_id"] = $scheme_id;
     $condition["created_by_dist_code"] = $distCode;
-    if (AuthChecker::VerifierChecker()) {
+    if (AuthChecker::VerifierPermission()) {
       $condition["created_by_local_body_code"] = $blockCode;
     }
     // $condition["next_level_role_id"] = 0;
     $condition["id"] = $id;
-    $row = DB::table($schema . '.beneficiaries')->where($condition)->where("next_level_role_id", 0)->first();
+    $condition["scheme_id"] = $scheme_id;
+    $row = DB::table('pension.beneficiaries')->where($condition)->where("next_level_role_id", 0)->first();
     //dd($row);
     if (empty($row)) {
       return redirect("/")->with('error', 'Application Id Valid');
@@ -431,18 +431,65 @@ class LifeCertificateController extends Controller
     if (!empty($encolserdata)) {
       $already_uploaded = 1;
     }
-    //dd();
+    $docs = BenDocs::where('beneficiary_id', $id)->where('created_by_dist_code', $distCode)->orderBy('document_type')->get();
+    if ($row->dist_code != "") {
+      $district = District::where('district_code', '=', $row->dist_code)->get(['district_code', 'district_name'])->first();
+      $district_name = $district->district_name;
+    }
+    else{
+      $district_name ='';
+    }
+    $block_name = "";
+    if ($row->block_ulb_code != "") {
+      if ($row->rural_urban_id == 1) {
+        $block = UrbanBody::where('urban_body_code', '=', $row->block_ulb_code)->first();
+        if (!empty($block)) {
+          $block_name = $block->urban_body_name;
+        }
+      } else {
+        if (!empty($row->block_ulb_code)) {
+          $block = Taluka::where('block_code', '=', $row->block_ulb_code)->first();
+          if (!empty($block)) {
+            $block_name = $block->block_name;
+          } else {
+            $block_name = '';
+          }
+        } else {
+          $block_name = '';
+        }
+      }
+    }
+    $row->block_name = $block_name;
+    $gp_name = "";
+    if ($row->gp_ward_code != "") {
+      if ($row->rural_urban_id == 1) {
+        $gp_ward = Ward::where('urban_body_ward_code', '=', $row->gp_ward_code)->first();
+        if (!empty($gp_ward)) {
+          $gp_name = $gp_ward->urban_body_ward_name;
+        }
+      } else {
+        $gp = GP::where('gram_panchyat_code', '=', $row->gp_ward_code)->get(['gram_panchyat_code', 'gram_panchyat_name'])->first();
+        if (!empty($gp)) {
+          $gp_name = $gp->gram_panchyat_name;
+        }
+      }
+    }
+    $row->gp_name = $gp_name;
     return view('LifeCertificate/pension_edit_unlock', [
       'scheme_name' => $scheme_name,
       'row' => $row,
+      'docs' => $docs,
+      'district_name' => $district_name,
+      'block_name' => $block_name,
+      'gp_name' => $gp_name,
       'districts' => $districts,
       'scheme_id' => $scheme_id,
       'doc_certificate' => $doc_certificate,
       'encolserdata' => $encolserdata,
       'already_uploaded' => $already_uploaded,
-      'is_operator' => AuthChecker::OperatorChecker(),
-      'is_verifier' => AuthChecker::VerifierChecker(),
-      
+      'is_operator' => AuthChecker::OperatorPermission(),
+      'is_verifier' => AuthChecker::VerifierPermission(),
+
 
       // 'designation_id' => $designation_id,
     ]);
@@ -453,27 +500,20 @@ class LifeCertificateController extends Controller
     $scheme_obj = Scheme::where('id', $scheme_id)->where('is_active', 1)->first();
     $user_id = AuthChecker::getUserId();
     // $designation_id = Auth::user()->designation_id;
-    if (!AuthChecker::OperatorChecker()) {
+    if (!AuthChecker::OperatorPermission()) {
       return redirect("/")->with('error', 'Not Allowed');
     }
     $is_active = 0;
-    $roleArray = Configduty::where('user_id', $user_id)->where('is_active', 1)->get()->toArray();;
-    foreach ($roleArray as $roleObj) {
-      if ($roleObj['scheme_id'] == $scheme_id) {
-        $is_active = 1;
-        $level = $roleObj['mapping_level'];
-        $is_urban = $roleObj['is_urban'];
-        $distCode = $roleObj['district_code'];
-        if ($roleObj['is_urban'] == 1) {
-          $blockCode = $roleObj['urban_body_code'];
-        } else {
-          $blockCode = $roleObj['taluka_code'];
-        }
-        break;
-      }
+    $duty_obj = Configduty::where('user_id', $user_id)->where('scheme_id', $scheme_id)->first();
+    if (empty($duty_obj)) {
+      return redirect("/")->with('danger', 'Not Allowed');
     }
-    if ($is_active == 0) {
-      return redirect("/")->with('error', 'User Disabled');
+    $distCode = $duty_obj->district_code;
+    if ($duty_obj->mapping_level == "Subdiv") {
+      $blockCode = $duty_obj->urban_body_code;
+    }
+    else{
+      $blockCode = $duty_obj->taluka_code;
     }
     $id = $request->id;
     if (empty($id)) {
@@ -496,7 +536,8 @@ class LifeCertificateController extends Controller
     $condition["created_by_local_body_code"] = $blockCode;
     // $condition["next_level_role_id"] = 0;
     $condition["id"] = $id;
-    $row = DB::table($schema . '.beneficiary')->where($condition)->where("next_level_role_id", 0)->first();
+    $condition["scheme_id"] = $scheme_id;
+    $row = DB::table('pension.beneficiaries')->where($condition)->where("next_level_role_id", 0)->first();
     if (empty($row)) {
       return redirect("/")->with('error', 'Application Id Valid');
     }
@@ -553,8 +594,11 @@ class LifeCertificateController extends Controller
       }
       $c_time = date("Y-m-d h:i:s");
       DB::beginTransaction();
-      $input = ['next_level_role_id_edit' => 1, 'unlock_status' => 1, 'life_certificate_ason_date' => $request->life_certificate_ason_date];
-      $is_saved1 = DB::table($schema . '.beneficiary')->where('id', $id)->where('id', $id)->where('created_by_dist_code', $distCode)->update($input);
+      $benEntry_model = BenEntry::where('id', $id)->where('scheme_id',  $scheme_id)->where('created_by_dist_code', $distCode)->first();
+      $benEntry_model->next_level_role_id_edit = 1;
+      $benEntry_model->unlock_status = 1;
+      $benEntry_model->life_certificate_ason_date = $request->life_certificate_ason_date;
+      $is_saved1 = $benEntry_model->save();
 
       // if( $already_uploaded==1){
       //     $input2 = ['is_active'=>FALSE];
@@ -578,7 +622,7 @@ class LifeCertificateController extends Controller
               in_scheme_id => " . $scheme_id . ",
               in_document_type => " . $doc_certificate->id . ",
               in_attched_document => '" . $base64 . "',
-              in_created_by_level => '" . $level . "',
+              in_created_by_level => '" . $duty_obj->mapping_level . "',
               in_created_by => " . $user_id . ",
               in_ip_address => '" . $ip_address . "',
               in_document_extension => '" . $extension . "',
@@ -602,9 +646,7 @@ class LifeCertificateController extends Controller
       $accept_reject_model->created_by_local_body_code = $blockCode;
       $accept_reject_model->op_type = 'WL';
       $accept_reject_model->ip_address = $ip_address;
-      $accept_reject_model->action_by = $user_id;
-      $accept_reject_model->action_ip_address = $request->ip();
-      $accept_reject_model->action_type = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod() . '@' . 'WL';
+      $accept_reject_model->module_name = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod() . '@' . 'WL';
       $is_saved_log = $accept_reject_model->save();
       if ($is_saved1 && $is_saved2 && $is_saved_log) {
         DB::commit();
@@ -642,7 +684,7 @@ class LifeCertificateController extends Controller
     if (empty($duty_obj)) {
       return redirect("/")->with('danger', 'Not Allowed');
     }
-    if (AuthChecker::VerifierChecker()) {
+    if (AuthChecker::VerifierPermission()) {
       return redirect("/")->with('danger', 'Not Allowed');
     }
     $district_code = $duty_obj->district_code;
@@ -665,9 +707,7 @@ class LifeCertificateController extends Controller
     $accept_reject_model->created_by_dist_code = $district_code;
     $accept_reject_model->ip_address = request()->ip();
     $accept_reject_model->op_type = 'WG';
-    $accept_reject_model->action_by = $user_id;
-    $accept_reject_model->action_ip_address = $request->ip();
-    $accept_reject_model->action_type = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod() . '@' . 'WG';
+    $accept_reject_model->module_name = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod() . '@' . 'WG';
     $back_url = 'lifeCertificte?scheme_id=' . $scheme_id;
 
     $inputs = request()->input('approvalcheck');
@@ -675,7 +715,7 @@ class LifeCertificateController extends Controller
     try {
       DB::beginTransaction();
       foreach ($inputs as $input_id) {
-        $query = DB::table($schema . '.beneficiary')
+        $query = DB::table('pension.beneficiaries')->where('scheme_id', $scheme_id)
           ->where('created_by_dist_code', $district_code)
           ->where('id', $input_id)->where('next_level_role_id_edit', 1)->where('next_level_role_id', 0);
         $row = $query->first();
@@ -684,9 +724,10 @@ class LifeCertificateController extends Controller
         ];
         $accept_reject_model->application_id = $input_id;
         $is_saved_log = $accept_reject_model->save();
-        $update = DB::table($schema . '.beneficiary')
-          ->where('created_by_dist_code', $district_code)
-          ->where('id', $input_id)->update($input);
+        $benEntry_model = BenEntry::where('id', $input_id)->where('scheme_id',  $scheme_id)->where('created_by_dist_code', $district_code)->first();
+        $benEntry_model->next_level_role_id_edit = 0;
+        $update = $benEntry_model->save();
+       
         $is_saved_log = $accept_reject_model->save();
         if ($update && $is_saved_log) {
           $i++;
@@ -729,7 +770,7 @@ class LifeCertificateController extends Controller
       return redirect("/")->with('danger', 'Not Allowed');
     }
     $district_code = $duty_obj->district_code;
-    if (!AuthChecker::VerifierChecker()) {
+    if (!AuthChecker::VerifierPermission()) {
       return redirect("/")->with('danger', 'Not Allowed');
     }
     $id = $request->id;
@@ -761,12 +802,12 @@ class LifeCertificateController extends Controller
       $accept_reject_model->ip_address = request()->ip();
       $accept_reject_model->op_type = 'WG';
       $accept_reject_model->application_id = $id;
-      $accept_reject_model->action_by = $user_id;
-      $accept_reject_model->action_ip_address = $request->ip();
-      $accept_reject_model->action_type = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod() . '@' . 'WG';
+      $accept_reject_model->module_name = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod() . '@' . 'WG';
       $input = ['next_level_role_id_edit' => NULL, 'unlock_status' => 1];
       $is_saved_log = $accept_reject_model->save();
-      $is_saved1 = DB::table($schema . '.beneficiary')->where('id', $id)->where('created_by_dist_code', $district_code)->update($input);
+      $benEntry_model = BenEntry::where('id', $id)->where('scheme_id',  $scheme_id)->where('created_by_dist_code', $district_code)->first();
+
+      $is_saved1 = BenEntry::where('scheme_id', $scheme_id)->where('id', $id)->where('created_by_dist_code', $district_code)->update($input);
       if ($is_saved1 && $is_saved_log) {
         DB::commit();
         $return_text = 'Beneficiaries Life Certiciate Changes has been Back to Operator Succesfully';
@@ -784,11 +825,13 @@ class LifeCertificateController extends Controller
       $accept_reject_model->ip_address = request()->ip();
       $accept_reject_model->op_type = 'WG';
       $accept_reject_model->application_id = $id;
-      $accept_reject_model->op_type = class_basename(Route::current()->controller) .'@'. Route::getCurrentRoute()->getActionMethod() .'@WG';
+      $accept_reject_model->module_name = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod() . '@WG';
 
       $input = ['next_level_role_id_edit' => 0, 'unlock_status' => 2];
       $is_saved_log = $accept_reject_model->save();
-      $is_saved1 = DB::table($schema . '.beneficiary')->where('id', $id)->where('created_by_dist_code', $district_code)->update($input);
+      $benEntry_model = BenEntry::where('scheme_id', $scheme_id)->where('id', $id)->where('created_by_dist_code', $district_code)->first();
+      $benEntry_model->next_level_role_id_edit = 0;
+      $is_saved1 = $benEntry_model->save();
       if ($is_saved1 && $is_saved_log) {
         DB::commit();
         $return_text = 'Beneficiaries Life Certiciate Changes has been Verified Succesfully';

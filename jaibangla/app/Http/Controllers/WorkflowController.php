@@ -2452,7 +2452,7 @@ class WorkflowController extends Controller
 
   public function verifydata(Request $request)
   {
-    // dd($request);
+    return redirect("/")->with('danger', 'Not Allowed');
     if (empty($request->benId)) {
       return redirect("/")->with('danger', 'Applicant ID Not Found');
     }
@@ -2662,7 +2662,7 @@ class WorkflowController extends Controller
 
   public function approvedata(Request $request)
   {
-
+    return redirect("/")->with('danger', 'Not Allowed');
     $this->shemeSessionCheck($request);
     $scheme_id = $request->session()->get('scheme_id');
 
@@ -2871,6 +2871,7 @@ class WorkflowController extends Controller
   //Purohits Verification/Approval
   public function verifyPurohitdata(Request $request)
   {
+    return redirect("/")->with('danger', 'Not Allowed');
     $this->shemeSessionCheck($request);
     $scheme_id = $request->session()->get('scheme_id');
     $ben_table = $request->session()->get('ben_table');
@@ -3035,6 +3036,7 @@ class WorkflowController extends Controller
 
   public function approvePurohitdata(Request $request)
   {
+    return redirect("/")->with('danger', 'Not Allowed');
 
     $this->shemeSessionCheck($request);
     $scheme_id = $request->session()->get('scheme_id');

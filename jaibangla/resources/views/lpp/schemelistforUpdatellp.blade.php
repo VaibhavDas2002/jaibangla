@@ -16,7 +16,7 @@
                                     <option value="">--Select--</option>
                                     @foreach ($scheme_list as $scheme)
                                     {{-- <option value="{{ url('application-list-read-only-edit') }}?pr1={{$scheme->short_code}}">{{$scheme->display_name}}</option> --}}
-                                    <option value="{{ url('application-list-read-only-edit-lpp') }}?pr1={{ $scheme->short_code }}&id={{$scheme->id}}{{ isset($parameter) && $parameter ? '&parameter=' . $parameter : '' }}">{{ $scheme->display_name }}</option>
+                                    <option value="{{ url('application-list-read-only-edit-lpp') }}?id={{ $scheme->id }}{{ isset($parameter) && $parameter ? '&parameter=' . $parameter : '' }}">{{ $scheme->display_name }}</option>
                                     @endforeach
                                                           
                                 </select>

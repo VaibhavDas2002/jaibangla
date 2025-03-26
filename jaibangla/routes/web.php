@@ -29,9 +29,22 @@ Route::get('/', 'DashboardController@index');
 Route::get('/dashboard', 'DashboardController@index');
 Route::get('/backendlogin', 'DashboardController@index');
 Auth::routes();
+
+Route::get('login1', '\App\Http\Controllers\Auth\LoginController1@login1')->name('login1');
+
+Route::post('login1post', '\App\Http\Controllers\Auth\LoginController1@login1Post')->name('login1post');
+
+
+Route::get('forget-password-initial', '\App\Http\Controllers\Auth\LoginController@forgetPasswordInitial')->name('forget-password-initial');
+Route::post('forget-password-initial-post', '\App\Http\Controllers\Auth\LoginController@forgetPasswordInitialPost')->name('forget-password-initial-post');
+
+Route::get('check-otp', '\App\Http\Controllers\Auth\LoginController@checkOtp')->name('check-otp');
+Route::post('check-otp-post', '\App\Http\Controllers\Auth\LoginController@checkOtpPost')->name('check-otp-post');
+
 Route::get('reset-password', '\App\Http\Controllers\Auth\LoginController@setResetPassword')->name('reset-password');
 Route::post('reset-password-post', '\App\Http\Controllers\Auth\LoginController@setResetPasswordPost')->name('reset-password-post');
 Route::get('logout', '\App\Http\Controllers\Auth\LoginController@logout');
+
 
 Route::get('/config', 'ConfigController@index');
 Route::post('/mapconfig', 'ConfigController@mapconfig');
@@ -1285,7 +1298,7 @@ New Update/De-activate Beneficiary At approver end Date: 28-12-2021
 */
 Route::get('update-deactivate-beneficiary', 'UpdateBankStopPaymentController@index')->name('update-deactivate-beneficiary');
 Route::post('search-using-id-name', 'UpdateBankStopPaymentController@searchByBenName')->name('search-using-id-name');
-Route::post('getModalDataUpdateStop', 'UpdateBankStopPaymentController@getModalDataUpdateStop')->name('getModalDataUpdateStop');
+Route::post('getModalDataUpdateStop', 'UpdateBankStopPaymentController@F')->name('getModalDataUpdateStop');
 Route::post('updateBenBankDetails', 'UpdateBankStopPaymentController@updateBenBankDetails')->name('updateBenBankDetails');
 Route::post('stopPaymentBenDetails', 'UpdateBankStopPaymentController@stopPaymentBenDetails')->name('stopPaymentBenDetails');
 Route::post('lppPausePaymentDetails', 'UpdateBankStopPaymentController@lppPausePaymentDetails')->name('lppPausePaymentDetails');
@@ -2016,17 +2029,25 @@ Route::post('pullJnmpData', 'JnmpLbDataPullController@dataPullLb')->name('pullJn
 Route::post('deathMarkInJb', 'JnmpLbDataPullController@deathMarkInJb')->name('deathMarkInJb');
 
 //legacy validation
-Route::get('validation-correction-pending-verifier', 'ValidationCorrectionPendingController@index')->name('validation-correction-pending-verifier');
-Route::post('validation-correction-pending-listing', 'ValidationCorrectionPendingController@listing')->name('validation-correction-pending-listing');
-Route::post('validation-correction-pending-view', 'ValidationCorrectionPendingController@view')->name('validation-correction-pending-view');
-Route::post('validation-correction-pending-post', 'ValidationCorrectionPendingController@verify')->name('validation-correction-pending-post');
-Route::post('validation-correction-form-download', 'ValidationCorrectionPendingController@applicationFormDownload')->name('validation-correction-form-download');
+Route::get('validation-correction-marking','ValidationCorrectionPendingController@marking')->name('validation-correction-marking');
+Route::post('validation-correction-marking-list','ValidationCorrectionPendingController@marking_listing')->name('validation-correction-marking-list');
+Route::post('assign_arrival_date','ValidationCorrectionPendingController@assigdate')->name('assign_arrival_date');
+//Route::get('validation-correction-pending-verifier','ValidationCorrectionPendingController@index')->name('validation-correction-pending-verifier');
+//Route::post('validation-correction-pending-listing','ValidationCorrectionPendingController@listing')->name('validation-correction-pending-listing');
+Route::post('validation-correction-pending-view','ValidationCorrectionPendingController@view')->name('validation-correction-pending-view');
+Route::post('validation-correction-pending-post','ValidationCorrectionPendingController@verify')->name('validation-correction-pending-post');
+Route::post('validation-correction-form-download','ValidationCorrectionPendingController@applicationFormDownload')->name('validation-correction-form-download');
 
-Route::get('validation-correction-pending-approver', 'ValidationCorrectionPendingController@approver')->name('validation-correction-pending-approver');
-Route::post('validation-correction-pending-approver-list', 'ValidationCorrectionPendingController@approverList')->name('validation-correction-pending-approver-list');
-Route::post('validation-correction-pending-approver-view', 'ValidationCorrectionPendingController@approverView')->name('validation-correction-pending-approver-view');
-Route::post('validation-correction-pending-approver-post', 'ValidationCorrectionPendingController@approverPost')->name('validation-correction-pending-approver-post');
+Route::get('validation-correction-pending-approver','ValidationCorrectionPendingController@approver')->name('validation-correction-pending-approver');
+Route::post('validation-correction-pending-approver-list','ValidationCorrectionPendingController@approverList')->name('validation-correction-pending-approver-list');
+Route::post('validation-correction-pending-approver-view','ValidationCorrectionPendingController@approverView')->name('validation-correction-pending-approver-view');
+Route::post('validation-correction-pending-approver-post','ValidationCorrectionPendingController@approverPost')->name('validation-correction-pending-approver-post');
 
+Route::get('validation-correction-pendingmis','ValidationCorrectionPendingController@misReport')->name('validation-correction-pendingmis');
+Route::post('validation-correction-pendingData','ValidationCorrectionPendingController@misPost')->name('validation-correction-pendingData');
+Route::post('assign_arrival_date','ValidationCorrectionPendingController@assigdate')->name('assign_arrival_date');
+Route::post('validation-correction-attendence-download','ValidationCorrectionPendingController@attendence_download')->name('validation-correction-attendence-download');
+Route::post('validation-correction-pending-mark','ValidationCorrectionPendingController@markPending')->name('validation-correction-pending-mark');
 //Bank Duplicate List Report
 Route::get('bank-duplicate-list-report', 'BankduplicateBenListController@index')->name('bank-duplicate-list-report');
 Route::post('bank-duplicate-list-listing', 'BankduplicateBenListController@benList')->name('bank-duplicate-list-listing');
@@ -2059,21 +2080,38 @@ Route::post('oap-wcd-verified-rejection_view_reject', 'OapWcdVerifiedRejectionCo
 Route::get('dup-check', 'DupcheckController@index')->name('dup-check');
 
 //CMO Grievance 
-Route::get('cmo-grievance-workflow', 'CmoGrivanceWorkflowController@index')->name('cmo-grievance-workflow');
-Route::post('cmo-grievance-linelisting', 'CmoGrivanceWorkflowController@listing')->name('cmo-grievance-linelisting');
-Route::post('cmo-grievance-find', 'CmoGrivanceWorkflowController@find')->name('cmo-grievance-find');
-Route::post('cmo-grievance-process-post', 'CmoGrivanceWorkflowController@processPost')->name('cmo-grievance-process-post');
-Route::post('cmo-sent-to-operator', 'CmoGrivanceWorkflowController@sendOperator')->name('cmo-sent-to-operator');
-Route::post('cmo-grievance-benLising', 'CmoGrivanceWorkflowController@benlisting')->name('cmo-grievance-benLising');
-Route::post('cmo-grievance-redress', 'CmoGrivanceWorkflowController@redress')->name('cmo-grievance-redress');
-Route::post('cmo-grievance-transfar', 'CmoGrivanceWorkflowController@transfar')->name('cmo-grievance-transfar');
+Route::get('cmo-grievance-entry-list', 'CmoGrivanceWorkflowController@opListCmo')->name('cmo-grievance-entry-list');
+Route::post('cmo-op_entryList', 'CmoGrivanceWorkflowController@cmoEntryList')->name('cmo-op_entryList');
+Route::get('cmo-scheme-selection', 'CmoGrivanceWorkflowController@SchemeSelect')->name('cmo-scheme-selection');
+Route::get('cmo-grievance-workflow','CmoGrivanceWorkflowController@index')->name('cmo-grievance-workflow');
+Route::post('cmo-grievance-linelisting','CmoGrivanceWorkflowController@listing')->name('cmo-grievance-linelisting');
+Route::post('cmo-grievance-find','CmoGrivanceWorkflowController@find')->name('cmo-grievance-find');
+Route::post('cmo-grievance-process-post','CmoGrivanceWorkflowController@processPost')->name('cmo-grievance-process-post');
+Route::post('cmo-sent-to-operator','CmoGrivanceWorkflowController@sendOperator')->name('cmo-sent-to-operator');
+Route::post('cmo-grievance-benLising','CmoGrivanceWorkflowController@benlisting')->name('cmo-grievance-benLising');
+Route::post('cmo-grievance-redress','CmoGrivanceWorkflowController@redress')->name('cmo-grievance-redress');
+Route::post('cmo-grievance-transfar','CmoGrivanceWorkflowController@transfar')->name('cmo-grievance-transfar');
 //hod end
-Route::get('cmo-grievance-hod', 'CmoGrivanceWorkflowController@hodIndex')->name('cmo-grievance-hod');
-Route::post('cmo-grievance-hod-listing', 'CmoGrivanceWorkflowController@hodList')->name('cmo-grievance-hod-listing');
-Route::post('cmo-grievance-hod-view', 'CmoGrivanceWorkflowController@hodView')->name('cmo-grievance-hod-view');
-Route::post('cmo-grievance-hod-post', 'CmoGrivanceWorkflowController@sendBackToCmo')->name('cmo-grievance-hod-post');
-Route::post('cmo-grievance-hod-revert', 'CmoGrivanceWorkflowController@hodRevert')->name('cmo-grievance-hod-revert');
+Route::get('cmo-grievance-hod','CmoGrivanceWorkflowController@hodIndex')->name('cmo-grievance-hod');
+Route::post('cmo-grievance-hod-listing','CmoGrivanceWorkflowController@hodList')->name('cmo-grievance-hod-listing');
+Route::post('cmo-grievance-hod-view','CmoGrivanceWorkflowController@hodView')->name('cmo-grievance-hod-view');
+Route::post('cmo-grievance-hod-post','CmoGrivanceWorkflowController@sendBackToCmo')->name('cmo-grievance-hod-post');
+Route::post('cmo-grievance-hod-revert','CmoGrivanceWorkflowController@hodRevert')->name('cmo-grievance-hod-revert');
 
+// Entry Marking 
+Route::get('markcmolist', 'CMOmarkingController@cmoListView')->name('markcmolist');
+Route::post('markCMOlistajax', 'CMOMarkingController@cmoListAjax')->name('markCMOlistajax'); 
+Route::get('Viewmarkcmo', 'CMOMarkingController@ViewmarkCMO')->name('Viewmarkcmo');
+Route::post('CMOmarkPost', 'CMOMarkingController@cmomarkPost')->name('CMOmarkPost');
+
+//cmo callback api
+Route::get('cmo-callback-api','CmoGrivanceWorkflowController@callbackapi')->name('cmo-callback-api');
+//cmo mis report
+Route::get('cmo-grievance-mis-report','CmoGrivanceWorkflowController@cmoReport')->name('cmo-grievance-mis-report');
+Route::post('cmo-grievance-mis-getData','CmoGrivanceWorkflowController@getReport')->name('cmo-grievance-mis-getData');
+
+Route::get('cmo-dataFetch-api','CMODataFetchController@dataFetch')->name('cmo-dataFetch-api');
+Route::get('cmo-fetched-data-update','CMODataFetchController@fetchUpdate')->name('cmo-fetched-data-update');
 
 
 //cmo callback api
@@ -2121,9 +2159,19 @@ Route::any('ProcessApllicationHOD', 'JBProcessApplicationController@hodview')->n
 Route::get('VerifierDataAjax', 'JBProcessApplicationController@verifierdata')->name('VerifierDataAjax');
 Route::get('ApproverDataAjax', 'JBProcessApplicationController@approverdata')->name('ApproverDataAjax');
 Route::post('jb-forward', 'JBProcessApplicationController@verifydata')->name('jb-forward');
+
 Route::post('jb-forward-approve', 'JBProcessApplicationController@approvedata')->name('jb-forward-approve');
+Route::post('JbBulkApprove', 'JBProcessApplicationController@BulkApprove')->name('JbBulkApprove');
+
+Route::post('jb-forward-recomend', 'JBProcessApplicationController@recomendData')->name('jb-forward-recomend');
+Route::get('jbProcessApplication_hod', 'JBProcessApplicationController@hodIndex')->name('jbProcessApplication_hod');
+Route::get('RecomendedDataAjax', 'JBProcessApplicationController@hod_data')->name('RecomendedDataAjax');
+Route::post('JbBulkRecomend', 'JBProcessApplicationController@bulkRecomend')->name('JbBulkRecomend');
+
 //Process Application Beneficiary View
 Route::any('processApplicationDetailsCommon/{id}/{scheme_id}', 'JBProcessApplicationController@showApplicantDetailsCommon')->name('processApplicationDetailsCommon');
+Route::any('processApplicationDetailsCommonRecomended/{id}/{scheme_id}', 'JBProcessApplicationController@RecomendedView')->name('processApplicationDetailsCommonRecomended');
+
 Route::post('applicant_details_download', 'JBProcessApplicationController@downloadDetails')->name('applicant_details_download');
 
 //Vaibhav Update (Form Entry)
@@ -2135,10 +2183,10 @@ Route::post('JBPensionUpdateView', 'JBPensionController@applicationeditview')->n
 Route::get('wcd_edit_list/{scheme_id}', 'JBPensionController@wcdlist')->name('wcd_edit_list');
 Route::post('wcdEditlist', 'JBPensionController@getData')->name('ecdEditlist');
 
-Route::get('jb-update','JBPensionController@update')->name('jb-update');
+Route::get('jb-update', 'JBPensionController@update')->name('jb-update');
 
 Route::resource('scheme-req-field', 'SchemeFieldsRequiredController');
-Route::get('get-scheme-data-required','SchemeFieldsRequiredController@getData')->name('get-scheme-data-required');
+Route::get('get-scheme-data-required', 'SchemeFieldsRequiredController@getData')->name('get-scheme-data-required');
 
 
 
@@ -2156,8 +2204,8 @@ Route::get('jb-workflow-lb60', 'JBProcessApplicationLB60Controller@ListView')->n
 Route::get('jb-View60lbapplication', 'JBProcessApplicationLB60Controller@View60lbapplication')->name('jb-View60lbapplication');
 
 
-Route::get('download-applicant-details' , 'JBProcessApplicationController@applicant_details')->name('download-applicant-details');
-Route::get('download-applicant-details_multi','JBProcessApplicationController@applicant_details_multiple')->name('download-applicant-details');
+Route::get('download-applicant-details', 'JBProcessApplicationController@applicant_details')->name('download-applicant-details');
+Route::get('download-applicant-details_multi', 'JBProcessApplicationController@applicant_details_multiple')->name('download-applicant-details');
 
 
 // Update Dup & No Bank, Aadhar, Mobile
@@ -2166,10 +2214,13 @@ Route::any('noDupBeneficiariesList', 'NoDupWorkflowController@index')->name('noD
 Route::post('getNoDupList', 'NoDupWorkflowController@getNoDupList')->name('getNoDupList');
 Route::any('editApplicantDetails', 'NoDupWorkflowController@editApplicantDetails')->name('editApplicantDetails');
 Route::post('updateApplicantDetails', 'NoDupWorkflowController@updateApplicantDetails')->name('updateApplicantDetails');
+Route::post('rejectApplicantDetails', 'NoDupWorkflowController@rejectApplicantDetails')->name('rejectApplicantDetails');
 Route::post('aadharDupCheck', 'NoDupWorkflowController@aadharDupCheck')->name('aadharDupCheck');
 Route::post('bankDupCheck', 'NoDupWorkflowController@bankDupCheck')->name('bankDupCheck');
 Route::post('mobileDupCheck', 'NoDupWorkflowController@mobileDupCheck')->name('mobileDupCheck');
 Route::post('getNoDupListExcel', 'NoDupWorkflowController@getNoDupListExcel')->name('getNoDupListExcel');
+Route::post('NoDup_assign_arrival_date','NoDupWorkflowController@assigdate')->name('NoDup_assign_arrival_date');
+Route::post('NoDup-validation-correction-form-download','NoDupWorkflowController@applicationFormDownload')->name('NoDup-validation-correction-form-download');
 
 // Approver End
 Route::get('no-dup-verified-beneficiaries-list', 'NoDupWorkflowController@approver_linelisting_index')->name('no-dup-verified-beneficiaries-list');
@@ -2190,3 +2241,99 @@ Route::get('ben_mis_report', 'NoDupWorkflowController@BenMisReportIndex')->name(
 Route::post('ben_mis_report_post', 'NoDupWorkflowController@BenMisReport')->name('ben_mis_report_post');
 
 Route::get('mahestala', 'MahestalaController@mahestala')->name('mahestala');
+
+
+
+
+//Bank Change Info Master 
+Route::get( 'bank-info-change-log-ps-master-entry', 'BankInfoChangeLogController@ps_master_entry')->name('bank-info-change-log-ps-master-entry');
+Route::post('bank-info-change-log-ps-master-entry-post', 'BankInfoChangeLogController@ps_master_entry_post')->name('bank-info-change-log-ps-master-entry-post');
+
+Route::get('bank-info-change-log', 'BankInfoChangeLogController@index')->name('bank-info-change-log');
+Route::post('bank-info-change-log-post', 'BankInfoChangeLogController@getdataword')->name('bank-info-change-log-post');
+
+Route::get('bank-info-change-log-download-list', 'BankInfoChangeLogController@downloadlist')->name('bank-info-change-log-download-list');
+
+
+//Name Validation 90-100 Mismatch 
+Route::get('ben-name-verifier-index', 'BenNameValidUpdateController@Verifierindex')->name('ben-name-verifier-index');
+Route::get('ben-name-90-update', 'BenNameValidUpdateController@index')->name('ben-name-90-update');
+Route::post('getBenNameList', 'BenNameValidUpdateController@getBenNameList')->name('getBenNameList');
+Route::any('ApplicantDetailsNameView', 'BenNameValidUpdateController@editApplicantDetailsName')->name('ApplicantDetailsNameView');
+Route::post('updateApplicantDetailsName', 'BenNameValidUpdateController@updateApplicantDetailsName')->name('updateApplicantDetailsName');
+
+Route::get('ben-name-approver-index', 'BenNameValidUpdateController@Approverindex')->name('ben-name-approver-index');
+Route::get('ben-name-90-update-approver', 'BenNameValidUpdateController@indexApprover')->name('ben-name-90-update-approver');
+Route::post('getBenNameListApprover', 'BenNameValidUpdateController@getBenNameListApprover')->name('getBenNameListApprover');
+Route::post('approveNameApplicant', 'BenNameValidUpdateController@approveNameApplicant')->name('approveNameApplicant');
+Route::post('NameModalView', 'BenNameValidUpdateController@NameModalView')->name('NameModalView');
+Route::get('mis-report-of-90-to-100', 'BenNameValidUpdateController@indexMisReport')->name('mis-report-of-90-to-100');
+Route::post('getMis90to100', 'BenNameValidUpdateController@getMis90to100')->name('getMis90to100');
+// NoDupLPP WorkFlow
+
+Route::get('no-Dup-Beneficiaries-LPP', 'NoDupLPPWorkflowController@index')->name('no-Dup-Beneficiaries-LPP');
+Route::post('getNoDupLPPList', 'NoDupLPPWorkflowController@getNoDupLPPList')->name('getNoDupLPPList');
+Route::any('editApplicantDetailsLPP', 'NoDupLPPWorkflowController@editApplicantDetailsLPP')->name('editApplicantDetailsLPP');
+Route::post('updateApplicantDetailsLPP', 'NoDupLPPWorkflowController@updateApplicantDetailsLPP')->name('updateApplicantDetailsLPP');
+Route::post('rejectApplicantDetailsLPP', 'NoDupLPPWorkflowController@rejectApplicantDetailsLPP')->name('rejectApplicantDetailsLPP');
+Route::post('aadharDupCheckLPP', 'NoDupWorkflowController@aadharDupCheck')->name('aadharDupCheckLPP');
+Route::post('bankDupCheckLPP', 'NoDupWorkflowController@bankDupCheck')->name('bankDupCheckLPP');
+Route::post('mobileDupCheckLPP', 'NoDupWorkflowController@mobileDupCheck')->name('mobileDupCheckLPP');
+
+
+//
+Route::get('scheme_selection_rejectrevival', 'RejectRevivalController@shemeSelection')->name('scheme_selection_rejectrevival');
+Route::any('rejectrevivallist', 'RejectRevivalController@list')->name('rejectrevivallist');
+Route::get('Viewrejectrevival', 'RejectRevivalController@View')->name('Viewrejectrevival');
+Route::post('lbapplicationRevive', 'RejectRevivalController@revivepost')->name('lbapplicationRevive');
+
+
+// NO DUP MIS Report 
+
+Route::get('no-dup-scheme-report', 'NoDupReportController@schemeIndex')->name('no-dup-scheme-report');
+Route::post('schemereportPost', 'NoDupReportController@schemeReportPost')->name('schemereportPost'); 
+Route::get('no-dup-MIS-report', 'NoDupReportController@noDupMisIndex')->name('no-dup-MIS-report');
+Route::post('noDupMisPost', 'NoDupReportController@noDupMisPost')->name('noDupMisPost');
+
+
+//JB to Social Registry Data Share
+Route::get('jb-social-registry', 'JBtoSocialRegistryController@index')->name('jb-social-registry');
+Route::post('jb_social-registryPost', 'JBtoSocialRegistryController@socialRegistryPost')->name('jb_social-registryPost');
+
+// Validation Pending 
+Route::get('validation-pending-pdf', 'ValidationPandingController@PDFGeneratorAction')->name('validation-pending-pdf');
+
+
+// Phase VII Marking for District
+Route::any('markdslist', 'MarkingPhaseController@markdslist')->name('markdslist');
+Route::any('markdslistajax', 'MarkingPhaseController@markdslistajax')->name('markdslistajax');
+Route::get('Viewmarkds', 'MarkingPhaseController@Viewmarkds')->name('Viewmarkds');
+Route::post('DsmarkPost', 'MarkingPhaseController@DsmarkPost')->name('DsmarkPost');
+
+// Incompete Details New 
+Route::get('incomplete-details-verifier-view', 'NoDupBankWorkflowController@verifier_index')->name('incomplete-details-verifier-view');
+Route::post('getNoDupListAjax', 'NoDupBankWorkflowController@getNoDupList')->name('getNoDupListAjax');
+Route::get('edit-beneficiary-details', 'NoDupBankWorkflowController@viewBeneficiaryDetails')->name('edit-beneficiary-details');
+Route::post('updateBeneficiaryDetails', 'NoDupBankWorkflowController@updateBeneficiaryDetails')->name('updateBeneficiaryDetails');
+Route::post('BenaadharDupCheck', 'NoDupBankWorkflowController@aadharDupCheck')->name('BenaadharDupCheck');
+Route::post('BenbankDupCheck', 'NoDupBankWorkflowController@bankDupCheck')->name('BenbankDupCheck');
+Route::post('BenmobileDupCheck', 'NoDupBankWorkflowController@mobileDupCheck')->name('BenmobileDupCheck');
+
+// HOD
+Route::get('cross-scheme-bank-dup-list', 'CrossSchemeBankDupListController@index')->name('cross-scheme-bank-dup-list');
+Route::post('crossSchemeBankDupList', 'CrossSchemeBankDupListController@crossSchemeBankDupList')->name('crossSchemeBankDupList');
+Route::post('crossSchemeBankDupExcel', 'CrossSchemeBankDupListController@crossSchemeBankDupExcel')->name('crossSchemeBankDupExcel');
+
+// Verifier
+Route::get('cross-scheme-bank-dup-verifier-list', 'CrossSchemeBankDupListController@bankDupVerifierIndex')->name('cross-scheme-bank-dup-verifier-list');
+Route::post('crossSchemeBankDupVerifierList', 'CrossSchemeBankDupListController@crossSchemeBankDupList')->name('crossSchemeBankDupVerifierList');
+Route::post('cross-scheme-reject-pause-resume-view','CrossSchemeBankDupListController@crossSchemeBankDupView')->name('cross-scheme-reject-pause-resume-view');
+Route::post('cross-scheme-reject-pause-resume-post','CrossSchemeBankDupListController@crossSchemeBankDupPost')->name('cross-scheme-reject-pause-resume-post');
+Route::post('cross-scheme-dup-list-download','CrossSchemeBankDupListController@crossSchemeBankDupExcel')->name('cross-scheme-dup-list-download');
+
+
+
+//Cross Scheme Dup Bank 
+Route::get('cross-scheme-dup-bank-aprover','CrossSchemeDupBankController@ApproverIndex')->name('cross-scheme-dup-bank-aprover');
+Route::post('crossSchemeAjax', 'CrossSchemeDupBankController@crossSchemeListAjax')->name('crossSchemeAjax');
+Route::post('crossSchemeListAjax','CrossSchemeDupBankController@crossSchemeDupListAjax')->name('crossSchemeListAjax');

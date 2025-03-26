@@ -76,7 +76,7 @@ class RetainerToPensionerController extends Controller
         DB::connection('pgsql_paywrite')->beginTransaction();
         $id = $request->ben_id;
         $user_id=Auth::user()->id;
-        $result = DB::select('SELECT lokprasar_retainer.retainer_to_pensioner_migration('.$id.','.$user_id.')');
+        $result = DB::select('SELECT pension.retainer_to_pensioner_migration('.$id.','.$user_id.')');
         $payment_update = DB::connection('pgsql_paywrite')->table('payment.ben_payment_details')->where('scheme_id', 8)->where('ben_id', $id)->update(['is_eligible' => false, 'is_rejected' => 40, 'rejected_at' => DB::raw("now()")]);
         $msg = "Retainer Id: ".$id." has been changed to Pensioner Id: ".$result[0]->retainer_to_pensioner_migration." successfully.";
         DB::commit();

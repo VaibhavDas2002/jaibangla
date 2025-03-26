@@ -14,4 +14,13 @@ class SchemeStepRank extends Model
      * @var array
      */
     protected $guarded = [];
+
+    public static function getSchemeParentId($scheme_id, $step_id)
+    {
+        $workflow_step_row = self::where('scheme_id', $scheme_id)
+            ->where('step_id', $step_id)
+            ->first();
+        return $workflow_step_row->parent_id;
+           
+    }
 }

@@ -725,12 +725,13 @@ class wBPdsController extends Controller
       $insertUpdateBenDetails = [
         'old_data' => json_encode($old_value),
         'new_data' => json_encode($new_value),
-        'original_application_id' => $id,
+        'application_id' => $id,
         'dist_code' => $district_code,
         'user_id' => $user_id,
         'scheme_id' => $scheme_id,
         'created_at' => $c_time,
-        'update_code' => 22
+        'op_type' => 22,
+        'module_name' => class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod() 
       ];
 
       $docs_bank_pre_obj = DB::table($schema . '.ben_docs')->where('ben_id', $request->id)->where('doc_type_id', $doc_type_id)->first();
@@ -834,7 +835,7 @@ class wBPdsController extends Controller
             //dd($doc_arch_inserted);
             // dd($doc_deactivated);
             if ($failed_update && $doc_inserted && $doc_arch_inserted && $doc_deactivated) {
-              $is_saved_log = DB::table('public.update_ben_details')
+              $is_saved_log = DB::table('public.ben_accept_reject_info')
                 ->insert($insertUpdateBenDetails);
               ;
               if ($is_saved_log) {

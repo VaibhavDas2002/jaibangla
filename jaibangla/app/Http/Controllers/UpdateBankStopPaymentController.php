@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\AcceptRejectInfo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\User;
@@ -17,6 +18,8 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Route;
 use App\BankDetails;
+use App\BenEntry;
+use App\BenPaymentDetails;
 use App\DocumentType;
 use App\Helpers\AuthChecker;
 use App\Helpers\DupCheck;
@@ -49,17 +52,19 @@ class UpdateBankStopPaymentController extends Controller
   public function index()
   {
     $user_id = AuthChecker::getUserId();
-    $designation = Auth::user()->designation_id;
-    if (AuthChecker::ApproverChecker() || AuthChecker::VerifierChecker()) {
+    // $designation = Auth::user()->designation_id;
+    $is_verifier = AuthChecker::VerifierPermission();
+    $is_approver = AuthChecker::ApproverPermission();
+    if (AuthChecker::ApproverPermission() || AuthChecker::VerifierPermission()) {
       $mapObj = Configduty::where('user_id', $user_id)->where('is_active', 1)->first();
-      if (AuthChecker::ApproverChecker()) {
+      if (AuthChecker::ApproverPermission()) {
         $scheme = Configduty::select('scheme_id')->where('user_id', $user_id)->where('is_active', 1)->get();
-      } else if (AuthChecker::VerifierChecker()) {
+      } else if (AuthChecker::VerifierPermission()) {
         $scheme = Configduty::select('scheme_id')->distinct()->where('user_id', $user_id)->where('is_active', 1)->whereIn('scheme_id', array(2, 10, 11, 3, 1, 19))->get();
       }
 
       if (count($scheme) > 0) {
-        return view('update-ben-details/index', ['schemes' => $scheme, 'mapping_level' => $mapObj->mapping_level, 'designation' => $designation]);
+        return view('update-ben-details/index', ['schemes' => $scheme, 'mapping_level' => $mapObj->mapping_level, 'is_verifier' => $is_verifier , 'is_approver' => $is_approver]);
       } else {
         return redirect("/")->with('success', 'User disabled. No scheme assign to this user');
       }
@@ -74,6 +79,8 @@ class UpdateBankStopPaymentController extends Controller
     if ($request->ajax()) {
       $user_id = AuthChecker::getUserId();
       $designation = Auth::user()->designation_id;
+      $is_verifier = AuthChecker::VerifierPermission();
+      $is_approver = AuthChecker::ApproverPermission();
       $mapObj = Configduty::where('user_id', $user_id)->where('is_active', 1)->first();
       $dist_code = $mapObj->district_code;
 
@@ -108,7 +115,7 @@ class UpdateBankStopPaymentController extends Controller
         $table_name = 'pension.beneficiaries';
       }
 
-      if (AuthChecker::VerifierChecker() || AuthChecker::ApproverChecker()) {
+      if (AuthChecker::VerifierPermission() || AuthChecker::ApproverPermission()) {
         $type = $request->select_type;
         $first_name = strtoUpper(trim($request->ben_fname));
         $middle_name = strtoUpper(trim($request->ben_mname));
@@ -145,7 +152,8 @@ class UpdateBankStopPaymentController extends Controller
           }
 
         }
-        // print $query;die();
+        // dump( $query);
+        // die();
         $data = DB::connection('pgsql5')->select($query);
         // print_r($result);die();
         return datatables()->of($data)
@@ -181,11 +189,11 @@ class UpdateBankStopPaymentController extends Controller
             if ($data->next_level_role_id == '0' && is_null($data->next_level_stop_payment) && $data->dup_bank == '0') {
               // <option value="update_mobile">Mobile Number</option>
               $options = '';
-              if ($designation == 'Verifier') {
+              if ($designation == 'Verifier' || $designation == 'Delegated Verifier') {
                 if ($scheme_id == 1 || $scheme_id == 3 || $scheme_id == 2 || $scheme_id == 10 || $scheme_id == 11 || $scheme_id == 19) {
                   $options = '<option value="stop_payment">Stop Payment</option>';
                 }
-              } else if ($designation == 'Approver') {
+              } else if ($designation == 'Approver' || $designation == 'Delegated Approver') {
                 if ($data->payment_suspended == 1) {
                   $options = '<option value="stop_payment">Stop Payment</option>';
                 } else {
@@ -208,7 +216,7 @@ class UpdateBankStopPaymentController extends Controller
               </div>';
             } else if ($data->is_rejected == 1) {
               $html = '<span class="text-danger" style="font-weight: bold;">Inactive Beneficiary</span>';
-            } else if (($data->is_verified == 1 and $data->is_approved == 0 and $data->is_rejected == 0) || (is_null($data->next_level_role_id))) {
+            } else if (($data->is_verified == 1 && $data->is_approved == 0 && $data->is_rejected == 0) || ($data->is_verified == 0 && $data->is_approved == 0 && $data->is_rejected == 0)) {
               $html = '<span class="text-warning" style="font-weight: bold;">Under Approval</span>';
             } else if ($data->next_level_role_id == '0' && $data->next_level_stop_payment == 1) {
               $html = '<span class="text-warning" style="font-weight: bold;">Request has been send for approval</span>';
@@ -264,9 +272,10 @@ class UpdateBankStopPaymentController extends Controller
       $op_type = $request->op_type;
       $scheme_id = $request->scheme_id;
 
-      $table = $this->getSchemaName($scheme_id);
-      $ben_details = DB::connection('pgsql')->table($table)->find($id);
-      // dd($ben_details);
+      // $table = $this->getSchemaName($scheme_id);
+      // $table = 'pension.beneficiaries';
+      // $ben_details = DB::connection('pgsql')->table($table)->find($id);
+      $ben_details = BenEntry::where('id', $id)->first();      // dd($ben_details);
       if ($ben_details == null) {
         return $response = array(
           'status' => 1,
@@ -325,7 +334,8 @@ class UpdateBankStopPaymentController extends Controller
   {
     $user_id = AuthChecker::getUserId();
     $scheme_id = $request->scheme_id;
-    $roleArray = Configduty::where('user_id', $user_id)->where('is_active', 1)->get()->toArray();;
+    $roleArray = Configduty::where('user_id', $user_id)->where('is_active', 1)->get()->toArray();
+    ;
     $district_code = NULL;
     $urban_body_code = NULL;
     $mapping_level = NULL;
@@ -394,6 +404,56 @@ class UpdateBankStopPaymentController extends Controller
         $new_mobile_no = $request->mobile_no;
         $remarks = $request->remarks;
         $benDetails = DB::connection('pgsql')->table($table)->where('id', $id)->first();
+        $failed_count = DB::connection('pgsql')->table($table)->where('id', $id)->whereIn('is_bank_failed',[1,2,3])->count();
+        $failed_details = DB::connection('pgsql')->table($table)->where('id', $id)->whereIn('is_bank_failed',[1,2,3])->first();
+        $ben_details = DB::connection('pgsql_paywrite')->table('payment.ben_payment_details')->where('scheme_id', $scheme_id)->where('ben_id', $id)->first();
+        if ($ben_details == NULL) {
+          return $response = [
+            'status' => 1,
+            'msg' => 'That beneficiary not migrated yet.',
+            'type' => 'red',
+            'icon' => 'fa fa-warning',
+            'title' => 'Warning!!',
+          ];
+        }
+        
+          // if($failed_count>0){
+          //   if($ben_details->legacy_validation == 0 )
+          //   {
+          //     $failed_type = $failed_details->is_bank_failed;
+          //     if($failed_type == 1){
+          //       $msg = 'Payment Transaction Failed';
+          //     }
+          //     if($failed_type == 2){
+          //       $msg = 'Name Validation Failed';
+          //     }
+          //     if($failed_type == 3){
+          //       $msg = 'Account Validation Failed';
+          //     }
+          //     return $response = array(
+          //       'status' => 3,
+          //       'msg' => 'This Beneficiary is '.$msg.'.Please correct failed details from Verifier end.',
+          //       'type' => 'blue',
+          //       'icon' => 'fa fa-warning',
+          //       'title' => 'Warning!!'
+          //     );
+          //   }
+          //   if($ben_details->legacy_validation == 1 )
+          //   {
+          //     $failed_type = $failed_details->is_bank_failed;
+          //     if($failed_type == 1){
+          //       $msg = 'Payment Transaction Failed';
+          //       return $response = array(
+          //         'status' => 3,
+          //         'msg' => 'This Beneficiary is '.$msg.'.Please correct failed details from Verifier end.',
+          //         'type' => 'blue',
+          //         'icon' => 'fa fa-warning',
+          //         'title' => 'Warning!!'
+          //       );
+          //     }
+          //   }
+          // }
+          
         // Checking Duplicate A/c And IFSC
         $scheme_list = Config::get('constants.duplicate_bank_info_check');
         if (in_array($scheme_id, $scheme_list)) {
@@ -568,53 +628,44 @@ class UpdateBankStopPaymentController extends Controller
           $input['mobile_no'] = $new_mobile_no;
         }
 
-        $updateBenDetailsData = [
-          'original_application_id' => $benDetails->id,
-          'dist_code' => $benDetails->dist_code,
-          'scheme_id' => $benDetails->scheme_id,
-          'remarks' => $remarks,
-          'old_data' => json_encode($old_value),
-          'new_data' => json_encode($input),
-          'user_id' => Auth::user()->id,
-          'update_code' => 1,
-          'created_at' => date('Y-m-d H:i:s'),
-          'updated_at' => date('Y-m-d H:i:s'),
-          'ip_address' => $ip_address,
-          'action_by' => $user_id,
-          'action_ip_address' => $request->ip(),
-          'action_type' => class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod()
+        // $updateBenDetailsData = [
+        //   'original_application_id' => $benDetails->id,
+        //   'dist_code' => $benDetails->dist_code,
+        //   'scheme_id' => $benDetails->scheme_id,
+        //   'remarks' => $remarks,
+        //   'old_data' => json_encode($old_value),
+        //   'new_data' => json_encode($input),
+        //   'user_id' => Auth::user()->id,
+        //   'update_code' => 1,
+        //   'created_at' => date('Y-m-d H:i:s'),
+        //   'updated_at' => date('Y-m-d H:i:s'),
+        //   'ip_address' => $ip_address,
+        //   'action_by' => $user_id,
+        //   'action_ip_address' => $request->ip(),
+        //   'action_type' => class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod()
 
-        ];
-        $update_ben = [
-          'bank_name' => $new_bank_name,
-          'branch_name' => $new_branch_name,
-          'bank_ifsc' => trim($new_bank_ifsc),
-          'bank_code' => trim($new_bank_code),
-          'mobile_no' => trim($new_mobile_no),
-          'bank_edited' => 1,
-          'acc_validated' => 0,
-          'lb_acc_validated' => 0,
-          'npci_bank_code' => $new_bank_code_npci
-        ];
-        $ben_payment['last_accno'] = trim($new_bank_code);
-        $ben_payment['last_ifsc'] = trim($new_bank_ifsc);
-        $ben_payment['npci_bank_code'] = trim($new_bank_code_npci);
-        $ben_payment['mobile_no'] = trim($new_mobile_no);
-        $ben_payment['acc_validated'] = 0;
-        $ben_payment['legacy_validation'] = 0;
-        $ben_payment['dup_bank'] = 0;
-        $ben_payment['updated_at'] = date('Y-m-d H:i:s');
+        // ];
+        // $update_ben = [
+        //   'bank_name' => $new_bank_name,
+        //   'branch_name' => $new_branch_name,
+        //   'bank_ifsc' => trim($new_bank_ifsc),
+        //   'bank_code' => trim($new_bank_code),
+        //   'mobile_no' => trim($new_mobile_no),
+        //   'bank_edited' => 1,
+        //   'acc_validated' => 0,
+        //   'lb_acc_validated' => 0,
+        //   'npci_bank_code' => $new_bank_code_npci
+        // ];
+        // $ben_payment['last_accno'] = trim($new_bank_code);
+        // $ben_payment['last_ifsc'] = trim($new_bank_ifsc);
+        // $ben_payment['npci_bank_code'] = trim($new_bank_code_npci);
+        // $ben_payment['mobile_no'] = trim($new_mobile_no);
+        // $ben_payment['acc_validated'] = 0;
+        // $ben_payment['legacy_validation'] = 0;
+        // $ben_payment['dup_bank'] = 0;
+        // $ben_payment['updated_at'] = date('Y-m-d H:i:s');
         // dd($ben_payment);
-        $ben_details = DB::connection('pgsql_paywrite')->table('payment.ben_payment_details')->where('scheme_id', $scheme_id)->where('ben_id', $id)->first();
-        if ($ben_details == NULL) {
-          return $response = [
-            'status' => 1,
-            'msg' => 'That beneficiary not migrated yet.',
-            'type' => 'red',
-            'icon' => 'fa fa-warning',
-            'title' => 'Warning!!',
-          ];
-        }
+        
         if (!empty($request->file('upload_bank_passbook'))) {
           $upload_bank_passbook = $request->file('upload_bank_passbook');
           $img_data = file_get_contents($upload_bank_passbook);
@@ -640,12 +691,62 @@ class UpdateBankStopPaymentController extends Controller
           );
           $is_upload = $fun_call[0]->ben_docs_insert_archive;
           if ($is_upload == 1) {
-            $is_update = UpdateBenDetails::insert($updateBenDetailsData);
+            // $is_update = UpdateBenDetails::insert($updateBenDetailsData);
+            $update_log = new AcceptRejectInfo;
+            $update_log->application_id = $benDetails->id;
+            $update_log->op_type = '1';
+            $update_log->created_by_dist_code = $benDetails->dist_code;
+            $update_log->scheme_id = $benDetails->scheme_id;
+            $update_log->remarks = $remarks;
+            $update_log->old_data = json_encode($old_value);
+            $update_log->new_data = json_encode($input);
+            $update_log->user_id = Auth::user()->id;
+            $update_log->created_at = date('Y-m-d H:i:s');
+            $update_log->updated_at = date('Y-m-d H:i:s');
+            $update_log->ip_address = $ip_address;
+            $update_log->module_name = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod();
+            $is_update = $update_log->save();
+            if($failed_count >0){
+              $is_failed_update = DB::connection('pgsql_paywrite')
+              ->table('payment.failed_payment_details')
+              ->where('scheme_id', $scheme_id)
+              ->where('ben_id', $id)
+              ->whereIn('edited_status', [0, 1])
+              ->update(['approve_edited_status' => 1,'edited_status' => 2]);
+            }
+
             if ($is_update) {
               $table = $this->getSchemaName($scheme_id);
-              $is_saved = DB::table($table)->where('id', $id)->update($update_ben);
+              // $is_saved = DB::table($table)->where('id', $id)->update($update_ben);
+              $ben_entry_module = BenEntry::where('id', $id)->first();
+
+              $ben_entry_module->bank_name = $new_bank_name;
+              $ben_entry_module->branch_name = $new_branch_name;
+              $ben_entry_module->bank_ifsc = trim($new_bank_ifsc);
+              $ben_entry_module->bank_code = trim($new_bank_code);
+              $ben_entry_module->mobile_no = trim($new_mobile_no);
+              $ben_entry_module->bank_edited = 1;
+              $ben_entry_module->is_bank_failed = 0;
+              $ben_entry_module->pay_validated = 0;
+              $ben_entry_module->is_clean = 1;
+              $ben_entry_module->next_level_clean_id = 1;
+              $ben_entry_module->acc_validated = 0;
+              $ben_entry_module->lb_acc_validated = 0;
+              $ben_entry_module->npci_bank_code = trim($new_bank_code_npci);
+              $is_saved = $ben_entry_module->save();
               if ($is_saved) {
-                $is_failed_update = DB::connection('pgsql_paywrite')->table('payment.ben_payment_details')->where('ben_id', $id)->where('scheme_id', $scheme_id)->update($ben_payment);
+                // $is_failed_update = DB::connection('pgsql_paywrite')->table('payment.ben_payment_details')->where('ben_id', $id)->where('scheme_id', $scheme_id)->update($ben_payment);
+                $ben_payment_model = BenPaymentDetails::where('ben_id', $id)->where('scheme_id', $scheme_id)->first();
+                $ben_payment_model->last_accno = trim($new_bank_code);
+                $ben_payment_model->last_ifsc = trim($new_bank_ifsc);
+                $ben_payment_model->npci_bank_code = trim($new_bank_code_npci);
+                $ben_payment_model->mobile_no = trim($new_mobile_no);
+                $ben_payment_model->acc_validated = 0;
+                $ben_payment_model->pay_validated = 1;
+                $ben_payment_model->legacy_validation = 0;
+                $ben_payment_model->dup_bank = 0;
+                $ben_payment_model->updated_at = date('Y-m-d H:i:s');
+                $is_failed_update = $ben_payment_model->save();
                 if ($is_failed_update) {
                   DB::commit();
                   DB::connection('pgsql_encwrite')->commit();
@@ -729,7 +830,7 @@ class UpdateBankStopPaymentController extends Controller
         );
       }
     } catch (\Exception $e) {
-      dd($e);
+      // dd($e);
       // if ($id == 582196) {
       //   dd($e);
       // }
@@ -775,6 +876,8 @@ class UpdateBankStopPaymentController extends Controller
         'max' => 'Maximum of :max kb(for file)/characters allowed for :attribute',
         'size' => 'The :attribute must be exactly :size.',
       ];
+
+      // dd('ok');
       $validator = Validator::make($request->all(), $rules, $messages, $attributes);
       if ($validator->passes()) {
         $scheme_id = $request->scheme_id;
@@ -787,8 +890,8 @@ class UpdateBankStopPaymentController extends Controller
 
 
         $user_id = AuthChecker::getUserId();
-        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
-                $district_code = NULL;
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get();
+        $district_code = NULL;
         $urban_body_code = NULL;
         $mapping_level = NULL;
         $role_id = NULL;
@@ -906,17 +1009,32 @@ class UpdateBankStopPaymentController extends Controller
 
             if ($logUpdate) {
               // $updateBenDetails=1;
-              $updateBenDetails = DB::insert("INSERT INTO public.update_ben_details(original_application_id, dist_code, scheme_id, user_id, created_at,remarks, update_code, new_data, ip_address)
-              VALUES (" . $id . "," . $stop_details->dist_code . "," . $stop_details->scheme_id . "," . $user_id . ",now(),'" . $remarks . "',2,'" . json_encode($input_json) . "', '" . $ip_address . "' );");
+              // $updateBenDetails = DB::insert("INSERT INTO public.update_ben_details(original_application_id, dist_code, scheme_id, user_id, created_at,remarks, update_code, new_data, ip_address)
+              // VALUES (" . $id . "," . $stop_details->dist_code . "," . $stop_details->scheme_id . "," . $user_id . ",now(),'" . $remarks . "',2,'" . json_encode($input_json) . "', '" . $ip_address . "' );");
 
+              $accept_reject_model = new AcceptRejectInfo();
+              $accept_reject_model->application_id = $id;
+              $accept_reject_model->created_by_dist_code = $stop_details->dist_code;
+              $accept_reject_model->scheme_id = $stop_details->scheme_id;
+              $accept_reject_model->user_id = $user_id;
+              $accept_reject_model->created_at = date('Y-m-d H:i:s');
+              $accept_reject_model->remarks = $remarks;
+              $accept_reject_model->op_type = '2';
+              $accept_reject_model->new_data = json_encode($input_json);
+              $accept_reject_model->ip_address = $ip_address;
+              $updateBenDetails = $accept_reject_model->save();
               if ($updateBenDetails) {
-                if (($scheme_id == '2' || $scheme_id == '10' || $scheme_id == '11') && $designation == 'Verifier') {
-                  $update_array = ['next_level_stop_payment' => 1];
+                if (($scheme_id == '2' || $scheme_id == '10' || $scheme_id == '11') && ($designation == 'Verifier' || $designation == 'Delegated Verifier')) {
+                  // $update_array = ['next_level_stop_payment' => 1];
                   $message = 'Beneficiary Stopped Payment Request Send For Approval';
-                  $is_update = DB::table($table)->where('id', $id)->update($update_array);
+                  // $is_update = DB::table($table)->where('id', $id)->update($update_array);
+                  $ben_entry_model = BenEntry::where('id', $id)->first();
+                  $ben_entry_model->next_level_stop_payment = 1;
+
+                  $is_update = $ben_entry_model->save();
                   $final_update = 1;
                 } else {
-                  $update_array = ['next_level_role_id' => -99, 'is_approved' => 2, 'is_verified' => 2, 'is_rejected' => 1];
+                  // $update_array = ['next_level_role_id' => -99, 'is_approved' => 2, 'is_verified' => 2, 'is_rejected' => 1];
                   $message = 'Beneficiary Stopped Successfully';
                   $ben_details = DB::connection('pgsql_paywrite')->table('payment.ben_payment_details')->where('ben_id', $id)->where('scheme_id', $scheme_id)->count();
                   if ($ben_details > 0) {
@@ -924,8 +1042,18 @@ class UpdateBankStopPaymentController extends Controller
                   } else {
                     $final_update = 1;
                   }
-                  $is_update = DB::table($table)->where('id', $id)->update($update_array);
+                  $ben_entry_model = BenEntry::where('id', $id)->first();
+                  $ben_entry_model->next_level_role_id = -99;
+                  $ben_entry_model->is_approved = 2;
+                  $ben_entry_model->is_verified = 2;
+                  $ben_entry_model->is_rejected = 1;
+                  $ben_entry_model->is_clean = 10;
+                  $is_update = $ben_entry_model->save();
+                  // $is_update = DB::table($table)->where('id', $id)->update($update_array);
                 }
+
+                // dd($is_update, $final_update);
+                // die();
                 if ($is_update && $final_update) {
                   DB::commit();
                   DB::connection('pgsql_encwrite')->commit();
@@ -1007,7 +1135,7 @@ class UpdateBankStopPaymentController extends Controller
         );
       }
     } catch (\Exception $e) {
-      // dd($e);
+      //  dd($e);
       DB::rollback();
       DB::connection('pgsql_encwrite')->rollback();
       DB::connection('pgsql_paywrite')->rollback();
@@ -1046,7 +1174,10 @@ class UpdateBankStopPaymentController extends Controller
       DB::connection('pgsql_paywrite')->beginTransaction();
       $ben_details = DB::connection('pgsql_paywrite')->table('payment.ben_payment_details')->where('scheme_id', $scheme_id)->where('ben_id', $id)->count();
       if ($ben_details == 1) {
-        $final_update = DB::connection('pgsql_paywrite')->table('payment.ben_payment_details')->where('ben_id', $id)->where('scheme_id', $scheme_id)->update(['ben_status' => 3, 'updated_at' => date('Y-m-d H:i:s')]);
+        $ben_payment_details = BenPaymentDetails::where('ben_id', $id)->where('scheme_id', $scheme_id)->first();
+        $ben_payment_details->ben_status = 3;
+        $ben_payment_details->updated_at = date('Y-m-d H:i:s');
+        $final_update = $ben_payment_details->save();
       } else {
         $final_update = 1;
       }
@@ -1055,11 +1186,31 @@ class UpdateBankStopPaymentController extends Controller
       $is_paused = 1;
       if ($is_paused) {
         // $updatebenUpdate=1;
-        $updatebenUpdate = DB::insert("INSERT INTO public.update_ben_details(original_application_id, dist_code, scheme_id, user_id, created_at,remarks, update_code, new_data, ip_address)
-        VALUES (" . $id . "," . $stop_details->dist_code . "," . $stop_details->scheme_id . "," . $user_id . ",now(),'Pause Payment',3,'" . json_encode($input_json) . "', '" . $ip_address . "' );");
+        // $updatebenUpdate = DB::insert("INSERT INTO public.update_ben_details(original_application_id, dist_code, scheme_id, user_id, created_at,remarks, update_code, new_data, ip_address)
+        // VALUES (" . $id . "," . $stop_details->dist_code . "," . $stop_details->scheme_id . "," . $user_id . ",now(),'Pause Payment',3,'" . json_encode($input_json) . "', '" . $ip_address . "' );");
+
+        $accept_reject_model = new AcceptRejectInfo();
+        $accept_reject_model->application_id = $id;
+        $accept_reject_model->created_by_dist_code = $stop_details->dist_code;
+        $accept_reject_model->scheme_id = $stop_details->scheme_id;
+        $accept_reject_model->user_id = $user_id;
+        $accept_reject_model->created_at = date('Y-m-d H:i:s');
+        $accept_reject_model->remarks = 'Pause Payment';
+        $accept_reject_model->op_type = '3';
+        $accept_reject_model->new_data = json_encode($input_json);
+        $accept_reject_model->ip_address = $ip_address;
+        $updatebenUpdate = $accept_reject_model->save();
+
         if ($updatebenUpdate) {
           // $is_saved=1;
-          $is_saved = DB::table($table)->where('id', $id)->update(['is_approved' => 2, 'is_verified' => 2, 'is_rejected' => 1, 'next_level_role_id' => -98]);
+          // $is_saved = DB::table($table)->where('id', $id)->update(['is_approved' => 2, 'is_verified' => 2, 'is_rejected' => 1, 'next_level_role_id' => -98]);
+          $ben_entry_model = BenEntry::where('id', $id)->first();
+          $ben_entry_model->is_approved = 2;
+          $ben_entry_model->is_verified = 2;
+          $ben_entry_model->is_rejected = 1;
+          $ben_entry_model->next_level_role_id = -98;
+          $ben_entry_model->is_clean = 10;
+          $is_saved = $ben_entry_model->save();
           if ($is_saved && $final_update) {
             DB::commit();
             DB::connection('pgsql_paywrite')->commit();
@@ -1138,25 +1289,49 @@ class UpdateBankStopPaymentController extends Controller
       $ben_details = DB::connection('pgsql_paywrite')->table('payment.ben_payment_details')->where('scheme_id', $scheme_id)->where('ben_id', $id)->count();
       DB::beginTransaction();
       DB::connection('pgsql_paywrite')->beginTransaction();
-      $input = [
-        'next_level_role_id' => 0,
-        'is_approved' => 1,
-        'is_verified' => 1,
-        'is_rejected' => 0
-      ];
+      // $input = [
+      //   'next_level_role_id' => 0,
+      //   'is_approved' => 1,
+      //   'is_verified' => 1,
+      //   'is_rejected' => 0
+      // ];
       $input_json = [];
       $input_json[$table . '.next_level_role_id'] = '0';
       $input_json['payment.ben_payment_details.ben_status'] = '1';
       if ($ben_details == 1) {
-        $final_update = DB::connection('pgsql_paywrite')->table('payment.ben_payment_details')->where('ben_id', $id)->where('scheme_id', $scheme_id)->update(['ben_status' => 1, 'updated_at' => date('Y-m-d H:i:s')]);
+        // $final_update = DB::connection('pgsql_paywrite')->table('payment.ben_payment_details')->where('ben_id', $id)->where('scheme_id', $scheme_id)->update(['ben_status' => 1, 'updated_at' => date('Y-m-d H:i:s')]);
+        $ben_payment_details = BenPaymentDetails::where('ben_id', $id)->where('scheme_id', $scheme_id)->first();
+        $ben_payment_details->ben_status = 1;
+        $ben_payment_details->updated_at = date('Y-m-d H:i:s');
+        $final_update = $ben_payment_details->save();
       } else {
         $final_update = 1;
       }
-      $updatebenDe = DB::insert("INSERT INTO public.update_ben_details(original_application_id, dist_code, scheme_id, user_id, created_at,remarks, update_code, new_data, ip_address)
-          VALUES (" . $id . "," . $stop_details->dist_code . "," . $stop_details->scheme_id . "," . $user_id . ",now(),'Resume Payment',4,'" . json_encode($input_json) . "' , '" . $ip_address . "');");
+      // $updatebenDe = DB::insert("INSERT INTO public.update_ben_details(original_application_id, dist_code, scheme_id, user_id, created_at,remarks, update_code, new_data, ip_address)
+      //     VALUES (" . $id . "," . $stop_details->dist_code . "," . $stop_details->scheme_id . "," . $user_id . ",now(),'Resume Payment',4,'" . json_encode($input_json) . "' , '" . $ip_address . "');");
+
+      $accept_reject_model = new AcceptRejectInfo();
+      $accept_reject_model->application_id = $id;
+      $accept_reject_model->created_by_dist_code = $stop_details->dist_code;
+      $accept_reject_model->scheme_id = $stop_details->scheme_id;
+      $accept_reject_model->user_id = $user_id;
+      $accept_reject_model->created_at = date('Y-m-d H:i:s');
+      $accept_reject_model->remarks = 'Resume Payment';
+      $accept_reject_model->op_type = '4';
+      $accept_reject_model->new_data = json_encode($input_json);
+      $accept_reject_model->ip_address = $ip_address;
+      $updatebenDe = $accept_reject_model->save();
+
+
       if ($updatebenDe) {
         // $is_saved =1; 
-        $is_saved = DB::table($table)->where('id', $id)->update($input);
+        // $is_saved = DB::table($table)->where(column: 'id', $id)->update($input);
+        $ben_entry_model = BenEntry::where('id', $id)->first();
+        $ben_entry_model->next_level_role_id = 0;
+        $ben_entry_model->is_approved = 1;
+        $ben_entry_model->is_verified = 1;
+        $ben_entry_model->is_rejected = 0;
+        $is_saved = $ben_entry_model->save();
         if ($is_saved && $final_update) {
           DB::commit();
           DB::connection('pgsql_paywrite')->commit();
@@ -1245,17 +1420,32 @@ class UpdateBankStopPaymentController extends Controller
         'updated_at' => date('Y-m-d H:i:s'),
         'ip_address' => $ip_address
       ];
-      $update_ben = [
-        'mobile_no' => trim($new_mobile_no)
-      ];
+      // $update_ben = [
+      //   'mobile_no' => trim($new_mobile_no)
+      // ];
 
       /*--- Final Database Opertations ---*/
       DB::beginTransaction();
       // $is_update=1;
-      $is_update = UpdateBenDetails::insert($updateBenDetailsData);
+      // $is_update = UpdateBenDetails::insert($updateBenDetailsData);
+      $ben_accept_model = new AcceptRejectInfo;
+      $ben_accept_model->application_id = $benDetails->id;
+      $ben_accept_model->created_by_dist_code = $benDetails->dist_code;
+      $ben_accept_model->scheme_id = $benDetails->scheme_id;
+      $ben_accept_model->user_id = Auth::user()->id;
+      $ben_accept_model->old_data = json_encode($old_value);
+      $ben_accept_model->new_data = json_encode($input);
+      $ben_accept_model->op_type = '10';
+      $ben_accept_model->created_at = date('Y-m-d H:i:s');
+      $ben_accept_model->updated_at = date('Y-m-d H:i:s');
+      $ben_accept_model->ip_address = $ip_address;
+      $ben_accept_model->remarks = $remarks;
+      $is_update = $ben_accept_model->save();
       if ($is_update) {
         // $is_saved=1;
-        $is_saved = DB::table($table)->where('id', $id)->update($update_ben);
+        $ben_entry_model = BenEntry::where('id', $id)->first();
+        $ben_entry_model->mobile_no = trim($new_mobile_no);
+        $is_saved = $ben_entry_model->save();
         if ($is_saved) {
           DB::commit();
           $response = array(
@@ -1301,7 +1491,7 @@ class UpdateBankStopPaymentController extends Controller
   {
     $scheme_id = $request->scheme_id;
     $is_active = 0;
-    $roleArray = Configduty::where('user_id', $user_id)->where('is_active', 1)->get()->toArray();
+    $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
     foreach ($roleArray as $roleObj) {
       if ($roleObj['scheme_id'] == $scheme_id) {
         $is_active = 1;

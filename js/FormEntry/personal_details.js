@@ -1,11 +1,28 @@
 $(document).ready(function () {
   var scheme_id = $("#scheme_id").val();
+  var type = $("#type").val();
   var error_personal = 0;
-  if (scheme_id == 5 || scheme_id == 6 || scheme_id == 7 || scheme_id == 17) {
-    $("#caste_certificate_no_section").hide(); // Hide the section if condition is met
-  } else {
-    $("#caste_certificate_no_section").show(); // Show the section otherwise
+  // if (scheme_id == 5 || scheme_id == 6 || scheme_id == 7 || scheme_id == 17) {
+  //   $("#caste_certificate_no_section").hide(); // Hide the section if condition is met
+  // } else {
+  //   $("#caste_certificate_no_section").show(); // Show the section otherwise
+  // }
+
+  // Function to handle the caste category change event
+  function toggleCasteCertificateSection() {
+    const casteCategory = $("#caste_category").val();
+    if (casteCategory === "SC" || casteCategory === "ST") {
+      $("#caste_certificate_no_section").show();
+    } else {
+      $("#caste_certificate_no_section").hide();
+    }
   }
+
+  // Initialize the visibility of the caste certificate section on page load
+  toggleCasteCertificateSection();
+
+  // Attach event listener to the dropdown
+  $("#caste_category").on("change", toggleCasteCertificateSection);
 
   var entry_type = $("#entry_type").val();
   if (entry_type == "Form through Duare Sarkar camp") {
@@ -40,23 +57,34 @@ $(document).ready(function () {
   });
 
   // console.log(error_personal);
-
   $("#dob").on("blur", function () {
     var today = new Date();
+    // alert(today);
     var birthDate = new Date($("#dob").val());
 
     var diff_ms = today.getTime() - birthDate.getTime();
     var age_dt = new Date(diff_ms);
     var age = Math.ceil(age_dt.getUTCFullYear() - 1970);
+    // alert(age_dt);
 
     if (isNaN(age)) {
       age = 0;
     }
-    $("#hidden_age").val(age);
-    $("#txt_age").val(age);
+    // $("#hidden_age").val(age);
+    $("#txt_age").text(age);
   });
 
   $("#btn_personal_details").click(function () {
+    //alert(type);
+    if ($.trim($("#application_date").val()).length == 0 && type == 1) {
+      error_personal = 1;
+      $("#error_application_date").text("Application Date is required");
+      $("#application_date").addClass("has-error");
+    } else {
+      $("#error_application_date").text("");
+      $("#application_date").removeClass("has-error");
+    }
+
     if ($.trim($("#entry_type").val()).length == 0) {
       error_personal = 1;
       $("#error_entry_type").text("Please Select Application Type");
@@ -113,6 +141,7 @@ $(document).ready(function () {
       $("#error_gender").text("");
       $("#gender").removeClass("has-error");
     }
+
     if (scheme_id == 11) {
       if ($("#gender").val() != "Female") {
         error_personal = 1;
@@ -121,20 +150,6 @@ $(document).ready(function () {
       } else {
         $("#error_gender").text("");
         $("#gender").removeClass("has-error");
-      }
-    }
-
-    if ($.trim($("#dob").val()).length > 0) {
-      var string = $.trim($("#dob").val());
-      var result = string.split("-");
-      var year = result[result.length - 3];
-      if (year < 1900 || year > 2000) {
-        error_personal = 1;
-        $("#error_dob").text("Date of Birth range is not properly");
-        $("#dob").addClass("has-error");
-      } else {
-        $("#error_dob").text("");
-        $("#dob").removeClass("has-error");
       }
     }
 
@@ -147,34 +162,13 @@ $(document).ready(function () {
       $("#dob").removeClass("has-error");
     }
 
-    if ($.trim($("#txt_age").val()).length == 0) {
+    var age_checker = dob_checker(scheme_id, $("#dob").val());
+    if (age_checker == false) {
       error_personal = 1;
-      $("#error_txt_age").text("Age is required");
-      $("#txt_age").addClass("has-error");
     } else {
-      if (
-        $.trim($("#txt_age").val()) < 60 ||
-        $.trim($("#txt_age").val()) > 120
-      ) {
-        error_personal = 1;
-        $("#error_txt_age").text("Age range is not properly");
-        $("#txt_age").addClass("has-error");
-        return false;
-      } else {
-        $("#error_txt_age").text("");
-        $("#txt_age").removeClass("has-error");
-      }
-
-      if ($.trim($("#dob").val()).length > 0) {
-        if ($("#hidden_age").val() != $("#txt_age").val()) {
-          error_personal = 1;
-          $("#error_txt_age").text(
-            "Age should be equal according to date of birth"
-          );
-          $("#txt_age").addClass("has-error");
-        }
-      }
+      error_personal = 0;
     }
+
     if ($.trim($("#father_first_name").val()).length == 0) {
       error_personal = 1;
       $("#error_father_first_name").text("First Name is required");
@@ -225,6 +219,7 @@ $(document).ready(function () {
         $("#caste_category").val() === "SC" ||
         $("#caste_category").val() === "ST"
       ) {
+        $("#caste_certificate_no_section").show();
         if ($.trim($("#caste_certificate_no").val()).length == 0) {
           error_personal = 1;
           $("#error_caste_certificate_no").text(
@@ -236,6 +231,7 @@ $(document).ready(function () {
           $("#caste_certificate_no").removeClass("has-error");
         }
       } else {
+        $("#caste_certificate_no_section").hide();
         $("#error_caste_certificate_no").text("");
         $("#caste_certificate_no").removeClass("has-error");
       }
@@ -336,36 +332,6 @@ $(document).ready(function () {
       }
     }
 
-    if (scheme_id == 5) {
-      if ($.trim($("#phy_hadi_status").val()) == "Yes") {
-        if (
-          $.trim($("#txt_age").val()) < 55 ||
-          $.trim($("#txt_age").val()) > 120
-        ) {
-          error_personal = 1;
-          $("#error_txt_age").text("Age range is not properly");
-          $("#txt_age").addClass("has-error");
-          return false;
-        } else {
-          $("#error_txt_age").text("");
-          $("#txt_age").removeClass("has-error");
-        }
-      } else {
-        if (
-          $.trim($("#txt_age").val()) < 60 ||
-          $.trim($("#txt_age").val()) > 120
-        ) {
-          error_personal = 1;
-          $("#error_txt_age").text("Age range is not properly");
-          $("#txt_age").addClass("has-error");
-          return false;
-        } else {
-          $("#error_txt_age").text("");
-          $("#txt_age").removeClass("has-error");
-        }
-      }
-    }
-
     if (scheme_id == 11) {
       if ($.trim($("#husband_first_name").val()).length == 0) {
         error_personal = 1;
@@ -398,7 +364,7 @@ $(document).ready(function () {
       }
     }
 
-    error_personal = 0;
+    // error_personal = 0;
     if (error_personal == 1) {
       error_personal = 0;
       return false;
@@ -428,3 +394,101 @@ $(document).ready(function () {
     $("#personal_details").addClass("active in");
   });
 });
+
+function dob_checker(scheme_id, dob) {
+  var age = parseInt($("#txt_age").text());
+  // alert(age);
+
+  if (scheme_id == 2 || scheme_id == 11 || scheme_id == 17) {
+    $("#error_txt_age").text("");
+    $("#txt_age").removeClass("has-error");
+    return true;
+  } else if (scheme_id == 8) {
+    if (age < 18 || age > 60) {
+      $("#error_txt_age").text("Age range is not properly");
+      $("#txt_age").addClass("has-error");
+      return false;
+    } else {
+      $("#error_txt_age").text("");
+      $("#txt_age").removeClass("has-error");
+      return true;
+    }
+  } else if (scheme_id == 9) {
+    if (age < 60) {
+      $("#error_txt_age").text("Age range is not properly");
+      $("#txt_age").addClass("has-error");
+      return false;
+    } else {
+      $("#error_txt_age").text("");
+      $("#txt_age").removeClass("has-error");
+      return true;
+    }
+  } else if (scheme_id == 5) {
+    var phy_hnd = $.trim($("#phy_hadi_status").val());
+    var marital_status = $.trim($("#marital_status").val());
+    // console.log( marital_status);
+
+    if (marital_status == "Widow") {
+      $("#error_txt_age").text("");
+      $("#txt_age").removeClass("has-error");
+      // alert(marital_status );
+      return true;
+    } else {
+      //alert(phy_hnd);
+      if (phy_hnd == "Yes") {
+        if (age < 55) {
+          $("#error_txt_age").text("Age range is not properly");
+          $("#txt_age").addClass("has-error");
+          return false;
+        } else {
+          $("#error_txt_age").text("");
+          $("#txt_age").removeClass("has-error");
+          return true;
+        }
+      } else {
+        if (age < 60) {
+          $("#error_txt_age").text("Age range is not properly");
+          $("#txt_age").addClass("has-error");
+          return false;
+        } else {
+          $("#error_txt_age").text("");
+          $("#txt_age").removeClass("has-error");
+          return true;
+        }
+      }
+    }
+  } else if (scheme_id == 13) {
+    // alert(age);
+    var marital_status = $.trim($("#marital_status").val());
+    if (marital_status == "Widow") {
+      // alert('ok');
+      $("#error_txt_age").text("");
+      $("#txt_age").removeClass("has-error");
+      return true;
+    } else {
+      if (age > 60) {
+        alert("ok1");
+        $("#error_txt_age").text("");
+        $("#txt_age").removeClass("has-error");
+        return true;
+      } else {
+        $("#error_txt_age").text("Age range is not properly");
+        $("#txt_age").addClass("has-error");
+        return false;
+      }
+    }
+  } else {
+    // alert('ok');
+    if (age < 60) {
+      $("#error_txt_age").text("Age range is not properly");
+      $("#txt_age").addClass("has-error");
+      return false;
+    } else {
+      $("#error_txt_age").text("");
+      $("#txt_age").removeClass("has-error");
+      return true;
+    }
+  }
+}
+
+// function age_checker(age, scheme_id)

@@ -66,7 +66,7 @@ class BSKdrilldownController extends Controller
         // print_r($schemes);die();
         if (AuthChecker::ReportCheckerCommon()) {
             $district_visible = $is_urban_visible = $block_visible = 1;
-        } else if (AuthChecker::ApproverChecker() || AuthChecker::VerifierChecker()) {
+        } else if (AuthChecker::ApproverPermission() || AuthChecker::VerifierPermission()) {
             // echo $designation_id;die();
             $district_code = NULL;
             $is_urban = NULL;

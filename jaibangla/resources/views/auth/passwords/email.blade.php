@@ -201,7 +201,7 @@ body {
                             <tr id="Tr_cap41">
                                 <td align="center" class="style4" style="padding-top: 5px;">
                                     <a class="btn btn-primary btnotp" style="width: 200px;" href="{{ route('login') }}">
-                                        Already Have OTP
+                                        Back
                                     </a>
                                     <!-- <input type="submit" name="gen_otp"
                                     value="Generate OTP" id="gen_otp"

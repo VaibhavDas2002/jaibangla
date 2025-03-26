@@ -283,7 +283,7 @@ desired effect
                                     </div>  -->
 
 
-                <input type="hidden" name="scheme_id" value="{{ $scheme_id }}">
+                <input type="hidden" name="scheme_id" id="scheme_id" value="{{ $scheme_id }}">
 
                 <div class="form-group col-md-4" >
                  <label class="required-field">First Name</label>
@@ -314,14 +314,14 @@ desired effect
 
                 <div class="form-group col-md-4">
                  <label class="">Date of Birth</label>
-                 <input type="date" name="dob" id="dob" class="form-control"  tabindex="5" value="{{old('dob')}}" />
+                 <input type="date" name="dob" id="dob" class="form-control"  tabindex="5"  />
                  <!-- <input type="text" id="dob" name="dob"class="form-control" data-inputmask="'alias': 'dd/mm/yyyy'" data-mask placeholder="dd/mm/yyyy"> -->
                  <span id="error_dob" class="text-danger"></span>
                 </div>
                 <div class="form-group col-md-4">
                  <label>Age</label>
-                  <input type="hidden" name="hidden_age" id="hidden_age" value="{{ old('txt_age') }}">
-                 <input type="text" name="txt_age" id="txt_age" class="form-control NumOnly" placeholder="Age"  @if(old('txt_age')!='') value="{{ old('txt_age') }}" @else value="0" @endif  maxlength="3"  tabindex="6"  />
+                  <input type="hidden" name="hidden_age" id="hidden_age" value="">
+                 <input type="text" name="txt_age" id="txt_age" class="form-control NumOnly" placeholder="Age"  @if(old('txt_age')!='') value="{{ old('txt_age') }}" @else value="" @endif  maxlength="3"  tabindex="6"  />
                  <span id="error_txt_age" class="text-danger"></span>
                  
                 </div>
@@ -1764,6 +1764,7 @@ $('.special-char').keyup(function()
 
   var error_monthly_income = '';
   
+  var scheme_id = $("#scheme_id").val();
 
   if($.trim($('#first_name').val()).length == 0)
   {
@@ -1805,100 +1806,91 @@ $('.special-char').keyup(function()
   }
   
 
- if($.trim($('#dob').val()).length > 0)
- {
+  if ($.trim($("#dob").val()).length == 0) {
+      $("#error_dob").text("Date of Birth is Required");
+      $("#dob").addClass("has-error");
+    } else {
+      $("#error_dob").text("");
+      $("#dob").removeClass("has-error");
+    }
+
+    if ($.trim($("#txt_age").val()).length == 0) {
+      $("#error_txt_age").text("Age is required");
+      $("#txt_age").addClass("has-error");
+    } else {
+       if(scheme_id==9){
 
     
 
-     var string = $.trim($('#dob').val());   
-     var result = string.split('-');
-     var year = result[result.length - 3];
-
-     var scheme_id=$("#scheme_id").val();
-      if(scheme_id==9){
-
-          if(year < 1900  || year > 2000 )
-          {
-          error_dob = "Date of Birth range is not properly";
-          $('#error_dob').text(error_dob);
-          $('#dob').addClass('has-error');
+        if(($.trim($('#txt_age').val()) != 0) && ($.trim($('#txt_age').val()) < 60 || $.trim($('#txt_age').val()) >120 ))
+            {
+            error_txt_age = 'Age range is not properly';
+            $('#error_txt_age').text(error_txt_age);
+            $('#txt_age').addClass('has-error');
+            }
+            else
+            {
+            error_txt_age = '';
+            $('#error_txt_age').text(error_txt_age);
+            $('#txt_age').removeClass('has-error');
+           }
+  
+          if($.trim($('#dob').val()).length > 0)
+          { 
+            if( $('#hidden_age').val() != $('#txt_age').val() )
+            {   
+            error_personal = 1;   
+            error_txt_age = 'Age should be equal according to date of birth';
+            $('#error_txt_age').text(error_txt_age);
+            $('#txt_age').addClass('has-error');
+            }
           }
-          else
-          {      
-          error_dob = '';
-          $('#error_dob').text(error_dob);
-          $('#dob').removeClass('has-error');    
+        }else if(scheme_id==8){
+          //alert($.trim($('#txt_age').val()));
+          if(($.trim($('#txt_age').val()) != 0) && ($.trim($('#txt_age').val()) < 18 || $.trim($('#txt_age').val()) >60 ))
+            {
+            error_txt_age = 'Age range is not properly';
+            $('#error_txt_age').text(error_txt_age);
+            $('#txt_age').addClass('has-error');
+            return false
+            }
+            else
+            {
+              error_personal = 0;
+            error_txt_age = '';
+            $('#error_txt_age').text(error_txt_age);
+            $('#txt_age').removeClass('has-error');
+           }
+        }
+      else {
+        if (
+          $.trim($("#txt_age").val()) < 60 ||
+          $.trim($("#txt_age").val()) > 120
+        ) {
+          error_personal = 1;
+          $("#error_txt_age").text("Age range is not properly");
+          $("#txt_age").addClass("has-error");
+          return false;
+        } else {
+          $("#error_txt_age").text("");
+          $("#txt_age").removeClass("has-error");
+        }
 
+        if ($.trim($("#dob").val()).length > 0) {
+          if ($("#hidden_age").val() != $("#txt_age").val()) {
+            error_personal = 1;
+            $("#error_txt_age").text(
+              "Age should be equal according to date of birth"
+            );
+            $("#txt_age").addClass("has-error");
           }
+        }
       }
-      else{
-        error_dob = '';
-          $('#error_dob').text(error_dob);
-          $('#dob').removeClass('has-error'); 
-      }
-
- } 
- else{
-          error_dob = "Date of Birth range is required";
-          $('#error_dob').text(error_dob);
-          $('#dob').addClass('has-error');
- }
+    }
 
   
 
-	// if($.trim($('#txt_age').val()).length == 0)
-	// {
-	// error_txt_age = 'Age is required';
-	// $('#error_txt_age').text(error_txt_age);
-	// $('#txt_age').addClass('has-error');
-	// }
-  if($.trim($('#txt_age').val()).length > 0)
-  {
-    var scheme_id=$("#scheme_id").val();
-    if(scheme_id==9){
 
-    
-
-    	if(($.trim($('#txt_age').val()) != 0) && ($.trim($('#txt_age').val()) < 60 || $.trim($('#txt_age').val()) >120 ))
-	        {
-	        error_txt_age = 'Age range is not properly';
-	        $('#error_txt_age').text(error_txt_age);
-	        $('#txt_age').addClass('has-error');
-	        return false
-	        }
-	        else
-	        {
-	        error_txt_age = '';
-	        $('#error_txt_age').text(error_txt_age);
-	        $('#txt_age').removeClass('has-error');
-	       }
-
-        if($.trim($('#dob').val()).length > 0)
-        { 
-	        if( $('#hidden_age').val() != $('#txt_age').val() )
-	        {      
-	        error_txt_age = 'Age should be equal according to date of birth';
-	        $('#error_txt_age').text(error_txt_age);
-	        $('#txt_age').addClass('has-error');
-	        }
-        }
-      }if(scheme_id==8){
-        if(($.trim($('#txt_age').val()) != 0) && ($.trim($('#txt_age').val()) < 18 || $.trim($('#txt_age').val()) >60 ))
-	        {
-	        error_txt_age = 'Age range is not properly';
-	        $('#error_txt_age').text(error_txt_age);
-	        $('#txt_age').addClass('has-error');
-	        return false
-	        }
-	        else
-	        {
-	        error_txt_age = '';
-	        $('#error_txt_age').text(error_txt_age);
-	        $('#txt_age').removeClass('has-error');
-	       }
-      }
-
-  }
 
 
 

@@ -24,16 +24,18 @@ class CommonReportController extends Controller
   {
     $this->middleware('auth');
     set_time_limit(200);
-    date_default_timezone_set('Asia/Kolkata'); 
+    date_default_timezone_set('Asia/Kolkata');
   }
 
   /* Report For WCD OAP Different Age De-activated Case */
-  public function wcdAgeDiffStopPaymentIndex(Request $request) {
+  public function wcdAgeDiffStopPaymentIndex(Request $request)
+  {
     $user_id = AuthChecker::getUserId();
     $schemes = DB::select(DB::raw("select id,scheme_name from m_scheme where id in (select scheme_id from duty_assignement where user_id=" . $user_id . " and is_active=1 and scheme_id in(2,10,11))"));
-    return view('common_report.wcd_age_stop_payment_report', ['report'=>$schemes]);
+    return view('common_report.wcd_age_stop_payment_report', ['report' => $schemes]);
   }
-  public function wcdAgeDiffStopPaymentGetData(Request $request) {
+  public function wcdAgeDiffStopPaymentGetData(Request $request)
+  {
     $selectscheme = $request->selectscheme;
     $selectyear = $request->selectyear;
     $schemeObj = Scheme::where('id', $selectscheme)->first();
@@ -49,9 +51,8 @@ class CommonReportController extends Controller
       sum(case when (extract(year from current_date)-extract(year from dob))>=100  then 1  else 0 end) as age_above_100
       from " . $tablename . " op join m_district m on m.district_code=op.created_by_dist_code where next_level_role_id=0 group by m.district_name order by m.district_name";
       $data = DB::select($query);
-      return view('common_report/oap_age_cohort_report',['result'=> $data]);
-    } 
-    else if ($selectscheme == 11) {
+      return view('common_report/oap_age_cohort_report', ['result' => $data]);
+    } else if ($selectscheme == 11) {
       $query = "select m.district_name,
       sum(case when (extract(year from current_date)-extract(year from dob))<20  then 1  else 0 end) as age_below_20,
       sum(case when (extract(year from current_date)-extract(year from dob))>=20 and (extract(year from current_date)-extract(year from dob))<30 then 1  else 0 end) as age_20_30,
@@ -65,9 +66,8 @@ class CommonReportController extends Controller
       sum(case when (extract(year from current_date)-extract(year from dob))>=100  then 1  else 0 end) as age_above_100
       from wp_wcd.beneficiary b join m_district m on m.district_code=b.created_by_dist_code where next_level_role_id=0 group by m.district_name order by m.district_name";
       $data = DB::select($query);
-      return view('common_report/wp_age_cohort_report',['result'=> $data]);
-    } 
-    else if ($selectscheme == 2) {
+      return view('common_report/wp_age_cohort_report', ['result' => $data]);
+    } else if ($selectscheme == 2) {
       $query = "select m.district_name,
       sum(case when (extract(year from current_date)-extract(year from dob))<10  then 1  else 0 end) as age_below_10,
       sum(case when (extract(year from current_date)-extract(year from dob))>=10 and (extract(year from current_date)-extract(year from dob))<20 then 1  else 0 end) as age_10_20,
@@ -82,10 +82,11 @@ class CommonReportController extends Controller
       sum(case when (extract(year from current_date)-extract(year from dob))>=100  then 1  else 0 end) as age_above_100
       from manabik.beneficiary b join m_district m on m.district_code=b.created_by_dist_code where next_level_role_id=0 group by m.district_name order by m.district_name";
       $data = DB::select($query);
-      return view('common_report/manabik_age_cohort_report',['result'=> $data]);
+      return view('common_report/manabik_age_cohort_report', ['result' => $data]);
     }
   }
-  public function wcdStopPaymentReport(Request $request) {
+  public function wcdStopPaymentReport(Request $request)
+  {
     if ($request->ajax()) {
       $selectscheme = $request->selectscheme1;
       $selectyear = $request->selectyear;
@@ -96,120 +97,139 @@ class CommonReportController extends Controller
         where is_rejected=1 and next_level_role_id<>-97 group by m.district_name order by m.district_name";
       $data = DB::connection('pgsql_mis')->select($query);
       return datatables()->of($data)
-      ->make(true);
+        ->make(true);
     }
   }
   function viewEncloser(Request $request)
   {
+    ini_set('display_errors', 1);
+    ini_set('display_startup_errors', 1);
+    error_reporting(E_ALL);
     try {
-    $created_by_dist_code = $request->created_by_dist_code;
-    $beneficiary_id = $request->beneficiary_id;
-    $doc_type_id = $request->document_type;
-    $scheme_id = $request->scheme_id;
-    if (empty($created_by_dist_code)) {
-      $return_text = 'District Parameter Not Valid';
-      //return redirect("/")->with('error',  $return_text);
-    }
-    if (!ctype_digit($created_by_dist_code)) {
-      $return_text = 'District Not Valid';
-      //return redirect("/")->with('error',  $return_text);
-    }
-    if (empty($scheme_id)) {
-      $return_text = 'Scheme Parameter Not Valid';
-      //return redirect("/")->with('error',  $return_text);
-    }
-    if (!ctype_digit($scheme_id)) {
-      $return_text = 'Scheme Id Not Valid';
-     // return redirect("/")->with('error',  $return_text);
-    }
-    if (empty($beneficiary_id)) {
-      $return_text = 'Beneficiary Id Parameter Not Valid';
-      //return redirect("/")->with('error',  $return_text);
-    }
-    if (!ctype_digit($beneficiary_id)) {
-      $return_text = 'Beneficiary Id Not Valid';
-      //return redirect("/")->with('error',  $return_text);
-    }
-    if (empty($doc_type_id)) {
-      $return_text = 'Doc Type Id Parameter Not Valid';
-    //  return redirect("/")->with('error',  $return_text);
-    }
-    if (!ctype_digit($doc_type_id)) {
-      $return_text = 'Doc Type Id Not Valid';
-     // return redirect("/")->with('error',  $return_text);
-    }
-    //dd($return_text);
-    $user_id = AuthChecker::getUserId();
-    $designation_id = Auth::user()->designation_id;
-    $scheme_obj = Scheme::where('id', $scheme_id)->where('is_active', 1)->first();
-    if (empty($scheme_obj)) {
-      $return_text = 'Scheme Not Valid';
-      return redirect("/")->with('error',  $return_text);
-    }
-    $duty_obj = Configduty::where('user_id', $user_id)->where('scheme_id', $scheme_id)->first();
-    if (empty($duty_obj)) {
-      $return_text = 'Not Allowed';
-      return redirect("/")->with('error',  $return_text);
-    }
-    if (!empty($scheme_obj->short_code)) {
-      $schema = $scheme_obj->short_code;
-    } else {
-      $schema = "pension";
-    }
-    $condition = array();
-    $condition['beneficiary_id'] = $beneficiary_id;
-    $condition['created_by_dist_code'] = $created_by_dist_code;
-    $condition['document_type'] = $doc_type_id;
-    if ($designation_id == 'Verifier') {
-      if ($duty_obj->mapping_level == "Subdiv") {
-        $created_by_local_body_code = $duty_obj->urban_body_code;
+      $created_by_dist_code = $request->created_by_dist_code;
+      $beneficiary_id = $request->beneficiary_id;
+      $doc_type_id = $request->document_type;
+      $scheme_id = $request->scheme_id;
+      if (empty($created_by_dist_code)) {
+        $return_text = 'District Parameter Not Valid';
+        //return redirect("/")->with('error',  $return_text);
       }
-      if ($duty_obj->mapping_level == "Block") {
-        $created_by_local_body_code = $duty_obj->taluka_code;
+      if (!ctype_digit($created_by_dist_code)) {
+        $return_text = 'District Not Valid';
+        //return redirect("/")->with('error',  $return_text);
       }
-      $condition['created_by_local_body_code'] = $created_by_local_body_code;
-    }
-    $doc =  DB::connection('pgsql_encwrite')->table('jb_doc.ben_attach_documents')->where($condition)->first();
-   
-    if(!empty($doc)){
-      $document_mime_type = $doc->document_mime_type;
-      $file_name='doc_'.$beneficiary_id.'_'.$doc_type_id.'_'.time();
-      if($document_mime_type=='image/jpeg'){
-        $file_name=$file_name.'.jpg';
-        $response = FacadeResponse::make(base64_decode($doc->attched_document), 200);
-        $response->header('Content-Type', 'image/jpeg');
-        $response->header('Content-Disposition', 'attachment; filename='.$file_name);
-        return $response;
-      }else if($document_mime_type=='image/png'){
-        $file_name=$file_name.'.png';
-        $response = FacadeResponse::make(base64_decode($doc->attched_document), 200);
-        $response->header('Content-Type', 'image/png');
-        $response->header('Content-Disposition', 'attachment; filename='.$file_name);
-        return $response;
-      }else if($document_mime_type=='application/pdf'){
-        $file_name=$file_name.'.pdf';
-        $response = FacadeResponse::make(base64_decode($doc->attched_document), 200);
-        $response->header('Content-Type', 'application/pdf');
-        $response->header('Content-Disposition', 'attachment; filename='.$file_name);
-        return $response;
-        
+      if (empty($scheme_id)) {
+        $return_text = 'Scheme Parameter Not Valid';
+        //return redirect("/")->with('error',  $return_text);
       }
-      else{
-        $return_text = 'File Not Valid';
-        return redirect("/")->with('error',  $return_text);
+      if (!ctype_digit($scheme_id)) {
+        $return_text = 'Scheme Id Not Valid';
+        // return redirect("/")->with('error',  $return_text);
       }
-      
+      if (empty($beneficiary_id)) {
+        $return_text = 'Beneficiary Id Parameter Not Valid';
+        //return redirect("/")->with('error',  $return_text);
+      }
+      if (!ctype_digit($beneficiary_id)) {
+        $return_text = 'Beneficiary Id Not Valid';
+        //return redirect("/")->with('error',  $return_text);
+      }
+      if (empty($doc_type_id)) {
+        $return_text = 'Doc Type Id Parameter Not Valid';
+        //  return redirect("/")->with('error',  $return_text);
+      }
+      if (!ctype_digit($doc_type_id)) {
+        $return_text = 'Doc Type Id Not Valid';
+        // return redirect("/")->with('error',  $return_text);
+      }
+      //dd($return_text);
+      $user_id = AuthChecker::getUserId();
+      $designation_id = Auth::user()->designation_id;
+      $scheme_obj = Scheme::where('id', $scheme_id)->where('is_active', 1)->first();
+      if (empty($scheme_obj)) {
+        $return_text = 'Scheme Not Valid';
+        return redirect("/")->with('error', $return_text);
+      }
+      $duty_obj = Configduty::where('user_id', $user_id)->where('scheme_id', $scheme_id)->first();
+      if (empty($duty_obj)) {
+        $return_text = 'Not Allowed';
+        return redirect("/")->with('error', $return_text);
+      }
+      if (!empty($scheme_obj->short_code)) {
+        $schema = $scheme_obj->short_code;
+      } else {
+        $schema = "pension";
+      }
+      $condition = array();
+      $condition['beneficiary_id'] = $beneficiary_id;
+      $condition['created_by_dist_code'] = $created_by_dist_code;
+      $condition['document_type'] = $doc_type_id;
+      if ($designation_id == 'Verifier') {
+        if ($duty_obj->mapping_level == "Subdiv") {
+          $created_by_local_body_code = $duty_obj->urban_body_code;
+        }
+        if ($duty_obj->mapping_level == "Block") {
+          $created_by_local_body_code = $duty_obj->taluka_code;
+        }
+        //$condition['created_by_local_body_code'] = $created_by_local_body_code;
+      }
+      $doc = DB::connection('pgsql_encwrite')->table('jb_doc.ben_attach_documents')->where($condition)->first();
+      //dd($doc);
+
+      if (!empty($doc)) {
+       
+        $mime_type = $doc->document_mime_type;
+        $file_extension = $doc->document_extension;
+        if ($file_extension != 'png' && $file_extension != 'jpg' && $file_extension != 'jpeg' && $file_extension != 'pdf') {
+            if ($mime_type == 'image/png') {
+                $file_extension = 'png';
+            } else if ($mime_type == 'image/jpeg') {
+                $file_extension = 'jpg';
+            } else if ($mime_type == 'application/pdf') {
+                $file_extension = 'pdf';
+            }
+        }
+        try {
+            if (strtoupper($file_extension) == 'PNG' || strtoupper($file_extension) == 'JPG' || strtoupper($file_extension) == 'JPEG') {
+                $resultimg = str_replace("data:image/" . $file_extension . ";base64,", "", $doc->attched_document);
+                //dd($resultimg);
+                $file_name = $doc->document_type . '_' . $doc->beneficiary_id;
+
+                header('Content-Disposition: attachment;filename="' . $file_name . '.' . $file_extension . '"');
+                header('Content-Type: ' . $mime_type);
+                ob_clean();
+                echo base64_decode($resultimg);
+            } else if (strtoupper($file_extension) == 'PDF') {
+                $decoded = base64_decode($doc->attched_document);
+                $file_name = $doc->document_type . '_' . $doc->beneficiary_id . '.pdf';
+                header('Content-Description: File Transfer');
+                header('Content-Type: application/pdf');
+                header('Content-Disposition: attachment; filename=' . $file_name);
+                header('Content-Transfer-Encoding: binary');
+                header('Expires: 0');
+                header('Cache-Control: must-revalidate');
+                header('Pragma: public');
+                header('Content-Length: ' . strlen($decoded));
+                ob_clean();
+                flush();
+                echo $decoded;
+                exit;
+            }
+        } catch (\Exception $e) {
+            $return_text = 'Some error. please try again.';
+            return redirect("/")->with('error',  $return_text);
+        }
+
+      } else {
+        $return_text = 'File Not Found';
+        return redirect("/")->with('error', $return_text);
+      }
+    } catch (\Exception $e) {
+      dd($e);
+      //return redirect("/")->with('error',  'Some error.please try again ......');
     }
-    else{
-      $return_text = 'File Not Found';
-      return redirect("/")->with('error',  $return_text);
-    }
-  }catch (\Exception $e) {
-    dd($e);
-    //return redirect("/")->with('error',  'Some error.please try again ......');
-}
-    
-    
-   
+
+
+
   }
 }

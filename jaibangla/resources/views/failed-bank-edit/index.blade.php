@@ -107,7 +107,7 @@
                                                 </select>
                                                 <span class="text-danger" id="error_failed_type"></span>
                                             </div>
-                                            @if($mapLevel=='SubdivVerifier')
+                                            @if($mapLevel=='SubdivVerifier' || $mapLevel=='SubdivDelegated Verifier')
                                                 <div class="col-md-3">
                                                     <label class=" control-label" >Municipality</label>
                                                     <select name="filter_1" id="filter_1" class="form-control select2 full-width js-municipality" >
@@ -124,7 +124,7 @@
                                                     </select>
                                                 </div> 
                                                 <input type="hidden" name="local_body" id="local_body" value={{$local_body_code}}>  
-                                            @elseif($mapLevel=='BlockVerifier')
+                                            @elseif($mapLevel=='BlockVerifier'  || $mapLevel=='BlockDelegated Verifier')
                                                 <div class="col-md-3">
                                                     <label class=" control-label" >Gram Panchayat</label>
                                                     <select name="filter_1" id="filter_1" class="form-control select2 full-width" >
@@ -135,11 +135,11 @@
                                                     </select>
                                                 </div> 
                                                 <input type="hidden" name="local_body" id="local_body" value={{$local_body_code}}>
-                                            @elseif($mapLevel=='DistrictApprover')
+                                            @elseif($mapLevel=='DistrictApprover'  || $mapLevel=='DistrictDelegated Approver')
                                                 <input type="hidden" name="local_body" id="local_body" value="">
                                                 
                                             @endif
-                                            <input type="hidden" name="mapLevel" id="mapLevel" value={{$mapLevel}}>
+                                            <input type="hidden" name="mapLevel" id="mapLevel" value='{{$mapLevel}}'>
                                             <input type="hidden" name="district_code" id="district_code" value="{{$district_code}}">
                                             <div class="col-md-3" style="margin-top: 24px;">
                                                 <button class="btn btn-primary" name="submit_btn" id="submit_btn" type="button" disabled><i class="fa fa-search"></i> Search</button>&nbsp;
@@ -250,11 +250,14 @@
                     <tr>
                       <th>Bank Account Number: <span class="text-danger">*</span></th>
                       <td>
-                        <input type="text" value="" name="bank_code" maxlength='20' id="bank_code">
+                        <input type="password" value="" name="bank_code" maxlength='20' id="bank_code" class="form-control NumOnly" autocomplete="off">
                         <span id="error_bank_code" class="text-danger"></span>
                       </td>
-                      <th></th>
-                      <td></td>
+                      <th>Confirm Bank Account Number: <span class="text-danger">*</span></th>
+                      <td>
+                        <input type="text" value="" name="confirm_bank_code" maxlength='20' id="confirm_bank_code" class="form-control NumOnly" autocomplete="off">
+                        <span id="error_confirm_bank_code" class="text-danger"></span>
+                      </td>
                     </tr>
                     <tr>
                       <th scope="row" class="required" style="font-size: 14px;">Upload Bank Passbook<br>(Mandatory for change of account only)<span class="text-danger"></th>
@@ -311,6 +314,9 @@
         }, 100);
         $('#loadingDi').hide();
         $('#submit_btn').removeAttr('disabled');
+        $( "#bank_code,#confirm_bank_code" ).on( "copy cut paste drop", function() {
+                return false;
+        });
         var error_scheme_type = '';
         $('#submit_btn').click(function(){
             if($.trim($('#scheme_type').val()).length == 0){
@@ -491,6 +497,7 @@
                      $('#bank_name').val(response.bank_name);
                      $('#bank_ifsc').val(response.bank_ifsc);
                      $('#bank_code').val(response.bank_code);
+                     $('#confirm_bank_code').val(response.bank_code);
                      $('#branch_name').val(response.branch_name);
                      $('#application_id').text(response.id);
                      $('#failed_reason').text(response.failed_reason);
@@ -517,6 +524,7 @@
     var error_name_of_bank =''; 
     var error_bank_branch =''; 
     var error_bank_code =''; 
+    var error_confirm_bank_code ='';
     var error_bank_ifsc_code =''; 
     var error_mobile_no ='';
     var error_file = '';
@@ -578,6 +586,30 @@
      $('#error_bank_code').text(error_bank_code);
      $('#bank_code').removeClass('has-error');
     }
+    if($.trim($('#confirm_bank_code').val()).length == 0)
+    {
+      error_confirm_bank_code = 'Confirm Bank Account Number is required';
+    $('#error_confirm_bank_code').text(error_confirm_bank_code);
+    $('#confirm_bank_code').addClass('has-error');
+    }
+    else
+    {
+      error_confirm_bank_code = '';
+    $('#confirm_bank_code').text(error_confirm_bank_code);
+    $('#confirm_bank_code').removeClass('has-error');
+    }
+    if($.trim($('#bank_code').val()) != $.trim($('#confirm_bank_code').val()))
+    {
+      error_confirm_bank_code = 'Confirm Bank Account Number not Match with Bank Account Number';
+      $('#error_confirm_bank_code').text(error_confirm_bank_code);
+      $('#error_confirm_bank_code').addClass('has-error');
+    }
+    else
+    {
+      error_confirm_bank_code = '';
+      $('#error_confirm_bank_code').text(error_confirm_bank_code);
+      $('#error_confirm_bank_code').removeClass('has-error');
+    }
 
     if($.trim($('#bank_ifsc').val()).length == 0)
     {
@@ -606,9 +638,7 @@
       $('#bank_ifsc').addClass('has-error');    
     }
 
-    
-
-    if(error_name_of_bank !='' || error_bank_branch !=''||  error_bank_code !='' || error_bank_ifsc_code !='' ) {
+    if(error_name_of_bank !='' || error_bank_branch !=''||  error_bank_code !='' || error_bank_ifsc_code !='' || error_confirm_bank_code !='' ) {
       return false;
     }
     else
@@ -617,6 +647,7 @@
       var old_bank_accno=$('#old_bank_code').val();
       var bank_ifsc=$('#bank_ifsc').val();
       var bank_account_number=$('#bank_code').val();
+      var confirm_bank_account_number=$('#confirm_bank_code').val();
       var upload_bank_passbook = $('#upload_bank_passbook')[0].files;
       if((old_bank_ifsc!=bank_ifsc || bank_account_number!=old_bank_accno)&& upload_bank_passbook.length==0){
       $.confirm({
@@ -643,6 +674,7 @@
               var updateSchemeId = $('#update_scheme_id').val();
               var new_bank_ifsc = $('#bank_ifsc').val();
               var new_bank_code = $('#bank_code').val();
+              var confirm_bank_code = $('#confirm_bank_code').val();
               var new_bank_name = $('#bank_name').val();
               var new_branch_name = $('#branch_name').val();
               var new_mobile_no = $('#mobile_no').val();
@@ -654,6 +686,7 @@
               fd.append('scheme_id', updateSchemeId);
               fd.append('bank_ifsc', new_bank_ifsc);
               fd.append('bank_code', new_bank_code);
+              fd.append('confirm_bank_code', confirm_bank_code);
               fd.append('bank_name', new_bank_name);
               fd.append('branch_name', new_branch_name);
               fd.append('upload_bank_passbook', upload_bank_passbook[0]);

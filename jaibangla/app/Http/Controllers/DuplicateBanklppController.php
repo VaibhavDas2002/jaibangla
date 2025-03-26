@@ -34,6 +34,8 @@ use Carbon\Carbon;
 use App\Helpers\Helper;
 use App\Helpers\AuthChecker;
 use App\Configduty;
+use Illuminate\Support\Facades\Route;
+
 
 class DuplicateBanklppController extends Controller
 {
@@ -505,16 +507,17 @@ class DuplicateBanklppController extends Controller
                     $new_value['bank_ifsc'] =  trim($request->bank_ifsc_code);
                     $new_value['bank_code'] = trim($request->bank_account_number);
                     $modelmainArch = array();
-                    $modelmainArch['update_code']  = 101;
-                    $modelmainArch['original_application_id']  = $application_id;
+                    $modelmainArch['op_type']  = 101;
+                    $modelmainArch['application_id']  = $application_id;
                     $modelmainArch['old_data']  =  json_encode($row);
                     $modelmainArch['new_data']  =  json_encode($new_value);
                     $modelmainArch['scheme_id']  = $row->scheme_id;
                     $modelmainArch['created_at']  =  $today;
                     $modelmainArch['user_id']  =  $user_id;
                     $modelmainArch['ip_address']  =  $request->ip();
+                    $modelmainArch['module_name'] = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod() ;
                     // dd($modelmainArch);
-                    $modelmainArchStatus = DB::table('update_ben_details')->insert($modelmainArch);
+                    $modelmainArchStatus = DB::table('ben_accept_reject_info')->insert($modelmainArch);
                     $pension_details_bank_arr = array();
                     $pension_details_bank_arr['bank_name']  = trim($request->name_of_bank);
                     $pension_details_bank_arr['branch_name']    = trim($request->bank_branch);
@@ -792,13 +795,14 @@ class DuplicateBanklppController extends Controller
 
                 DB::beginTransaction();
                 $modelmainArch = array();
-                $modelmainArch['update_code']  = 200;
-                $modelmainArch['original_application_id']  = $application_id;
+                $modelmainArch['op_type']  = 200;
+                $modelmainArch['application_id']  = $application_id;
                 $modelmainArch['scheme_id']  = $row->scheme_id;
                 $modelmainArch['created_at']  =  $today;
                 $modelmainArch['user_id']  =  $user_id;
                 $modelmainArch['ip_address']  =  $request->ip();
-                $modelmainArchStatus = DB::table('update_ben_details')->insert($modelmainArch);
+                $modelmainArch['module_name'] = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod() ;
+                $modelmainArchStatus = DB::table('ben_accept_reject_info')->insert($modelmainArch);
                 $pension_details_bank_arr = array();
                 $pension_details_bank_arr['dup_bank']=0;
                 $pension_details_bank_arr['dup_bank_pending']=$dup_bank_pending;
@@ -937,13 +941,14 @@ class DuplicateBanklppController extends Controller
                 $is_saved1 = DB::table($schema . '.beneficiary')->where('created_by_dist_code', $district_code)->where('id', $application_id)->update($input);
                 $is_saved2 = DB::table('pension.ben_payment_details_bank_code_dup')->whereraw("trim(bank_code)='$bank_code'")->where('id', $application_id)->where('created_by_dist_code', $district_code)->update($update_arr);
                 $modelmainArch = array();
-                $modelmainArch['update_code']  = -200;
-                $modelmainArch['original_application_id']  = $application_id;
+                $modelmainArch['op_type']  = -200;
+                $modelmainArch['application_id']  = $application_id;
                 $modelmainArch['scheme_id']  = $row_count->scheme_id;
                 $modelmainArch['created_at']  =  $today;
                 $modelmainArch['user_id']  =  $user_id;
                 $modelmainArch['ip_address']  =  $request->ip();
-                $modelmainArchStatus = DB::table('update_ben_details')->insert($modelmainArch);
+                $modelmainArch['module_name'] = class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod() ;
+                $modelmainArchStatus = DB::table('ben_accept_reject_info')->insert($modelmainArch);
                 $scheme_dedup_list = Config::get('constants.bank_mob_aadhar_update_check');
                 if (in_array($row_count->scheme_id, $scheme_dedup_list)) {
                     $free_pending_bank_duplicate_arr = DB::select("select ".$schema.".free_pending_bank_duplicate_data(in_scheme_id => ".$row_count->scheme_id.", in_district_code => ".$district_code.")");

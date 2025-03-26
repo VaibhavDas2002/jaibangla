@@ -55,6 +55,8 @@ class WorkflowControllerWcdEdit extends Controller
         $scheme_length = NULL;
         $id_length = NULL;
       }
+
+      $schema = "pension";
       if ($duty_obj->mapping_level == "Subdiv") {
         $urban_body_code=$duty_obj->urban_body_code;
         $urban_bodys = UrbanBody::where('sub_district_code', $urban_body_code)->select('urban_body_code', 'urban_body_name')->get();
@@ -515,10 +517,10 @@ class WorkflowControllerWcdEdit extends Controller
       $query = DB::table($schema . '.beneficiaries')
           ->where('created_by_dist_code', $district_code)
           ->where('id',$request->id);
-      if (AuthChecker::VerifierChecker()) {
+      if (AuthChecker::VerifierPermission()) {
         $query =$query->where('next_level_role_id_edit',999);
       }
-      if (AuthChecker::ApproverChecker()) {
+      if (AuthChecker::ApproverPermission()) {
         $mapArr = MapLavel::where('scheme_id', $duty_obj->scheme_id)->where('role_name', $designation_id)->where('stack_level', $duty_obj->mapping_level)->get(['id', 'role_name', 'scheme_id', 'parent_id', 'is_final', 'stack_level', 'is_first', 'role_id'])->first();
         $next_level_role_id_cond=$mapArr->id;
         
@@ -633,10 +635,10 @@ class WorkflowControllerWcdEdit extends Controller
       $query = DB::table($schema . '.beneficiaries')
           ->where('created_by_dist_code', $district_code)
           ->where('id',$request->id);
-      if (AuthChecker::VerifierChecker()) {
+      if (AuthChecker::VerifierPermission()) {
         $query =$query->where('next_level_role_id_edit',999);
       }
-      if (AuthChecker::ApproverChecker()) {
+      if (AuthChecker::ApproverPermission()) {
         $query =$query->where('next_level_role_id_edit','>',0);
       }
       $row =$query->first();
@@ -739,7 +741,7 @@ class WorkflowControllerWcdEdit extends Controller
       if(empty($duty_obj)){
         return redirect("/")->with('danger', 'Not Allowed');
       }
-      if(!AuthChecker::ApproverChecker()){
+      if(!AuthChecker::ApproverPermission()){
         return redirect("/")->with('danger', 'Not Allowed');
       }
       $district_code=$duty_obj->district_code;

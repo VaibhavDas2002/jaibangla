@@ -61,6 +61,7 @@ class OAPFarmerformController extends Controller
 
   public function __construct()
   {
+    return redirect("/")->with('danger', 'User Disabled');
     $this->middleware('auth');
     date_default_timezone_set('Asia/Kolkata');
     $this->scheme_id = 13;
@@ -83,7 +84,7 @@ class OAPFarmerformController extends Controller
     // $base_url=url('/');
     // echo $base_url.'/images/';exit;        
 
-    $roleArray = Configduty::where('user_id', $user_id)->where('is_active', 1)->get()->toArray();;
+    $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();;
     foreach ($roleArray as $roleObj) {
       if ($roleObj['scheme_id'] == $scheme_id) {
         $is_active = 1;
@@ -2325,8 +2326,8 @@ if(!empty($request->aadhar_no)){
         $is_active = 1;
         $mappingLevel = $roleObj['mapping_level'];
         $district_code = $roleObj['district_code'];
-        $scheme_id = $scheme_id;
-        $is_first = $roleObj['is_first'];
+        // $scheme_id = $scheme_id;
+        $is_first = $request->session()->get('is_first');
         $is_urban = $roleObj['is_urban'];
         $role_id = $roleObj['id'];
         if ($roleObj['is_urban'] == 1) {
@@ -2845,7 +2846,7 @@ if(!empty($request->aadhar_no)){
           } else {
             $duty_level = "Block";
             $appPrefix = "App";
-            $modelName = $appPrefix . "\\" . $ben_table;
+            $modelName = 'App\BenEntry';
             $rows = $data = $modelName::where('next_level_role_id', $role_id)->where('created_by_local_body_code', $taluka_code)->orderBy('id', 'desc')->paginate(10);
 
             return view('processApplicationOapFarmerEdit/linelisting_approved', ['datas' => $rows, 'dist_code' => $district_code]);
@@ -2984,12 +2985,13 @@ if(!empty($request->aadhar_no)){
       $comments = $request->comments;
       $user_id = AuthChecker::getUserId();
       $duty = Configduty::where('user_id', '=', $user_id)->where('scheme_id', $scheme_id)->first();
-      $role = MapLavel::where('scheme_id', $scheme_id)->where('role_name', Auth::user()->designation_id)->where('stack_level', $duty->mapping_level)->first();
+      // $role = MapLavel::where('scheme_id', $scheme_id)->where('role_name', Auth::user()->designation_id)->where('stack_level', $duty->mapping_level)->first();
+      $next_level_role_id = Workflow::getParentId($scheme_id, Auth::user()->designation_id);
 
       if ($_POST['submit'] == 'Verify') {
-        $input = ['next_level_role_id_edit' => $role->parent_id, 'comments' => $comments];
+        $input = ['next_level_role_id_edit' => $next_level_role_id, 'comments' => $comments];
         $appPrefix = "App";
-        $modelName = $appPrefix . "\\" . $ben_table;
+        $modelName = 'App\BenEntry';
         $condition = array();
         $condition['id'] = $id;
         $condition['scheme_id'] = $scheme_id;
@@ -3054,7 +3056,6 @@ if(!empty($request->aadhar_no)){
         $is_active = 1;
         $mappingLevel = $roleObj['mapping_level'];
         $district_code = $roleObj['district_code'];
-        $scheme_id = $scheme_id;
         $is_first = $roleObj['is_first'];
         $is_urban = $roleObj['is_urban'];
         $role_id = $roleObj['id'];
@@ -3148,7 +3149,7 @@ if(!empty($request->aadhar_no)){
       }
     }
     $is_active = 0;
-    $roleArray = Configduty::where('user_id', $user_id)->where('is_active', 1)->get()->toArray();;
+    $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();;
     foreach ($roleArray as $roleObj) {
       if ($roleObj['scheme_id'] == $scheme_id) {
         $is_active = 1;
@@ -3173,7 +3174,7 @@ if(!empty($request->aadhar_no)){
       $comments = $request->comments;
 
       $user_id = AuthChecker::getUserId();
-      $duty = Configduty::where('user_id', '=', $user_id)->where('scheme_id', $scheme_id)->first();
+      $duty = Configduty::where('user_id', '=', Auth::user()->id)->where('scheme_id', $scheme_id)->first();
       $role = MapLavel::where('scheme_id', $scheme_id)->where('role_name', Auth::user()->designation_id)->where('stack_level', $duty->mapping_level)->first();
       $inputs = request()->input('approvalcheck');
       $in_arr = array();

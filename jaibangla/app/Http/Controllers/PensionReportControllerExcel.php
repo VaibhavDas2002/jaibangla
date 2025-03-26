@@ -1,7 +1,6 @@
 <?php
 
 namespace App\Http\Controllers;
-
 use Illuminate\Http\Request;
 use App\Configduty;
 use App\District;
@@ -15,6 +14,9 @@ use App\GP;
 use App\RejectRevertReason;
 use Carbon\Carbon;
 use App\DsPhase;
+use App\Workflow;
+use App\Helpers\AuthChecker;
+use App\SchemeStepRank;
 class PensionReportControllerExcel extends Controller
 {
     public function __construct()
@@ -24,7 +26,10 @@ class PensionReportControllerExcel extends Controller
     }
     public function generate_excel(Request $request)
     {
-        //  dd($request->all());
+        ini_set('memory_limit', -1);
+        ini_set('max_execution_time', 0);
+        try{
+       
         if (empty($request->scheme_id)) {
             return redirect('/')->with('error', 'Scheme Id Required');
         }
@@ -34,7 +39,6 @@ class PensionReportControllerExcel extends Controller
         $rural_urban=$request->rural_urban;
         $urban_body_code_app=$request->urban_block_code_app;
         
-
         if($request->municipality_code=='undefined')
         {
             $municipality='';
@@ -42,35 +46,43 @@ class PensionReportControllerExcel extends Controller
         else{
             $municipality=$request->municipality_code;
         }
-        $scheme_id = $request->scheme_id;
-        $is_active = 0;
-        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray()        // dd($roleArray);
-        foreach ($roleArray as $roleObj) {
-            if ($roleObj['scheme_id'] == $scheme_id) {
-                $is_active = 1;
-                $mapping_level = $roleObj['mapping_level'];
-                $district_code = $roleObj['district_code'];
-                if ($roleObj['is_urban'] == 1) {
-                    $urban_body_code = $roleObj['urban_body_code'];
-                } else {
-                    $urban_body_code = $roleObj['taluka_code'];
-                }
-                break;
-            }
+        if($request->from_date=='undefined')
+        {
+            $from_date='';
         }
-        if ($is_active == 0 && $scheme_id !=5) {
+        else{
+            $from_date=$request->from_date;
+        }
+        if($request->to_date=='undefined')
+        {
+            $to_date='';
+        }
+        else{
+            $to_date=$request->to_date;
+        }
+        $user_id = AuthChecker::getUserId();
+        $scheme_id = $request->scheme_id;
+
+        $duty_obj = Configduty::where('user_id', $user_id)->where('scheme_id', $scheme_id)->where('is_active',1)->first();
+        $distCode = $duty_obj->district_code;
+        $blockCode = $duty_obj->is_urban == 1 ? $duty_obj->urban_body_code : $duty_obj->taluka_code;
+        if(empty($duty_obj)){
             return redirect('/')->with('error', 'User not Authorized for this scheme');
         }
+       
+        $is_urban = $duty_obj->is_urban;
+        $mapping_level = $duty_obj->mapping_level;
         $condition = array();
+        $condition["scheme_id"] = $scheme_id;
         $designation_id = Auth::user()->designation_id;
-        if ($designation_id == 'Approver') {
+        if ($mapping_level=='District') {
             //dd(123);
-            $condition["created_by_dist_code"] = $district_code;
+            $condition["created_by_dist_code"] = $distCode;
         }
-        if ($designation_id == 'Verifier' || $designation_id == 'Operator') {
+        if ($mapping_level=='Block' || $mapping_level=='Subdiv') {
             //dd(333);
-            $condition["created_by_dist_code"] = $district_code;
-            $condition["created_by_local_body_code"] = $urban_body_code;
+            $condition["created_by_dist_code"] = $distCode;
+            $condition["created_by_local_body_code"] = $blockCode;
         }
 //////////////////////////Debjit/////////////////////////////////////////
 
@@ -122,10 +134,10 @@ if (!empty($request->gp_ward_code_app)) {
         if ($request->has('type')) {
             $report_type = $request->get('type');
             if ($report_type == 'F') {
-                $report_type_name = 'Fresh Beneficiary List';
+                $report_type_name = 'Yet to be Verified and Yet to be Approved Beneficiary List';
                 // $condition['next_level_role_id']='is not null';
             } else if ($report_type == 'V') {
-                $report_type_name = 'Verified Beneficiary List';
+                $report_type_name = 'Verified but Yet to be Approved Beneficiary List';
                 // $condition['next_level_role_id']='is not null';
             } else if ($report_type == 'A') {
                 $report_type_name = 'Approved Beneficiary List';
@@ -168,32 +180,29 @@ if (!empty($request->gp_ward_code_app)) {
                 $table = 'pension';
             }
             //dd($report_type);
-            $query = DB::connection('pgsql_mis')->table('' . $table . '.beneficiary')->where($condition);
+            $query = DB::connection('pgsql_mis')->table('pension.beneficiaries')->where($condition);
             //Report Type Filter
             // dd($query);
-            if($scheme_id==10){
-                if(!empty($request->phase))
-                {
-                    $query = $query->whereRaw('(ds_phase='. $request->phase. ' or (mark_ds_phase='. $request->phase. ' and sm_ds_mark=1))');
-                }
-                if(!empty($request->sm_ds_flag))
-                {
-                        $query = $query->where('sm_flag', 1);
-                }
-            }else{
-                if (!empty($request->phase)) {
-                         $query = $query->where('ds_phase', $request->phase);
-                }
+            if (!empty($request->phase) && $request->phase_code>0) {
+                $query = $query->whereRaw(' (ds_phase=' . $request->phase . ' or  cur_mark_ds_phase=' . $request->phase_code . ') ');
             }
             if(!empty($request->caste)){
                 $query = $query->where('caste', $request->caste);
             }
+            if ($request->phase_code==-1) {
+                $query = $query->whereRaw(' ds_phase IS NULL and sm_ds_mark IS NULL');
+            }
+            if (!empty($from_date)) {
+                $query = $query->whereraw(" date(created_at)>='$from_date'");
+            }
+            if (!empty($to_date)) {
+                $query = $query->whereraw(" date(created_at)<='$to_date'");
+            }
 
             if ($report_type == 'F') { // Fresh List
-                $query = $query->whereNull('next_level_role_id');
-                if( $scheme_id==11){
-                    $query =$query->whereNull('process_nsap_flag');
-                }
+                $next_level_role_id_operator=SchemeStepRank::getSchemeParentId($scheme_id, 1);
+                $query = $query->where('next_level_role_id',$next_level_role_id_operator);
+                
             }
             if ($report_type == 'T') {
                 $query = $query->where('is_rejected',1);
@@ -208,7 +217,20 @@ if (!empty($request->gp_ward_code_app)) {
             if ($report_type == 'NSAP') {
                 $query = $query->where('process_nsap_flag', 1);
             }
-            $data = $query->orderBy('ben_fname')->orderBy('gp_ward_name')->get();
+           // dd($query->tosql());
+            $data = $query->orderBy('ben_fname')->orderBy('gp_ward_name')->get(
+                [
+                    'id','created_by_dist_code','created_by_local_body_code','scheme_id',
+                    'block_ulb_code','gp_ward_code','gp_ward_name','block_ulb_name',
+                    'next_level_role_id','is_verified','is_approved','is_rejected',
+                    'process_nsap_flag',
+                    'ben_fname','ben_mname','ben_lname','mobile_no','dob','caste','aadhar_no','bank_ifsc','bank_code',
+                    'father_fname','father_mname','father_lname',
+                    'first_payment_pushed_at','first_payment_success_at','sm_ds_mark','mark_ds_phase','village_town_city',
+                    'house_premise_no','post_office','pincode','ds_phase','cur_mark_ds_phase'
+                ]
+            );
+            //($data);
              
             $filename = $scheme_name . "-" . $report_type_name . "-" . date('d/m/Y') . '-' . time() . ".xls";
             header("Content-Type: application/xls");
@@ -222,7 +244,7 @@ if (!empty($request->gp_ward_code_app)) {
             else if($report_type == 'A' && ($scheme_id=='1' || $scheme_id=='3'))
             {
                
-     echo '<tr><th>Applicant Id</th><th>Applicant Name</th><th>Applicant Mobile No.</th><th>Applicant DOB.</th><th>Age</th><th>Caste</th><th>Aadhaar NO.</th><th>Bank IFSC</th><th>Bank Account No.</th><th>Father\'s Name</th><th>Block/Municipality</th><th>GP/WARD</th><th>Village/Town/City</th><th>House Premise No</th><th>Post Office</th><th>PIN Code</th>
+     echo '<tr><th>Beneficiary Id</th><th>Applicant Name</th><th>Applicant Mobile No.</th><th>Applicant DOB.</th><th>Age</th><th>Caste</th><th>Aadhaar NO.</th><th>Bank IFSC</th><th>Bank Account No.</th><th>Father\'s Name</th><th>Block/Municipality</th><th>GP/WARD</th><th>Village/Town/City</th><th>House Premise No</th><th>Post Office</th><th>PIN Code</th>
      <th>First Payment Initiated Date</th><th>First Payment Success Date</th>
      <th>Duare Sarkar Phase</th></tr>';
 
@@ -230,13 +252,13 @@ if (!empty($request->gp_ward_code_app)) {
                     
             }
             else{
-            echo '<tr><th>Applicant Id</th><th>Applicant Name</th><th>Applicant Mobile No.</th><th>Applicant DOB.</th><th>Age</th><th>Caste</th><th>Aadhaar NO.</th><th>Bank IFSC</th><th>Bank Account No.</th><th>Father\'s Name</th><th>Block/Municipality</th><th>GP/WARD</th><th>Village/Town/City</th><th>House Premise No</th><th>Post Office</th><th>PIN Code</th><th>Duare Sarkar Phase</th></tr>';
+            echo '<tr><th>Beneficiary Id</th><th>Applicant Name</th><th>Applicant Mobile No.</th><th>Applicant DOB.</th><th>Age</th><th>Caste</th><th>Aadhaar NO.</th><th>Bank IFSC</th><th>Bank Account No.</th><th>Father\'s Name</th><th>Block/Municipality</th><th>GP/WARD</th><th>Village/Town/City</th><th>House Premise No</th><th>Post Office</th><th>PIN Code</th><th>Duare Sarkar Phase</th></tr>';
             }
             //  dd($data);
             if (count($data) > 0) {
                 foreach ($data as $row) {
-                    $app_id = $row->created_by_dist_code . substr('0' . $row->scheme_id, -$scheme_length) . substr('0000000' . $row->id, -$id_length);
-                    $app_id = "'$app_id'";
+                   // $app_id = $row->created_by_dist_code . substr('0' . $row->scheme_id, -$scheme_length) . substr('0000000' . $row->id, -$id_length);
+                    $app_id = "'$row->id'";
                     if (!empty($row->ben_fname)) {
                         $ben_fname = trim($row->ben_fname);
                     } else {
@@ -301,7 +323,7 @@ if (!empty($request->gp_ward_code_app)) {
                     if($row->scheme_id==10) {
                         if($row->sm_ds_mark==1)
                         {
-                            $phase_des =$this->getPhaseDes($row->mark_ds_phase);
+                            $phase_des =$this->getPhaseDes($row->cur_mark_ds_phase);
                             $phase_des = $phase_des.' Marked';
 
                         }
@@ -340,6 +362,9 @@ if (!empty($request->gp_ward_code_app)) {
                         }else {
                             $caste = $row->caste;
                         }
+                    }
+                    else{
+                        $caste ='';
                     }
                     if (!empty($row->aadhar_no)) {
                         $ben_aadhar_no = '********'.substr(trim($row->aadhar_no),0,3);
@@ -388,7 +413,7 @@ if (!empty($request->gp_ward_code_app)) {
                         } 
                     }
                       if ($report_type == 'C') {
-                            if($scheme_id==11){
+                            
                                 if(!is_null($row->next_level_role_id) && $row->next_level_role_id==0){
                                     if($data->dup_bank==1){
                                         $status = 'Approved but due to Duplicate Bank A/c, payment has been stopped';
@@ -399,33 +424,14 @@ if (!empty($request->gp_ward_code_app)) {
                                 else  if($row->is_verified==1 and $row->is_approved==0 and $row->is_rejected==0){
                                     $status = 'Verified';
                                 }
-                                else if(is_null($row->next_level_role_id)){
-                                    if($data->process_nsap_flag==1){
-                                     $status = 'NSAP Marked';  
-                                    }
-                                    else
-                                    $status = 'Fresh';
-                                }
+                             
                                 else if ($row->is_rejected==1) {
                                     $status =  'Rejected';
                                 }  
-                            }
-                            else{
-                                        if (!isset($row->next_level_role_id)) {
-                                            $status =  'Fresh';
-                                        } else if ($row->next_level_role_id == 0) {
-                                            if($data->dup_bank==1){
-                                                $status = 'Approved but due to Duplicate Bank A/c, payment has been stopped';
-                                            }
-                                            else
-                                            $status = 'Approved';
-                                           
-                                        } else if ($row->is_rejected==1) {
-                                            $status = 'Rejected';
-                                        }  else if ($row->is_verified==1 and $row->is_approved==0 and $row->is_rejected==0) {
-                                            $status = 'Verified';
-                                        }
-                           }
+                                else{
+                                    $status = 'Fresh';
+                                }
+                           
                         }
                     if($report_type == 'NSAP' || $report_type == 'C'){
                         echo "<tr><td>" . $app_id . "</td><td>" . $ben_fullname . "</td><td>" . $ben_mobile_no . "</td><td>" . $ben_dob . "</td><td>" . $ben_age . "</td><td>" . $caste . "</td><td>" . $ben_aadhar_no . "</td><td>" . $f_bank_ifsc . "</td><td>" . $f_bank_code . "</td><td>" . $father_fullname . "</td><td>" . trim($row->block_ulb_name) . "</td><td>" . trim($row->gp_ward_name) . "</td><td>" . trim($row->village_town_city) . "</td><td>" . trim($row->house_premise_no) . "</td><td>" . trim($row->post_office) . "</td><td>" . trim($row->pincode) . "</td><td>" . $status . "</td></tr>";
@@ -448,7 +454,11 @@ if (!empty($request->gp_ward_code_app)) {
         } else {
             return redirect('/')->with('error', 'Scheme Id Not Found');
         }
+    } catch (\Exception $e) {
+        dd($e);
+    
     }
+}
     function ageCalculate($dob)
     {
         $diff = 0;
@@ -469,7 +479,8 @@ if (!empty($request->gp_ward_code_app)) {
 
         $scheme_id = $request->scheme_id;
         $is_active = 0;
-        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray()        foreach ($roleArray as $roleObj) {
+        $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray() ;       
+        foreach ($roleArray as $roleObj) {
             if ($roleObj['scheme_id'] == $scheme_id) {
                 $is_active = 1;
                 $mapping_level = $roleObj['mapping_level'];

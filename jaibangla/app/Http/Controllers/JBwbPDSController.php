@@ -17,7 +17,7 @@ class JBwbPDSController extends Controller
 {
     public function schemeSelection(Request $request)
     {
-        $auth = AuthChecker::VerifierChecker();
+        $auth = AuthChecker::VerifierPermission();
         if ($auth) {
             $userId = AuthChecker::getUserId();
             $designation_id = AuthChecker::getDesignationId();
@@ -109,7 +109,7 @@ class JBwbPDSController extends Controller
             // dd($process_type);
             $query = DB::table($schema . '.beneficiaries')
                 ->where('created_by_dist_code', $district_code)->where('scheme_id', $scheme_id)->whereIn('next_level_role_id', array(0, -57))->whereRaw(" (freezing_modify_aadhar=0 OR freezing_modify_aadhar IS NULL) ");
-            if (AuthChecker::VerifierChecker()) {
+            if (AuthChecker::VerifierPermission()) {
                 $query = $query->where('created_by_local_body_code', $created_by_local_body_code);
                 if (!empty($application_type)) {
                     if ($application_type == 1)
@@ -140,7 +140,7 @@ class JBwbPDSController extends Controller
             if (!empty($request->gp_ward_code)) {
                 $query = $query->where('gp_ward_code', $request->gp_ward_code);
             }
-            if (AuthChecker::ApproverChecker()) {
+            if (AuthChecker::ApproverPermission()) {
                 // dd($process_type);
                 if ($application_type != '') {
                     if ($application_type == 1)
@@ -276,7 +276,7 @@ class JBwbPDSController extends Controller
                     return $app_id;
                 })->addColumn('view', function ($data) use ($scheme_id, $designation_id, $type) {
 
-                    if (AuthChecker::VerifierChecker()) {
+                    if (AuthChecker::VerifierPermission()) {
                         if ($data->process_acc_validated_aadhar == -57) {
                             $action = 'Rejected';
                         } else if ($data->acc_validated_aadhar == -2 && $data->next_level_role_id_aadhar_validation == 1) {
@@ -291,7 +291,7 @@ class JBwbPDSController extends Controller
                             $action = '';
                         }
                     }
-                    if (AuthChecker::ApproverChecker()) {
+                    if (AuthChecker::ApproverPermission()) {
                         if ($data->next_level_role_id_aadhar_validation == -57) {
                             $action = 'Rejected';
                         } else if ($data->next_level_role_id_aadhar_validation == 0) {
@@ -308,7 +308,7 @@ class JBwbPDSController extends Controller
                     }
                     return $action;
                 })->addColumn('check', function ($data) use ($designation_id) {
-                    if (AuthChecker::ApproverChecker()) {
+                    if (AuthChecker::ApproverPermission()) {
                         if ($data->next_level_role_id_aadhar_validation == 1) {
                             return '<input type="checkbox" name="approvalcheck[]" onClick="controlCheckBox()" value="' . $data->id . '">';
                         } else

@@ -352,7 +352,7 @@
                         },
                         error: function (ex) {
                             alert('Session time out..Please login again');
-                            window.location.href = base_url;
+                            //window.location.href = base_url;
                         }
                     },
                     columns: [

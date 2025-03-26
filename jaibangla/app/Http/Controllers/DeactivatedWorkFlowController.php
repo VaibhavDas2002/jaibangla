@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\AcceptRejectInfo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\User;
 use App\BeneficiaryPensions;
+use App\BenEntry;
 use App\District;
 use App\Configduty;
 use App\Helpers\AuthChecker;
@@ -50,7 +52,7 @@ class DeactivatedWorkFlowController extends Controller
   */
   public function indexApprove(Request $request)
   {
-    if (AuthChecker::ApproverChecker()) {
+    if (AuthChecker::ApproverPermission()) {
       $is_active = 1;
     } else {
       $is_active = 0;
@@ -61,7 +63,7 @@ class DeactivatedWorkFlowController extends Controller
     $user_id = AuthChecker::getUserId();
     $mapObj = DB::table('public.duty_assignement')->where('user_id', $user_id)->where('is_active', 1)->first();
     $scheme = DB::select(DB::raw("select id,scheme_name from m_scheme where  id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . " and scheme_id in(2,10,11) )"));
-    if (AuthChecker::ApproverChecker()) {
+    if (AuthChecker::ApproverPermission()) {
       if (count($scheme) > 0) {
         return view('update-ben-details/approve_index', [
           'schemes' => $scheme,
@@ -109,11 +111,11 @@ class DeactivatedWorkFlowController extends Controller
         );
       }
       $user_id = AuthChecker::getUserId();
-      $is_approver = AuthChecker::ApproverChecker();
+      $is_approver = AuthChecker::ApproverPermission();
 
       $errormsg = Config::get('constants.errormsg');
       $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
-            $district_code = NULL;
+      $district_code = NULL;
       $urban_body_code = NULL;
       $mapping_level = NULL;
       $role_id = NULL;
@@ -132,7 +134,7 @@ class DeactivatedWorkFlowController extends Controller
           break;
         }
       }
-      if (AuthChecker::ApproverChecker()) {
+      if (AuthChecker::ApproverPermission()) {
         $is_active = 1;
       } else {
         $is_active = 0;
@@ -251,7 +253,7 @@ class DeactivatedWorkFlowController extends Controller
       $id = $request->benid;
       $scheme_id = $request->scheme_id;
       $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
-            $district_code = NULL;
+      $district_code = NULL;
       $urban_body_code = NULL;
       $mapping_level = NULL;
       $role_id = NULL;
@@ -270,7 +272,7 @@ class DeactivatedWorkFlowController extends Controller
           break;
         }
       }
-      if (AuthChecker::ApproverChecker()) {
+      if (AuthChecker::ApproverPermission()) {
         $is_active = 1;
       } else {
         $is_active = 0;
@@ -364,231 +366,441 @@ class DeactivatedWorkFlowController extends Controller
   /*
     Final Approve section at approver end  
   */
+
   public function approveStopPaymentData(Request $request)
   {
-    $response = [];
-    $statusCode = 200;
-    if (!$request->ajax()) {
-      $statusCode = 400;
-      $response = array('error' => 'Error occured in form submit.');
-      return response()->json($response, $statusCode);
-    }
-    try {
-      $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();
-            $user_id = AuthChecker::getUserId();
-      $designation_id = Auth::user()->designation_id;
-      $errormsg = Config::get('constants.errormsg');
-      $duty = Configduty::where('user_id', '=', $user_id)->where('is_active', 1)->first();
-      if ($duty->isEmpty) {
-        return $response = array(
-          'status' => 0,
-          'msg' => array("Unauthorized."),
-          'type' => 'red',
-          'icon' => 'fa fa-warning',
-          'title' => 'Warning!!'
-        );
+      $response = [];
+      $statusCode = 200;
+  
+      if (!$request->ajax()) {
+          $statusCode = 400;
+          $response = ['error' => 'Error occurred in form submit.'];
+          return response()->json($response, $statusCode);
       }
-
-      if (AuthChecker::ApproverChecker()) {
-        $is_bulk = $request->is_bulk;
-        if ($is_bulk == 1) {
-          $fg_is_bulk = 1;
-        } else {
-          $fg_is_bulk = 0;
-        }
-      } else {
-        return $response = array(
-          'status' => 0,
-          'msg' => array("Unauthorized."),
-          'type' => 'red',
-          'icon' => 'fa fa-warning',
-          'title' => 'Warning!!'
-        );
-      }
-      $remarks = trim($request->accept_reject_comments);
-      //   dd($remarks);
-      $operation_type = $request->opreation_type;
-      $bulk_id = $request->applicantId;
-      $single_id = $request->single_app_id;
-
-
-      $benIdArr = array();
-      $schemeIdArr = array();
-      $updateTypeArr = array();
-      if ($fg_is_bulk == 1) {
-        $bulk_id_arr = explode(',', $bulk_id);
-
-        foreach ($bulk_id_arr as $key => $value) {
-          $tempArr = explode('_', $value);
-          array_push($benIdArr, $tempArr[0]);
-
-          array_push($schemeIdArr, $tempArr[1]);
-          array_push($updateTypeArr, $tempArr[2]);
-        }
-      } else {
-        $tempArr = explode('_', $single_id);
-        array_push($benIdArr, $tempArr[0]);
-        array_push($schemeIdArr, $tempArr[1]);
-
-        array_push($updateTypeArr, $tempArr[2]);
-      }
-
-      $benIdArr = array_unique($benIdArr);
-      $schemeIdArr = array_unique($schemeIdArr);
-      $updateTypeArr = array_unique($updateTypeArr);
-
-      //   if (count($schemeIdArr) != 1) {
-      //     return $response = array(
-      //       'status' => 0, 'msg' => array("Something went wrong in the scheme."),
-      //       'type' => 'red', 'icon' => 'fa fa-warning', 'title' => 'Warning!!'
-      //     );
-      //   }
-      $scheme_id = implode("", $schemeIdArr);
-      $update_type = implode("", $updateTypeArr); // 1 => pending
-      $table_name = 'pension.beneficiaries';
-      $input_json = [];
-      $input_json['stop_payment_reason'] = $remarks;
-      $input_json[$table_name . '.next_level_role_id'] = '-99';
-      $input_json['designation'] = $designation_id;
-
-
-      $is_active = 0;
-      $district_code = NULL;
-      foreach ($roleArray as $roleObj) {
-        if ($roleObj['scheme_id'] == $scheme_id) {
-          $is_active = 1;
-          $district_code = $roleObj['district_code'];
-          break;
-        }
-      }
-      if ($is_active == 0 || (empty($district_code))) {
-        // return redirect("/")->with('error', 'User Disabled. ');
-        return $response = array(
-          'status' => 0,
-          'msg' => array("User Disabled."),
-          'type' => 'red',
-          'icon' => 'fa fa-warning',
-          'title' => 'Warning!!'
-        );
-      }
-      if ($operation_type == 'A') {
-        $update_code = 30;
-      } else if ($operation_type == 'B') {
-        $update_code = 300;
-      }
-      $updateLogTable = array();
-      if (count($benIdArr) > 0) {
-        foreach ($benIdArr as $item) {
-          $insertData = array(
-            'original_application_id' => $item,
-            'dist_code' => $district_code,
-            'scheme_id' => $scheme_id,
-            'user_id' => $user_id,
-            'created_at' => date('Y-m-d H:i:s'),
-            'remarks' => $remarks,
-            'update_code' => $update_code,
-            'new_data' => json_encode($input_json),
-            'action_by' => $user_id,
-            'action_ip_address' => $request->ip(),
-            'action_type' => class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod()
-
-          );
-          array_push($updateLogTable, $insertData);
-        }
-      }
-
-      // Update Beneficiary Details
-      $msg = 'De-activated Successfully';
-      if ($operation_type == 'A') {
-        if ($update_type == 1) {
-          $updateBenDetailsData = [
-            'next_level_role_id' => -99,
-            'next_level_stop_payment' => 2,
-            'is_approved' => 2,
-            'is_verified' => 2,
-            'is_rejected' => 1,
-            'action_by' => $user_id,
-            'action_ip_address' => $request->ip(),
-            'action_type' => class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod()
-          ];
-          $msg = 'Beneficiary De-activated Successfully';
-        }
-      }
-      if ($operation_type == 'B') {
-        $updateBenDetailsData = [
-          'next_level_stop_payment' => NULL,
-          'action_by' => $user_id,
-          'action_ip_address' => $request->ip(),
-          'action_type' => class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod()
-        ];
-        $msg = 'Beneficiary De-activated Request Successfully Reverted';
-      }
-      DB::beginTransaction();
-      DB::connection('pgsql_encwrite')->beginTransaction();
-      DB::connection('pgsql_paywrite')->beginTransaction();
+  
       try {
-
-        if ($update_type == 1) {
-          $lotTableInsert = UpdateBenDetails::insert($updateLogTable);
-          if ($lotTableInsert == 1) {
-            DB::table($table_name)->where('scheme_id', $scheme_id)->whereIn('id', $benIdArr)->where('next_level_stop_payment', 1)->where('created_by_dist_code', $district_code)->update($updateBenDetailsData);
-            if ($operation_type == 'A') {
-              $ben_details = DB::connection('pgsql_paywrite')->table('payment.ben_payment_details')->whereIN('ben_id', $benIdArr)->where('scheme_id', $scheme_id)->get();
-              $benIdArr = implode(',', $benIdArr);
-              // dd($benIdArr);
-              if ($ben_details) {
-                $final_update = DB::connection('pgsql_paywrite')->select("Select payment.reject_update_bank(in_ben_id => ARRAY[" . $benIdArr . "], in_scheme_id => " . $scheme_id . ", in_rejected =>12)");
-              }
-            }
-            DB::commit();
-            DB::connection('pgsql_encwrite')->commit();
-            DB::connection('pgsql_paywrite')->commit();
-            $response = array(
-              'status' => 1,
-              'msg' => $msg,
-              'type' => 'green',
-              'icon' => 'fa fa-check',
-              'title' => 'Success'
-            );
-          } else {
-            DB::rollback();
-            DB::connection('pgsql_encwrite')->rollback();
-            DB::connection('pgsql_paywrite')->rollback();
-            $response = array(
-              'status' => 0,
-              'msg' => array("" . "Somethimg went wrong.."),
-              'type' => 'green',
-              'icon' => 'fa fa-check',
-              'title' => 'Success'
-            );
+          $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get();
+          $user_id = Auth::user()->id;
+          $designation_id_old = Auth::user()->designation_id;
+          $errormsg = Config::get('constants.errormsg');
+  
+          $duty = Configduty::where('user_id', '=', $user_id)->where('is_active', 1)->first();
+          if (empty($duty)) {
+              return response()->json([
+                  'status' => 0,
+                  'msg' => ['Unauthorized.'],
+                  'type' => 'red',
+                  'icon' => 'fa fa-warning',
+                  'title' => 'Warning!!'
+              ]);
           }
-        }
+  
+          $userId = AuthChecker::getUserId();
+          if (!AuthChecker::ApproverPermission()) {
+              return response()->json([
+                  'status' => 0,
+                  'msg' => ['Unauthorized.'],
+                  'type' => 'red',
+                  'icon' => 'fa fa-warning',
+                  'title' => 'Warning!!'
+              ]);
+          }
+  
+          $is_bulk = $request->is_bulk;
+          $fg_is_bulk = ($is_bulk == 1) ? 1 : 0;
+  
+          $remarks = trim($request->accept_reject_comments);
+          $operation_type = $request->opreation_type;
+          $bulk_id = $request->applicantId;
+          $single_id = $request->single_app_id;
+  
+          $benIdArr = [];
+          $schemeIdArr = [];
+          $updateTypeArr = [];
+  
+          if ($fg_is_bulk == 1) {
+              $bulk_id_arr = explode(',', $bulk_id);
+              foreach ($bulk_id_arr as $value) {
+                  $tempArr = explode('_', $value);
+                  $benIdArr[] = $tempArr[0];
+                  $schemeIdArr[] = $tempArr[1];
+                  $updateTypeArr[] = $tempArr[2];
+              }
+          } else {
+              $tempArr = explode('_', $single_id);
+              $benIdArr[] = $tempArr[0];
+              $schemeIdArr[] = $tempArr[1];
+              $updateTypeArr[] = $tempArr[2];
+          }
+  
+          $benIdArr = array_unique($benIdArr);
+          $schemeIdArr = array_unique($schemeIdArr);
+          $updateTypeArr = array_unique($updateTypeArr);
+  
+          $scheme_id = implode("", $schemeIdArr);
+          $update_type = implode("", $updateTypeArr);
+          $table_name = 'pension.beneficiaries';
+  
+          $input_json = [
+              'stop_payment_reason' => $remarks,
+              $table_name . '.next_level_role_id' => '-99',
+              'designation' => $designation_id_old
+          ];
+  
+          $is_active = 0;
+          $district_code = null;
+  
+          foreach ($roleArray as $roleObj) {
+              if ($roleObj['scheme_id'] == $scheme_id) {
+                  $is_active = 1;
+                  $district_code = $roleObj['district_code'];
+                  break;
+              }
+          }
+  
+          if ($is_active == 0 || empty($district_code)) {
+              return response()->json([
+                  'status' => 0,
+                  'msg' => ['User Disabled.'],
+                  'type' => 'red',
+                  'icon' => 'fa fa-warning',
+                  'title' => 'Warning!!'
+              ]);
+          }
+  
+          $update_code = ($operation_type == 'A') ? 30 : (($operation_type == 'B') ? 300 : null);
+  
+          $updateLogTable = [];
+  
+          foreach ($benIdArr as $item) {
+              $updateLogTable[] = [
+                  'application_id' => $item,
+                  'created_by_dist_code' => $district_code,
+                  'scheme_id' => $scheme_id,
+                  'user_id' => $userId,
+                  'created_at' =>date('Y-m-d H:i:s'),
+                  'remarks' => $remarks,
+                  'op_type' => $update_code,
+                  'new_data' => json_encode($input_json),
+                  'module_name' => class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod()
+              ];
+          }
+  
+          $msg = 'De-activated Successfully';
+          $updateBenDetailsData = [];
+  
+          if ($operation_type == 'A') {
+              if ($update_type == 1) {
+                  $updateBenDetailsData = [
+                      'next_level_role_id' => -99,
+                      'next_level_stop_payment' => 2,
+                      'is_approved' => 2,
+                      'is_verified' => 2,
+                      'is_rejected' => 1,
+                      'is_clean' => 10 , 
+                  ];
+                  $msg = 'Beneficiary De-activated Successfully';
+              }
+          } elseif ($operation_type == 'B') {
+              $updateBenDetailsData = ['next_level_stop_payment' => null];
+              $msg = 'Beneficiary De-activation Request Successfully Reverted';
+          }
+  
+          DB::beginTransaction();
+          DB::connection('pgsql_encwrite')->beginTransaction();
+          DB::connection('pgsql_paywrite')->beginTransaction();
+  
+          try {
+              if ($update_type == 1) {
+                  $lotTableInsert = AcceptRejectInfo::insert($updateLogTable);
+  
+                  if ($lotTableInsert) {
+                   
+                      DB::table($table_name)
+                          ->where('scheme_id', $scheme_id)
+                          ->whereIn('id', $benIdArr)
+                          ->where('next_level_stop_payment', 1)
+                          ->where('created_by_dist_code', $district_code)
+                          ->update($updateBenDetailsData);
+                    
+  
+                      if ($operation_type == 'A') {
+                          $ben_details = DB::connection('pgsql_paywrite')
+                              ->table('payment.ben_payment_details')
+                              ->whereIn('ben_id', $benIdArr)
+                              ->where('scheme_id', $scheme_id)
+                              ->get();
+  
+                          if ($ben_details) {
+                              DB::connection('pgsql_paywrite')
+                                  ->select("SELECT payment.reject_update_bank(in_ben_id => ARRAY[" . implode(',', $benIdArr) . "], in_scheme_id => $scheme_id, in_rejected => 12)");
+                          }
+                      }
+  
+                      DB::commit();
+                      DB::connection('pgsql_encwrite')->commit();
+                      DB::connection('pgsql_paywrite')->commit();
+  
+                      return response()->json([
+                          'status' => 1,
+                          'msg' => $msg,
+                          'type' => 'green',
+                          'icon' => 'fa fa-check',
+                          'title' => 'Success'
+                      ]);
+                  } else {
+                      throw new \Exception("Insert failed");
+                  }
+              }
+          } catch (\Exception $e) {
+              DB::rollback();
+              DB::connection('pgsql_encwrite')->rollback();
+              DB::connection('pgsql_paywrite')->rollback();
+  
+              return response()->json([
+                  'status' => 0,
+                  'msg' => ['Something went wrong.'],
+                  'type' => 'red',
+                  'icon' => 'fa fa-warning',
+                  'title' => 'Error'
+              ]);
+          }
       } catch (\Exception $e) {
-        dd($e);
-        DB::rollback();
-        DB::connection('pgsql_encwrite')->rollback();
-        DB::connection('pgsql_paywrite')->rollback();
-        $return_status = 0;
-        $return_text = 'Error. Please try again';
-        $return_msg = array("" . $return_text);
-        return $response = array(
-          'status' => $return_status,
-          'msg' => $return_msg,
-          'type' => 'red',
-          'icon' => 'fa fa-warning',
-          'title' => 'Warning!!'
-        );
+          return response()->json([
+              'exception' => true,
+              'exception_message' => 'Something went wrong. Maybe session timeout, please logout and login again.'
+          ], 400);
       }
-    } catch (\Exception $e) {
-      //  dd($e);
-      $response = array(
-        'exception' => true,
-        // 'exception_message' => $e->getMessage(),
-        'exception_message' => 'Somethimg went wrong. May be session timeout, please logout and login again.',
-      );
-      $statusCode = 400;
-    } finally {
-      return response()->json($response, $statusCode);
-    }
   }
+  
+  // public function approveStopPaymentData(Request $request)
+  // {
+  //   $response = [];
+  //   $statusCode = 200;
+
+  //   if (!$request->ajax()) {
+  //     $statusCode = 400;
+  //     $response = ['error' => 'Error occurred in form submit.'];
+  //     return response()->json($response, $statusCode);
+  //   }
+
+  //   try {
+  //     $userId = AuthChecker::getUserId();
+  //     $designationId = Auth::user()->designation_id;
+  //     $roleArray = Configduty::where('user_id', $userId)->where('is_active', 1)->get();
+
+  //     if ($roleArray->isEmpty()) {
+  //       return response()->json([
+  //         'status' => 0,
+  //         'msg' => ["Unauthorized."],
+  //         'type' => 'red',
+  //         'icon' => 'fa fa-warning',
+  //         'title' => 'Warning!!'
+  //       ]);
+  //     }
+
+  //     if (!AuthChecker::ApproverPermission()) {
+  //       return response()->json([
+  //         'status' => 0,
+  //         'msg' => ["Unauthorized."],
+  //         'type' => 'red',
+  //         'icon' => 'fa fa-warning',
+  //         'title' => 'Warning!!'
+  //       ]);
+  //     }
+
+  //     $isBulk = $request->is_bulk ? 1 : 0;
+  //     $remarks = trim($request->accept_reject_comments);
+  //     $operationType = $request->opreation_type;
+  //     $bulkId = $request->applicantId;
+  //     $singleId = $request->single_app_id;
+
+  //     $benIdArr = [];
+  //     $schemeIdArr = [];
+  //     $updateTypeArr = [];
+
+  //     if ($isBulk) {
+  //       $bulkIdArr = explode(',', $bulkId);
+  //       foreach ($bulkIdArr as $value) {
+  //         [$benId, $schemeId, $updateType] = explode('_', $value);
+  //         $benIdArr[] = $benId;
+  //         $schemeIdArr[] = $schemeId;
+  //         $updateTypeArr[] = $updateType;
+  //       }
+  //     } else {
+  //       [$benId, $schemeId, $updateType] = explode('_', $singleId);
+  //       $benIdArr[] = $benId;
+  //       $schemeIdArr[] = $schemeId;
+  //       $updateTypeArr[] = $updateType;
+  //     }
+
+  //     $benIdArr = array_unique($benIdArr);
+  //     $schemeIdArr = array_unique($schemeIdArr);
+  //     $updateTypeArr = array_unique($updateTypeArr);
+
+  //     $schemeId = implode('', $schemeIdArr);
+  //     $updateType = implode('', $updateTypeArr);
+
+  //     $inputJson = [
+  //       'stop_payment_reason' => $remarks,
+  //       'pension.beneficiaries.next_level_role_id' => '-99',
+  //       'designation' => $designationId
+  //     ];
+
+  //     $isActive = 0;
+  //     $districtCode = null;
+  //     foreach ($roleArray as $roleObj) {
+  //       if ($roleObj['scheme_id'] == $schemeId) {
+  //         $isActive = 1;
+  //         $districtCode = $roleObj['district_code'];
+  //         break;
+  //       }
+  //     }
+
+  //     if (!$isActive || !$districtCode) {
+  //       return response()->json([
+  //         'status' => 0,
+  //         'msg' => ["User Disabled."],
+  //         'type' => 'red',
+  //         'icon' => 'fa fa-warning',
+  //         'title' => 'Warning!!'
+  //       ]);
+  //     }
+
+  //     $updateCode = $operationType === 'A' ? 30 : ($operationType === 'B' ? 300 : null);
+
+  //     $updateLogTable = [];
+  //     foreach ($benIdArr as $item) {
+  //       $updateLogTable[] = [
+  //         'application_id' => $item,
+  //         'created_by_dist_code' => $districtCode,
+  //         'scheme_id' => $schemeId,
+  //         'user_id' => $userId,
+  //         'created_at' => date('Y-m-d H:i:s'),
+  //         'remarks' => $remarks,
+  //         'update_code' => $updateCode,
+  //         'new_data' => json_encode($inputJson),
+  //         'module_name' => class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod()
+  //       ];
+  //     }
+
+  //     DB::beginTransaction();
+  //     DB::connection('pgsql_encwrite')->beginTransaction();
+  //     DB::connection('pgsql_paywrite')->beginTransaction();
+
+  //     $c = 0;
+  //     foreach ($benIdArr as $benId) {
+  //       $benEntryModel = DB::table('pension.beneficiaries')->where('scheme_id', $schemeId)
+  //         ->where('id', $benId)
+  //         ->where('next_level_stop_payment', 1)
+  //         ->where('created_by_dist_code', $districtCode)
+  //         ->first();
+
+  //       if ($operationType === 'A' && $updateType == 1) {
+  //         $is_ben_update = $benEntryModel->update([
+  //           'next_level_role_id' => -99,
+  //           'next_level_stop_payment' => 2,
+  //           'is_approved' => 2,
+  //           'is_verified' => 2,
+  //           'is_rejected' => 1,
+  //           'action_by' => $userId,
+  //           'action_ip_address' => $request->ip(),
+  //           'action_type' => class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod()
+  //         ]);
+  //       } elseif ($operationType === 'B') {
+  //         $is_ben_update = $benEntryModel->update([
+  //           'next_level_stop_payment' => null,
+  //           'action_by' => $userId,
+  //           'action_ip_address' => $request->ip(),
+  //           'action_type' => class_basename(Route::current()->controller) . '@' . Route::getCurrentRoute()->getActionMethod()
+  //         ]);
+  //       }
+
+  //       if (!empty($updateLogTable)) {
+  //         AcceptRejectInfo::insert($updateLogTable);
+  //       }
+
+  //       if ($updateType == 1 && $operationType === 'A') {
+  //         $benDetails = DB::connection('pgsql_paywrite')->table('payment.ben_payment_details')
+  //           ->whereIn('ben_id', $benIdArr)
+  //           ->where('scheme_id', $schemeId)
+  //           ->exists();
+
+  //         if ($benDetails) {
+  //           $is_payment_update = DB::connection('pgsql_paywrite')->select(
+  //             "SELECT payment.reject_update_bank(in_ben_id => ARRAY[" . implode(',', $benIdArr) . "], in_scheme_id => $schemeId, in_rejected => 12)"
+  //           );
+  //         }
+  //       }
+  //       $c++;
+  //     }
+  //     if ($c == count($benIdArr)) {
+  //       if ($is_payment_update == 1 and $is_ben_update == 1) {
+  //         DB::commit();
+  //         DB::connection('pgsql_encwrite')->commit();
+  //         DB::connection('pgsql_paywrite')->commit();
+
+  //         $response = [
+  //           'status' => 1,
+  //           'msg' => $operationType === 'A' ? 'Beneficiary De-activated Successfully' : 'Beneficiary De-activated Request Successfully Reverted',
+  //           'type' => 'green',
+  //           'icon' => 'fa fa-check',
+  //           'title' => 'Success'
+  //         ];
+
+  //       } else {
+  //         DB::rollback();
+  //         DB::connection('pgsql_encwrite')->rollback();
+  //         DB::connection('pgsql_paywrite')->rollback();
+
+  //         $response = [
+  //           'status' => 0,
+  //           'msg' => ['Something went wrong. Please try again.'],
+  //           'type' => 'red',
+  //           'icon' => 'fa fa-warning',
+  //           'title' => 'Warning!!'
+  //         ];
+  //       }
+  //     } else {
+  //       DB::rollback();
+  //       DB::connection('pgsql_encwrite')->rollback();
+  //       DB::connection('pgsql_paywrite')->rollback();
+
+  //       $response = [
+  //         'status' => 0,
+  //         'msg' => ['Something went wrong. Please try again.'],
+  //         'type' => 'red',
+  //         'icon' => 'fa fa-warning',
+  //         'title' => 'Warning!!'
+  //       ];
+  //     }
+  //     // DB::commit();
+  //     // DB::connection('pgsql_encwrite')->commit();
+  //     // DB::connection('pgsql_paywrite')->commit();
+
+  //     // $response = [
+  //     //     'status' => 1,
+  //     //     'msg' => $operationType === 'A' ? 'Beneficiary De-activated Successfully' : 'Beneficiary De-activated Request Successfully Reverted',
+  //     //     'type' => 'green',
+  //     //     'icon' => 'fa fa-check',
+  //     //     'title' => 'Success'
+  //     // ];
+  //   } catch (Exception $e) {
+  //     dd($e);
+  //     DB::rollback();
+  //     DB::connection('pgsql_encwrite')->rollback();
+  //     DB::connection('pgsql_paywrite')->rollback();
+
+  //     $response = [
+  //       'status' => 0,
+  //       'msg' => ['Something went wrong. Please try again.'],
+  //       'type' => 'red',
+  //       'icon' => 'fa fa-warning',
+  //       'title' => 'Warning!!'
+  //     ];
+  //   } finally {
+  //     return response()->json($response, $statusCode);
+  //   }
+  // }
+
 }

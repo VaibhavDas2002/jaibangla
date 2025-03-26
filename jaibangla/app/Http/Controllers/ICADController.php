@@ -49,7 +49,7 @@ class ICADController extends Controller
 
     public function __construct()
     {
-
+        return redirect("/")->with('danger', 'User Disabled');
 
         $this->base_dob_chk_date = date('Y-m-d');
         $this->max_dob = date('Y-m-d', strtotime('+60 years'));
@@ -58,7 +58,7 @@ class ICADController extends Controller
     {
         try {
             $user_id = AuthChecker::getUserId();
-            if (AuthChecker::ApproverChecker()) {
+            if (AuthChecker::ApproverPermission()) {
                 $schemes = DB::select(DB::raw("select id,scheme_name,display_name,is_active from m_scheme where  id IN (8,9,17) and  id in (select scheme_id from duty_assignement where is_active=1 and user_id=" . $user_id . ") order by rank"));
                 //dd($schemes);
                 return view(
@@ -78,7 +78,7 @@ class ICADController extends Controller
     {
         $this->middleware('auth');
         $user_id = AuthChecker::getUserId();
-        $is_approver = AuthChecker::ApproverChecker();
+        $is_approver = AuthChecker::ApproverPermission();
         $scheme_id = $request->scheme_id;
         if (!ctype_digit($scheme_id)) {
             return redirect("/")->with('error', 'Scheme Not Valid');
@@ -140,7 +140,7 @@ class ICADController extends Controller
             //dd($process_type);
             $query = DB::table($schema . '.beneficiaries')
                 ->where('legacy_import', true)->whereNull('next_level_role_id_edit')->where('created_by_dist_code', $district_code)->where('next_level_role_id', 0);
-            if (AuthChecker::VerifierChecker()) {
+            if (AuthChecker::VerifierPermission()) {
                 $query = $query->where('created_by_local_body_code', $created_by_local_body_code);
                 if (!empty($application_type)) {
                 }
@@ -153,7 +153,7 @@ class ICADController extends Controller
             if (!empty($request->gp_ward_code)) {
                 $query = $query->where('gp_ward_code', $request->gp_ward_code);
             }
-            if (AuthChecker::ApproverChecker()) {
+            if (AuthChecker::ApproverPermission()) {
 
 
             }
@@ -310,7 +310,7 @@ class ICADController extends Controller
     public function editUnlock(Request $request)
     {
         $user_id = AuthChecker::getUserId();
-        if (!AuthChecker::ApproverChecker()) {
+        if (!AuthChecker::ApproverPermission()) {
             return redirect("/")->with('error', 'Not Allowed');
         }
         $scheme_id = $request->scheme_id;
@@ -493,7 +493,7 @@ class ICADController extends Controller
     function editicadPost(Request $request)
     {
         $user_id = AuthChecker::getUserId();
-        if (!AuthChecker::ApproverChecker()) {
+        if (!AuthChecker::ApproverPermission()) {
             return redirect("/")->with('error', 'Not Allowed');
         }
         $scheme_id = $request->scheme_id;

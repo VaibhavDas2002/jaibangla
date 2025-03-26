@@ -1,0 +1,275 @@
+[
+    {
+        "id": 127,
+        "menu_name": "Jai Bangla Form",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "mainform",
+        "url_type": "1",
+        "child_menu": []
+    },
+    {
+        "id": 128,
+        "menu_name": "Application List",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "schemelistforUpdate",
+        "url_type": "1",
+        "child_menu": []
+    },
+    {
+        "id": 239,
+        "menu_name": "Wcd Edit Approved Beneficiary",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "#",
+        "url_type": "1",
+        "child_menu": [
+            {
+                "menu_id": 240,
+                "menu_name": "OAP EDIT",
+                "designation_id": "Operator",
+                "master_rank": 10,
+                "map_rank": 10,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 239,
+                "url_type": "1",
+                "link_url": "wcd_edit_list/10/",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 241,
+                "menu_name": "WP EDIT",
+                "designation_id": "Operator",
+                "master_rank": 11,
+                "map_rank": 11,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 239,
+                "url_type": "1",
+                "link_url": "wcd_edit_list/11/",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 263,
+                "menu_name": "Manabik EDIT",
+                "designation_id": "Operator",
+                "master_rank": 1041,
+                "map_rank": 1041,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 239,
+                "url_type": "1",
+                "link_url": "wcd_edit_list/2/",
+                "icon": "fa fa-link",
+                "menu_class": null
+            }
+        ]
+    },
+    {
+        "id": 283,
+        "menu_name": "Aadhar & Mobile De-duplication",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "#",
+        "url_type": "1",
+        "child_menu": [
+            {
+                "menu_id": 286,
+                "menu_name": "De-duplicate Aadhar & Mobile",
+                "designation_id": "Operator",
+                "master_rank": 2001,
+                "map_rank": 2001,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 283,
+                "url_type": "2",
+                "link_url": "de-duplicate-aadhar-mobile",
+                "icon": "fa fa-link",
+                "menu_class": null
+            }
+        ]
+    },
+    {
+        "id": 295,
+        "menu_name": "Process BSK Application",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "schemelistforUpdateBsk",
+        "url_type": "1",
+        "child_menu": []
+    },
+    {
+        "id": 208,
+        "menu_name": "Beneficiary List Report",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "#",
+        "url_type": "1",
+        "child_menu": [
+            {
+                "menu_id": 209,
+                "menu_name": "New Beneficiary List",
+                "designation_id": "Operator",
+                "master_rank": 1,
+                "map_rank": 1,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 208,
+                "url_type": "1",
+                "link_url": "scheme-selection-common?type=F",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 210,
+                "menu_name": "Verified List",
+                "designation_id": "Operator",
+                "master_rank": 2,
+                "map_rank": 2,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 208,
+                "url_type": "1",
+                "link_url": "scheme-selection-common?type=V",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 212,
+                "menu_name": "Approved List",
+                "designation_id": "Operator",
+                "master_rank": 4,
+                "map_rank": 4,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 208,
+                "url_type": "1",
+                "link_url": "scheme-selection-common?type=A",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 213,
+                "menu_name": "Rejected List",
+                "designation_id": "Operator",
+                "master_rank": 5,
+                "map_rank": 5,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 208,
+                "url_type": "1",
+                "link_url": "scheme-selection-common?type=T",
+                "icon": "fa fa-link",
+                "menu_class": null
+            },
+            {
+                "menu_id": 211,
+                "menu_name": "Recomended List",
+                "designation_id": "Operator",
+                "master_rank": 3,
+                "map_rank": 20,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 208,
+                "url_type": "1",
+                "link_url": "scheme-selection-common?type=R",
+                "icon": "fa fa-link",
+                "menu_class": null
+            }
+        ]
+    },
+    {
+        "id": 254,
+        "menu_name": "Farmer",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "#",
+        "url_type": "1",
+        "child_menu": [
+            {
+                "menu_id": 255,
+                "menu_name": "Edit Approved Beneficiaries",
+                "designation_id": "Operator",
+                "master_rank": 1033,
+                "map_rank": 1033,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 254,
+                "url_type": "1",
+                "link_url": "editOapFarmerList",
+                "icon": "fa fa-link",
+                "menu_class": null
+            }
+        ]
+    },
+    {
+        "id": 259,
+        "menu_name": "Aadhaar Management",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "#",
+        "url_type": "1",
+        "child_menu": [
+            {
+                "menu_id": 270,
+                "menu_name": "Find Aadhaar",
+                "designation_id": "Operator",
+                "master_rank": 1047,
+                "map_rank": 1047,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 259,
+                "url_type": "1",
+                "link_url": "findAadhaar",
+                "icon": "fa fa-link",
+                "menu_class": null
+            }
+        ]
+    },
+    {
+        "id": 273,
+        "menu_name": "Jai Bangla Form(Special Quota)",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "mainformwtQuota",
+        "url_type": "1",
+        "child_menu": []
+    },
+    {
+        "id": 312,
+        "menu_name": "Life Certificate",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "#",
+        "url_type": "1",
+        "child_menu": [
+            {
+                "menu_id": 313,
+                "menu_name": "Purohit",
+                "designation_id": "Operator",
+                "master_rank": 5901,
+                "map_rank": 5901,
+                "map_is_active": true,
+                "master_is_active": true,
+                "parent_id": 312,
+                "url_type": "1",
+                "link_url": "lifeCertificte?scheme_id=17",
+                "icon": "fa fa-link",
+                "menu_class": null
+            }
+        ]
+    },
+    {
+        "id": 330,
+        "menu_name": "Upload\/Change Document",
+        "parent_id": null,
+        "icon": "fa fa-link",
+        "link_url": "scheme_selection_doc_upload",
+        "url_type": "1",
+        "child_menu": []
+    }
+]

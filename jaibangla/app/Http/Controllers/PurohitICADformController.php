@@ -60,6 +60,7 @@ class PurohitICADformController extends Controller
 
   public function __construct()
   {
+    return redirect("/")->with('danger', 'User Disabled');
     $this->middleware('auth');
     $arr = SchemecodeStatic::getpr1ListPurohit();
     $this->pr1ListPurohit = $arr;

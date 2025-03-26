@@ -161,18 +161,20 @@ class DupCheck
             ->first();
         if ($is_normal) {
             if ($id === null) {
-                $entry = BenEntry::where('scheme_id', $scheme_id)
+                $entry_count = BenEntry::where('scheme_id', $scheme_id)
                     ->where('bank_code', $bank_code)
-                    ->first();
+                    ->whereIn('is_clean', [1, 2])
+                    ->count('id');
 
-                return $entry !== null;
+                return $entry_count > 0 ? true : false;
             } else {
-                $entry = BenEntry::where('scheme_id', $scheme_id)
+                $entry_count = BenEntry::where('scheme_id', $scheme_id)
                     ->where('bank_code', $bank_code)
                     ->where('id', '!=', $id)
-                    ->first();
+                    ->whereIn('is_clean', [1, 2])
+                    ->count('id');
 
-                return $entry !== null;
+                return $entry_count > 0 ? true : false;
             }
 
 
@@ -187,19 +189,54 @@ class DupCheck
             ->first();
         if ($is_normal) {
             if ($id === null) {
-                $entry = BenEntry::where('scheme_id', $scheme_id)
+                $entry_count = BenEntry::where('scheme_id', $scheme_id)
                     ->where('aadhar_no', $aadhar_no)
-                    ->first();
+                    ->whereIn('is_clean', [1, 2])
+                    ->count('id');
 
-                return $entry !== null;
+                return $entry_count > 0 ? true : false;
             } else {
-                $entry = BenEntry::where('scheme_id', $scheme_id)
+                $entry_count = BenEntry::where('scheme_id', $scheme_id)
                     ->where('aadhar_no', $aadhar_no)
                     ->where('id', '!=', $id)
-                    ->first();
+                    ->whereIn('is_clean', [1, 2])
+                    ->count('id');
 
-                return $entry !== null;
+                return $entry_count > 0 ? true : false;
             }
+        } else {
+            return false;
+        }
+    }
+
+    
+    public static function dupAadharCheckSameCMO($scheme_id, $aadhar_no, $id = null)
+    {
+        $is_normal = SchemeConfig::where('scheme_id', $scheme_id)
+            ->where('is_cross', false)
+            ->where('field_type', 1)
+            ->first();
+        if ($is_normal) {
+            if ($id === null) {
+                $entry_count = BenEntry::where('scheme_id', $scheme_id)
+                    ->where('aadhar_no', $aadhar_no)
+                    ->whereIn('is_clean', [1, 2])
+                    ->whereIn('scheme_id', [2,10,11])
+                    ->count('id');
+
+                return $entry_count > 0 ? true : false;
+            } else {
+                $entry_count = BenEntry::where('scheme_id', $scheme_id)
+                    ->where('aadhar_no', $aadhar_no)
+                    ->where('id', '!=', $id)
+                    ->whereIn('is_clean', [1, 2])
+                    ->whereIn('scheme_id', [2,10,11])
+                    ->count('id');
+
+                return $entry_count > 0 ? true : false;
+            }
+        } else {
+            return false;
         }
     }
 
@@ -211,18 +248,20 @@ class DupCheck
             ->first();
         if ($is_normal) {
             if ($id === null) {
-                $entry = BenEntry::where('scheme_id', $scheme_id)
+                $entry_count = BenEntry::where('scheme_id', $scheme_id)
                     ->where('mobile_no', $mobile_no)
-                    ->first();
+                    ->whereIn('is_clean', [1, 2])
+                    ->count('id');
 
-                return $entry !== null;
+                return $entry_count > 0 ? true : false;
             } else {
-                $entry = BenEntry::where('scheme_id', $scheme_id)
+                $entry_count = BenEntry::where('scheme_id', $scheme_id)
                     ->where('mobile_no', $mobile_no)
                     ->where('id', '!=', $id)
-                    ->first();
+                    ->whereIn('is_clean', [1, 2])
+                    ->count('id');
 
-                return $entry !== null;
+                return $entry_count > 0 ? true : false;
             }
         }
     }
@@ -232,21 +271,24 @@ class DupCheck
         $is_normal = SchemeConfig::where('scheme_id', $scheme_id)
             ->where('is_cross', false)
             ->where('field_type', 3)
+
             ->first();
         if ($is_normal) {
             if ($id === null) {
-                $entry = BenEntry::where('scheme_id', $scheme_id)
+                $entry_count = BenEntry::where('scheme_id', $scheme_id)
                     ->where('caste_certificate_no', $catse_certificate_no)
-                    ->first();
+                    ->whereIn('is_clean', [1, 2])
+                    ->count();
 
-                return $entry !== null;
+                return $entry_count > 0 ? true : false;
             } else {
-                $entry = BenEntry::where('scheme_id', $scheme_id)
+                $entry_count = BenEntry::where('scheme_id', $scheme_id)
                     ->where('caste_certificate_no', $catse_certificate_no)
                     ->where('id', '!=', $id)
-                    ->first();
+                    ->whereIn('is_clean', [1, 2])
+                    ->count();
 
-                return $entry !== null;
+                return $entry_count > 0 ? true : false;
             }
         }
     }
@@ -269,17 +311,19 @@ class DupCheck
             foreach ($cross as $scheme)
                 array_push($cross_s, (int) $scheme);
             if ($id === null) {
-                $entry = BenEntry::wherein('scheme_id', $cross_s)
+                $entry_count = BenEntry::wherein('scheme_id', $cross_s)
                     ->where('bank_code', $bank_code)
-                    ->first();
+                    ->whereIn('is_clean', [1, 2])
+                    ->count('id');
 
-                return $entry !== null;
+                return $entry_count > 0 ? true : false;
             } else {
-                $entry = BenEntry::wherein('scheme_id', $cross_s)
+                $entry_count = BenEntry::wherein('scheme_id', $cross_s)
                     ->where('bank_code', $bank_code)
                     ->where('id', '!=', $id)
-                    ->first();
-                return $entry !== null;
+                    ->whereIn('is_clean', [1, 2])
+                    ->count('id');
+                return $entry_count > 0 ? true : false;
             }
 
         } else {
@@ -302,17 +346,19 @@ class DupCheck
             foreach ($cross as $scheme)
                 array_push($cross_s, (int) $scheme);
             if ($id === null) {
-                $entry = BenEntry::wherein('scheme_id', $cross_s)
+                $entry_count = BenEntry::wherein('scheme_id', $cross_s)
                     ->where('aadhar_no', $aadhar_no)
-                    ->first();
+                    ->whereIn('is_clean', [1, 2])
+                    ->count('id');
 
-                return $entry !== null;
+                return $entry_count > 0 ? true : false;
             } else {
-                $entry = BenEntry::wherein('scheme_id', $cross_s)
+                $entry_count = BenEntry::wherein('scheme_id', $cross_s)
                     ->where('aadhar_no', $aadhar_no)
                     ->where('id', '!=', $id)
-                    ->first();
-                return $entry !== null;
+                    ->whereIn('is_clean', [1, 2])
+                    ->count('id');
+                return $entry_count > 0 ? true : false;
             }
 
         } else {
@@ -323,9 +369,9 @@ class DupCheck
     public static function dupMobileCheckCross($scheme_id, $mobile_no, $id = null)
     {
         $is_cross = SchemeConfig::where('scheme_id', $scheme_id)
-        ->where('is_cross', true)
-        ->where('field_type', 2)
-        ->first();
+            ->where('is_cross', true)
+            ->where('field_type', 2)
+            ->first();
 
         if ($is_cross) {
             $cross_schemes = $is_cross->cross_scheme;
@@ -334,17 +380,19 @@ class DupCheck
             foreach ($cross as $scheme)
                 array_push($cross_s, (int) $scheme);
             if ($id === null) {
-                $entry = BenEntry::wherein('scheme_id', $cross_s)
+                $entry_count = BenEntry::wherein('scheme_id', $cross_s)
                     ->where('mobile_no', $mobile_no)
-                    ->first();
+                    ->whereIn('is_clean', [1, 2])
+                    ->count('id');
 
-                return $entry !== null;
+                return $entry_count > 0 ? true : false;
             } else {
-                $entry = BenEntry::wherein('scheme_id', $cross_s)
+                $entry_count = BenEntry::wherein('scheme_id', $cross_s)
                     ->where('mobile_no', $mobile_no)
                     ->where('id', '!=', $id)
-                    ->first();
-                return $entry !== null;
+                    ->whereIn('is_clean', [1, 2])
+                    ->count('id');
+                return $entry_count > 0 ? true : false;
             }
 
         } else {
@@ -367,17 +415,19 @@ class DupCheck
             foreach ($cross as $scheme)
                 array_push($cross_s, (int) $scheme);
             if ($id === null) {
-                $entry = BenEntry::wherein('scheme_id', $cross_s)
+                $entry_count = BenEntry::wherein('scheme_id', $cross_s)
                     ->where('caste_certificate_no', $catse_certificate_no)
-                    ->first();
+                    ->whereIn('is_clean', [1, 2])
+                    ->count('id');
 
-                return $entry !== null;
+                return $entry_count > 0 ? true : false;
             } else {
-                $entry = BenEntry::wherein('scheme_id', $cross_s)
+                $entry_count = BenEntry::wherein('scheme_id', $cross_s)
                     ->where('caste_certificate_no', $catse_certificate_no)
                     ->where('id', '!=', $id)
-                    ->first();
-                return $entry !== null;
+                    ->whereIn('is_clean', [1, 2])
+                    ->count('id');
+                return $entry_count > 0 ? true : false;
             }
 
         } else {

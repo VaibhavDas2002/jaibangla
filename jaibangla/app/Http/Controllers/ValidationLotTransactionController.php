@@ -335,11 +335,11 @@ class ValidationLotTransactionController extends Controller
                 );
             }
         } catch (\Exception $e) {
-            // dd($e);
+             dd($e);
             $response = array(
                 'exception' => true,
                 'exception_message' => 'Something went wrong!',
-                // 'exception_message' => $e->getMessage(),
+                //  'exception_message' => $e->getMessage(),
             );
             $statusCode = 400;
         } finally {

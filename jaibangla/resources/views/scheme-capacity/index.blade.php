@@ -45,8 +45,7 @@
                                 <select name="cap_level" id="cap_level" class="form-control select2" onchange="capLevel()">
                                     <option value="0">--Select Capacity Level--</option>
                                     <option value="D">District</option>
-                                    <option value="SD">Sub-District</option>
-                                    <option value="BK">BLock</option>
+                                    <option value="SD" disabled>Sub-District</option>
                                 </select>
                                 @if ($errors->has('cap_level'))
                                     <span class="help-block">
@@ -116,9 +115,9 @@
             $('#district_div').hide();
             $('#rural_urban_div').hide();
         }
-        else if (cap_l == 'SD' || cap_l == 'BK') {
+        else if (cap_l == 'SD') {
             $('#district_div').show();
-            // $('#rural_urban_div').show();
+            $('#rural_urban_div').show();
         }
     }
 
@@ -136,10 +135,10 @@
                 alert('Please select district');
                 return false;
             }
-            // if ($('#is_rural_urban').val() == 0) {
-            //     alert('Please select rural/urban');
-            //     return false;
-            // }
+            if ($('#is_rural_urban').val() == 0) {
+                alert('Please select rural/urban');
+                return false;
+            }
         }
         return true;
     }

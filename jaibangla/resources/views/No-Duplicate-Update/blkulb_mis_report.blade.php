@@ -89,7 +89,7 @@
                                         <strong>{{ $message }}</strong>
                                     </div>
                                 @endif
-                                @if (($message = Session::get('msg1')))
+                                @if (($message = Session::get('error')))
                                     <div class="alert alert-danger alert-block">
                                         <button type="button" class="close" data-dismiss="alert">×</button>
                                         <strong>{{ $message }}</strong>
@@ -173,10 +173,12 @@
                                             <th>Incomplete Details</th>
                                             <th>No Aadhar Number</th>
                                             <th>Duplicate Aadhar Number</th>
-                                            <th>Bank Failure</th>
-                                            <th>Duplicate Bank Account Number</th>
                                             <th>No Mobile Number</th>
                                             <th>Duplicate Mobile Number</th>
+                                            <th>Duplicate Bank Account Number</th>
+                                            <th>Payment Transaction Failure</th>
+                                            <th>Name Validation Failure</th>
+                                            <th>Account Validation Failure</th>
                                         </thead>
                                         <tbody style="font-size: 14px;"></tbody>
                                     </table>
@@ -243,7 +245,7 @@
         });
 
 
-        $('#filter_1').change(function () {
+        $('#rural_urban_code').change(function () {
             if ($(this).val() != '') {
                 $('#excel_filter_1').val($(this).val());
             }
@@ -252,7 +254,7 @@
             }
         });
 
-        $('#filter_2').change(function () {
+        $('#blk_ulb_code').change(function () {
             if ($(this).val() != '') {
                 $('#excel_filter_2').val($(this).val());
             }
@@ -300,8 +302,8 @@
                         d.scheme_id = $('#scheme_type').val();
                         d.filter_type = $('#filter_type').val();
                         d.dist_code = $('#dist_code').val();
-                        d.filter_1 = $('#filter_1').val();
-                        d.filter_2 = $('#filter_2').val();
+                        d.rural_urban_code = $('#rural_urban_code').val();
+                        d.blk_ulb_code = $('#blk_ulb_code').val();
                         d._token = "{{csrf_token()}}";
                     },
                     error: function (jqXHR, textStatus, errorThrown) {
@@ -322,10 +324,14 @@
                     { "data": "incomplete_data" },
                     { "data": "no_aadhar" },
                     { "data": "dup_aadhar" },
-                    { "data": "bank_failure" },
-                    { "data": "dup_bank" },
                     { "data": "no_mobile" },
                     { "data": "dup_mobile" },
+                    { "data": "dup_bank" },
+                    { "data": "bank_failure" },
+                    { "data": "name_faliure" },
+                    { "data": "account_faliure" },
+
+
                 ]
             });
         }

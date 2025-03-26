@@ -52,7 +52,7 @@ class ReportDuplicateStopPaymentBenController extends Controller
   public function index1(Request $request)
   {
     $is_active = 0;
-    $roleArray = Configduty::where('user_id', $user_id)->where('is_active', 1)->get()->toArray();;
+    $roleArray = Configduty::where('user_id', Auth::user()->id)->where('is_active', 1)->get()->toArray();;
     $user_id = AuthChecker::getUserId();
     $designation_id = Auth::user()->designation_id;
     $district_visible = $is_urban_visible = $block_visible = 1;

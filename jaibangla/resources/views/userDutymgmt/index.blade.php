@@ -103,7 +103,7 @@
 
                   
                 
-                   @if($designation_id=='Admin' || $designation_id=='HOD' || $designation_id=='Verifier' || $designation_id=='Approver' )
+                   @if($designation_id=='Admin' || $designation_id=='HOD' || $designation_id=='Verifier' || $designation_id=='Approver' || $designation_id=='Delegated Approver')
                   <a class="btn btn-primary" href="{{ route('adduser') }}">Add User and Assign Role</a>
                    @endif
                  
@@ -210,8 +210,8 @@
                     <img src="{{ asset('images/ZKZg.gif') }}" width="100px" height="100px"/>
                   </div>  
                   
-               <div class="col-md-12 text-center" id="excel-btn">
-                <!--<a  class="btn btn-success pull-right" href="{{url('/downloadUser?type=excel')}}">Download All User Data as Excel </a>-->
+               <div class="col-md-12 text-center">
+               <p clas="text-primary text-center" style="color: #000000; font-size: 16px;">{{$heading}}</p>
                 </div>
                
                     <table id="example" class="display" cellspacing="0" width="100%">
@@ -342,33 +342,30 @@
             <input type="hidden" name="must_role_adduser" id="must_role_adduser" value="1">  
              <div class="row">
                      <div class="form-group col-md-4">
-                            <label for="firstname" class="control-label">First Name <span class="requied">*</span></label>
+                            <label for="full_name" class="control-label">Full Name <span class="requied">*</span></label>
 
                             
-                                <input id="firstname" type="text" class="form-control txtOnly" name="firstname" value=""  >
+                                <input id="full_name" type="text" class="form-control txtOnly" name="full_name" value=""  >
 
                                
                            
                       </div>
-                        <div class="form-group col-md-4">
-                            <label for="middlename" class="control-label">Middle Name</label>
+                        
+                      
+              </div>  
+              <div class="row">
+                <div class="form-group col-md-4">
+                       <label for="full_name_as_in_aadhar" class="control-label">Full Name as in Aadhaar <span class="requied">*</span></label>
 
-                            
-                                <input id="middlename" type="text" class="form-control txtOnly" name="middlename" value="" >
+                       
+                           <input id="full_name_as_in_aadhar" type="text" class="form-control txtOnly" name="full_name_as_in_aadhar" value=""  >
 
-                               
-                           
-                        </div>
-                        <div class="form-group col-md-4">
-                            <label for="lastname" class="control-label">Last Name <span class="requied">*</span></label>
-
-                           
-                                <input id="lastname" type="text" class="form-control txtOnly" name="lastname" value="" >
-
-                               
-                           
-                        </div>
-              </div>          
+                          
+                      
+                 </div>
+                   
+                   
+           </div>          
               <div class="row">   
                         <div class="form-group col-md-4">
                             <label for="address" class="control-label">Office Address</label>
@@ -799,6 +796,7 @@ $('#change_duty').on('click',function(){
       type:'POST',
       dataType: 'json',
       data: {
+        duty_id:id,
         user_id:user_id,
         scheme_id:scheme_id
       },
@@ -822,7 +820,7 @@ $('#change_duty').on('click',function(){
         //location.reload();
         //$('#toggleActivate_'+id).prop('disabled', false);
         $("html, body").animate({ scrollTop: "0" }); 
-         window.location.href=base_url;
+        // window.location.href=base_url;
       }
     });
 });
@@ -873,9 +871,8 @@ $('#is_urban_home').change(function() {
 $("#btn-submit").click(function(){
     $('#btn-submit').prop('disabled', true);
     $("#btn_addEdit_loader").show();
-    $firstname = $("#firstname").val();
-    $middlename = $("#middlename").val();
-    $lastname = $("#lastname").val();
+    $full_name = $("#full_name").val();
+    $full_name_as_in_aadhar = $("#full_name_as_in_aadhar").val();
     $address = $("#address").val();
     $username = $("#username").val();
     $email = $("#email").val();
@@ -892,9 +889,8 @@ $("#btn-submit").click(function(){
       dataType: "json",
       data: { 
         id:$id,
-        firstname:$firstname,
-        middlename:$middlename,
-        lastname:$lastname,
+        full_name:$full_name,
+        full_name_as_in_aadhar:$full_name_as_in_aadhar,
         address:$address,
         username:$username,
         email:$email,
@@ -932,9 +928,8 @@ function UpdateUserForm(id){
     var valid=1;
     $(".print-error-msg").hide();
     $("#must_role_adduser").val(1); 
-    $("#firstname").val(''); 
-    $("#lastname").val(''); 
-    $("#middlename").val(''); 
+    $("#full_name").val(''); 
+    $("#full_name_as_in_aadhar").val(''); 
     $("#address").val(''); 
     $("#username").val(''); 
     $("#email").val(''); 
@@ -963,9 +958,8 @@ function UpdateUserForm(id){
           $(".submit_loader").hide();
           printMsg(data.return_msg,'0','crud_msg_Crud');
         }else{
-          $("#firstname").val(data.userarr.firstname); 
-          $("#middlename").val(data.userarr.middlename); 
-          $("#lastname").val(data.userarr.lastname); 
+          $("#full_name").val(data.userarr.full_name); 
+          $("#full_name_as_in_aadhar").val(data.userarr.full_name_as_in_aadhar); 
           $("#address").val(data.userarr.address); 
           $("#username").val(data.userarr.username); 
           $("#email").val(data.userarr.email); 
